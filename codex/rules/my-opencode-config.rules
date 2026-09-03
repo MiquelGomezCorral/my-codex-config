@@ -1,0 +1,35 @@
+# Keep publication and destructive filesystem operations explicit.
+prefix_rule(
+    pattern = ["git", "push"],
+    decision = "prompt",
+    justification = "Publishing requires explicit approval.",
+    match = ["git push", "git push origin main"],
+)
+
+prefix_rule(
+    pattern = ["git", "reset", "--hard"],
+    decision = "forbidden",
+    justification = "Use a reviewed, reversible Git operation instead.",
+    match = ["git reset --hard HEAD"],
+)
+
+prefix_rule(
+    pattern = ["git", "clean"],
+    decision = "prompt",
+    justification = "This can delete untracked work.",
+    match = ["git clean -fd"],
+)
+
+prefix_rule(
+    pattern = ["rm", ["-r", "-rf", "--recursive"]],
+    decision = "prompt",
+    justification = "Recursive deletion requires explicit approval.",
+    match = ["rm -r build"],
+)
+
+prefix_rule(
+    pattern = ["gh", "pr", "create"],
+    decision = "prompt",
+    justification = "Creating a pull request publishes work.",
+    match = ["gh pr create"],
+)

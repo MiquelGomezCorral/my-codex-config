@@ -1,0 +1,96 @@
+{
+  "description": "Portable Ponytail and Workmux lifecycle hooks.",
+  "hooks": {
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v workmux >/dev/null 2>&1 && workmux set-window-status waiting || true"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v workmux >/dev/null 2>&1 && workmux set-window-status working || true"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CODEX_HOME:-$HOME/.codex}/bin/ponytail-hook.mjs\" session-start",
+            "additionalContextLimit": 500,
+            "statusMessage": "Loading Ponytail mode"
+          }
+        ]
+      },
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v workmux >/dev/null 2>&1 && workmux register-agent || true"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v workmux >/dev/null 2>&1 && workmux set-window-status done || true"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v workmux >/dev/null 2>&1 && workmux set-window-status working || true"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v workmux >/dev/null 2>&1 && workmux set-window-status working || true"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CODEX_HOME:-$HOME/.codex}/bin/ponytail-hook.mjs\" prompt",
+            "statusMessage": "Tracking Ponytail mode"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v workmux >/dev/null 2>&1 && workmux set-window-status working || true"
+          }
+        ]
+      }
+    ]
+  }
+}

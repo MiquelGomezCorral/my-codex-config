@@ -1,0 +1,22 @@
+{
+  "name": "vault-context",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "description": "Explicit Obsidian context search adapter for Codex",
+  "files": [
+    "vault-context.js",
+    "vault-context.config.json",
+    "vault-context.schema.json",
+    "stopwords",
+    "bin/search.mjs"
+  ],
+  "scripts": {
+    "check": "node --check vault-context.js && node --check bin/search.mjs",
+    "test": "node --test test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
