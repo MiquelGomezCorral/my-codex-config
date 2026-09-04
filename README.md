@@ -63,28 +63,32 @@ Invoke one explicitly with `$skill-name`, for example `$code`, `$review`, `$clea
 `general`, `explore`, `answer`, and `code-reviewer` roles. Nine focused Codex TOML agents
 preserve the distinctive worker and reviewer capabilities.
 
-Command-equivalent skills are invoked explicitly:
+Repository commands keep the OpenCode command-wrapper flow: the command passes its
+arguments to one skill, and the skill owns the workflow. Use the `/commands/` namespace
+because Codex reserves unqualified slash commands. Everything after the command name is
+forwarded exactly as `$ARGUMENTS`.
 
-| Former command | Codex skill |
+| Command | Skill |
 | --- | --- |
-| `/cleanup` | `$cleanup` |
-| `/review` | `$review` |
-| `/code` | `$code` |
-| `/commit` | `$commit` |
-| `/review-findings` | `$review-findings` |
-| `/index` | `$index` |
-| `/init` | `$init` |
-| `/plan-implementation` | `$plan-implementation` |
-| `/review-plan` | `$review-plan` |
-| `/review-pr-comments` | `$review-pr-comments` |
-| `/bro` | `$bro` |
+| `/commands/bro` | `bro` |
+| `/commands/cleanup` | `cleanup` |
+| `/commands/code` | `code` |
+| `/commands/commit` | `commit` |
+| `/commands/index` | `index` |
+| `/commands/init` | `init` |
+| `/commands/plan-implementation` | `plan-implementation` |
+| `/commands/review-findings` | `review-findings` |
+| `/commands/review-plan` | `review-plan` |
+| `/commands/review-pr-comments` | `review-pr-comments` |
+| `/commands/review` | `review` |
 
-Codex's built-in `/review` and `/init` remain unchanged; the migrated workflows use the
-explicit `$review` and `$init` skill names.
+For example, `/commands/review quick focus on the payment path` invokes `review` with
+`quick focus on the payment path` as its arguments. Direct `$skill-name` invocation also
+remains available.
 
-Ponytail's five skills are available as `$ponytail`, `$ponytail-audit`, `$ponytail-debt`,
-`$ponytail-help`, and `$ponytail-review`. Workmux status and portable Ponytail lifecycle
-behavior are wired through `codex/hooks.json`.
+Ponytail is installed from `DietrichGebert/ponytail` during bootstrap. Its skills, hooks,
+and commands are maintained by that plugin rather than copied into this repository. Review
+and trust its two lifecycle hooks in Codex once after the first install.
 
 ## Repository ownership
 

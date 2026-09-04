@@ -1,5 +1,5 @@
 {
-  "description": "Portable Ponytail and Workmux lifecycle hooks.",
+  "description": "Portable Workmux lifecycle hooks and repository command dispatch.",
   "hooks": {
     "PermissionRequest": [
       {
@@ -22,17 +22,6 @@
       }
     ],
     "SessionStart": [
-      {
-        "matcher": "startup|resume|clear|compact",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"${CODEX_HOME:-$HOME/.codex}/bin/ponytail-hook.mjs\" session-start",
-            "additionalContextLimit": 500,
-            "statusMessage": "Loading Ponytail mode"
-          }
-        ]
-      },
       {
         "matcher": "startup|resume|clear|compact",
         "hooks": [
@@ -78,8 +67,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CODEX_HOME:-$HOME/.codex}/bin/ponytail-hook.mjs\" prompt",
-            "statusMessage": "Tracking Ponytail mode"
+            "command": "node \"${CODEX_HOME:-$HOME/.codex}/bin/codex-command-dispatch.mjs\"",
+            "statusMessage": "Loading repository command"
           }
         ]
       },

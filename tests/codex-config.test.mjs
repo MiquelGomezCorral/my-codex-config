@@ -1,7 +1,6 @@
 import { test } from "node:test"
 import { doesNotMatch, match, ok, strictEqual } from "node:assert"
-import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, unlinkSync, writeFileSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { readFileSync, readdirSync, statSync } from "node:fs"
 import { join, resolve } from "node:path"
 import { spawnSync } from "node:child_process"
 
@@ -24,7 +23,7 @@ test("repository has one shared skill owner with unique valid names", () => {
   }
   strictEqual(new Set(names).size, names.length)
   for (const required of [
-    "core", "subagent-routing", "ponytail", "cleanup", "review", "code", "commit",
+    "core", "subagent-routing", "cleanup", "review", "code", "commit",
     "review-findings", "index", "init", "plan-implementation", "review-plan",
     "review-pr-comments", "bro",
   ]) ok(names.includes(required), `missing skill: ${required}`)
@@ -62,7 +61,6 @@ test("Codex TOML agents use native fields and preserve all nine roles", () => {
 test("Codex hooks and configuration contain no discarded worker boundary", () => {
   const hooks = JSON.parse(read("codex/hooks.json"))
   const hookText = JSON.stringify(hooks)
-  ok(hookText.includes("ponytail-hook.mjs"))
   ok(hookText.includes("workmux"))
   doesNotMatch(hookText, /vault-context|ObsidianVault/)
   for (const path of [
@@ -85,35 +83,4 @@ test("repository excludes runtime and credential-shaped files", () => {
   const output = spawnSync("bash", ["bootstrap.sh", "--check"], { cwd: root, encoding: "utf8" })
   strictEqual(output.status, 0, output.stderr)
   doesNotMatch(output.stdout, /auth|secret|token/i)
-})
-
-test("Ponytail defaults prefer valid environment, then config, then full", () => {
-  const home = mkdtempSync(join(tmpdir(), "ponytail-default-"))
-  const configDir = join(home, ".config", "ponytail")
-  const configFile = join(configDir, "config.json")
-  const stateFile = join(home, "state", "ponytail-active")
-  const hook = join(root, "config/bin/ponytail-hook.mjs")
-
-  const runHook = (environmentMode) => {
-    const env = { ...process.env, HOME: home, PONYTAIL_STATE_FILE: stateFile }
-    if (environmentMode === undefined) delete env.PONYTAIL_DEFAULT_MODE
-    else env.PONYTAIL_DEFAULT_MODE = environmentMode
-    const result = spawnSync("node", [hook, "session-start"], { cwd: root, encoding: "utf8", env })
-    strictEqual(result.status, 0, result.stderr)
-    return JSON.parse(result.stdout).systemMessage
-  }
-
-  try {
-    mkdirSync(configDir, { recursive: true })
-    writeFileSync(configFile, JSON.stringify({ defaultMode: "lite" }))
-    strictEqual(runHook("invalid"), "PONYTAIL:LITE")
-    strictEqual(runHook("ultra"), "PONYTAIL:ULTRA")
-
-    writeFileSync(configFile, "not json")
-    strictEqual(runHook("invalid"), "PONYTAIL:FULL")
-    unlinkSync(configFile)
-    strictEqual(runHook(undefined), "PONYTAIL:FULL")
-  } finally {
-    rmSync(home, { recursive: true, force: true })
-  }
 })

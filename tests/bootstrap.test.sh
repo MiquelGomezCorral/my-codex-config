@@ -18,13 +18,14 @@ install_config
 [[ ! -L "$CODEX_TARGET/config.toml" ]]
 cmp -s "$CODEX_TARGET/config.toml" "$CODEX_SOURCE/config.toml"
 [[ -L "$CODEX_TARGET/hooks.json" ]]
+[[ -L "$CODEX_TARGET/commands" ]]
 [[ -L "$CODEX_TARGET/rules/my-opencode-config.rules" ]]
 for name in coder cleanup-worker commit-worker automation-runner review-worker reviewer-quick reviewer-reasoning reviewer-arch reviewer-e2e; do
   [[ -f "$CODEX_TARGET/agents/$name.toml" ]]
   [[ ! -L "$CODEX_TARGET/agents/$name.toml" ]]
   cmp -s "$CODEX_TARGET/agents/$name.toml" "$CODEX_SOURCE/agents/$name.toml"
 done
-[[ -L "$CODEX_TARGET/bin/ponytail-hook.mjs" ]]
+[[ -L "$CODEX_TARGET/bin/codex-command-dispatch.mjs" ]]
 [[ -L "$CODEX_TARGET/vault-context" ]]
 [[ -L "$TEST_HOME/home/.agents/skills" ]]
 [[ ! -e "$CODEX_TARGET/bin/opencode-go-worker.mjs" ]]

@@ -41,8 +41,11 @@ export CODEX_HOME
 CONFIG_SOURCE="$ROOT/config"
 SKILLS_SOURCE="$ROOT/agent-home/skills"
 CODEX_SOURCE="$ROOT/codex"
+COMMANDS_SOURCE="$CODEX_SOURCE/commands"
 CODEX_TARGET="$CODEX_HOME"
 BACKUP_ROOT="${XDG_STATE_HOME:-$HOME/.local/state}/my-codex-config/backups/$(date +%Y%m%d-%H%M%S)"
+PONYTAIL_MARKETPLACE="DietrichGebert/ponytail"
+PONYTAIL_PLUGIN="ponytail@ponytail"
 
 CODEX_AGENT_NAMES=(
   coder cleanup-worker commit-worker automation-runner review-worker
@@ -76,9 +79,42 @@ for skill_dir in sorted(path for path in root.iterdir() if path.is_dir()):
     names.append(name.group(1).strip())
 if len(names) != len(set(names)):
     raise SystemExit("Duplicate skill name found")
-for required in ("core", "subagent-routing", "ponytail", "commit", "review-findings", "index", "init", "plan-implementation"):
+for required in ("core", "subagent-routing", "commit", "review-findings", "index", "init", "plan-implementation"):
     if required not in names:
         raise SystemExit(f"Missing shared skill: {required}")
+PY
+}
+
+check_command_inventory() {
+  python3 - "$COMMANDS_SOURCE" "$SKILLS_SOURCE" <<'PY'
+import pathlib
+import re
+import sys
+
+commands = pathlib.Path(sys.argv[1])
+skills = pathlib.Path(sys.argv[2])
+expected = {
+    "bro", "cleanup", "code", "commit", "index", "init", "plan-implementation",
+    "review-findings", "review-plan", "review-pr-comments", "review",
+}
+found = set()
+for path in commands.glob("*.md"):
+    name = path.stem
+    found.add(name)
+    text = path.read_text(encoding="utf-8")
+    frontmatter = re.match(r"^---\n(.*?)\n---\n", text, re.DOTALL)
+    if not frontmatter:
+        raise SystemExit(f"Missing frontmatter: {path}")
+    description = re.search(r"^description:\s*(.+)$", frontmatter.group(1), re.MULTILINE)
+    skill = re.search(r"^skill:\s*([a-z0-9-]+)$", frontmatter.group(1), re.MULTILINE)
+    if not description or not description.group(1).strip() or not skill:
+        raise SystemExit(f"Invalid command metadata: {path}")
+    if "$ARGUMENTS" not in text:
+        raise SystemExit(f"Command does not forward arguments: {path}")
+    if not (skills / skill.group(1) / "SKILL.md").is_file():
+        raise SystemExit(f"Command references missing skill: {path}")
+if found != expected:
+    raise SystemExit(f"Unexpected command inventory: {sorted(found)}")
 PY
 }
 
@@ -129,9 +165,10 @@ check_source() {
     config/security-rules.md
     agent-home/skills
     codex/config.toml
+    codex/commands
     codex/hooks.json
     codex/rules/my-opencode-config.rules
-    config/bin/ponytail-hook.mjs
+    config/bin/codex-command-dispatch.mjs
     config/plugins/vault-context/bin/search.mjs
     config/plugins/vault-context/vault-context.js
     config/plugins/vault-context/vault-context.config.json
@@ -146,6 +183,7 @@ check_source() {
   [[ ! -e "$ROOT/config/skills" ]] || die "config/skills must not remain an independent owner"
 
   check_skill_inventory
+  check_command_inventory
   check_toml
   check_json
 
@@ -280,20 +318,27 @@ install_config() {
 
   install_managed_file "$CODEX_SOURCE/config.toml" "$CODEX_TARGET/config.toml"
   link_managed "$CODEX_SOURCE/hooks.json" "$CODEX_TARGET/hooks.json"
+  link_managed "$COMMANDS_SOURCE" "$CODEX_TARGET/commands"
   link_managed "$CODEX_SOURCE/rules/my-opencode-config.rules" "$CODEX_TARGET/rules/my-opencode-config.rules"
   for name in "${CODEX_AGENT_NAMES[@]}"; do
     install_managed_file "$CODEX_SOURCE/agents/$name.toml" "$CODEX_TARGET/agents/$name.toml"
   done
   link_managed "$SKILLS_SOURCE" "$HOME/.agents/skills"
-  link_managed "$ROOT/config/bin/ponytail-hook.mjs" "$CODEX_TARGET/bin/ponytail-hook.mjs"
+  link_managed "$ROOT/config/bin/codex-command-dispatch.mjs" "$CODEX_TARGET/bin/codex-command-dispatch.mjs"
   link_managed "$ROOT/config/plugins/vault-context" "$CODEX_TARGET/vault-context"
   write_generated_agents
+}
+
+install_ponytail_plugin() {
+  codex plugin marketplace add "$PONYTAIL_MARKETPLACE"
+  codex plugin add "$PONYTAIL_PLUGIN"
 }
 
 main() {
   check_source
   check_dependencies
   install_config
+  install_ponytail_plugin
   printf '\nInstalled Codex configuration.\n'
   printf 'Restart Codex after reviewing new hooks, agents, and skills.\n'
   printf 'Authenticate Codex manually.\n'
