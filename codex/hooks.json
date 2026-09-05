@@ -67,7 +67,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CODEX_HOME:-$HOME/.codex}/bin/codex-command-dispatch.mjs\"",
+            "command": "script=\"${CODEX_HOME:-$HOME/.codex}/bin/codex-command-dispatch.mjs\"; [ -f \"$script\" ] || script=\"$HOME/.codex/bin/codex-command-dispatch.mjs\"; node \"$script\"",
             "statusMessage": "Loading repository command"
           }
         ]

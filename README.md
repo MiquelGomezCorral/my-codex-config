@@ -1,8 +1,9 @@
 # my-codex-config
 
-Repository-managed Codex-only configuration with shared skills and native agents. Codex
-owns planning, permissions, orchestration, hooks, MCP definitions, and synthesis.
-OpenCode remains separately owned by `my-opencode-config`.
+Repository-managed Codex configuration with portable shared skills and native Codex
+agents. Codex owns its configuration, permissions, hooks, MCP definitions, and synthesis.
+Shared orchestration skills may also use agent harnesses already exposed by the current
+environment. OpenCode configuration remains separately owned by `my-opencode-config`.
 
 ## Requirements
 
@@ -63,6 +64,12 @@ Invoke one explicitly with `$skill-name`, for example `$code`, `$review`, `$clea
 `general`, `explore`, `answer`, and `code-reviewer` roles. Nine focused Codex TOML agents
 preserve the distinctive worker and reviewer capabilities.
 
+Delegating skills load `subagent-routing`. They prefer the current harness, honor an
+explicit harness or agent roster, and may use other harnesses only through orchestration
+tools, skills, or commands documented by the current environment. Mixed swarms keep at
+least half their workers, rounded up, on the current harness by default. Quota exhaustion
+replaces only the affected worker through another usable harness and is always reported.
+
 Repository commands keep the OpenCode command-wrapper flow: the command passes its
 arguments to one skill, and the skill owns the workflow. Use the `/commands/` namespace
 because Codex reserves unqualified slash commands. Everything after the command name is
@@ -88,18 +95,19 @@ remains available.
 
 Ponytail is installed from `DietrichGebert/ponytail` during bootstrap. Its skills, hooks,
 and commands are maintained by that plugin rather than copied into this repository. Review
-and trust its two lifecycle hooks in Codex once after the first install.
+and trust its three lifecycle hooks in Codex once after the first install or a hook update.
 
 ## Repository ownership
 
-Native Codex agents use `spawn_agent`, `wait_agent`, `send_message`, `followup_task`,
-`list_agents`, and `interrupt_agent`. Retained threads resume only when their parent,
-role, model, and directory still match. There is no provider fallback or second harness
-in this repository.
+Codex-routed workers use `spawn_agent`, `wait_agent`, `send_message`, `followup_task`,
+`list_agents`, and `interrupt_agent`. Other workers use their selected harness's documented
+lifecycle. Retained sessions resume only when their parent, harness, role, model, and
+directory still match. This repository does not install or authenticate another harness.
 
 `my-opencode-config` remains the owner of OpenCode's `config/skills/` and
 `config/commands/`. It is a separate rollback path and is not modified or installed by
-this repository.
+this repository; an already-exposed OpenCode agent may still be selected by the portable
+routing policy.
 
 Vault Context is explicit-only:
 

@@ -1,13 +1,13 @@
 ---
 name: multi-agent-review
-description: Run an opt-in adaptive, read-only review swarm with a retained coordinator and fresh native specialists.
+description: Run an opt-in adaptive, read-only review swarm with a retained coordinator and fresh specialists from available agent harnesses.
 ---
 
 # Multi-Agent Review
 
 This skill is loaded only when `$review` explicitly selects swarm mode. Load
-`code-review`, `agent-swarm`, and `subagent-routing` before proceeding. The native
-`review-worker` remains the coordinator and owns synthesis.
+`code-review`, `agent-swarm`, and `subagent-routing` before proceeding. The selected
+review coordinator owns synthesis; in Codex this is `review-worker`.
 
 ## Review contract
 
@@ -18,17 +18,26 @@ change. The entire workflow is read-only: no edits, fixes, coder or fixer calls,
 findings, commits, pushes, or publication. Only the coordinator launches the selected
 specialists; specialists never delegate further.
 
-Use the configured native reviewer agents as the default roster. A native model override
-has already been parsed by `$review`; pass it unchanged to each selected specialist.
+Assign review lenses before choosing harnesses. Route each lens to a suitable configured
+reviewer in that harness; never reuse a Codex role name as an external role. A compatible
+model override and normalized harness intent have already been parsed by `$review`; pass
+them unchanged to routing.
 
 ## Adaptive selection
 
-Always select `reviewer-quick` and `reviewer-reasoning`. Add `reviewer-arch` only when the
+Always select quick and reasoning lenses. Add architecture only when the
 change crosses or introduces boundaries, abstractions, dependency direction, ownership,
-or module structure. Add `reviewer-e2e` only when the change touches public contracts,
+or module structure. Add integration only when the change touches public contracts,
 APIs, schemas, migrations, configuration, environment contracts, workers, external
 integrations, security or data boundaries, roles, locales, or side effects. Keep the set
-between two and four specialists.
+between two and four specialists by default. When the user requests five, add an
+independent adversarial pass over the highest-risk selected lens.
+
+When Codex is selected, map these lenses to `reviewer-quick`, `reviewer-reasoning`,
+`reviewer-arch`, and `reviewer-e2e`. For another harness, select its actual configured
+reviewer whose description best matches the lens. Without an explicit roster, allocate at
+least half of the specialists, rounded up, to the current harness and use other available
+harnesses for the remainder.
 
 The coordinator itself performs complete-diff inspection and does not outsource the
 selection decision. It uses the smallest justified set and reports missing coverage when
@@ -45,7 +54,7 @@ Diff basis: staged, unstaged, and untracked changes in the current worktree
 Context: persisted plan path and supplied review context
 Exclusions: unrelated files, pre-existing defects, fixes, publication, and delegation
 Allowed actions: read-only inspection and bounded repository-defined verification
-Models/lifecycle: fresh unkeyed task with this specialist's exact models chain
+Harness/model/lifecycle: selected route, fresh task, and allowed quota substitution
 Lens: the specialist's assigned review dimension
 Deliverable: findings only against the reviewed change, with path:line evidence and confidence
 Stop: return after the assigned lens is covered or state the concrete blocker
@@ -53,13 +62,12 @@ Stop: return after the assigned lens is covered or state the concrete blocker
 
 ## Launch and recovery
 
-Launch all independent selected specialists in the same turn with a fresh `spawn_agent`
-call for each. Set each agent to its specialist name and pass the exact model selected by
-the roster. Do not reuse a session, pass a task key, or silently choose a fallback model.
-Use `wait_agent` for all selected specialists before synthesis. Use `send_message` only
-for a bounded clarification and `interrupt_agent` for cancellation. A failed worker is
-reported as missing coverage; do not replay its prompt or substitute an implicit model.
-Do not treat a model failure as a finding.
+Route all independent selected specialists before launching them, then launch them in the
+same turn when their harness mechanisms support it. Use each selected harness's fresh-task,
+wait, bounded-message, and cancellation operations. Do not reuse a session or pass a task
+key. On explicit quota exhaustion, use `subagent-routing` to replace only that lens and
+report the final route. Other failed workers are missing coverage; do not replay prompts
+or treat a model failure as a finding.
 
 ## Coordinator synthesis
 

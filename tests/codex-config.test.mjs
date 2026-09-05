@@ -79,6 +79,40 @@ test("Codex hooks and configuration contain no discarded worker boundary", () =>
   }
 })
 
+test("delegating skills use capability-aware harness routing", () => {
+  const routing = read("agent-home/skills/subagent-routing/SKILL.md")
+  const swarm = read("agent-home/skills/agent-swarm/SKILL.md")
+  const review = read("agent-home/skills/review/SKILL.md")
+  const multiReview = read("agent-home/skills/multi-agent-review/SKILL.md")
+  const swarmEvals = JSON.parse(read("agent-home/skills/agent-swarm/evals/evals.json"))
+
+  match(routing, /ceil\(N \/ 2\)/)
+  match(routing, /quota or rate limit is exhausted/)
+  match(routing, /must not create a branch or worktree/)
+  match(routing, /real configured role/)
+  doesNotMatch(routing, /Codex owns all subagent orchestration/)
+
+  match(swarm, /other available harnesses/)
+  match(review, /Launch or resume exactly one coordinator through `subagent-routing`/)
+  match(multiReview, /When the user requests five/)
+  match(read("agent-home/skills/code/SKILL.md"), /through `subagent-routing`/)
+  match(read("agent-home/skills/cleanup/SKILL.md"), /through `subagent-routing`/)
+  match(read("agent-home/skills/commit/SKILL.md"), /through `subagent-routing`/)
+  match(read("agent-home/skills/skill-creator/SKILL.md"), /move the whole pair/)
+  strictEqual(swarmEvals.evals.length, 3)
+  match(JSON.stringify(swarmEvals), /quota-exhausted/)
+  match(read("codex/agents/review-worker.toml"), /available harnesses/)
+
+  for (const path of [
+    "agent-home/skills/subagent-routing/SKILL.md",
+    "agent-home/skills/agent-swarm/SKILL.md",
+    "agent-home/skills/review/SKILL.md",
+    "agent-home/skills/multi-agent-review/SKILL.md",
+  ]) {
+    doesNotMatch(read(path), /Do not substitute workmux|exact Sol model has no fallback/)
+  }
+})
+
 test("repository excludes runtime and credential-shaped files", () => {
   const output = spawnSync("bash", ["bootstrap.sh", "--check"], { cwd: root, encoding: "utf8" })
   strictEqual(output.status, 0, output.stderr)

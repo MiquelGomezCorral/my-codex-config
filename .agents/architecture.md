@@ -16,9 +16,10 @@ Node.js adapters.
 
 ## Boundaries
 
-Codex owns planning, orchestration, permissions, native agents, hooks, MCP definitions,
-and synthesis. OpenCode capabilities remain owned by the separate `my-opencode-config`
-repository and are not launched or installed here.
+Codex owns configuration, planning, permissions, native agents, hooks, MCP definitions,
+and synthesis. `subagent-routing` is the portable selection boundary for already-exposed
+agent harnesses; it does not install or authenticate them. OpenCode configuration remains
+owned by the separate `my-opencode-config` repository.
 
 ## Entry Points
 

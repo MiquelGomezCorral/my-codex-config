@@ -1,12 +1,16 @@
 ---
-name: python-project-setup
-description: Set up or maintain Python projects using the MiquelGomezCorral conda, uv, editable app-package, requirements.txt, and Jupyter conventions. Follow an existing repository when it differs.
+name: python-coding
+description: When writing any Python code, maintain Python projects or create new ones from scratch. Read this.
 ---
 
 # Python Project Setup
 
 Follow the repository first. Use these defaults only when creating or maintaining a
-project based on the MiquelGomezCorral template.
+project based on the MiquelGomezCorral template. 
+
+The base structure comes from the [MiquelGomezCorral template](https://github.com/MiquelGomezCorral/Python-project-template-AI-TL) and the [maikol-utils](https://github.com/MiquelGomezCorral/maikol-utils).
+
+Golden rule: KISS! Keep it simple, stupid. The goal is to write simple readible code that works and is easy to maintain. 
 
 ## Environment
 
@@ -61,6 +65,13 @@ notebooks/
 [project]
 name = "app"
 version = "0.1.0"
+description = "Project description"
+readme = "README.md"
+requires-python = ">=3.13"
+dynamic = ["dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
 
 [build-system]
 requires = ["setuptools"]
@@ -111,7 +122,61 @@ Given the current setup, all python files that use this env will import from the
 - Use `dotenv` to load the `.env` file in main.py and any other script that needs it.
 - Do not rely on bash environment variables for scripts or notebooks.
 
+Some features such as engines and other classes must load their oun API_KEYs, URLs, secrets, etc. instead of prop-drilling them or using the config. The 'selected model' or 'selected engine' can be stored in the config, but the API_KEYs and other secrets must be loaded from the .env file or from the environment variables.
+
+Same rule applies for other things. Load dotenv in main.py and the actual ENV variables in the classes that need them. 
+
+## Comment separator
+Use 
+```
+# ======================================================================================
+#                                       SECTION NAME
+# ======================================================================================
+```
+To separate sections of code. This is to make the code more readable and to have a clear separation of different parts of the code. 
+
+- You must not over do it
+- You can use shorter versions of it or just the # ========= Section Name ========= if the section is small and does not need a full separator.
+- Do not use it in every single section, only when necessary. 
+- Try to group or even combine sections. If hierarchy is clear, you can use different levels of separators. For example, if you have a section that is a subsection of another section, you can use a shorter separator for the subsection.
+
+## Smart spaces
+When writing code, use and add space between lines of code. Group them on chucks of at most 5-10 lines of code. This is to make the code more readable and to have a clear separation of different parts of the code.
+- Let de code breathe. 
+- Use the comments of the last sections to help you group the code in a logical way.
+- Sometimes more that one blank line is needed to separate different parts of the code without a separator.
+- Spaces can be used as separators.
+
+## Spaghetti code and overcomplication
+- Avoid spaghetti code.
+- Use functions and classes to organize the code.
+- Refactor into other files, group utils and helpers into their own files and packages.
+
+- If you are using too many utils or need to refactor too much, first think if you are overcomplicating the code. If you are, try to simplify it first. Recall KISS!
+- If you are not, then refactor it into other files and packages. But do not overcomplicate the code just to avoid spaghetti code.
+
+Most of the time, since you are and IA, you will write greedly and overcomplicate the code, avoid it:
+- Don't repeat yourself: Add abstractions only after real duplication
+- Keep implementation near usage
+- Centralize policy, not everything
+- Add abstractions only after real duplication: No interfaces, factories, or configuration layers for hypothetical future requirements. No retro-compatibility for unused legacy. No overgeneralization for unneeded flexibility. No premature optimization.
+- Keep classes narrow: Classes coordinate state and behavior. Parsing, schemas, and error mapping stay in focused modules.
+- Make invalid architecture detectable: Tests should enforce boundaries rather than relying on us remembering them.
+- Preserve intentional readability: Section dividers, meaningful semantic classes, and concise names are part of the project style.
+- ... ALL YOUR CODING GUIDELINES ...
+
+## Test
+The idea is that we don't write almost any test. Too many tests will make the code not maintainable.
+
+- We are only going to test algorithms and things that must be deterministic.
+- We don't test AI models outputs: we test that the return the expected type or structure or schema, not values.
+- We don't test things that are trivial.
+- We don't test all the inputs 
+- We don't validate everything, only what really matters
+
 # Template
+We follow the [maikol-utils](https://github.com/MiquelGomezCorral/maikol-utils), so if you have to create a new project from scratch, create a repository using that as the template, clone it and then you can start coding. The template is already set up with the best practices and the structure that we want to follow.
+
 File: `app/main.py` follow always this idea:
 - Main is self-contained and calls other functions with arguments.
 - Arguments are passed to a configuration object, not to functions directly.
@@ -183,79 +248,96 @@ CONFIG: Configuration = Configuration()
 def functions(CONFIG: Configuration):
     ...
 ```
-
+- Do use CONFIG instead of prop-drilling parameters. This will make the code more readable and maintainable + centralized.
+- When defining for and experiment or notebook new parameters that wont be used anywhere else on the project, and thus are 'local parameters', we can preserve the CONFIG class and add those parameters to it this way: With inheritance. Create a new class that inherits from CONFIG and add the new parameters to it. Then instantiate the new class and use it in the notebook or experiment. This way we can keep the CONFIG class clean and organized, and we can also use the new parameters in the notebook or experiment without affecting the rest of the project.
 
 ## Config
 ```python
 """Configuration file.
-
 Configuration of project variables that we want to have available
 everywhere and considered configuration.
 """
-import os
-import dataclasses
+import yaml
+from pathlib import Path
 from dataclasses import dataclass
-from argparse import Namespace
+from typing import ClassVar, Optional
+from maikol_utils.file_utils import make_dirs
+
 
 @dataclass
 class Configuration:
     """Configuration class for the project."""
+    # ===================================================================
+    #                       PATHS
+    # ===================================================================
+    WORKSPACE_PATH: ClassVar[Path] = Path(__file__).resolve().parents[3]
+    DATA_PATH: ClassVar[Path] = WORKSPACE_PATH / "data"
+    OUTPUT_PATH: ClassVar[Path] = WORKSPACE_PATH / "outputs"
+    MODELS_PATH: ClassVar[Path] = WORKSPACE_PATH / "models"
+    CONFIG_PATH: ClassVar[Path] = WORKSPACE_PATH / "config"
+    LOGS_PATH: ClassVar[Path] = WORKSPACE_PATH / "logs"
 
+    yaml_config_name: Optional[str] = None
+    # ===================================================================
+    #                       PARAMETER
+    # ===================================================================
     exp_name: str = "base_name"
-    seed:     int = 42
-
-    gym_id:          str = None
+    seed: int = 42
+    gym_id: Optional[str] = None
     learning_rate: float = 2.5e-4
     total_timesteps: int = 25_000
-
     torch_deterministic: bool = True
-    cuda:                bool = True
-
-    track_run:         bool = False
+    cuda: bool = True
+    track_run: bool = False
     wandb_project_name: str = "RL"
-    wandb_entity:       str = None
+    wandb_entity: Optional[str] = None
 
     def __post_init__(self):
-        """Post-initialization."""
+        # Basic setup: create folders and load yaml config if provided
+        make_dirs([self.DATA_PATH, self.MODELS_PATH, self.LOGS_PATH, self.CONFIG_PATH])
+        if self.yaml_config_name:
+            self._load_yaml_configuration(self.yaml_config_name)
+        # More stuff
         ...
+
+    def _load_yaml_configuration(self, yaml_file: str) -> None:
+        """Load config values from a YAML file under MODELS_PATH."""
+        config_path = self.MODELS_PATH / yaml_file
+        with open(config_path, "r", encoding="utf-8") as file:
+            yaml_data = yaml.safe_load(file) or {}
+        for key, value in yaml_data.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
 ```
 
 ## Extend enum
-```python
-def extend_enum(inherited_enum):
-    """Extend an enum with another enum."""
-    def wrapper(added_enum):
-        joined = {}
-        for item in inherited_enum:
-            joined[item.name] = item.value
-        for item in added_enum:
-            joined[item.name] = item.value
-        return Enum(added_enum.__name__, joined)
-    return wrapper
+When you have different configurations that share some common values, you can use the `extend_enum` decorator to create a new enum that combines the values of the inherited enum with the new values. This is useful for maintaining a clear and organized set of configuration options.
 
+Use aenum instead of the standard enum module which supports real subclassing for static typecheking and better IDE support.
+```python
+from aenum import Enum
 
 class Cats(Enum):
     SIBERIAN = "siberian"
     SPHINX = "sphinx"
 
-
-@extend_enum(Cats)
-class Animals(Enum):
+class Animals(Cats):
     LABRADOR = "labrador"
     CORGI = "corgi"
 ```
 
 # Paths
-- Paths must be defined with os.path.join to avoid issues with different OS.
-- The core paths, such as 'DATA', 'MODELS', 'LOGS'... must be defined in the config.py file and used everywhere with os.path.join(CONFIG.DATA, "raw") or os.path.join(CONFIG.MODELS, "model.pt"). This will avoid issues with different OS and will make the code more readable.
+- Paths must be defined with Path to avoid issues with different OS.
+- The core paths, such as 'DATA', 'MODELS', 'LOGS'... must be defined in the config.py file and used everywhere with `CONFIG.DATA / "raw"` or `CONFIG.MODELS/  "model.pt"`. This will avoid issues with different OS and will make the code more readable.
   - Since we are importing from ./app and the data, models and logs file are at ./data, ./models and ./logs, we define these paths as follows:
 ```python
 @dataclass
 class Configuration:
     ...
-    DATA: str = os.path.join(.., "data")
-    MODELS: str = os.path.join(.., "models")
-    LOGS: str = os.path.join(.., "logs")
+    WORKSPACE_PATH: ClassVar[Path] = Path(__file__).resolve().parents[3]
+    DATA_PATH: ClassVar[Path] = WORKSPACE_PATH / "data"
+    OUTPUT_PATH: ClassVar[Path] = WORKSPACE_PATH / "outputs"
+    MODELS_PATH: ClassVar[Path] = WORKSPACE_PATH / "models"
 ```
   - and the rest of the paths must inherit form them.
   - More Upercased paths can be defined if needed.

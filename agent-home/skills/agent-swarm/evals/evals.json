@@ -1,0 +1,39 @@
+{
+  "skill_name": "agent-swarm",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "The current harness is Codex. Plan a five-agent read-only review using available Codex, OpenCode, and Gemini harnesses. I did not request a roster. Return the selected harness and real configured role for each review lens; do not execute it.",
+      "expected_output": "A five-agent plan with three Codex workers and two best-fit external workers, using each harness's configured roles and preserving read-only review.",
+      "expectations": [
+        "Allocates three of five workers to the current Codex harness",
+        "Allocates two workers to suitable available external harnesses",
+        "Uses actual configured role descriptions instead of copying Codex role names across harnesses",
+        "Keeps every specialist read-only and does not create an implicit branch or worktree",
+        "Keeps synthesis and final verification with the coordinator"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I have a two-line typo fix in one file. Should you launch a three-agent swarm? Explain the execution decision in at most five sentences.",
+      "expected_output": "Rejects a swarm because the work is small and single-owner, while preferring the current harness if one worker is still justified.",
+      "expectations": [
+        "Chooses one agent rather than a swarm",
+        "Explains that coordination and token cost outweigh parallel value",
+        "Does not launch external agents merely because they are available"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "A five-agent review was assigned as three Codex, one OpenCode, and one Gemini worker. The Codex reasoning reviewer fails at launch with an explicit quota-exhausted error. OpenCode has another configured reasoning reviewer available. Explain the recovery and final roster.",
+      "expected_output": "Replaces only the failed reasoning slot with the configured OpenCode reviewer, preserves its packet, and reports the final two-Codex, two-OpenCode, one-Gemini roster.",
+      "expectations": [
+        "Does not retry the exhausted Codex route",
+        "Replaces only the failed slot",
+        "Preserves the reasoning lens, read-only permission, deliverable, and evidence contract",
+        "Uses OpenCode's configured reasoning reviewer rather than a copied Codex role name",
+        "Reports the quota substitution and final harness roster"
+      ]
+    }
+  ]
+}

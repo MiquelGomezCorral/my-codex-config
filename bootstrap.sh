@@ -292,6 +292,34 @@ install_managed_file() {
   install -m 600 "$source" "$target"
 }
 
+install_codex_config() {
+  local source=$1
+  local target=$2
+  local runtime_line runtime_tail temporary
+
+  if [[ -f "$target" && ! -L "$target" ]]; then
+    runtime_line=$(grep -n -m 1 -E '^\[(marketplaces|plugins|hooks\.state|projects)(\.|\])' "$target" | cut -d: -f1 || true)
+    if [[ -n "$runtime_line" ]]; then
+      runtime_tail=$(mktemp "${TMPDIR:-/tmp}/my-codex-config-runtime.XXXXXX")
+      tail -n "+$runtime_line" "$target" > "$runtime_tail"
+      temporary="$target.tmp-$$"
+      { cat "$source"; printf '\n'; cat "$runtime_tail"; } > "$temporary"
+      chmod 600 "$temporary"
+      if cmp -s "$temporary" "$target"; then
+        rm "$temporary" "$runtime_tail"
+        chmod 600 "$target"
+        return
+      fi
+      backup_existing "$target"
+      mv "$temporary" "$target"
+      rm "$runtime_tail"
+      return
+    fi
+  fi
+
+  install_managed_file "$source" "$target"
+}
+
 write_generated_agents() {
   local target="$CODEX_TARGET/AGENTS.md"
   local temporary="$target.tmp-$$"
@@ -316,7 +344,7 @@ install_config() {
   local name
   mkdir -p "$CODEX_TARGET" "$CODEX_TARGET/rules" "$CODEX_TARGET/agents" "$CODEX_TARGET/bin" "$HOME/.agents"
 
-  install_managed_file "$CODEX_SOURCE/config.toml" "$CODEX_TARGET/config.toml"
+  install_codex_config "$CODEX_SOURCE/config.toml" "$CODEX_TARGET/config.toml"
   link_managed "$CODEX_SOURCE/hooks.json" "$CODEX_TARGET/hooks.json"
   link_managed "$COMMANDS_SOURCE" "$CODEX_TARGET/commands"
   link_managed "$CODEX_SOURCE/rules/my-opencode-config.rules" "$CODEX_TARGET/rules/my-opencode-config.rules"

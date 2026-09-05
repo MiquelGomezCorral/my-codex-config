@@ -43,5 +43,9 @@ printf '\n[hooks.state]\n' >> "$CODEX_TARGET/config.toml"
 install_config
 [[ -f "$CODEX_TARGET/config.toml" ]]
 [[ ! -L "$CODEX_TARGET/config.toml" ]]
-cmp -s "$CODEX_TARGET/config.toml" "$CODEX_SOURCE/config.toml"
+grep -q '^\[hooks.state\]$' "$CODEX_TARGET/config.toml"
 [[ -e "$CODEX_TARGET/auth.json" ]]
+
+HOOK_COMMAND=$(node -e 'const hooks=require(process.argv[1]); process.stdout.write(hooks.hooks.UserPromptSubmit[0].hooks[0].command)' "$CODEX_SOURCE/hooks.json")
+mkdir -p "$TEST_HOME/runtime"
+printf '%s' '{"prompt":"ordinary prompt"}' | HOME="$TEST_HOME/home" CODEX_HOME="$TEST_HOME/runtime" sh -c "$HOOK_COMMAND"

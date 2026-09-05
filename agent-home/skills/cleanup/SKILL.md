@@ -1,6 +1,6 @@
 ---
 name: cleanup
-description: Run the explicit `$cleanup` behavior-preserving simplification gate with a fresh Sol worker. Use only when the user invokes `$cleanup`.
+description: Run the explicit `$cleanup` behavior-preserving simplification gate with one fresh worker; prefer the configured Codex Sol worker when Codex is selected.
 ---
 
 # Cleanup Gate
@@ -25,16 +25,18 @@ launching the worker. The parent owns orchestration and inspection, not cleanup 
 
 ## Launch
 
-Launch exactly one fresh native worker with `spawn_agent`:
+Launch exactly one fresh worker through `subagent-routing`:
 
-- `agent`: `cleanup-worker`
-- `model`: `gpt-5.6-sol`
+- `agent`: the selected harness's configured behavior-preserving simplifier; in Codex use
+  `cleanup-worker`
+- `model`: prefer `gpt-5.6-sol` for the Codex route
 - `prompt`: the exact plan path or explicit goal, accepted corrections, task-owned files
   and exclusions, baseline diff statistics, and the existing minimum readiness check
 
-Every invocation gets a fresh worker and the exact Sol model has no fallback. If Sol fails
-or is unavailable, stop without a manual retry or cleanup edit; inspect and report any
-unexpected partial change without modifying it.
+Every invocation gets a fresh worker. Pass user-selected harness, agent, model, and
+exclusion intent to routing; otherwise prefer the active harness. If the selected route
+exhausts quota, use the routing policy's visible substitution. If all suitable routes fail,
+stop without a manual edit; inspect and report any unexpected partial change.
 
 ## Return
 

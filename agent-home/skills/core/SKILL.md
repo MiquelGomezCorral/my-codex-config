@@ -17,7 +17,7 @@ workflow instructions. Load no skill speculatively and do not restate its body.
 - Web research or current external facts -> `web-search`.
 - Project memory initialization or maintenance -> `agents-memory`.
 - CodeGraph installation or indexing -> `codegraph-setup`.
-- Multiple independent subagent scopes -> `agent-swarm`; any task launch or resume
+- Multiple independent agent scopes -> `agent-swarm`; any agent launch or resume
   decision -> `subagent-routing`.
 - Skill creation or revision -> `skill-creator`; agent system prompts ->
   `agent-prompt-writing`.
