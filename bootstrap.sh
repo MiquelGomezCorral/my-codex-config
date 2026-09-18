@@ -5,15 +5,23 @@ ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 CHECK_ONLY=false
 CHECK_DEPS=false
 HOME_OVERRIDE=false
+PI_ENABLED=false
+AGY_ENABLED=false
+SEARXNG_ENABLED=true
+SEARXNG_MCP_ENABLED=true
 
 usage() {
-  printf 'Usage: %s [--check] [--check-deps] [--home PATH]\n' "$0"
+  printf 'Usage: %s [--check] [--check-deps] [--pi] [--agy] [--no-searxng] [--no-searxng-mcp] [--home PATH]\n' "$0"
 }
 
 while (($#)); do
   case "$1" in
     --check) CHECK_ONLY=true ;;
     --check-deps) CHECK_DEPS=true ;;
+    --pi) PI_ENABLED=true ;;
+    --agy) AGY_ENABLED=true ;;
+    --no-searxng) SEARXNG_ENABLED=false ;;
+    --no-searxng-mcp) SEARXNG_MCP_ENABLED=false ;;
     --home)
       [[ $# -ge 2 ]] || { usage; exit 2; }
       HOME=$2
@@ -44,11 +52,18 @@ CODEX_SOURCE="$ROOT/codex"
 COMMANDS_SOURCE="$CODEX_SOURCE/commands"
 CODEX_TARGET="$CODEX_HOME"
 BACKUP_ROOT="${XDG_STATE_HOME:-$HOME/.local/state}/my-codex-config/backups/$(date +%Y%m%d-%H%M%S)"
+SEARXNG_DATA_ROOT="${XDG_DATA_HOME:-$HOME/.local/share}/my-codex-config/searxng"
+SEARXNG_CONFIG_ROOT="$SEARXNG_DATA_ROOT/config"
+SEARXNG_CACHE_ROOT="$SEARXNG_DATA_ROOT/cache"
+SEARXNG_CONTAINER="${SEARXNG_CONTAINER:-my-codex-config-searxng}"
+SEARXNG_IMAGE="${SEARXNG_IMAGE:-docker.io/searxng/searxng:latest}"
 PONYTAIL_MARKETPLACE="DietrichGebert/ponytail"
 PONYTAIL_PLUGIN="ponytail@ponytail"
 
+source "$ROOT/config/bin/codegraph-dependency.sh"
+
 CODEX_AGENT_NAMES=(
-  coder cleanup-worker commit-worker automation-runner review-worker
+  coder cleanup-worker commit-worker review-worker
   reviewer-quick reviewer-reasoning reviewer-arch reviewer-e2e
 )
 
@@ -79,7 +94,7 @@ for skill_dir in sorted(path for path in root.iterdir() if path.is_dir()):
     names.append(name.group(1).strip())
 if len(names) != len(set(names)):
     raise SystemExit("Duplicate skill name found")
-for required in ("core", "subagent-routing", "commit", "review-findings", "index", "init", "plan-implementation"):
+for required in ("core", "subagent-routing", "orca-cli", "orchestration", "computer-use", "decision-records", "commit", "review-findings", "index", "init", "plan-implementation"):
     if required not in names:
         raise SystemExit(f"Missing shared skill: {required}")
 PY
@@ -175,6 +190,11 @@ check_source() {
     config/plugins/vault-context/vault-context.schema.json
     config/plugins/vault-context/stopwords/en.json
     config/plugins/vault-context/stopwords/es.json
+    config/bin/codegraph-dependency.sh
+    config/searxng/settings.yml
+    agent-home/skills/subagent-routing/references/model-catalog.yaml
+    bootstrap_pi.sh
+    bootstrap_agy.sh
   )
 
   for path in "${required[@]}"; do
@@ -195,9 +215,9 @@ check_source() {
     die "Forbidden runtime file found in repository"
   fi
 
-  if grep -R -I -n -E '/Users/|/Applications/|BRAINTRUST_API_KEY|-----BEGIN [A-Z ]*PRIVATE KEY-----' \
+  if grep -R -I -n -E '/Users/|/Applications/|/home/[^/]+/|BRAINTRUST_API_KEY|-----BEGIN [A-Z ]*PRIVATE KEY-----' \
     --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=.codegraph \
-    --exclude='*.md' "$CODEX_SOURCE" "$CONFIG_SOURCE"; then
+    --exclude='*.md' --exclude='*.bak' "$CODEX_SOURCE" "$CONFIG_SOURCE"; then
     die "Machine-specific path or credential-shaped value found in managed configuration"
   fi
 
@@ -210,7 +230,16 @@ check_source() {
 check_dependencies() {
   local missing=()
   local tool
-  for tool in codex python3 node npx codegraph btca headroom; do
+  for tool in codex python3 node npm npx codegraph btca headroom; do
+    command -v "$tool" >/dev/null 2>&1 || missing+=("$tool")
+  done
+  ((${#missing[@]} == 0)) || die "Missing required commands: ${missing[*]}"
+}
+
+check_base_dependencies() {
+  local missing=()
+  local tool
+  for tool in codex python3 node npm npx btca headroom; do
     command -v "$tool" >/dev/null 2>&1 || missing+=("$tool")
   done
   ((${#missing[@]} == 0)) || die "Missing required commands: ${missing[*]}"
@@ -348,6 +377,7 @@ install_config() {
   link_managed "$CODEX_SOURCE/hooks.json" "$CODEX_TARGET/hooks.json"
   link_managed "$COMMANDS_SOURCE" "$CODEX_TARGET/commands"
   link_managed "$CODEX_SOURCE/rules/my-opencode-config.rules" "$CODEX_TARGET/rules/my-opencode-config.rules"
+  retire_agent "$CODEX_TARGET/agents/automation-runner.toml"
   for name in "${CODEX_AGENT_NAMES[@]}"; do
     install_managed_file "$CODEX_SOURCE/agents/$name.toml" "$CODEX_TARGET/agents/$name.toml"
   done
@@ -357,19 +387,160 @@ install_config() {
   write_generated_agents
 }
 
+retire_agent() {
+  local target=$1
+
+  [[ -e "$target" || -L "$target" ]] || return 0
+  backup_existing "$target"
+}
+
 install_ponytail_plugin() {
   codex plugin marketplace add "$PONYTAIL_MARKETPLACE"
   codex plugin add "$PONYTAIL_PLUGIN"
 }
 
+warn() {
+  printf 'Warning: %s\n' "$1" >&2
+}
+
+searxng_image_matches() {
+  case "$1" in
+    "$SEARXNG_IMAGE"|searxng/searxng|searxng/searxng:*|searxng/searxng@*|docker.io/searxng/searxng|docker.io/searxng/searxng:*|docker.io/searxng/searxng@*)
+      return 0
+      ;;
+  esac
+  return 1
+}
+
+check_searxng_startup() {
+  local container=$1
+  local sample status running restarting restart_count initial_restart_count
+
+  if ! sample=$(docker inspect --format '{{.State.Status}} {{.State.Running}} {{.State.Restarting}} {{.RestartCount}}' "$container" 2>/dev/null); then
+    warn "Could not inspect SearXNG container $container during startup check."
+    return 1
+  fi
+  read -r status running restarting restart_count <<< "$sample"
+  if [[ "$status" != running || "$running" != true || "$restarting" == true || ! "$restart_count" =~ ^[0-9]+$ ]]; then
+    warn "SearXNG container $container is not running during startup check."
+    return 1
+  fi
+  initial_restart_count=$restart_count
+
+  for _ in 1 2 3 4 5; do
+    sleep 1
+    if ! sample=$(docker inspect --format '{{.State.Status}} {{.State.Running}} {{.State.Restarting}} {{.RestartCount}}' "$container" 2>/dev/null); then
+      warn "Could not inspect SearXNG container $container during startup check."
+      return 1
+    fi
+    read -r status running restarting restart_count <<< "$sample"
+    if [[ "$status" != running || "$running" != true || "$restarting" == true || ! "$restart_count" =~ ^[0-9]+$ ]]; then
+      warn "SearXNG container $container is not running during startup check."
+      return 1
+    fi
+    if [[ "$restart_count" != "$initial_restart_count" ]]; then
+      warn "SearXNG container $container restarted during startup check."
+      return 1
+    fi
+  done
+}
+
+install_searxng() {
+  local existing existing_image
+
+  if ! command -v docker >/dev/null 2>&1; then
+    warn 'Docker is not installed; skipping SearXNG deployment.'
+    return 0
+  fi
+  existing=$(docker ps --format '{{.Names}} {{.Ports}}' 2>/dev/null | awk '/127\.0\.0\.1:8080->|0\.0\.0\.0:8080->|\[::\]:8080->/ {print $1; exit}') || true
+  if [[ -n "$existing" ]]; then
+    if ! existing_image=$(docker inspect --format '{{.Config.Image}}' "$existing" 2>/dev/null); then
+      warn "Port 8080 is occupied by $existing, but its image could not be inspected; skipping SearXNG deployment."
+      return 0
+    fi
+    if ! searxng_image_matches "$existing_image"; then
+      warn "Port 8080 is occupied by $existing ($existing_image), not SearXNG; skipping deployment."
+      return 0
+    fi
+    printf 'Reusing running SearXNG container %s on http://localhost:8080.\n' "$existing"
+    return 0
+  fi
+  if ! docker info >/dev/null 2>&1; then
+    warn 'Docker is unavailable; skipping SearXNG deployment.'
+    return 0
+  fi
+
+  if docker inspect "$SEARXNG_CONTAINER" >/dev/null 2>&1; then
+    if ! existing_image=$(docker inspect --format '{{.Config.Image}}' "$SEARXNG_CONTAINER" 2>/dev/null); then
+      warn "Managed container $SEARXNG_CONTAINER image could not be inspected; skipping restart."
+      return 0
+    fi
+    if ! searxng_image_matches "$existing_image"; then
+      warn "Managed container $SEARXNG_CONTAINER ($existing_image) is not SearXNG; skipping restart."
+      return 0
+    fi
+    if docker start "$SEARXNG_CONTAINER" >/dev/null 2>&1; then
+      if check_searxng_startup "$SEARXNG_CONTAINER"; then
+        printf 'Started managed SearXNG container %s.\n' "$SEARXNG_CONTAINER"
+      fi
+    else
+      warn "Unable to start managed SearXNG container $SEARXNG_CONTAINER."
+    fi
+    return 0
+  fi
+
+  mkdir -p "$SEARXNG_CONFIG_ROOT" "$SEARXNG_CACHE_ROOT"
+  if [[ ! -e "$SEARXNG_CONFIG_ROOT/settings.yml" ]]; then
+    install -m 600 "$ROOT/config/searxng/settings.yml" "$SEARXNG_CONFIG_ROOT/settings.yml"
+  fi
+  if ! docker run --detach \
+    --name "$SEARXNG_CONTAINER" \
+    --restart unless-stopped \
+    --publish 127.0.0.1:8080:8080 \
+    --volume "$SEARXNG_CONFIG_ROOT:/etc/searxng" \
+    --volume "$SEARXNG_CACHE_ROOT:/var/cache/searxng" \
+    "$SEARXNG_IMAGE" >/dev/null; then
+    warn 'Unable to start SearXNG on 127.0.0.1:8080; check Docker and port availability. Continuing with the remaining setup.'
+  elif check_searxng_startup "$SEARXNG_CONTAINER"; then
+    printf 'Started SearXNG container %s.\n' "$SEARXNG_CONTAINER"
+  fi
+}
+
+install_optional_harnesses() {
+  if $PI_ENABLED; then
+    if command -v pi >/dev/null 2>&1; then
+      local pi_args=(--install-extension)
+      $SEARXNG_MCP_ENABLED || pi_args+=(--no-searxng-mcp)
+      "$ROOT/bootstrap_pi.sh" "${pi_args[@]}"
+    else
+      printf 'Skipping Pi: pi is not installed.\n'
+    fi
+  fi
+
+  if $AGY_ENABLED; then
+    if command -v agy >/dev/null 2>&1; then
+      "$ROOT/bootstrap_agy.sh"
+    else
+      printf 'Skipping AGY: agy is not installed.\n'
+    fi
+  fi
+}
+
 main() {
   check_source
-  check_dependencies
+  check_base_dependencies
+  ensure_codegraph
+  install_searxng_if_enabled
   install_config
   install_ponytail_plugin
+  install_optional_harnesses
   printf '\nInstalled Codex configuration.\n'
   printf 'Restart Codex after reviewing new hooks, agents, and skills.\n'
   printf 'Authenticate Codex manually.\n'
+}
+
+install_searxng_if_enabled() {
+  $SEARXNG_ENABLED && install_searxng || true
 }
 
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then

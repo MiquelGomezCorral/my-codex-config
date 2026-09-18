@@ -5,13 +5,22 @@ description: "CodeGraph MCP server setup — install, index, and configure seman
 
 # CodeGraph Setup
 
-Check whether CodeGraph is installed with `command -v codegraph`. In this managed Codex setup, install or repair it through `bootstrap.sh`; do not run `codegraph install`, because `codex/config.toml` already owns the MCP configuration. On an unmanaged machine, follow the official installer.
+Check whether CodeGraph is installed with `command -v codegraph`. In this managed setup,
+`./bootstrap.sh` and `./bootstrap_pi.sh` install the official
+`@colbymchenry/codegraph@1.6.0` package when it is missing; do not run `codegraph install`,
+because the Codex and Pi MCP configurations already own the server definition. On an
+unmanaged machine, follow the official installer.
 
 Initialize the current project:
 ```bash
 codegraph init
 codegraph index >/dev/null
 ```
+
+The bootstrap never indexes a project automatically. Run those commands once per project,
+then restart Codex or Pi so the MCP tools are discovered. `bootstrap.sh --pi` enables Pi's
+local CodeGraph and SearXNG tools; `--no-searxng` skips only the main-owned Docker service,
+while `--no-searxng-mcp` skips only Pi's SearXNG connector.
 
 ## MCP config
 
