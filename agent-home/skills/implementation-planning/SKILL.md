@@ -50,10 +50,14 @@ checkpoint is the scope-lock package rather than a duplicate ledger summary.
 1. Preserve the user's stated intent. Clarify the problem, affected user or caller,
    desired outcome, purpose, observable success, constraints, and non-goals only as
    needed. High-level behavior comes before implementation details.
-2. Load `agents-memory` for repository work and read only relevant memory. Inspect the
-   existing implementation before proposing changes: what already exists, how it is
-   called, what data and state it owns, what can be reused, and the smallest real gap.
-   Use `codegraph_context` first for feature or architecture context.
+2. Load `agents-memory` for repository work and read only relevant memory. Load the selected
+   `decision-records` skill explicitly and follow its missing-index behavior: read
+   `docs/decisions/index.md` when present, otherwise treat it as an empty existing-record set and
+   propose exact initialization in the approval scope. Then read every applicable record. Inspect
+   the existing implementation before proposing changes: what already exists, how it is called,
+   what data and state it owns, what can be reused, and the smallest real gap. Keep this assessment
+   read-only; do not create an index or record speculatively. Use `codegraph_context` first for
+   feature or architecture context.
 3. Load `grill-me` bc material user judgments will remain and use its decision-tree
    method. Ask the highest-leverage question by default, or up to three related
    questions. Research facts available from code, tests, history, logs, or
@@ -85,6 +89,7 @@ When no material branch remains unresolved, present one proportional approval pa
 - Verified current behavior and evidence.
 - In-scope behavior and explicit exclusions.
 - Decisions, rationale, consequences, and accepted risks.
+- Decision-record assessment, protected invariants, and the exact proposed record/index changes.
 - Affected components and end-to-end flow when material.
 - Implementation outline, readiness check, and pending live validation.
 - Exact durable `.agents` memory updates for the main agent, or state that no project
@@ -107,6 +112,8 @@ Include only applicable sections from:
 - Success, current behavior, scope, and exclusions.
 - Decisions, consequences, components, and technical flow.
 - Exact files or symbols, implementation steps, and relevant failures.
+- A separate `Decision records` section preserving the approved assessment, protected constraints,
+  and exact record/index changes; these remain main-orchestrator-owned execution inputs.
 - Minimum non-live readiness check and pending live `Flow`, `Expected`, and `Can run`.
 - `Main-agent memory updates` with exact paths and facts; these are not coder tasks.
 

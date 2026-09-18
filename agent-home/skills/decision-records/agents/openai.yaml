@@ -1,0 +1,7 @@
+interface:
+  display_name: "Planning · Decision Records"
+  short_description: "Preserve important implementation decisions"
+  default_prompt: "Use $decision-records after planning to assess and protect durable implementation decisions."
+
+policy:
+  allow_implicit_invocation: true

@@ -17,9 +17,16 @@ Run `./bootstrap.sh --check`, the focused Node tests, and `bash tests/bootstrap.
 The isolated-home bootstrap is available as a user-approved live/readiness flow, not as
 an automatic deployment step.
 
+For delegation-routing changes, edit model identifiers only in
+`agent-home/skills/subagent-routing/references/model-catalog.yaml`. Harness sections use
+ordered `low`, `medium`, `high`, and `local` routes; entries must remain secret-free, and
+`max_local_concurrency` limits all cataloged local processes, including the orchestrator.
+Validate the routing-related skills, then run `node --test tests/codex-config.test.mjs`,
+`bash tests/bootstrap.test.sh`, and `./bootstrap.sh --check`.
+
 ## Live Validation
 
-In a disposable Git repository, confirm the nine custom agents and migrated skills are
+In a disposable Git repository, confirm the eight custom agents and migrated skills are
 discoverable, invoke one migrated command-equivalent skill, run one native reviewer,
 invoke explicit Vault search, and observe the Workmux lifecycle hook.
 
