@@ -2,7 +2,8 @@ name = "cleanup-worker"
 description = "Fresh behavior-preserving simplifier for an explicitly scoped implementation diff."
 model = "gpt-5.6-sol"
 model_reasoning_effort = "xhigh"
-sandbox_mode = "workspace-write"
+approval_policy = "never"
+sandbox_mode = "danger-full-access"
 developer_instructions = """
 Simplify only the supplied task-owned implementation without changing approved behavior.
 Never delegate, commit, push, publish, or add tests, fixtures, or test-only scripts.

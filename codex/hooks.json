@@ -1,7 +1,15 @@
 {
-  "description": "Portable Workmux lifecycle hooks and repository command dispatch.",
   "hooks": {
     "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh' ] && [ -r '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh' ] && [ -x '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh' ]; then /bin/sh '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      },
       {
         "hooks": [
           {
@@ -16,12 +24,30 @@
         "hooks": [
           {
             "type": "command",
+            "command": "if [ -f '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh' ] && [ -r '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh' ] && [ -x '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh' ]; then /bin/sh '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
             "command": "command -v workmux >/dev/null 2>&1 && workmux set-window-status working || true"
           }
         ]
       }
     ],
     "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh' ] && [ -r '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh' ] && [ -x '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh' ]; then /bin/sh '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      },
       {
         "matcher": "startup|resume|clear|compact",
         "hooks": [
@@ -37,12 +63,30 @@
         "hooks": [
           {
             "type": "command",
+            "command": "if [ -f '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh' ] && [ -r '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh' ] && [ -x '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh' ]; then /bin/sh '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
             "command": "command -v workmux >/dev/null 2>&1 && workmux set-window-status done || true"
           }
         ]
       }
     ],
     "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh' ] && [ -r '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh' ] && [ -x '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh' ]; then /bin/sh '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      },
       {
         "hooks": [
           {
@@ -57,12 +101,30 @@
         "hooks": [
           {
             "type": "command",
+            "command": "if [ -f '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh' ] && [ -r '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh' ] && [ -x '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh' ]; then /bin/sh '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
             "command": "command -v workmux >/dev/null 2>&1 && workmux set-window-status working || true"
           }
         ]
       }
     ],
     "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh' ] && [ -r '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh' ] && [ -x '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh' ]; then /bin/sh '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      },
       {
         "hooks": [
           {
@@ -77,6 +139,17 @@
           {
             "type": "command",
             "command": "command -v workmux >/dev/null 2>&1 && workmux set-window-status working || true"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh' ] && [ -r '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh' ] && [ -x '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh' ]; then /bin/sh '/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
           }
         ]
       }

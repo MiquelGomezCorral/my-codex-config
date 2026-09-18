@@ -22,6 +22,10 @@ Assign review lenses before choosing harnesses. Route each lens to a suitable co
 reviewer in that harness; never reuse a Codex role name as an external role. A compatible
 model override and normalized harness intent have already been parsed by `$review`; pass
 them unchanged to routing.
+Assign the lowest adequate catalog tier to each lens unless the user requested one. Keep
+the coordinator on its configured orchestrator-strength model, count a cataloged local
+coordinator against `max_local_concurrency`, and report every tier, fallback, and local
+serialization in the final roster.
 
 ## Adaptive selection
 
@@ -42,6 +46,8 @@ harnesses for the remainder.
 The coordinator itself performs complete-diff inspection and does not outsource the
 selection decision. It uses the smallest justified set and reports missing coverage when
 a justified specialist cannot run.
+Before dispatch, it discovers applicable decision records and includes their exact paths and
+protected constraints in the shared specialist packet.
 
 ## Shared specialist packet
 
@@ -52,9 +58,10 @@ Goal: the observable review outcome
 Scope: the complete current diff and these changed files: <list>
 Diff basis: staged, unstaged, and untracked changes in the current worktree
 Context: persisted plan path and supplied review context
+Decision records: applicable record paths and protected constraints
 Exclusions: unrelated files, pre-existing defects, fixes, publication, and delegation
 Allowed actions: read-only inspection and bounded repository-defined verification
-Harness/model/lifecycle: selected route, fresh task, and allowed quota substitution
+Harness/model/lifecycle: selected route, fresh task, and catalog-only fallback
 Lens: the specialist's assigned review dimension
 Deliverable: findings only against the reviewed change, with path:line evidence and confidence
 Stop: return after the assigned lens is covered or state the concrete blocker
@@ -63,11 +70,13 @@ Stop: return after the assigned lens is covered or state the concrete blocker
 ## Launch and recovery
 
 Route all independent selected specialists before launching them, then launch them in the
-same turn when their harness mechanisms support it. Use each selected harness's fresh-task,
-wait, bounded-message, and cancellation operations. Do not reuse a session or pass a task
-key. On explicit quota exhaustion, use `subagent-routing` to replace only that lens and
-report the final route. Other failed workers are missing coverage; do not replay prompts
-or treat a model failure as a finding.
+same turn when the active wrapper supports it. Use the wrapper through `subagent-routing`
+for fresh-task, wait, bounded-message, and cancellation operations; without a wrapper,
+use the current harness's native equivalents. Do not reuse a session or pass a task key.
+Outside a wrapper, cross-harness execution requires the explicitly requested documented
+one-shot adapter. On explicit quota exhaustion, use `subagent-routing` to replace only
+that lens and report the final route. Other failed workers are missing coverage; do not
+replay prompts or treat a model failure as a finding.
 
 ## Coordinator synthesis
 

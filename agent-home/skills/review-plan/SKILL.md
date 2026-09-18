@@ -5,17 +5,30 @@ description: Validate and finalize the current approved implementation plan agai
 
 # Review Plan
 
-Plan approved. Now review the complete approved plan established in the current conversation against the
-user's request, relevant repository evidence, and all injected instructions. If no
+Plan approved. Now review the complete approved plan established in the current conversation against the user's request, relevant repository evidence, and all injected instructions. If no
 complete approved plan is present, report the blocker and stop; do not create or infer
 one. Treat the invocation input only as optional review context.
+
+Load `subagent-routing` and delegate the review to one fresh `gpt-5.6-sol` subagent
+with `high` reasoning. Give it the main agent's complete planning context: the user's
+request and corrections, every decision and answered question, unresolved questions,
+alternatives considered and why they were rejected, repository evidence, applicable
+instructions, the separate approved `Decision records` section, and the full proposed and
+approved plan. Do not assume it inherits the
+conversation; explicitly include this context in its task when inheritance is unavailable.
+
+The subagent acts as an independent critic: challenge the plan using the checks below
+and return concrete flaws, supporting evidence, suggested revisions, and questions
+that need user input, or explicitly report no findings. Its review is read-only;
+it must not implement or finalize the plan. The main agent assesses the findings,
+resolves them or asks the user, and returns the finalized plan.
 
 Assume requirements were clarified before this command, often through `grill-me`, but
 never manufacture a missing answer. If a remaining ambiguity would change behavior,
 scope, or risk, ask the user one focused question and stop without finalizing the plan.
 
-Before finalizing the plan you can stop and think once again and not follow the specifications if
-you find anything problematic with the plan, such as not really the best / most optimal:
+Have the critic reassess whether the plan is the simplest correct way to meet the
+user's requirements:
 
 - Verify important assumptions against the repository.
 - Remove unnecessary scope, abstractions, dependencies, and compatibility work.
@@ -23,11 +36,13 @@ you find anything problematic with the plan, such as not really the best / most 
 - Ensure the implementation can reach live validation with only the minimum useful
   non-live readiness check.
 
-Take this a second chance to review the plan and loop to ask to the user/reconsider.
-We can reconsider just one part, a few or the whole plan if you new thoughts do comply against the plan.
+Use the findings to reconsider any problematic part of the plan without silently
+overriding user decisions. Resolve material unanswered choices with the user.
+Preserve the approved decision-record assessment and exact record/index changes in the
+finalized plan. Newly proposed material record changes or unresolved intent conflicts return
+to the user; unchanged approved content needs no repeated approval.
 
-
-Otherwise, if the plan is okey, return the revised plan in chat as a self-contained execution specification
+Once the findings are resolved, return the revised plan in chat as a self-contained execution specification
 for an agent with no conversation history.
 
 ## Planning mode
@@ -71,6 +86,11 @@ approval; neither the planner nor executor may run it automatically.
 Preserve the exact approved memory updates or the explicit statement that none are
 needed. Challenge them when incorrect, but never silently drop them; they are not coder
 tasks.
+
+## Decision records
+Preserve the approved assessment, applicable record paths, protected invariants, and exact
+record/index changes. The main orchestrator owns those approved document changes during
+execution; coders receive them as constraints and report conflicts.
 
 ## Out of scope
 Files, behavior, cleanup, and follow-up work the executor must not perform.

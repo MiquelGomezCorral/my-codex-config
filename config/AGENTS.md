@@ -13,10 +13,20 @@ not weaken security or explicit user constraints.
 
 - Questions are read-only; imperatives authorize only the stated implementation scope.
 - Planning, research, audit, and review stay read-only until implementation is authorized.
+- After planning and before implementation, assess applicable shared decision records. A task
+  that skips planning does not acquire a mandatory assessment solely from this rule. Use the
+  repository-scoped `decision-records` skill when present; otherwise use the shared portable
+  skill. Load the selected file explicitly rather than merging same-name skill bodies, and keep
+  repository-specific requirements applicable.
 - Preserve unrelated worktree changes. Inspect relevant files and surrounding patterns
   before editing, and do not broaden the task or add speculative features.
 - For non-trivial implementation, configuration, or refactoring, load `core` and its
   smallest relevant focused skill. Use a subagent only when an independent scope justifies it.
+- All agents, including nested workers, must load `subagent-routing` before delegating.
+  A proven active wrapper owns agent launch, messaging, waiting, resume, and cleanup;
+  without one, use the current harness's native lifecycle. Do not bypass an active wrapper
+  with direct harness launches or Workmux, and use another harness only through an explicit
+  documented one-shot adapter.
 - Apply focused patches: change only necessary lines or sections, and never rewrite a
   whole file when a narrower edit achieves the approved result.
 - Before non-trivial edits, identify the goal, completion condition, and what must remain

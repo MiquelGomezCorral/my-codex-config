@@ -13,17 +13,19 @@ Findings are more valuable than commentary. False positives are worse than silen
    for regressions.
 2. Inspect repository state, the complete relevant diff, and untracked files.
 3. Read surrounding code before asserting patterns, contracts, or behavior.
-4. Trace realistic inputs through changed branches and boundaries. Verify that the
+4. Read applicable decision records and compare the reviewed behavior with their protected
+   invariants, including any invariant removed or weakened by the same change.
+5. Trace realistic inputs through changed branches and boundaries. Verify that the
    change solves the stated problem, not merely that it compiles.
-5. Check, in this order:
+6. Check, in this order:
    - Correctness, state transitions, edge cases, and error paths.
    - Security, trust boundaries, data loss, and unsafe partial completion.
    - Public contracts, callers, migrations, integration points, and fixtures.
    - Coupling, ownership, avoidable complexity, naming, stale documentation, and
      obvious performance regressions.
    - Tests: relevant behavior, boundary coverage, and whether important checks can fail.
-6. Run only repository-defined verification justified by the change.
-7. Use specialist reviewers only for distinct risk surfaces; verify and deduplicate
+7. Run only repository-defined verification justified by the change.
+8. Use specialist reviewers only for distinct risk surfaces; verify and deduplicate
    their claims before reporting.
 
 ## Findings

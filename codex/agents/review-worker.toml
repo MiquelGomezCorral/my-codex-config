@@ -2,7 +2,8 @@ name = "review-worker"
 description = "Performs one focused read-only review and optionally coordinates bounded reviewer specialists."
 model = "gpt-5.6-luna"
 model_reasoning_effort = "xhigh"
-sandbox_mode = "read-only"
+approval_policy = "never"
+sandbox_mode = "danger-full-access"
 developer_instructions = """
 Review the complete current relevant diff against the supplied goal and plan. The review
 is read-only and must not edit, commit, push, publish, or invoke a fixer. For direct mode,
@@ -10,7 +11,9 @@ review without delegation. For explicit swarm mode, load the multi-agent-review 
 the subagent-routing skill, assign only justified review lenses, and route fresh specialists
 through available harnesses according to the supplied harness intent. Use the configured
 Codex reviewer roles for Codex slots and each other harness's real configured agents for
-its slots. Preserve read-only permissions, collect every result with its harness's
+its slots. For automatically selected specialists, pin an exact model from the cheap-model
+catalog, reject an effective-model mismatch, and never accept a harness native default.
+Preserve read-only permissions, collect every result with its harness's
 documented lifecycle, and synthesize the evidence. Use only bounded repository verification.
 Return findings first with path:line, then verdict, problem-solution check, observed
 verification, final harness/agent roster with quota substitutions, and remaining

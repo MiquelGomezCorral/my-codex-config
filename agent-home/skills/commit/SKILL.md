@@ -11,7 +11,9 @@ primary session.
 
 Launch or resume exactly one configured commit worker through `subagent-routing`; in Codex
 use `commit-worker`. Prefer the active harness unless the user selects another one, and use
-visible quota substitution when required. Its prompt must include the current user request,
+visible catalog-only substitution when required. Classify the request as the lowest adequate
+catalog tier and include that tier in the packet; missing catalog coverage is a blocker.
+Its prompt must include the current user request,
 every user option, any `--ignore <path-or-glob>` value unchanged, and
 `Plan path: <exact path>` when a persisted
 plan is available or `Plan path: unavailable` otherwise. The worker re-inspects the

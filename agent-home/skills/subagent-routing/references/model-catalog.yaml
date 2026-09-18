@@ -1,0 +1,20 @@
+max_local_concurrency: 1
+
+pi:
+  low:
+    - opencode-go/mimo-v2.5
+  medium:
+    - opencode-go/deepseek-v4.1-flash
+  high:
+    - opencode-go/deepseek-v4-pro
+  local:
+    medium:
+      - bonsai-local/Ternary-Bonsai-2-27B-PQ2_0.gguf
+
+agy:
+  low:
+    - gemini-3.8-flash-low
+  medium:
+    - gemini-3.8-flash-medium
+  high:
+    - gemini-3.1-pro-high

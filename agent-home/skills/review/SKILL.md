@@ -51,9 +51,19 @@ Build the worker prompt with exactly one mode marker:
 Include `Harness routing: default` or the normalized harness, agent, ratio, and exclusion
 intent. In default swarm routing, at least half of reviewers, rounded up, use the current
 harness; the rest may use best-fit agents from other available harnesses.
+Include `Worker tier: <requested tier or automatic>` in the coordinator packet. The
+coordinator applies the catalog's harness-first selection, local concurrency limit, and
+catalog-only fallback to each specialist; the coordinator itself keeps its configured
+orchestrator-strength model.
 
 Include the exact persisted plan path established by `$code`, when present, and the
 remaining review context.
+
+Before launch, the coordinator loads the selected `decision-records` skill, discovers applicable
+records, and compares the reviewed behavior with their protected invariants. Pass the exact
+record paths and relevant protected constraints to every specialist. Intent conflicts, including
+removals or weakening within the reviewed change, must be reported with the record and
+implementation evidence for the developer to resolve.
 
 Use the current harness's configured review coordinator. In Codex this is `review-worker`.
 If another harness has no named coordinator but exposes a documented general agent, give

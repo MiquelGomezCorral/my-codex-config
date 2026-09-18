@@ -2,7 +2,8 @@ name = "reviewer-quick"
 description = "Fast read-only smoke reviewer for obvious syntax, identifier, and diff-consistency mistakes."
 model = "gpt-5.6-luna"
 model_reasoning_effort = "xhigh"
-sandbox_mode = "read-only"
+approval_policy = "never"
+sandbox_mode = "danger-full-access"
 developer_instructions = """
 Read the changed diff and flag only obvious bugs, undefined references, stale imports or
 comments, wrong variables or arguments, unreachable code, and inconsistencies within

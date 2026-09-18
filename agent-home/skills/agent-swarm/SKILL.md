@@ -1,6 +1,6 @@
 ---
 name: agent-swarm
-description: Orchestrate agents across the active harness and other available harnesses when the user asks for delegation, agents, a swarm, parallel workers, or a workflow requires multiple agents.
+description: Orchestrate agents through an active wrapper or the current harness when the user asks for delegation, agents, a swarm, parallel workers, or a workflow requires multiple agents.
 ---
 
 # Agent Swarm
@@ -14,10 +14,15 @@ bounded tasks and evidence.
 - Honor the user's harness, agent, model, ratio, and exclusion choices. Otherwise keep at
   least half the workers, rounded up, on the active harness and route the remainder to
   useful independent agents from other available harnesses.
-- Use the selected harness's configured agent descriptions and lifecycle mechanism. Do
-  not invent cross-harness role mappings or external commands.
+- Select harnesses available through the active wrapper, or only the current harness when
+  no wrapper is active, and use its lifecycle through `subagent-routing`. Do not invent
+  cross-harness role mappings or external launch commands.
+- Give each worker the requested or cheapest adequate catalog tier. Let
+  `subagent-routing` choose the first model in preference order, enforce the shared local
+  concurrency limit including the orchestrator, and report the selected tier, fallback,
+  and any serialization with the roster.
 - Preserve an explicitly requested role, model, reasoning effort, and directory. Apply
-  the routing skill's visible quota fallback without changing the worker's assignment.
+  the routing skill's visible catalog-only fallback without changing the worker's assignment.
 
 ## Gate
 
@@ -49,10 +54,8 @@ Duplicate prompts only for intentional independent voting.
 ## Lifecycle
 
 - Launch independent workers in the same turn when their selected mechanisms support it.
-  Use each harness's documented status, wait, message, cancellation, and resume actions.
-- For Codex workers, `spawn_agent` creates a child, `send_message` adds context,
-  `followup_task` resumes an exact retained child, `wait_agent` collects results,
-  `interrupt_agent` cancels work, and `list_agents` verifies identity and status.
+  Use the active wrapper's documented status, wait, message, cancellation, and resume
+  actions, or the current harness's native equivalents, through `subagent-routing`.
 - Before resuming any worker, verify its parent, harness, role, model, and directory.
   Agents are not moved between those identities.
 - Cancel a coordinator subtree deepest-first when its harness exposes descendants; then
@@ -71,7 +74,7 @@ Exclusions: adjacent work and non-goals
 Context: relevant decisions and paths
 Allowed actions: read-only or isolated edits
 Delegation: forbidden, or exact nested-swarm allowance
-Harness/model/lifecycle: requested route and allowed quota substitution
+Harness/model/lifecycle: requested wrapper- or current-harness route and catalog-only fallback
 Deliverable: exact result shape
 Evidence: required file:line, URL, command, or test
 Stop: completion and blocker conditions
@@ -98,7 +101,8 @@ Canonical nested instruction:
 
 ```text
 Delegation: Nested swarm allowed. If protocol analysis and failure analysis are
-independent, route one read-only child to each with the available agent mechanisms. Run
+independent, route one read-only child to each through `subagent-routing` and the active
+wrapper or current harness. Run
 them concurrently, do not let either edit files or spawn further agents, collect both,
 verify their citations, and return one reconciled result. Maximum depth is one, with two
 total and two active descendants.
@@ -123,7 +127,7 @@ synthesize them; it must not forward raw transcripts to its parent.
 - Do not replay prompts into unknown sessions or reuse a child after its identity no
   longer matches the task.
 - Do not broaden permissions or hide failures. Use only the routing policy's explicit,
-  reported quota substitution.
+  reported catalog fallback.
 - Retry a failed operation once only when the error or changed input supports recovery;
   do not blind-retry. The coordinating parent decides whether evidence satisfies the
   acceptance criteria and reports the last command, error, and remaining blocker.

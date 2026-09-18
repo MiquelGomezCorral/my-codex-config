@@ -1,6 +1,6 @@
 ---
 name: btca-cli
-description: Configure and operate the btca CLI: connect providers, add or inspect local/Git/npm resources, troubleshoot setup, and run explicit source-grounded queries. Use for BTCA administration or when the user says to use btca.
+description: "Configure and operate the btca CLI: connect providers, add or inspect local/Git/npm resources, troubleshoot setup, and run explicit source-grounded queries. Use for BTCA administration or when the user says to use btca."
 ---
 
 # BTCA CLI
