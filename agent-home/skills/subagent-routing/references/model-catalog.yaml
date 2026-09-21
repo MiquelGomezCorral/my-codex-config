@@ -1,15 +1,22 @@
 max_local_concurrency: 1
 
+codex:
+  low:
+    - gpt-5.6-luna
+
 pi:
   low:
     - opencode-go/mimo-v2.5
   medium:
-    - opencode-go/deepseek-v4.1-flash
+    - opencode-go/deepseek-v4-flash
   high:
-    - opencode-go/deepseek-v4-pro
+    - opencode-go/deepseek-v4.1-flash
   local:
     medium:
+      - local-llama/Qwen3.8-27B-GSQ-RCO-IQ2_S
+    low:
       - bonsai-local/Ternary-Bonsai-2-27B-PQ2_0.gguf
+      - local-llama/Qwen3.8-27B-GSQ-RCO-IQ2_XS
 
 agy:
   low:
