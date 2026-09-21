@@ -1,0 +1,38 @@
+{
+  "skill_name": "cleanup",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Run $cleanup for a task-owned diff that adds a one-use wrapper around an existing standard-library operation, a redundant configuration branch, and no meaningful regression. Audit the production change without editing the worktree.",
+      "expected_output": "Evidence-backed production findings ordered by simplification value, each with a category, path:line, source evidence, maintenance cost, and smallest simplification direction; no edits or correction brief.",
+      "expectations": [
+        "Reports the one-use wrapper or redundant branch only when the source confirms its cost",
+        "Keeps findings scoped to task-owned hunks and cites source locations",
+        "Returns findings only and does not edit, stage, commit, or generate a correction brief",
+        "Does not treat a diff-size target as a goal"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Run $cleanup on a task-owned change that duplicates validation in production and adds two tests that mirror the implementation while omitting the important failure case. Audit both production and tests, preserving trust-boundary and regression protection.",
+      "expected_output": "Source-cited production and test findings that identify duplicated validation and low-value implementation-mirroring tests while preserving meaningful security and failure coverage.",
+      "expectations": [
+        "Audits production and tests rather than production alone",
+        "Does not recommend deleting tests that protect a trust boundary, data-loss risk, regression, or important failure",
+        "Identifies duplicated policy or validation only with evidence from both implementations",
+        "Includes the required category, path:line, evidence, cost, and smallest direction for each finding"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Run $cleanup on a small task-owned diff whose production code and tests are already lean, behavior-focused, and consistent with the repository conventions. Do not use Slopo and do not modify the worktree.",
+      "expected_output": "Exactly `Lean already. No cleanup findings.` with no external-tool probe and no worktree mutation.",
+      "expectations": [
+        "Returns exactly `Lean already. No cleanup findings.` when no evidence-backed simplification exists",
+        "Does not invoke or probe Slopo without the --slopo opt-in",
+        "Preserves the unchanged repository status",
+        "Does not invent speculative cleanup work"
+      ]
+    }
+  ]
+}

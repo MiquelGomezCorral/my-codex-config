@@ -86,8 +86,8 @@ for path in sorted(source.glob("*.toml")):
     if name != path.stem:
         raise SystemExit(f"Agent name does not match filename: {path}")
     prompt = data["developer_instructions"].strip()
-    reviewer = name == "review-worker" or name.startswith("reviewer-")
-    tools = read_tools if reviewer else write_tools
+    read_only = name == "cleanup-worker" or name == "review-worker" or name.startswith("reviewer-")
+    tools = read_tools if read_only else write_tools
     body = "\n".join([
         "---",
         f"name: {name}",

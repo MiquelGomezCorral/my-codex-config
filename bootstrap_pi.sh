@@ -90,7 +90,7 @@ import tomllib
 source = pathlib.Path(sys.argv[1])
 target = pathlib.Path(sys.argv[2])
 skills = {
-    "cleanup-worker": ["core", "cleanup"],
+    "cleanup-worker": ["core", "cleanup", "subagent-routing"],
     "coder": ["core", "code", "subagent-routing"],
     "commit-worker": ["core", "commit", "commit-manager"],
     "review-worker": ["core", "review", "multi-agent-review", "subagent-routing"],
@@ -106,7 +106,7 @@ for path in sorted(source.glob("*.toml")):
     if name != path.stem:
         raise SystemExit(f"Agent name does not match filename: {path}")
     prompt = data["developer_instructions"].strip()
-    read_only = name == "review-worker" or name.startswith("reviewer-")
+    read_only = name == "cleanup-worker" or name == "review-worker" or name.startswith("reviewer-")
     tools = ["read", "grep", "find", "ls", "bash"]
     if not read_only:
         tools += ["edit", "write"]
@@ -123,6 +123,7 @@ for path in sorted(source.glob("*.toml")):
         "inheritProjectContext: true",
         "inheritSkills: true",
         f"skills: {', '.join(skills.get(name, ['core']))}",
+        *(["allowNestedSubagents: true"] if name in {"cleanup-worker", "review-worker"} else []),
         "defaultProgress: true",
         "---",
         "",

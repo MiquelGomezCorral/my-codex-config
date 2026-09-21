@@ -1,50 +1,81 @@
 ---
 name: cleanup
-description: Run the explicit `$cleanup` behavior-preserving simplification gate with one fresh worker; prefer the configured Codex Sol worker when Codex is selected.
+description: Run the explicit `$cleanup` findings-only deslop audit with one fresh read-only coordinator, optionally using bounded Slopo duplication evidence.
 ---
 
 # Cleanup Gate
 
-Run this workflow only for an explicit `$cleanup` invocation. Never trigger it from
+Run only for an explicit `$cleanup` invocation. Never trigger this workflow from
 `$code`, `$review`, or ordinary implementation. Load `subagent-routing` before
-launching the worker. The parent owns orchestration and inspection, not cleanup edits.
+launching the configured `cleanup-worker`; the parent owns scope and orchestration,
+and the worker returns findings without changing the repository.
+
+```text
+$cleanup [--slopo] [goal or persisted-plan context]
+```
 
 ## Establish scope
 
-1. Use the exact persisted plan path established by `$code` when one exists. Otherwise,
-   require enough explicit goal context in `$ARGUMENTS` to identify the approved behavior
-   that must remain unchanged. Stop rather than infer a missing goal.
-2. Inspect `git status`, staged and unstaged diffs, and untracked files. Identify the
-   task-owned change from the plan, goal, and accepted corrections while preserving all
-   pre-existing and unrelated worktree changes. Stop if ownership cannot be distinguished
-   safely. If no relevant diff exists, report that cleanup was skipped and do not launch.
-3. Record baseline additions and deletions for the complete task-owned diff. Treat these
-   statistics as evidence only, never as a reduction target.
-4. Identify the single existing minimum non-live readiness check established by the plan
-   or explicitly supplied context. Do not invent extra checks.
+1. Use the exact persisted plan path established by `$code` when one exists.
+   Otherwise require enough explicit goal context in `$ARGUMENTS` to identify the
+   approved behavior that must remain unchanged. Stop rather than infer a missing goal.
+2. Capture complete Git status, staged and unstaged diffs, and untracked files. Identify
+   task-owned changes from the plan, goal, and accepted corrections while preserving
+   pre-existing and unrelated worktree changes. Stop if ownership is ambiguous.
+3. If no relevant task-owned diff exists, report that cleanup was skipped and do not
+   launch a worker.
+4. Inspect only the task diff and enough surrounding code, callers, tests, and project
+   structure to verify a finding. Do not use diff size as a target.
 
 ## Launch
 
-Launch exactly one fresh worker through `subagent-routing`:
+Launch exactly one fresh `cleanup-worker` through `subagent-routing` with the plan or
+goal, task-owned paths and exclusions, and the complete status snapshot. The packet must
+contain exactly one marker: `Slopo mode: enabled` when `$cleanup --slopo` was supplied,
+otherwise `Slopo mode: disabled`. Consume the flag in the parent; never forward it as
+shell input or user arguments.
 
-- `agent`: the selected harness's configured behavior-preserving simplifier; in Codex use
-  `cleanup-worker`
-- `model`: prefer `gpt-5.6-sol` for the Codex route
-- `prompt`: the exact plan path or explicit goal, accepted corrections, task-owned files
-  and exclusions, baseline diff statistics, and the existing minimum readiness check
+The coordinator audits production and tests and may delegate at most two fresh,
+read-only specialists only when distinct evidence surfaces justify it:
+`reviewer-arch` for ownership, organization, abstractions, and reuse; and
+`reviewer-reasoning` for behavioral value and test usefulness. Specialists receive
+bounded questions, never edit or delegate, and return evidence. If routing is unavailable,
+the coordinator completes the audit itself.
 
-Every invocation gets a fresh worker. Pass user-selected harness, agent, model, and
-exclusion intent to routing; otherwise prefer the active harness. If the selected route
-exhausts quota, use the routing policy's visible substitution. If all suitable routes fail,
-stop without a manual edit; inspect and report any unexpected partial change.
+## Optional Slopo evidence
+
+Without `--slopo`, do not invoke or probe Slopo. When enabled, run from the repository
+root using these fixed argv vectors only, with no remaining user arguments. If
+`slopo.conf.yaml` does not exist, first run `["slopo", "init"]`, report the created
+template, then continue with validation:
+
+- `["slopo", "show-config"]`
+- `["slopo", "index"]`
+- `["slopo", "embed"]`
+- `["slopo", "analyze"]`
+
+Before analysis, verify configured database and report locations are outside tracked
+repository state or ignored. The new `slopo.conf.yaml` template is the only expected
+worktree mutation; never edit it automatically, and report incomplete required fields as a
+Slopo gap. If configuration is unsafe, or a command is unavailable, fails, returns an
+unreadable report or output, or causes any other worktree mutation, report the Slopo gap and
+continue the native audit. Consider only clusters intersecting a task-owned changed
+hunk; similarity alone is not a finding, and both implementations must confirm duplicated
+responsibility or logic. Never install, configure, authenticate, ignore, delete, stage,
+or commit other Slopo state; never edit the generated template automatically.
 
 ## Return
 
-After the worker returns, inspect status plus the complete staged, unstaged, and untracked
-task-owned diff again. Compare before-and-after statistics, summarize only meaningful
-simplifications, and report the worker's observed readiness result and any blocker or
-unchecked requirement. If the worker made no edit, say so without inventing work.
+Return findings only, ordered by expected simplification value. Each finding includes a
+category, `path:line`, source evidence, concrete maintenance or complexity cost, and the
+smallest simplification direction. Audit tests for low-value or implementation-mirroring
+assertions, dependency behavior, duplicated coverage, excessive fixtures or mocks, and
+unapproved behavior; preserve acceptance behavior, regressions, trust boundaries,
+security, data-loss protections, important failures, and critical deterministic contracts.
+When uncertain, do not recommend deletion.
+Do not produce edits, a correction brief, automatic acceptance, or invented work. Return
+`Lean already. No cleanup findings.` when appropriate.
 
-If cleanup edited code, state explicitly that the previous review is stale and `$review`
-must run again. Do not invoke reviewers, coders, live validation, or another worker. Never
-commit, push, publish, or mutate GitHub from this workflow.
+Capture complete Git status again after the worker returns. Apart from a reported
+`slopo.conf.yaml` created by the explicit `--slopo` flow, any unexpected mutation is a
+contract violation: report it and do not revert or delete files automatically.

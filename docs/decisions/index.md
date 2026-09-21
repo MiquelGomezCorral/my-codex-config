@@ -5,3 +5,4 @@ Records are grouped by capability and stable concern so agents can read the smal
 
 - [Pi local search](agent-tooling/pi-local-search.md) — Local CodeGraph and SearXNG tools, with separate service and Pi MCP ownership.
 - [Delegation routing](agent-tooling/delegation-routing.md) — Runtime-aware harness selection, cheap worker catalog, and local-model concurrency.
+- [Post-implementation quality gates](agent-tooling/post-implementation-quality-gates.md) — Read-only deslop audits and opt-in OCR/Slopo evidence.
