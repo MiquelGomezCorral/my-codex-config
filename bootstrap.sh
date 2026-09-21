@@ -59,6 +59,10 @@ SEARXNG_CONTAINER="${SEARXNG_CONTAINER:-my-codex-config-searxng}"
 SEARXNG_IMAGE="${SEARXNG_IMAGE:-docker.io/searxng/searxng:latest}"
 PONYTAIL_MARKETPLACE="DietrichGebert/ponytail"
 PONYTAIL_PLUGIN="ponytail@ponytail"
+DIAGRAM_MARKETPLACE="cathrynlavery/diagram-design"
+DIAGRAM_PLUGIN="diagram-design@diagram-design"
+EXCALIDRAW_REPO="https://github.com/fabricioartur/codex-excalidraw-skill.git"
+EXCALIDRAW_SOURCE_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/my-codex-config/excalidraw-skill"
 
 source "$ROOT/config/bin/codegraph-dependency.sh"
 
@@ -191,6 +195,7 @@ check_source() {
     config/plugins/vault-context/stopwords/en.json
     config/plugins/vault-context/stopwords/es.json
     config/bin/codegraph-dependency.sh
+    agent-home/skills/review/scripts/ocr-opencode-go
     config/searxng/settings.yml
     agent-home/skills/subagent-routing/references/model-catalog.yaml
     bootstrap_pi.sh
@@ -371,7 +376,7 @@ write_generated_agents() {
 
 install_config() {
   local name
-  mkdir -p "$CODEX_TARGET" "$CODEX_TARGET/rules" "$CODEX_TARGET/agents" "$CODEX_TARGET/bin" "$HOME/.agents"
+  mkdir -p "$CODEX_TARGET" "$CODEX_TARGET/rules" "$CODEX_TARGET/agents" "$CODEX_TARGET/bin" "$HOME/.agents" "$HOME/.local/bin"
 
   install_codex_config "$CODEX_SOURCE/config.toml" "$CODEX_TARGET/config.toml"
   link_managed "$CODEX_SOURCE/hooks.json" "$CODEX_TARGET/hooks.json"
@@ -383,6 +388,7 @@ install_config() {
   done
   link_managed "$SKILLS_SOURCE" "$HOME/.agents/skills"
   link_managed "$ROOT/config/bin/codex-command-dispatch.mjs" "$CODEX_TARGET/bin/codex-command-dispatch.mjs"
+  link_managed "$SKILLS_SOURCE/review/scripts/ocr-opencode-go" "$HOME/.local/bin/ocr-go"
   link_managed "$ROOT/config/plugins/vault-context" "$CODEX_TARGET/vault-context"
   write_generated_agents
 }
@@ -397,6 +403,22 @@ retire_agent() {
 install_ponytail_plugin() {
   codex plugin marketplace add "$PONYTAIL_MARKETPLACE"
   codex plugin add "$PONYTAIL_PLUGIN"
+}
+
+install_diagram_plugin() {
+  codex plugin marketplace add "$DIAGRAM_MARKETPLACE"
+  codex plugin add "$DIAGRAM_PLUGIN"
+}
+
+install_excalidraw_skill() {
+  if [[ ! -d "$EXCALIDRAW_SOURCE_DIR/skill" ]]; then
+    mkdir -p "$(dirname "$EXCALIDRAW_SOURCE_DIR")"
+    git clone --depth 1 "$EXCALIDRAW_REPO" "$EXCALIDRAW_SOURCE_DIR"
+  else
+    git -C "$EXCALIDRAW_SOURCE_DIR" pull
+  fi
+  mkdir -p "$CODEX_HOME/skills/excalidraw"
+  rsync -a --delete "$EXCALIDRAW_SOURCE_DIR/skill/" "$CODEX_HOME/skills/excalidraw/"
 }
 
 warn() {
@@ -533,6 +555,8 @@ main() {
   install_searxng_if_enabled
   install_config
   install_ponytail_plugin
+  install_diagram_plugin
+  install_excalidraw_skill
   install_optional_harnesses
   printf '\nInstalled Codex configuration.\n'
   printf 'Restart Codex after reviewing new hooks, agents, and skills.\n'
