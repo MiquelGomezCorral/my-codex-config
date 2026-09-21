@@ -224,6 +224,23 @@ from .runtime import (
 ```
 
 Same result, same import capabilities, just cleaner simpler and better
+Same for This
+```python
+from .generate_rm import generate_rm
+
+__all__ = ["GenerationHooks", "generate_rm"]
+
+```
+
+and then
+```python
+from scripts import arm_fm
+...
+    return arm_fm.generate_larm(args_to_dataclass(args, Configuration))
+```
+that is so wrong, if you want to use a function, IMPORT IT! not the whole file. 
+
+
 
 ## Environment variables
 
@@ -290,6 +307,9 @@ The idea is that we don't write almost any test. Too many tests will make the co
 - We don't test all the inputs 
 - We don't validate everything, only what really matters
 
+## Others
+- There is no need for functions to return 'int' as if on a c++ or OS script that return '0' or '1'... that is totally none-sense on python
+
 # Template
 
 We follow the [maikol-utils](https://github.com/MiquelGomezCorral/maikol-utils), so if you have to create a new project from scratch, create a repository using that as the template, clone it and then you can start coding. The template is already set up with the best practices and the structure that we want to follow.
@@ -353,6 +373,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     args.func(args)
 ```
+
+Then, each script you define here, each p_... = subparsers, is a different file at the app/scripts. 
+I want no clustering of independent scripts at a sigle file, each is owner of each own file.
 
 # Configuration
 
