@@ -127,9 +127,28 @@ For example, `/commands/review quick focus on the payment path` invokes `review`
 `quick focus on the payment path` as its arguments. Direct `$skill-name` invocation also
 remains available.
 
+`$review --ocr` adds OpenCodeReview evidence through OpenCode Go. Install OCR separately,
+then authenticate `opencode-go` in Pi with `/login`; Pi is only the credential store, not
+the review harness. The review helper calls OpenCode Go directly, defaults to
+`deepseek-v4-flash`, and stores no credential or session state in this repository. Set
+`OCR_OPENCODE_GO_MODEL` before launching the harness to select another Go model. Without
+Pi, provide `OPENCODE_API_KEY` through the approved secret store.
+
+```bash
+npm install -g @alibaba-group/open-code-review
+pi auth check --provider opencode-go --no-refresh
+ocr --version
+```
+
+From any repository, run `ocr-go review --preview` and then `ocr-go review`.
+
 Ponytail is installed from `DietrichGebert/ponytail` during bootstrap. Its skills, hooks,
 and commands are maintained by that plugin rather than copied into this repository. Review
 and trust its three lifecycle hooks in Codex once after the first install or a hook update.
+
+`diagram-design` is installed from the `cathrynlavery/diagram-design` marketplace plugin during
+bootstrap. The Excalidraw skill is synced from `fabricioartur/codex-excalidraw-skill` into
+`~/.codex/skills/excalidraw`. Both are Codex-only and are not installed for other harnesses.
 
 ## Repository ownership
 
