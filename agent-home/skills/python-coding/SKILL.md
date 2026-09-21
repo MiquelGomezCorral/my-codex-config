@@ -2,7 +2,6 @@
 name: python-coding
 description: When writing any Python code, maintain Python projects or create new ones from scratch. Read this.
 ---
-
 # Python Project Setup
 
 Follow the repository first. Use these defaults only when creating or maintaining a
@@ -18,11 +17,10 @@ Golden rule: KISS! Keep it simple, stupid. The goal is to write simple readible 
 - Use `uv pip` for dependency installation inside that environment.
 - Treat `requirements.txt` as the dependency source unless packaging for distribution.
 - Install the project editable with `pip install -e .` so imports resolve without path
-  hacks.
+hacks.
 - Register a project-specific Jupyter kernel only when notebooks need it.
 - Respect existing lock, requirements, and project metadata; never mix package managers.
 - Never commit `.env`; commit only `example.env` with placeholder values.
-
 
 ```
 conda create --name myenv python=3.13 -y
@@ -34,7 +32,6 @@ uv pip install -r requirements.txt
 uv pip install ipykernel
 python -m ipykernel install --user --name=myenv --display-name "Python (Conda)"
 ```
-
 
 ## Layout
 
@@ -108,31 +105,146 @@ For refactoring, preserve behavior, derive types and configuration from authorit
 sources, remove obsolete paths, and verify imports plus the affected real flow.
 
 ## Imports and notebooks
+
 Given the current setup, all python files that use this env will import from the .app/ folder. Therefore, all must use schemas like `from scripts import ...` or `from src.config import Configuration` or `from src.data import ...`.
+
 - data, config and any other folder inside .app/ are considered packages and must have an `__init__.py` file.
-- All files within a package that import from the same package, must do if with the patterns `from .file_name import ...'.
+- All files within a package that import from the same package, must do if with the patterns \`from .file\_name import ...'.
 - All files within a package that import from another package must do so with `from src.package_name import ...`
 - Scripts folder are considered packages and must have an `__init__.py` file. They can only be imported from main.py or from other scripts. They cannot be imported from src or any other package.
 - config.py must never import from any other package. It is the only file that can be imported from anywhere without restrictions. We can define other files at src/config and import them from config.py, but those cannot import from any other package. This is to avoid circular imports and to have a single source of truth for configuration.
 - Notebooks need no weird os.path hacks since this setup works for them as well.
 - Add the `python -m ipykernel install --user --name=venv --display-name "Python (venv)"` to make the env work for notebooks.
 
+### __init__.py file
+Things like the follwing must be avoided to avoid extra complicated files. This file must remain only the import of each package desired 'functions' and 'variable' to be used by other parts of the app, nothing else, not slop nor blop code.
+
+THIS IS WRONG:
+```python
+"""Public ARM-FM reconstruction interfaces."""
+
+from importlib import import_module
+
+from .artifacts import ArtifactBundle, BundleManifest, BundleValidationError, load_bundle
+from .environments import labeling_api_for_domain, make_environment
+from .evaluation import (
+    ...
+    load_qwen_embedding_model,
+    resolve_embedding_settings,
+)
+from .generation import adapt_compilation_result, generate_baseline_bundle, generate_compiler_bundle
+from .runtime import (
+    PaperRewardMachine,
+    ...
+    serialize_reward_machine,
+)
+
+_TRAINING_EXPORTS = {
+    "ALGORITHM_COMPONENTS",
+    "BuiltinPolicy",
+    "ExperimentManifest",
+    "RNDModule",
+    "TaskManifestEntry",
+    "TrainingCheckpoint",
+    "TrainingConfig",
+    "algorithm_for_domain",
+    "load_builtin_policy",
+    "load_task_manifest",
+    "paper_experiment_manifest",
+    "paper_training_config",
+    "train_larm",
+    "train_manifest",
+}
+
+
+def __getattr__(name: str):
+    """Load training symbols only when a training command requests them."""
+    if name not in _TRAINING_EXPORTS:
+        raise AttributeError(name)
+    value = getattr(import_module(".training", __name__), name)
+    globals()[name] = value
+    return value
+
+__all__ = [
+    "ArtifactBundle",
+    "BundleManifest",
+    "BundleValidationError",
+    "PaperRewardMachine",
+    "RewardMachineEnvironment",
+    "RewardMachineRuntime",
+    "RuntimeRewardMachine",
+    "RuntimeStep",
+    "RuntimeTransition",
+    "RuntimeValidationError",
+    "load_labeling_functions",
+    "parse_paper_reward_machine",
+    "parse_reward_machine",
+    "serialize_paper_reward_machine",
+    "serialize_reward_machine",
+    "load_bundle",
+    "labeling_api_for_domain",
+    "make_environment",
+    "EMBEDDING_MODEL",
+    "EmbeddingCache",
+    "EmbeddingSettings",
+    "JudgeDecision",
+    "JudgeSettings",
+    "aggregate_judgments",
+    "embed_state_descriptions",
+    "frozen_evaluate",
+    "judge_bundle",
+    "load_qwen_embedding_model",
+    "resolve_embedding_settings",
+    "generate_baseline_bundle",
+    "generate_compiler_bundle",
+    "adapt_compilation_result",
+    *sorted(_TRAINING_EXPORTS),
+]
+```
+
+THIS IS RIGHT:
+```python
+"""Public ARM-FM reconstruction interfaces."""
+
+from importlib import import_module
+
+from .artifacts import ArtifactBundle, BundleManifest, BundleValidationError, load_bundle
+from .environments import labeling_api_for_domain, make_environment
+from .evaluation import (
+    ...
+    load_qwen_embedding_model,
+    resolve_embedding_settings,
+)
+from .generation import adapt_compilation_result, generate_baseline_bundle, generate_compiler_bundle
+from .runtime import (
+    PaperRewardMachine,
+    ...
+    serialize_reward_machine,
+)
+```
+
+Same result, same import capabilities, just cleaner simpler and better
+
 ## Environment variables
+
 - Use `.env` for local environment variables and `example.env` for placeholders.
 - Use `dotenv` to load the `.env` file in main.py and any other script that needs it.
 - Do not rely on bash environment variables for scripts or notebooks.
 
-Some features such as engines and other classes must load their oun API_KEYs, URLs, secrets, etc. instead of prop-drilling them or using the config. The 'selected model' or 'selected engine' can be stored in the config, but the API_KEYs and other secrets must be loaded from the .env file or from the environment variables.
+Some features such as engines and other classes must load their oun API\_KEYs, URLs, secrets, etc. instead of prop-drilling them or using the config. The 'selected model' or 'selected engine' can be stored in the config, but the API\_KEYs and other secrets must be loaded from the .env file or from the environment variables.
 
 Same rule applies for other things. Load dotenv in main.py and the actual ENV variables in the classes that need them. 
 
 ## Comment separator
+
 Use 
+
 ```
 # ======================================================================================
 #                                       SECTION NAME
 # ======================================================================================
 ```
+
 To separate sections of code. This is to make the code more readable and to have a clear separation of different parts of the code. 
 
 - You must not over do it
@@ -141,21 +253,24 @@ To separate sections of code. This is to make the code more readable and to have
 - Try to group or even combine sections. If hierarchy is clear, you can use different levels of separators. For example, if you have a section that is a subsection of another section, you can use a shorter separator for the subsection.
 
 ## Smart spaces
+
 When writing code, use and add space between lines of code. Group them on chucks of at most 5-10 lines of code. This is to make the code more readable and to have a clear separation of different parts of the code.
+
 - Let de code breathe. 
 - Use the comments of the last sections to help you group the code in a logical way.
 - Sometimes more that one blank line is needed to separate different parts of the code without a separator.
 - Spaces can be used as separators.
 
 ## Spaghetti code and overcomplication
+
 - Avoid spaghetti code.
 - Use functions and classes to organize the code.
 - Refactor into other files, group utils and helpers into their own files and packages.
-
 - If you are using too many utils or need to refactor too much, first think if you are overcomplicating the code. If you are, try to simplify it first. Recall KISS!
 - If you are not, then refactor it into other files and packages. But do not overcomplicate the code just to avoid spaghetti code.
 
 Most of the time, since you are and IA, you will write greedly and overcomplicate the code, avoid it:
+
 - Don't repeat yourself: Add abstractions only after real duplication
 - Keep implementation near usage
 - Centralize policy, not everything
@@ -166,6 +281,7 @@ Most of the time, since you are and IA, you will write greedly and overcomplicat
 - ... ALL YOUR CODING GUIDELINES ...
 
 ## Test
+
 The idea is that we don't write almost any test. Too many tests will make the code not maintainable.
 
 - We are only going to test algorithms and things that must be deterministic.
@@ -175,9 +291,11 @@ The idea is that we don't write almost any test. Too many tests will make the co
 - We don't validate everything, only what really matters
 
 # Template
+
 We follow the [maikol-utils](https://github.com/MiquelGomezCorral/maikol-utils), so if you have to create a new project from scratch, create a repository using that as the template, clone it and then you can start coding. The template is already set up with the best practices and the structure that we want to follow.
 
 File: `app/main.py` follow always this idea:
+
 - Main is self-contained and calls other functions with arguments.
 - Arguments are passed to a configuration object, not to functions directly.
 - The structure of this file if user for ANY project and it must be preserved.
@@ -237,9 +355,11 @@ if __name__ == "__main__":
 ```
 
 # Configuration
+
 Use the `./app/scr/config/config.py` file and the class `Configuration` to store all the parameters and paths that can be modified by the user. The `Configuration` class should be designed to read from environment variables, configuration files, or command-line arguments, providing a centralized way to manage settings across the project.
 
 - DO ALWAYS INSTANCE THE CONFIGURATION CLASS AS UPPERCASE
+
 ```python
 ...
 CONFIG: Configuration = Configuration()
@@ -248,10 +368,12 @@ CONFIG: Configuration = Configuration()
 def functions(CONFIG: Configuration):
     ...
 ```
+
 - Do use CONFIG instead of prop-drilling parameters. This will make the code more readable and maintainable + centralized.
 - When defining for and experiment or notebook new parameters that wont be used anywhere else on the project, and thus are 'local parameters', we can preserve the CONFIG class and add those parameters to it this way: With inheritance. Create a new class that inherits from CONFIG and add the new parameters to it. Then instantiate the new class and use it in the notebook or experiment. This way we can keep the CONFIG class clean and organized, and we can also use the new parameters in the notebook or experiment without affecting the rest of the project.
 
 ## Config
+
 ```python
 """Configuration file.
 Configuration of project variables that we want to have available
@@ -311,9 +433,11 @@ class Configuration:
 ```
 
 ## Extend enum
+
 When you have different configurations that share some common values, you can use the `extend_enum` decorator to create a new enum that combines the values of the inherited enum with the new values. This is useful for maintaining a clear and organized set of configuration options.
 
 Use aenum instead of the standard enum module which supports real subclassing for static typecheking and better IDE support.
+
 ```python
 from aenum import Enum
 
@@ -327,9 +451,11 @@ class Animals(Cats):
 ```
 
 # Paths
+
 - Paths must be defined with Path to avoid issues with different OS.
 - The core paths, such as 'DATA', 'MODELS', 'LOGS'... must be defined in the config.py file and used everywhere with `CONFIG.DATA / "raw"` or `CONFIG.MODELS/  "model.pt"`. This will avoid issues with different OS and will make the code more readable.
   - Since we are importing from ./app and the data, models and logs file are at ./data, ./models and ./logs, we define these paths as follows:
+
 ```python
 @dataclass
 class Configuration:
@@ -339,16 +465,20 @@ class Configuration:
     OUTPUT_PATH: ClassVar[Path] = WORKSPACE_PATH / "outputs"
     MODELS_PATH: ClassVar[Path] = WORKSPACE_PATH / "models"
 ```
-  - and the rest of the paths must inherit form them.
-  - More Upercased paths can be defined if needed.
+
+- and the rest of the paths must inherit form them.
+- More Upercased paths can be defined if needed.
 - Super experiments on notebooks that overcomplicate the paths and try to save a lot of files, must create a new conifguration class that inherits from the main one and adds the new paths there.
   - Only the paths that will be used on the rest of the app and are used on that notebook (such as the path to save the cleaned final data of that notebook) must be added to the new configuration class.
 
-# maikol_utils
-maikol_utils is my personal library that I do maintain and use on every single project. It must be used instead of auxiliar functions recreated. These are the most important and most used functions that will replace typical python hacks.
+# maikol\_utils
+
+maikol\_utils is my personal library that I do maintain and use on every single project. It must be used instead of auxiliar functions recreated. These are the most important and most used functions that will replace typical python hacks.
 
 ---
+
 # Welcoome to maikol-utils 🧰 V 0.8.2
+
 maikol-utils is a lightweight and reusable Python utility package designed to speed up and clean up your everyday scripting and automation workflows.
 
 Whether you're handling JSON files, managing the file system, cleaning up terminal outputs, or improving logging with colored messages and structured separators - this module brings a collection of practical tools ready to use.
@@ -382,11 +512,11 @@ Hand-picked utilities from real-world scripting and automation tasks.
 
 # 📦 Installation
 
-Option 1: _With pip_
+Option 1: *With pip*
 
 1. With pip: `pip install maikol-utils`
 
-Option 2: _Clonning the repo_
+Option 2: *Clonning the repo*
 
 1. Clone it from [github](https://github.com/MiquelGomezCorral/maikol-utils): `git clone https://github.com/MiquelGomezCorral/maikol-utils`
 
@@ -456,6 +586,7 @@ print_time(sec) # Print the time in seconds to pretty
 ```
 
 ### Other utils
+
 ```python
 parse_seconds_to_minutes(sed) # Paste the time in seconds to pretty, just get the string not print
 
@@ -464,4 +595,6 @@ args_to_dataclass(agrs, data_class)
 # If a field is not added in the args will be ignored.
 # Fields in the args that are not in the Config this will be ignored.
 ```
+
 ---
+
