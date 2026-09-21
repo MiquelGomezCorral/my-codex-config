@@ -26,6 +26,8 @@ for name in coder cleanup-worker commit-worker review-worker reviewer-quick revi
   cmp -s "$CODEX_TARGET/agents/$name.toml" "$CODEX_SOURCE/agents/$name.toml"
 done
 [[ -L "$CODEX_TARGET/bin/codex-command-dispatch.mjs" ]]
+[[ -L "$TEST_HOME/home/.local/bin/ocr-go" ]]
+[[ "$(readlink "$TEST_HOME/home/.local/bin/ocr-go")" == "$SKILLS_SOURCE/review/scripts/ocr-opencode-go" ]]
 [[ -L "$CODEX_TARGET/vault-context" ]]
 [[ -L "$TEST_HOME/home/.agents/skills" ]]
 [[ ! -e "$CODEX_TARGET/bin/opencode-go-worker.mjs" ]]
@@ -99,13 +101,23 @@ for name in review-worker reviewer-quick reviewer-reasoning reviewer-arch review
   ! grep -q '^  - replace_file_content$' "$AGY_PLUGIN_ROOT/agents/$name/agent.md"
   grep -q '^tools: read, grep, find, ls, bash$' "$PI_AGENT_ROOT/agents/$name.md"
 done
-for name in coder cleanup-worker commit-worker; do
+for name in coder commit-worker; do
   ! grep -q '^skills:' "$AGY_PLUGIN_ROOT/agents/$name/agent.md"
   grep -q '^  - run_command$' "$AGY_PLUGIN_ROOT/agents/$name/agent.md"
   grep -q '^  - replace_file_content$' "$AGY_PLUGIN_ROOT/agents/$name/agent.md"
   grep -q '^tools: read, grep, find, ls, bash, edit, write$' "$PI_AGENT_ROOT/agents/$name.md"
 done
+! grep -q '^  - replace_file_content$' "$AGY_PLUGIN_ROOT/agents/cleanup-worker/agent.md"
+grep -q '^  - run_command$' "$AGY_PLUGIN_ROOT/agents/cleanup-worker/agent.md"
+grep -q '^tools: read, grep, find, ls, bash$' "$PI_AGENT_ROOT/agents/cleanup-worker.md"
+grep -q '^skills: core, cleanup, subagent-routing$' "$PI_AGENT_ROOT/agents/cleanup-worker.md"
 grep -q '^skills: core, code, subagent-routing$' "$PI_AGENT_ROOT/agents/coder.md"
+for name in cleanup-worker review-worker; do
+  grep -q '^allowNestedSubagents: true$' "$PI_AGENT_ROOT/agents/$name.md"
+done
+for name in reviewer-quick reviewer-reasoning reviewer-arch reviewer-e2e; do
+  ! grep -q '^allowNestedSubagents:' "$PI_AGENT_ROOT/agents/$name.md"
+done
 
 printf 'retire Codex role\n' > "$CODEX_TARGET/agents/automation-runner.toml"
 printf '\n[hooks.state]\n' >> "$CODEX_TARGET/config.toml"

@@ -1,6 +1,10 @@
 import { test } from "node:test"
 import { doesNotMatch, match, ok, strictEqual } from "node:assert"
-import { readFileSync, readdirSync, statSync } from "node:fs"
+import {
+  chmodSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync,
+  statSync, writeFileSync,
+} from "node:fs"
+import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 import { spawnSync } from "node:child_process"
 
@@ -31,6 +35,25 @@ test("repository has one shared skill owner with unique valid names", () => {
   ok(!names.includes("opencode-go-worker"))
   ok(!names.includes("customize-opencode"))
   ok(!statSync(join(root, "config/skills"), { throwIfNoEntry: false }))
+})
+
+test("plan implementation renders deterministically and delegates diagrams only by request", () => {
+  const planning = read("agent-home/skills/plan-implementation/SKILL.md")
+  const lavish = read("agent-home/skills/lavish/SKILL.md")
+
+  match(planning, /native plan.*authoritative/i)
+  match(planning, /render it with `node .*render-plan\.mjs.*`/i)
+  match(planning, /normal path is deterministic/i)
+  match(planning, /does not launch an agent or delegate to a model/i)
+  match(planning, /explicitly requests a custom diagram/i)
+  match(planning, /cataloged `medium` model at `low` thinking/i)
+  match(planning, /require the `luxury` palette/i)
+  match(planning, /absolute artifact path/i)
+  match(planning, /\[Open Lavish plan\]\(<target>\)/)
+  match(planning, /Do not run\s+`lavish-axi poll` unless the user explicitly asks/i)
+  match(planning, /rendering and Lavish failures are non-blocking/i)
+  match(planning, /always return the native plan/i)
+  match(lavish, /npx -y lavish-axi <html-file>/)
 })
 
 test("local search setup keeps service and connector ownership separate", () => {
@@ -120,7 +143,7 @@ test("Codex hooks and configuration contain no discarded worker boundary", () =>
     "agent-home/skills/review/SKILL.md", "agent-home/skills/agent-swarm/SKILL.md",
     "agent-home/skills/multi-agent-review/SKILL.md", "agent-home/skills/core/SKILL.md",
   ]) {
-    doesNotMatch(read(path), /opencode-go|opencode-worker|session-ownership/i)
+    doesNotMatch(read(path), /opencode-worker|session-ownership/i)
   }
 })
 
@@ -131,6 +154,7 @@ test("cheap model catalog is harness-first and keeps identifiers centralized", (
   const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 
   match(catalog, /^max_local_concurrency:\s*1$/m)
+  match(catalog, /^codex:\n  low:\n    - \S+$/m)
   for (const harness of ["pi", "agy"]) {
     match(catalog, new RegExp(`^${harness}:$`, "m"))
     for (const tier of ["low", "medium", "high"]) match(catalog, new RegExp(`^  ${tier}:$`, "m"))
@@ -139,7 +163,7 @@ test("cheap model catalog is harness-first and keeps identifiers centralized", (
   match(catalog, /^    medium:\s*$/m)
   match(catalog, /^      -\s+\S+$/m)
   doesNotMatch(catalog, /capability:|models:/)
-  strictEqual(modelIds.length, 7)
+  strictEqual(modelIds.length, 10)
   strictEqual(new Set(modelIds).size, modelIds.length)
   match(routing, /Read `references\/model-catalog\.yaml` for every delegation/)
   match(routing, /cheapest adequate tier/)
@@ -221,6 +245,111 @@ test("delegating skills require runtime-native capability-aware routing", () => 
   ]) {
     doesNotMatch(read(path), /Do not substitute workmux|exact Sol model has no fallback|Orca is the required lifecycle/)
   }
+})
+
+test("cleanup and review quality gates keep external evidence opt-in and read-only", () => {
+  const cleanup = read("agent-home/skills/cleanup/SKILL.md")
+  const cleanupMetadata = read("agent-home/skills/cleanup/agents/openai.yaml")
+  const cleanupWorker = read("codex/agents/cleanup-worker.toml")
+  const cleanupEvals = JSON.parse(read("agent-home/skills/cleanup/evals/evals.json"))
+  const review = read("agent-home/skills/review/SKILL.md")
+  const reviewWorker = read("codex/agents/review-worker.toml")
+  const bootstrapPi = read("bootstrap_pi.sh")
+
+  match(cleanup, /explicit `\$cleanup` invocation/)
+  match(cleanup, /findings only|findings-only/i)
+  match(cleanup, /complete Git status/i)
+  match(cleanup, /task-owned.*diff/i)
+  match(cleanup, /production and tests/i)
+  match(cleanup, /reviewer-arch/)
+  match(cleanup, /reviewer-reasoning/)
+  match(cleanup, /at most two/)
+  match(cleanup, /Slopo mode: enabled/)
+  match(cleanup, /Slopo mode: disabled/)
+  match(cleanup, /slopo\.conf\.yaml.*does not exist.*\["slopo", "init"\]/s)
+  for (const command of ["show-config", "index", "embed", "analyze"]) match(cleanup, new RegExp(`\\["slopo", "${command}"\\]`))
+  match(cleanup, /only expected\s+worktree mutation/i)
+  match(cleanup, /unexpected mutation/i)
+  match(cleanup, /Lean already\. No cleanup findings\./)
+  doesNotMatch(cleanup, /diff-size targets|review is stale|run the relevant verification/i)
+  match(cleanupMetadata, /read-only deslop findings audit/i)
+  match(cleanupWorker, /Never edit, write, delete, stage, commit,\s*push, publish/i)
+  match(cleanupWorker, /test changes/i)
+  match(cleanupWorker, /reviewer-arch/)
+  match(cleanupWorker, /reviewer-reasoning/)
+  match(cleanupWorker, /at most\s+two/)
+  match(cleanupWorker, /Slopo mode: enabled.*Slopo mode: disabled/s)
+  match(cleanupWorker, /slopo\.conf\.yaml.*absent.*\["slopo", "init"\]/s)
+  for (const command of ["show-config", "index", "embed", "analyze"]) match(cleanupWorker, new RegExp(`\\["slopo", "${command}"\\]`))
+  match(cleanupWorker, /only expected worktree mutation/i)
+  match(cleanupWorker, /command-not-found|unsafe.*configuration|unreadable output/i)
+  match(cleanupWorker, /unexpected worktree mutation/i)
+
+  strictEqual(cleanupEvals.skill_name, "cleanup")
+  strictEqual(cleanupEvals.evals.length, 3)
+  match(JSON.stringify(cleanupEvals), /wrapper|overengineered|redundant/i)
+  match(JSON.stringify(cleanupEvals), /duplicat|low-value|trust-boundary/i)
+  match(JSON.stringify(cleanupEvals), /already lean|Lean already/i)
+
+  match(review, /`\$review --ocr`/)
+  match(review, /OCR mode: enabled/)
+  match(review, /OCR mode: disabled/)
+  match(review, /consume the flag/i)
+  match(review, /workspace-diff flow/i)
+  match(review, /OCR mode: enabled.*must resolve.*ocr-opencode-go/s)
+  match(review, /ocr-opencode-go.*review.*--audience.*agent.*--background/s)
+  match(review, /uses Pi only as a fallback credential store|without using the Pi harness/i)
+  match(review, /untrusted evidence/i)
+  match(review, /deduplicate/i)
+  match(review, /does not block\s+the native\s+verdict/i)
+  match(reviewWorker, /OCR mode: enabled.*OCR mode: disabled/s)
+  match(reviewWorker, /ocr-opencode-go.*review.*--audience.*agent.*--background/s)
+  match(reviewWorker, /not\s+as an agent harness/i)
+  match(reviewWorker, /Verify every retained claim.*source/s)
+  match(reviewWorker, /deduplicate OCR findings against native findings/s)
+  match(reviewWorker, /never blocks the native verdict/)
+  match(bootstrapPi, /"cleanup-worker": \["core", "cleanup", "subagent-routing"\]/)
+  match(bootstrapPi, /\*\(\["allowNestedSubagents: true"\] if name in \{"cleanup-worker", "review-worker"\} else \[\]\),/)
+})
+
+test("OCR OpenCode Go helper resolves Pi credentials and provider settings", (t) => {
+  const temporary = mkdtempSync(join(tmpdir(), "ocr-opencode-go-test-"))
+  const bin = join(temporary, "bin")
+  mkdirSync(bin)
+  t.after(() => rmSync(temporary, { recursive: true, force: true }))
+
+  const pi = join(bin, "pi")
+  const ocr = join(bin, "ocr")
+  writeFileSync(pi, `#!/usr/bin/env bash
+[[ "$*" == "auth print-api-key --provider opencode-go" ]] || exit 20
+printf 'test-token\\n'
+`)
+  writeFileSync(ocr, `#!/usr/bin/env bash
+[[ "$OCR_LLM_TOKEN" == "test-token" ]] || exit 21
+[[ "$OCR_LLM_URL" == "https://opencode.ai/zen/go/v1/chat/completions" ]] || exit 22
+[[ "$OCR_LLM_MODEL" == "deepseek-v4-flash" ]] || exit 23
+[[ "$OCR_LLM_PROTOCOL" == "openai" ]] || exit 24
+[[ "$OCR_USE_ANTHROPIC" == "false" ]] || exit 25
+[[ "$OCR_LLM_EXTRA_HEADERS" == x-opencode-session=ocr-* ]] || exit 26
+[[ "$*" == "review --audience agent --background goal" ]] || exit 27
+printf 'ok\\n'
+`)
+  chmodSync(pi, 0o700)
+  chmodSync(ocr, 0o700)
+
+  const result = spawnSync(
+    join(root, "agent-home/skills/review/scripts/ocr-opencode-go"),
+    ["review", "--audience", "agent", "--background", "goal"],
+    {
+      encoding: "utf8",
+      env: {
+        HOME: temporary,
+        PATH: `${bin}:/usr/bin:/bin`,
+      },
+    },
+  )
+  strictEqual(result.status, 0, result.stderr)
+  strictEqual(result.stdout, "ok\n")
 })
 
 test("repository excludes runtime and credential-shaped files", () => {
