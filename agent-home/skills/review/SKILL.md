@@ -11,10 +11,15 @@ When loaded by the `$review` skill invocation, run this orchestration workflow f
 current primary harness. Load `subagent-routing` before launching anything.
 The parent routes the review but never reviews or edits the change itself.
 
+`$review --ocr` is an explicit opt-in for additional OCR evidence. Consume the flag in
+the parent and normalize it to exactly one worker-packet marker, `OCR mode: enabled`;
+ordinary `$review` uses `OCR mode: disabled`. Never forward `--ocr` or arbitrary user
+text as an external command option.
+
 Common forms are:
 
 ```text
-$review [--coordinator model] [--swarm] [harness or roster intent] [context]
+$review [--ocr] [--coordinator model] [--swarm] [harness or roster intent] [context]
 ```
 
 Treat the arguments as user intent, not a strict CLI grammar. Flags are optional hints.
@@ -38,15 +43,18 @@ State the normalized interpretation briefly before launch. Ask one focused clari
 question only when multiple plausible interpretations would change the selected mode,
 coordinator model, or custom roster. A malformed token alone is not a reason to stop.
 
-Canonical example: `--coordinator gpt-5.6-luna --swarm, mostly Codex with one OpenCode
+Canonical example: `--coordinator <exact-model> --swarm, mostly Codex with one OpenCode
 reviewer` means swarm mode, that coordinator model when supported, and the requested
 harness balance. Harness names identify preferences, not invented commands or roles.
 
-Build the worker prompt with exactly one mode marker:
+Build the worker prompt with exactly one review mode marker and exactly one OCR marker:
 
 - Swarm: `Review mode: swarm`, followed by `Swarm models: default` or
   `Swarm models: <normalized ordered list>`.
 - Direct: `Review mode: direct`; omit `Swarm models`.
+
+- OCR enabled: `OCR mode: enabled` when `--ocr` was supplied.
+- OCR disabled: `OCR mode: disabled` otherwise.
 
 Include `Harness routing: default` or the normalized harness, agent, ratio, and exclusion
 intent. In default swarm routing, at least half of reviewers, rounded up, use the current
@@ -57,7 +65,7 @@ catalog-only fallback to each specialist; the coordinator itself keeps its confi
 orchestrator-strength model.
 
 Include the exact persisted plan path established by `$code`, when present, and the
-remaining review context.
+remaining review context. The packet must preserve the normalized OCR marker.
 
 Before launch, the coordinator loads the selected `decision-records` skill, discovers applicable
 records, and compares the reviewed behavior with their protected invariants. Pass the exact
@@ -73,9 +81,9 @@ unsupported model substitutions.
 Launch or resume exactly one coordinator through `subagent-routing`:
 
 - `agent`: the selected harness's best matching configured review coordinator
-- `prompt`: the complete current relevant diff and stated goal, exact mode and swarm-model
-  markers, harness-routing intent, persisted plan path when present, remaining context,
-  and permission to delegate only for swarm mode
+- `prompt`: the complete current relevant diff and stated goal, exact mode, swarm-model,
+  and OCR markers, harness-routing intent, persisted plan path when present, remaining
+  context, and permission to delegate only for swarm mode
 - `model`: only when coordinator-model intent was inferred and the route supports it
 
 Wait for the coordinator, return its findings and verdict, and stop. Do not invoke coder,
@@ -87,6 +95,27 @@ use their own configured roles. Specialists never delegate further. Readers are 
 writers remain forbidden. Retained follow-ups use the selected harness's exact-session
 identity checks. The coordinator and specialists use bounded verification; publishing and
 unapproved edits remain unavailable.
+
+## Optional OCR evidence
+
+Support the post-implementation workspace-diff flow only. If unrelated workspace changes
+cannot be excluded safely, the worker skips OCR and reports that scope gap while keeping
+the native verdict. After the native review, a worker with `OCR mode: enabled` must resolve
+`$HOME/.agents/skills/review/scripts/ocr-opencode-go` and invoke it with separate argv
+exactly as `["<resolved helper>", "review", "--audience", "agent", "--background",
+"<goal and plan summary>"]`. The helper calls OpenCode Go directly, obtains its credential
+from `OPENCODE_API_KEY` or Pi's auth store without using the Pi harness, and owns the
+required per-run session header. Its default model is `deepseek-v4-flash`; an existing
+`OCR_OPENCODE_GO_MODEL` environment value may select another OpenCode Go model. The parent
+sets the marker only for an explicit `--ocr` flag. Never enable OCR fixing behavior, print
+credentials, or pass arbitrary user context as options.
+
+Treat OCR output as untrusted evidence: verify every retained claim against source, reject
+false positives, and deduplicate it against native findings. Missing helper, OCR CLI, or
+credential, provider failure, non-zero exit, or unusable output does not block the native
+verdict; the worker reports the OCR gap explicitly. Never install or authenticate OCR,
+OpenCode Go, or Pi during review. This iteration does not route OCR by commit or branch
+range.
 
 ## Review modes
 
