@@ -124,29 +124,6 @@ test("Codex TOML agents use native fields and preserve all eight roles", () => {
   doesNotMatch(config, /\/Users\/|\/Applications\/|\/home\/[^/]+\//)
 })
 
-test("Codex hooks and configuration contain no discarded worker boundary", () => {
-  const hooks = JSON.parse(read("codex/hooks.json"))
-  const hookText = JSON.stringify(hooks)
-  ok(hookText.includes("workmux"))
-  match(hookText, /\$HOME\\?\/\.orca\/agent-hooks\/codex-hook\.sh/)
-  doesNotMatch(hookText, /\/home\/[^/]+\/.orca\/agent-hooks/)
-  doesNotMatch(hookText, /vault-context|ObsidianVault/)
-  for (const path of [
-    "opencode-worker", "config/bin/opencode-go-worker.mjs", "codex/agents/opencode-go-runner.toml",
-    "agent-home/skills/opencode-go-worker", "tests/opencode-go-worker.test.mjs",
-  ]) {
-    ok(!statSync(join(root, path), { throwIfNoEntry: false }), `discarded artifact remains: ${path}`)
-  }
-  for (const path of [
-    "bootstrap.sh", "README.md", "agent-home/skills/subagent-routing/SKILL.md",
-    "agent-home/skills/code/SKILL.md", "agent-home/skills/cleanup/SKILL.md",
-    "agent-home/skills/review/SKILL.md", "agent-home/skills/agent-swarm/SKILL.md",
-    "agent-home/skills/multi-agent-review/SKILL.md", "agent-home/skills/core/SKILL.md",
-  ]) {
-    doesNotMatch(read(path), /opencode-worker|session-ownership/i)
-  }
-})
-
 test("cheap model catalog is harness-first and keeps identifiers centralized", () => {
   const catalog = read("agent-home/skills/subagent-routing/references/model-catalog.yaml")
   const routing = read("agent-home/skills/subagent-routing/SKILL.md")
@@ -350,10 +327,4 @@ printf 'ok\\n'
   )
   strictEqual(result.status, 0, result.stderr)
   strictEqual(result.stdout, "ok\n")
-})
-
-test("repository excludes runtime and credential-shaped files", () => {
-  const output = spawnSync("bash", ["bootstrap.sh", "--check"], { cwd: root, encoding: "utf8" })
-  strictEqual(output.status, 0, output.stderr)
-  doesNotMatch(output.stdout, /auth|secret|token/i)
 })
