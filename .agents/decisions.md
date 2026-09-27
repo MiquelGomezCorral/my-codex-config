@@ -12,10 +12,15 @@
 - Native Codex behavior replaces the former `build`, `plan`, `general`, `explore`,
   `answer`, and `code-reviewer` OpenCode roles. The eight listed Codex agents preserve the
   distinctive worker capabilities.
-- `subagent-routing` owns all agent-harness selection. A proven active wrapper owns worker
-  lifecycle and exposes eligible harnesses; without a wrapper, automatic delegation uses
-  the current harness's native subagents. Another harness is eligible outside a wrapper
-  only when the user explicitly requests it through a documented direct adapter.
+- `super-agent` is the single owner of delegation policy and all agent-harness selection.
+  A proven active wrapper owns worker lifecycle and exposes eligible harnesses; without a
+  wrapper, automatic delegation uses the current harness's native subagents. Another
+  harness is eligible outside a wrapper only when the user explicitly requests it through
+  a documented direct adapter. Class is relative, and only a parent grants nesting.
+- The delegation policy is vendor-neutral: environment-provided orchestration is resolved
+  generically as the active wrapper, and vendor mechanics live in the skill's references
+  rather than the policy. `super-agent` replaced the former routing, swarm, and unused
+  coordinator skills.
 - Cheap worker models are selected from the routing skill's harness-first catalog using
   `low`, `medium`, `high`, and `local` tiers. Adequate local routes are preferred, but at
   most one cataloged local model process may run at a time, including the orchestrator.
@@ -27,7 +32,9 @@
 - Vault Context is explicit-only through the repository adapter. No `UserPromptSubmit`
   hook performs Vault search, and OpenCode-specific plugin adapters are not installed in
   Codex.
-- Ponytail's five skills and its portable lifecycle hooks remain available. Workmux
-  status is implemented through Codex hooks.
+- Ponytail's five skills and its portable lifecycle hooks remain available.
+- Workmux is not used. Base branches resolve to local `main` or an explicit argument, the
+  single `git` skill owns commit, push, pull-request, merge, and PR-comment work with plain
+  Git, and `codex/hooks.json` carries no window-status or agent-registration hooks.
 - The existing OpenCode installation remains untouched as a rollback source owned by
   `my-opencode-config`.

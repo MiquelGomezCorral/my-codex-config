@@ -18,7 +18,7 @@ The isolated-home bootstrap is available as a user-approved live/readiness flow,
 an automatic deployment step.
 
 For delegation-routing changes, edit model identifiers only in
-`agent-home/skills/subagent-routing/references/model-catalog.yaml`. Harness sections use
+`agent-home/skills/super-agent/references/model-catalog.yaml`. Harness sections use
 ordered `low`, `medium`, `high`, and `local` routes; entries must remain secret-free, and
 `max_local_concurrency` limits all cataloged local processes, including the orchestrator.
 Validate the routing-related skills, then run `node --test tests/codex-config.test.mjs`,
@@ -28,7 +28,7 @@ Validate the routing-related skills, then run `node --test tests/codex-config.te
 
 In a disposable Git repository, confirm the eight custom agents and migrated skills are
 discoverable, invoke one migrated command-equivalent skill, run one native reviewer,
-invoke explicit Vault search, and observe the Workmux lifecycle hook.
+invoke explicit Vault search, and observe the configured lifecycle hooks.
 
 ## Rollback
 

@@ -8,7 +8,7 @@ Post-implementation quality gates expose unnecessary production and test complex
 
 - `$cleanup` is explicit, read-only, and findings-only.
 - It assesses task-owned production and test changes against repository code-quality and Ponytail principles.
-- One cleanup coordinator may delegate at most two justified, bounded read-only investigations through `subagent-routing`.
+- One cleanup coordinator may delegate at most two justified, bounded read-only investigations through `super-agent`.
 - Slopo runs only through `$cleanup --slopo`; OCR runs only through `$review --ocr`.
 - When `$cleanup --slopo` finds no `slopo.conf.yaml`, it may create Slopo's template once,
   report that mutation, and stop Slopo analysis if required configuration remains incomplete.

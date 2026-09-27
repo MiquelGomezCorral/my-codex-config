@@ -17,14 +17,16 @@ Node.js adapters.
 ## Boundaries
 
 Codex owns configuration, planning, permissions, native agents, hooks, MCP definitions,
-and synthesis. `subagent-routing` owns runtime-aware selection for already-exposed agent
-harnesses. An active wrapper owns worker lifecycle; otherwise the current harness uses its
-native subagent tooling, with documented one-shot direct adapters reserved for explicitly
-requested external harnesses. Routing does not install or authenticate harnesses. OpenCode
-configuration remains owned by the separate `my-opencode-config` repository.
+and synthesis. `super-agent` owns delegation policy and runtime-aware selection for
+already-exposed agent harnesses. An active wrapper owns worker lifecycle; otherwise the
+current harness uses its native subagent tooling, with documented one-shot direct adapters
+reserved for explicitly requested external harnesses. Routing does not install or
+authenticate harnesses. Delegation policy is vendor-neutral, and environment-provided
+orchestration is used generically through its own loaded guides. OpenCode configuration
+remains owned by the separate `my-opencode-config` repository.
 
 ## Entry Points
 
 `bootstrap.sh` checks and installs the Codex configuration. The explicit Vault adapter is
-`config/plugins/vault-context/bin/search.mjs`; Ponytail and Workmux lifecycle behavior is
-owned by `codex/hooks.json`.
+`config/plugins/vault-context/bin/search.mjs`; Ponytail lifecycle behavior is owned by
+`codex/hooks.json`.

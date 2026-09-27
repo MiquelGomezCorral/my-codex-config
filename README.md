@@ -17,8 +17,6 @@ OpenCode configuration remains separately owned by `my-opencode-config`.
   Docker; if Docker is unavailable, it warns and continues without starting SearXNG.
 - GitHub CLI (`gh`) authenticated to GitHub for the private-repository clone command.
 
-Workmux is optional. Its hooks become no-ops when `workmux` is unavailable.
-
 ## Install On Another Computer
 
 Clone the private repository and run the installer:
@@ -73,6 +71,21 @@ Codex authentication is manual and never stored in this repository:
 codex login
 ```
 
+Braintrust MCP uses a bearer token for headless access. Put your Braintrust API key in
+each worktree's ignored `.env` as `BRAINTRUST_MCP_TOKEN=<key>`. Launch Codex from that
+worktree in its own process with the variable exported; Codex does not load `.env`
+automatically:
+
+```bash
+set -a
+. ./.env
+set +a
+codex
+```
+
+The configured endpoint is for US organizations. EU organizations use
+`https://api-eu.braintrust.dev/mcp` in `codex/config.toml`.
+
 ## Skills and agents
 
 All shared skills are owned by `agent-home/skills` and installed at `~/.agents/skills`.
@@ -87,7 +100,7 @@ record/index changes for approval; after approval, the main orchestrator applies
 and passes protected invariants to implementation and review workers. Routine work reports no
 change, while intent conflicts require user resolution.
 
-Delegating skills load `subagent-routing`. A proven active wrapper such as Orca owns the
+Delegating skills load `super-agent`. A proven active wrapper such as Orca owns the
 worker lifecycle and exposes eligible harnesses; without a wrapper, delegation stays on
 the current harness and uses its native worker tools. Mixed swarms keep at least half their
 workers, rounded up, on the current harness by default. Outside a wrapper, another harness
@@ -95,14 +108,18 @@ requires an explicit documented one-shot adapter; quota substitutions and missin
 remain visible.
 
 Cheap worker choices live only in
-`agent-home/skills/subagent-routing/references/model-catalog.yaml`, organized by harness
+`agent-home/skills/super-agent/references/model-catalog.yaml`, organized by harness
 and the `low`, `medium`, `high`, and `local` tiers. Routing is harness-first, prefers the
 cheapest adequate local or online choice, and restricts automatic selection and fallback
 to compatible catalog entries. Exhausted catalog choices are reported as blockers instead
 of using a harness default. `$code` and `$cleanup` intentionally retain their configured
 orchestrator-strength models. Explicit cross-harness one-shot adapters are documented by
-`subagent-routing`; they pass catalog values as arguments and never evaluate them as shell
+`super-agent`; they pass catalog values as arguments and never evaluate them as shell
 code. Pi search remains on its local SearXNG MCP tools.
+
+The `orchestration`, `orca-cli`, and `computer-use` skills are version-matched discovery
+stubs that fetch their guide from the installed binary; their content is intentionally not
+duplicated here.
 
 Repository commands keep the OpenCode command-wrapper flow: the command passes its
 arguments to one skill, and the skill owns the workflow. Use the `/commands/` namespace
@@ -114,13 +131,15 @@ forwarded exactly as `$ARGUMENTS`.
 | `/commands/bro` | `bro` |
 | `/commands/cleanup` | `cleanup` |
 | `/commands/code` | `code` |
-| `/commands/commit` | `commit` |
-| `/commands/index` | `index` |
-| `/commands/init` | `init` |
+| `/commands/commit` | `git` |
+| `/commands/index` | `codegraph-setup` |
+| `/commands/init` | `agents-memory` |
+| `/commands/merge` | `git` |
 | `/commands/plan-implementation` | `plan-implementation` |
+| `/commands/refine-plan` | `refine-plan` |
 | `/commands/review-findings` | `review-findings` |
 | `/commands/review-plan` | `review-plan` |
-| `/commands/review-pr-comments` | `review-pr-comments` |
+| `/commands/review-pr-comments` | `git` |
 | `/commands/review` | `review` |
 
 For example, `/commands/review quick focus on the payment path` invokes `review` with
