@@ -22,10 +22,10 @@ not weaken security or explicit user constraints.
   before editing, and do not broaden the task or add speculative features.
 - For non-trivial implementation, configuration, or refactoring, load `core` and its
   smallest relevant focused skill. Use a subagent only when an independent scope justifies it.
-- All agents, including nested workers, must load `subagent-routing` before delegating.
+- All agents, including nested workers, must load `super-agent` before delegating.
   A proven active wrapper owns agent launch, messaging, waiting, resume, and cleanup;
   without one, use the current harness's native lifecycle. Do not bypass an active wrapper
-  with direct harness launches or Workmux, and use another harness only through an explicit
+  with direct harness launches, and use another harness only through an explicit
   documented one-shot adapter.
 - Apply focused patches: change only necessary lines or sections, and never rewrite a
   whole file when a narrower edit achieves the approved result.

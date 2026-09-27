@@ -90,10 +90,10 @@ import tomllib
 source = pathlib.Path(sys.argv[1])
 target = pathlib.Path(sys.argv[2])
 skills = {
-    "cleanup-worker": ["core", "cleanup", "subagent-routing"],
-    "coder": ["core", "code", "subagent-routing"],
-    "commit-worker": ["core", "commit", "commit-manager"],
-    "review-worker": ["core", "review", "multi-agent-review", "subagent-routing"],
+    "cleanup-worker": ["core", "cleanup", "super-agent"],
+    "coder": ["core", "code", "super-agent"],
+    "commit-worker": ["core", "git"],
+    "review-worker": ["core", "review", "multi-agent-review", "super-agent"],
     "reviewer-arch": ["core", "code-review"],
     "reviewer-e2e": ["core", "code-review"],
     "reviewer-quick": ["core", "code-review"],

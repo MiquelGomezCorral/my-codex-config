@@ -23,7 +23,7 @@ This fast path ends after opening the artifact and returning its link. Do not ru
 session.
 
 The normal path is deterministic and does not launch an agent or delegate to a model. If
-the user explicitly requests a custom diagram, load `subagent-routing`, read its
+the user explicitly requests a custom diagram, load `super-agent`, read its
 `references/model-catalog.yaml`, and use Pi's cataloged `medium` model at `low` thinking;
 the prompt must require the `luxury` palette. Custom-diagram delegation is opt-in and may
 be slower. Rendering and Lavish failures are non-blocking: report the failure briefly and

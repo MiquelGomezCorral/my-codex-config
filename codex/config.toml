@@ -32,6 +32,10 @@ ignore_default_excludes = false
 "*_SECRET" = "exclude"
 "*_KEY" = "exclude"
 
+[mcp_servers.braintrust]
+url = "https://api.braintrust.dev/mcp"
+bearer_token_env_var = "BRAINTRUST_MCP_TOKEN"
+
 [mcp_servers.codegraph]
 command = "codegraph"
 args = ["serve", "--mcp"]

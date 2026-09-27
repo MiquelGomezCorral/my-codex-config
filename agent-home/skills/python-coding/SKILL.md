@@ -307,6 +307,18 @@ The idea is that we don't write almost any test. Too many tests will make the co
 - We don't test all the inputs 
 - We don't validate everything, only what really matters
 
+### Example
+- We dont test imports, this makes no sense -> we assume all imports work at all time. 
+  - Only exception is when you have 'complex' imports such as Gymnasium envs that you don't expect. But this is only if you have a lot of 'non-related' envs or dependencies that may not be compatible between, that are out of scope and very justified. Normal imports such as libaries ALWAYS!
+```python
+ try:
+        import torch
+    except ImportError as error:
+        raise RuntimeError("Embedding requires torch; no model download is performed") from error
+   
+```
+- ...
+
 ## Others
 - There is no need for functions to return 'int' as if on a c++ or OS script that return '0' or '1'... that is totally none-sense on python
 

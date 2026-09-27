@@ -1,0 +1,113 @@
+{
+  "skill_name": "super-agent",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "The current harness is Codex. Plan a five-agent read-only review using Codex, OpenCode, and Gemini available through an active wrapper. I did not request a roster. Return the selected harness and real configured role for each review lens; do not execute it.",
+      "expected_output": "A wrapper-managed five-agent plan with three Codex workers and two best-fit external workers, using each harness's configured roles and preserving read-only review.",
+      "expectations": [
+        "Allocates three of five workers to the current Codex harness",
+        "Allocates two workers to suitable available external harnesses",
+        "Uses actual configured role descriptions instead of copying Codex role names across harnesses",
+        "Keeps every specialist read-only and does not create an implicit branch or worktree",
+        "Keeps synthesis and final verification with the coordinator",
+        "Routes every worker through super-agent and the active wrapper lifecycle"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I have a two-line typo fix in one file. Should you launch a three-agent swarm? Explain the execution decision in at most five sentences.",
+      "expected_output": "Rejects a swarm because the work is small and single-owner, while preferring the current harness if one worker is still justified.",
+      "expectations": [
+        "Chooses one agent rather than a swarm",
+        "Explains that coordination and token cost outweigh parallel value",
+        "Does not launch external agents merely because they are available"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "A wrapper-managed five-agent review was assigned as three Codex, one OpenCode, and one Gemini worker. The Codex reasoning reviewer fails at launch with an explicit quota-exhausted error. OpenCode has another configured reasoning reviewer available through the wrapper. Explain the recovery and final roster. What if the wrapper itself becomes unavailable?",
+      "expected_output": "Replaces only the failed reasoning slot with the configured OpenCode reviewer, preserves its packet, and reports the final two-Codex, two-OpenCode, one-Gemini roster.",
+      "expectations": [
+        "Does not retry the exhausted Codex route",
+        "Replaces only the failed slot",
+        "Preserves the reasoning lens, read-only permission, deliverable, and evidence contract",
+        "Uses OpenCode's configured reasoning reviewer rather than a copied Codex role name",
+        "Reports the quota substitution and final harness roster",
+        "Uses the active wrapper for the replacement and reports a blocker if it is unavailable rather than launching directly"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "The current harness is Pi and the user asks for three independent low-risk documentation workers. Use the cheap-model catalog and return the selected tier, model preference order, local-slot decision, and active-wrapper or native lifecycle without launching them.",
+      "expected_output": "A harness-first plan that assigns the lowest adequate tier, uses the first catalog preference, counts a local orchestrator against the shared limit, and reports any fallback or serialization.",
+      "expectations": [
+        "Assigns a catalog tier to every worker",
+        "Uses list order as model preference without copying identifiers into the packet",
+        "Enforces max_local_concurrency including the orchestrator",
+        "Reports selected harness, tier, fallback, and serialization",
+        "Uses the active wrapper or current harness through super-agent"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Run a read-only review with quick and reasoning specialists. The user requests the medium tier but leaves the harness unspecified. Explain how the coordinator and specialists are assigned, and keep the orchestrator-strength coordinator separate from the cheap worker catalog.",
+      "expected_output": "A review packet that preserves the active harness and configured coordinator, applies the requested worker tier to specialists, and reports local concurrency and fallback details.",
+      "expectations": [
+        "Keeps the configured review coordinator on its orchestrator-strength model",
+        "Applies the requested tier to review specialists",
+        "Preserves read-only permissions and configured reviewer roles",
+        "Reports local serialization and catalog-only fallback when relevant",
+        "Routes through the active wrapper or current harness and super-agent"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "A user explicitly asks to commit two small documentation files with no push. Classify the commit worker's adequate tier, preserve the exact commit options, and state what lifecycle and fallback reporting are required.",
+      "expected_output": "A single commit worker using the lowest adequate tier, preserving user options and reporting a blocker when no compatible catalog entry is available.",
+      "expectations": [
+        "Chooses one commit worker",
+        "Classifies the lowest adequate tier",
+        "Preserves user options and plan path",
+        "Reports a blocker when catalog coverage is missing",
+        "Does not push or publish"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Runtime evidence shows an active wrapper exposing Codex and Pi. The user asks for one worker without naming a harness. Explain wrapper detection, lifecycle ownership, harness selection, and whether a direct one-shot adapter is allowed.",
+      "expected_output": "Uses the wrapper's native worker lifecycle and active-harness preference, selecting a catalog tier only after wrapper resolution; direct adapters remain explicit-only.",
+      "expectations": [
+        "Resolves the active wrapper before choosing a model",
+        "Uses wrapper-native lifecycle",
+        "Keeps automatic routing on the current harness",
+        "Does not silently use a direct adapter",
+        "Reports tier and fallback"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "A Pi worker needs web research while its local SearXNG service is offline. Explain the provider-specific route before generic model selection and state whether Codex search or a paid API may be used.",
+      "expected_output": "Keeps Pi search on the configured local SearXNG MCP route, reports the service limitation, and does not fall back to Codex or paid search.",
+      "expectations": [
+        "Applies Pi local-search protection before catalog routing",
+        "Keeps the SearXNG connector configuration independent of service availability",
+        "Reports the offline service limitation",
+        "Does not use paid search APIs",
+        "Does not delegate search to Codex"
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "A catalog-selected review model fails to load. The wrapper offers a native default and another uncataloged model, plus one compatible remaining catalog entry. Explain the recovery and what happens if that catalog entry also fails.",
+      "expected_output": "Tries the compatible remaining catalog entry, rejects both uncataloged choices, verifies the effective launched model, and reports a blocker if the catalog is exhausted.",
+      "expectations": [
+        "Treats catalog model identifiers as a closed allowlist",
+        "Tries only the compatible remaining catalog entry",
+        "Rejects the wrapper native default and uncataloged model",
+        "Verifies the effective model after launch when the runtime exposes it",
+        "Reports a blocker when compatible catalog entries are exhausted"
+      ]
+    }
+  ]
+}

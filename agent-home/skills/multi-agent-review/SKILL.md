@@ -6,7 +6,7 @@ description: Run an opt-in adaptive, read-only review swarm with a retained coor
 # Multi-Agent Review
 
 This skill is loaded only when `$review` explicitly selects swarm mode. Load
-`code-review`, `agent-swarm`, and `subagent-routing` before proceeding. The selected
+`code-review` and `super-agent` before proceeding. The selected
 review coordinator owns synthesis; in Codex this is `review-worker`.
 
 ## Review contract
@@ -70,11 +70,11 @@ Stop: return after the assigned lens is covered or state the concrete blocker
 ## Launch and recovery
 
 Route all independent selected specialists before launching them, then launch them in the
-same turn when the active wrapper supports it. Use the wrapper through `subagent-routing`
+same turn when the active wrapper supports it. Use the wrapper through `super-agent`
 for fresh-task, wait, bounded-message, and cancellation operations; without a wrapper,
 use the current harness's native equivalents. Do not reuse a session or pass a task key.
 Outside a wrapper, cross-harness execution requires the explicitly requested documented
-one-shot adapter. On explicit quota exhaustion, use `subagent-routing` to replace only
+one-shot adapter. On explicit quota exhaustion, use `super-agent` to replace only
 that lens and report the final route. Other failed workers are missing coverage; do not
 replay prompts or treat a model failure as a finding.
 

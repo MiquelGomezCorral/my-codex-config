@@ -27,14 +27,42 @@ test("repository has one shared skill owner with unique valid names", () => {
   }
   strictEqual(new Set(names).size, names.length)
   for (const required of [
-    "core", "subagent-routing", "cleanup", "review", "code", "commit",
-    "review-findings", "index", "init", "plan-implementation", "review-plan",
-    "review-pr-comments", "bro", "orca-cli", "orchestration", "computer-use", "decision-records",
+    "core", "super-agent", "cleanup", "review", "code", "git",
+    "review-findings", "codegraph-setup", "agents-memory",
+    "plan-implementation", "refine-plan", "review-plan",
+    "bro", "orca-cli", "orchestration", "computer-use", "decision-records",
   ]) ok(names.includes(required), `missing skill: ${required}`)
   ok(!names.includes("task-model-recovery"))
   ok(!names.includes("opencode-go-worker"))
   ok(!names.includes("customize-opencode"))
   ok(!statSync(join(root, "config/skills"), { throwIfNoEntry: false }))
+})
+
+test("git skill owns five actions that resolve repository rules first", () => {
+  const skill = read("agent-home/skills/git/SKILL.md")
+  const merge = read("agent-home/skills/git/references/merge.md")
+
+  match(skill, /^## Repository rules win$/m)
+  match(skill, /Repository `AGENTS\.md` \/ `CLAUDE\.md`/)
+  match(skill, /self-contained on purpose/)
+  match(skill, /pre-push/)
+  match(skill, /hard gate|Never bypass a hook/)
+  for (const reference of ["push", "merge"]) {
+    match(read(`agent-home/skills/git/references/${reference}.md`), /hard gate/)
+  }
+  match(skill, /^## Delegation$/m)
+  match(skill, /--no-delegation/)
+  match(skill, /merge` and `review-pr-comments` always run inline/)
+  for (const reference of ["commit", "push", "pr", "merge", "review-pr-comments"]) {
+    match(skill, new RegExp(`references/${reference}\\.md`))
+    ok(statSync(join(root, `agent-home/skills/git/references/${reference}.md`), { throwIfNoEntry: false }))
+  }
+
+  match(merge, /^## History integrity$/m)
+  match(merge, /Never squash/)
+  match(merge, /--no-ff/)
+  match(merge, /is-ancestor/)
+  match(merge, /git log --oneline <base-branch>\.\.<branch>/)
 })
 
 test("plan implementation renders deterministically and delegates diagrams only by request", () => {
@@ -54,6 +82,18 @@ test("plan implementation renders deterministically and delegates diagrams only 
   match(planning, /rendering and Lavish failures are non-blocking/i)
   match(planning, /always return the native plan/i)
   match(lavish, /npx -y lavish-axi <html-file>/)
+})
+
+test("review-plan delegates final template rendering to refine-plan", () => {
+  const reviewPlan = read("agent-home/skills/review-plan/SKILL.md")
+  const refinePlan = read("agent-home/skills/refine-plan/SKILL.md")
+
+  match(reviewPlan, /Load the `refine-plan` skill/)
+  doesNotMatch(reviewPlan, /^## Planning mode$/m)
+  match(refinePlan, /^## Planning mode$/m)
+  match(refinePlan, /^## Live validation$/m)
+  match(refinePlan, /^## Decision records$/m)
+  match(refinePlan, /Do not modify files\./)
 })
 
 test("local search setup keeps service and connector ownership separate", () => {
@@ -125,8 +165,9 @@ test("Codex TOML agents use native fields and preserve all eight roles", () => {
 })
 
 test("cheap model catalog is harness-first and keeps identifiers centralized", () => {
-  const catalog = read("agent-home/skills/subagent-routing/references/model-catalog.yaml")
-  const routing = read("agent-home/skills/subagent-routing/SKILL.md")
+  const catalog = read("agent-home/skills/super-agent/references/model-catalog.yaml")
+  const routing = read("agent-home/skills/super-agent/SKILL.md")
+  const routingReference = read("agent-home/skills/super-agent/references/routing.md")
   const modelIds = [...catalog.matchAll(/^\s+-\s+(\S+)$/gm)].map(([, id]) => id)
   const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 
@@ -150,16 +191,16 @@ test("cheap model catalog is harness-first and keeps identifiers centralized", (
   match(routing, /verify it matches; stop a mismatched worker/)
   match(routing, /max_local_concurrency/)
   match(routing, /Count a\s+cataloged local orchestrator/)
-  match(routing, /Explicit one-shot adapters/)
-  match(routing, /argument vector/)
-  match(routing, /Never concatenate catalog values into shell code/)
-  for (const harness of ["Codex", "Pi", "AGY", "OpenCode"]) match(routing, new RegExp(harness))
+  match(routingReference, /Explicit one-shot adapters/)
+  match(routingReference, /argument vector/)
+  match(routingReference, /Never concatenate catalog values into shell code/)
+  for (const harness of ["Codex", "Pi", "AGY", "OpenCode"]) match(routingReference, new RegExp(harness))
   for (const path of [
     "README.md",
-    "agent-home/skills/agent-swarm/SKILL.md",
+    "agent-home/skills/super-agent/references/swarm.md",
     "agent-home/skills/review/SKILL.md",
     "agent-home/skills/multi-agent-review/SKILL.md",
-    "agent-home/skills/commit/SKILL.md",
+    "agent-home/skills/git/SKILL.md",
   ]) {
     const body = read(path)
     for (const id of modelIds) doesNotMatch(body, new RegExp(escapeRegExp(id)))
@@ -169,42 +210,41 @@ test("cheap model catalog is harness-first and keeps identifiers centralized", (
 })
 
 test("delegating skills require runtime-native capability-aware routing", () => {
-  const routing = read("agent-home/skills/subagent-routing/SKILL.md")
-  const swarm = read("agent-home/skills/agent-swarm/SKILL.md")
+  const routing = read("agent-home/skills/super-agent/SKILL.md")
+  const routingReference = read("agent-home/skills/super-agent/references/routing.md")
+  const lifecycle = read("agent-home/skills/super-agent/references/lifecycle.md")
+  const swarm = read("agent-home/skills/super-agent/references/swarm.md")
   const review = read("agent-home/skills/review/SKILL.md")
   const multiReview = read("agent-home/skills/multi-agent-review/SKILL.md")
   const orchestration = read("agent-home/skills/orchestration/SKILL.md")
-  const swarmEvals = JSON.parse(read("agent-home/skills/agent-swarm/evals/evals.json"))
+  const swarmEvals = JSON.parse(read("agent-home/skills/super-agent/evals/evals.json"))
 
   match(routing, /ceil\(N \/ 2\)/)
-  match(routing, /quota or rate limit is exhausted/)
+  match(lifecycle, /quota or rate limit is exhausted/)
   match(routing, /must not create a branch or worktree/)
   match(routing, /real configured role/)
   match(routing, /active wrapper/)
   match(routing, /current harness[\s\S]*native/)
-  match(routing, /codex.*exec.*catalog_model.*prompt/s)
-  match(routing, /pi.*--print.*catalog_model.*prompt/s)
-  match(routing, /agy.*--print.*catalog_model.*prompt/s)
-  match(routing, /opencode.*run.*catalog_model.*prompt/s)
-  match(routing, /argument vector/)
+  match(routingReference, /codex.*exec.*catalog_model.*prompt/s)
+  match(routingReference, /pi.*--print.*catalog_model.*prompt/s)
+  match(routingReference, /agy.*--print.*catalog_model.*prompt/s)
+  match(routingReference, /opencode.*run.*catalog_model.*prompt/s)
+  match(routingReference, /argument vector/)
   match(orchestration, /ORCA_CLI_COMMAND/)
   match(orchestration, /orca-dev/)
-  match(routing, /After an AGY readiness timeout, inspect the terminal before retrying/)
-  match(routing, /dispatch without `--inject` and\s+with `--return-preamble`/)
-  match(read("config/AGENTS.md"), /All agents, including nested workers, must load `subagent-routing`/)
+  match(read("config/AGENTS.md"), /All agents, including nested workers, must load `super-agent`/)
   doesNotMatch(routing + swarm, /`spawn_agent`|`wait_agent`|`followup_task`/)
-  match(read("agent-home/skills/code/SKILL.md"), /active wrapper through `subagent-routing`/)
-  for (const name of ["coordinator", "worktree"]) {
-    match(read(`agent-home/skills/${name}/SKILL.md`), /Load `subagent-routing`/)
-  }
+  doesNotMatch(routing, /Orca|ORCA/)
+  match(read("agent-home/skills/code/SKILL.md"), /active wrapper through `super-agent`/)
+  match(read("agent-home/skills/super-agent/references/swarm.md"), /## Isolated tasks/)
   doesNotMatch(routing, /Codex owns all subagent orchestration/)
 
   match(swarm, /other available harnesses/)
-  match(review, /Launch or resume exactly one coordinator through `subagent-routing`/)
+  match(review, /Launch or resume exactly one coordinator through `super-agent`/)
   match(multiReview, /When the user requests five/)
-  match(read("agent-home/skills/code/SKILL.md"), /through `subagent-routing`/)
-  match(read("agent-home/skills/cleanup/SKILL.md"), /through `subagent-routing`/)
-  match(read("agent-home/skills/commit/SKILL.md"), /through `subagent-routing`/)
+  match(read("agent-home/skills/code/SKILL.md"), /through `super-agent`/)
+  match(read("agent-home/skills/cleanup/SKILL.md"), /through `super-agent`/)
+  match(read("agent-home/skills/git/SKILL.md"), /through `super-agent`/)
   match(read("agent-home/skills/skill-creator/SKILL.md"), /move the whole pair/)
   strictEqual(swarmEvals.evals.length, 9)
   match(JSON.stringify(swarmEvals), /quota-exhausted/)
@@ -215,8 +255,8 @@ test("delegating skills require runtime-native capability-aware routing", () => 
   match(read("codex/agents/review-worker.toml"), /pin an exact model from the cheap-model\s+catalog/)
 
   for (const path of [
-    "agent-home/skills/subagent-routing/SKILL.md",
-    "agent-home/skills/agent-swarm/SKILL.md",
+    "agent-home/skills/super-agent/SKILL.md",
+    "agent-home/skills/super-agent/references/swarm.md",
     "agent-home/skills/review/SKILL.md",
     "agent-home/skills/multi-agent-review/SKILL.md",
   ]) {
@@ -285,7 +325,7 @@ test("cleanup and review quality gates keep external evidence opt-in and read-on
   match(reviewWorker, /Verify every retained claim.*source/s)
   match(reviewWorker, /deduplicate OCR findings against native findings/s)
   match(reviewWorker, /never blocks the native verdict/)
-  match(bootstrapPi, /"cleanup-worker": \["core", "cleanup", "subagent-routing"\]/)
+  match(bootstrapPi, /"cleanup-worker": \["core", "cleanup", "super-agent"\]/)
   match(bootstrapPi, /\*\(\["allowNestedSubagents: true"\] if name in \{"cleanup-worker", "review-worker"\} else \[\]\),/)
 })
 

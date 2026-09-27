@@ -37,7 +37,7 @@ Names must match their directories and use lowercase hyphenated identifiers.
 ## 3. Evaluate
 
 Create 2-3 realistic prompts in `evals/evals.json`. For each prompt, load
-`subagent-routing` and launch the with-skill run and its baseline together through fresh
+`super-agent` and launch the with-skill run and its baseline together through fresh
 workers. Use the same harness, configured agent, model, and reasoning effort for both sides
 so the comparison is fair. If quota requires another route, move the whole pair and report
 the substitution. Baseline is no skill for a new skill, or a snapshot of the old skill for

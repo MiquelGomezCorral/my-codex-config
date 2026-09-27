@@ -98,7 +98,7 @@ for skill_dir in sorted(path for path in root.iterdir() if path.is_dir()):
     names.append(name.group(1).strip())
 if len(names) != len(set(names)):
     raise SystemExit("Duplicate skill name found")
-for required in ("core", "subagent-routing", "orca-cli", "orchestration", "computer-use", "decision-records", "commit", "review-findings", "index", "init", "plan-implementation"):
+for required in ("core", "super-agent", "orca-cli", "orchestration", "computer-use", "decision-records", "git", "review-findings", "codegraph-setup", "agents-memory", "plan-implementation", "refine-plan"):
     if required not in names:
         raise SystemExit(f"Missing shared skill: {required}")
 PY
@@ -113,8 +113,9 @@ import sys
 commands = pathlib.Path(sys.argv[1])
 skills = pathlib.Path(sys.argv[2])
 expected = {
-    "bro", "cleanup", "code", "commit", "index", "init", "plan-implementation",
-    "review-findings", "review-plan", "review-pr-comments", "review",
+    "bro", "cleanup", "code", "commit", "index", "init", "merge",
+    "plan-implementation", "refine-plan", "review-findings", "review-plan",
+    "review-pr-comments", "review",
 }
 found = set()
 for path in commands.glob("*.md"):
@@ -197,7 +198,7 @@ check_source() {
     config/bin/codegraph-dependency.sh
     agent-home/skills/review/scripts/ocr-opencode-go
     config/searxng/settings.yml
-    agent-home/skills/subagent-routing/references/model-catalog.yaml
+    agent-home/skills/super-agent/references/model-catalog.yaml
     bootstrap_pi.sh
     bootstrap_agy.sh
   )

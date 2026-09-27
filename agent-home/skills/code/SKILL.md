@@ -5,7 +5,7 @@ description: Execute or correct the current finalized implementation plan with o
 
 # Code
 
-Load `subagent-routing`.
+Load `super-agent`.
 
 Require a complete finalized plan from the current conversation. Collect any concrete
 correction brief accepted by the user, including only accepted review findings or
@@ -37,12 +37,12 @@ On later calls, reuse that path and do not rewrite the original plan with correc
 briefs. Approved record changes travel through the existing correction brief; do not add an
 unconditional reassessment to every correction turn.
 
-Pass explicit harness, agent, model, and exclusion intent to `subagent-routing`. Otherwise
+Pass explicit harness, agent, model, and exclusion intent to `super-agent`. Otherwise
 prefer the active harness and its configured implementation role. In Codex that role is
 `coder`. A retained worker is harness-, role-, model-, and directory-locked; report a
 conflict instead of changing its identity.
 
-Launch or resume exactly one worker through `subagent-routing`:
+Launch or resume exactly one worker through `super-agent`:
 
 - `agent`: the selected harness's best matching configured implementation agent
 - `prompt`: read the exact persisted plan path and preserve its goal; if this worker has
@@ -55,7 +55,7 @@ Launch or resume exactly one worker through `subagent-routing`:
 - `directory`: the current worktree; create or use an isolated worktree only when the user
   explicitly requested it
 
-Use the active wrapper through `subagent-routing` for the initial worker and its
+Use the active wrapper through `super-agent` for the initial worker and its
 retained-session mechanism when one is present; without a wrapper, use the current
 harness's native worker lifecycle. Reuse only an exact session whose parent, harness,
 role, model, and directory still match. Otherwise start a fresh suitable worker and

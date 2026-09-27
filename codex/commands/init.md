@@ -1,6 +1,6 @@
 ---
 description: Bootstrap project agent memory files
-skill: init
+skill: agents-memory
 ---
 
 User arguments:

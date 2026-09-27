@@ -17,13 +17,11 @@ workflow instructions. Load no skill speculatively and do not restate its body.
 - Web research or current external facts -> `web-search`.
 - Project memory initialization or maintenance -> `agents-memory`.
 - CodeGraph installation or indexing -> `codegraph-setup`.
-- Multiple independent agent scopes -> `agent-swarm`; any agent launch or resume
-  decision -> `subagent-routing`.
+- Any agent launch, resume, swarm, or nesting decision -> `super-agent`.
 - Skill creation or revision -> `skill-creator`; agent system prompts ->
   `agent-prompt-writing`.
-- Python template/environment work -> `python-project-setup`.
-- Local commit grouping -> `commit-manager`; shipping a branch and PR ->
-  `commit-push-pr`.
+- Python template/environment work -> `python-coding`.
+- Any git action (commit, push, pull request, merge, PR-comment triage) -> `git`.
 - Host-specific facts -> `computer`.
 
 If no route matches, proceed using `AGENTS.md` and project instructions only.

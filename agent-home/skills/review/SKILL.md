@@ -8,7 +8,7 @@ description: Own `$review` orchestration and explicit staff-level full, quick, o
 ## `$review` invocation
 
 When loaded by the `$review` skill invocation, run this orchestration workflow from the
-current primary harness. Load `subagent-routing` before launching anything.
+current primary harness. Load `super-agent` before launching anything.
 The parent routes the review but never reviews or edits the change itself.
 
 `$review --ocr` is an explicit opt-in for additional OCR evidence. Consume the flag in
@@ -78,7 +78,7 @@ If another harness has no named coordinator but exposes a documented general age
 that agent the complete coordinator packet. Do not invent task keys, commands, roles, or
 unsupported model substitutions.
 
-Launch or resume exactly one coordinator through `subagent-routing`:
+Launch or resume exactly one coordinator through `super-agent`:
 
 - `agent`: the selected harness's best matching configured review coordinator
 - `prompt`: the complete current relevant diff and stated goal, exact mode, swarm-model,
@@ -90,7 +90,7 @@ Wait for the coordinator, return its findings and verdict, and stop. Do not invo
 fixers, accept findings automatically, or publish anything.
 
 The coordinator assigns only the justified review lenses and routes fresh specialists
-through `subagent-routing`. Codex routes use the configured Codex reviewers; other routes
+through `super-agent`. Codex routes use the configured Codex reviewers; other routes
 use their own configured roles. Specialists never delegate further. Readers are concurrent;
 writers remain forbidden. Retained follow-ups use the selected harness's exact-session
 identity checks. The coordinator and specialists use bounded verification; publishing and

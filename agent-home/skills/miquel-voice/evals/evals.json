@@ -1,0 +1,35 @@
+{
+  "skill_name": "miquel-voice",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Write a short message to a teammate. You tested a PDF processing feature. One heavy PDF with large images caused the image model to fail and stopped the pipeline; several other PDFs worked. You have a telemetry trace but no URL to share in this exercise. Ask whether the teammate wants to own the fix or wants you to investigate further. Do not invent other findings.",
+      "expected_output": "A direct teammate message that gives context, the observed failure, the limit of testing, and a useful next question without making up a trace or broader impact.",
+      "expectations": [
+        "States that only one tested PDF failed while others worked",
+        "Does not invent a URL, root cause beyond the supplied evidence, or a fix",
+        "Uses a natural teammate tone rather than a formal announcement"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Explain to machine-learning classmates why a fictional digit classifier with 99% test accuracy should not automatically grade handwritten exam scores. Its errors include some handwritten 7s read as 1s. Low-confidence predictions could be sent for manual review. Keep it around 150 words and do not invent more measurements.",
+      "expected_output": "A technically careful explanation that translates the accuracy number into consequences, uses a concrete example, and explains a mitigation without claiming that confidence catches every error.",
+      "expectations": [
+        "Connects 99% accuracy to roughly one error per 100 predictions under comparable test conditions",
+        "Uses the 7-versus-1 example and explains why an exam score matters",
+        "Offers manual review for low-confidence predictions without claiming all mistakes are caught"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Draft a social post for a fictional research project that reads handwritten exam scores. Supplied facts: it scored 92 correct out of 100 on a controlled set and 83 out of 100 on a small batch of real teacher sheets. Handwritten 7s were sometimes read as 1s. The team is testing a manual-review step for uncertain predictions. No code or dataset has been released. Make the post useful on its own and do not invent details.",
+      "expected_output": "An honest, self-contained research post with the two scores shown together, a concrete error example, a limitation, and a next step; no invented release, hype, or emojis.",
+      "expectations": [
+        "Presents both controlled and real-sheet results together with their scope",
+        "Names the 7-versus-1 failure and the proposed manual-review step",
+        "Does not claim the project is solved, released, or ready for deployment"
+      ]
+    }
+  ]
+}

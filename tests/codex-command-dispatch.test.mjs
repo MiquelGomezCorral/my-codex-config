@@ -21,10 +21,12 @@ test("repository commands load one skill and preserve arguments", () => {
   try {
     symlinkSync(join(root, "codex/commands"), join(home, "commands"), "dir")
     for (const [name, skill] of [
-      ["bro", "bro"], ["cleanup", "cleanup"], ["code", "code"], ["commit", "commit"],
-      ["index", "index"], ["init", "init"], ["plan-implementation", "plan-implementation"],
+      ["bro", "bro"], ["cleanup", "cleanup"], ["code", "code"], ["commit", "git"],
+      ["index", "codegraph-setup"], ["init", "agents-memory"], ["merge", "git"],
+      ["plan-implementation", "plan-implementation"],
+      ["refine-plan", "refine-plan"],
       ["review-findings", "review-findings"], ["review-plan", "review-plan"],
-      ["review-pr-comments", "review-pr-comments"], ["review", "review"],
+      ["review-pr-comments", "git"], ["review", "review"],
     ]) {
       const result = runCommand(home, `/commands/${name} preserve the public API`)
       strictEqual(result.status, 0, result.stderr)

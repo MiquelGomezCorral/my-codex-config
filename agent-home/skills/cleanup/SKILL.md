@@ -6,7 +6,7 @@ description: Run the explicit `$cleanup` findings-only deslop audit with one fre
 # Cleanup Gate
 
 Run only for an explicit `$cleanup` invocation. Never trigger this workflow from
-`$code`, `$review`, or ordinary implementation. Load `subagent-routing` before
+`$code`, `$review`, or ordinary implementation. Load `super-agent` before
 launching the configured `cleanup-worker`; the parent owns scope and orchestration,
 and the worker returns findings without changing the repository.
 
@@ -29,7 +29,7 @@ $cleanup [--slopo] [goal or persisted-plan context]
 
 ## Launch
 
-Launch exactly one fresh `cleanup-worker` through `subagent-routing` with the plan or
+Launch exactly one fresh `cleanup-worker` through `super-agent` with the plan or
 goal, task-owned paths and exclusions, and the complete status snapshot. The packet must
 contain exactly one marker: `Slopo mode: enabled` when `$cleanup --slopo` was supplied,
 otherwise `Slopo mode: disabled`. Consume the flag in the parent; never forward it as
