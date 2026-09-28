@@ -114,7 +114,7 @@ grep -q '^skills: cleanup, super-agent, writing$' "$PI_AGENT_ROOT/agents/cleanup
 grep -q '^skills: code, super-agent, writing$' "$PI_AGENT_ROOT/agents/coder.md"
 grep -q '^skills: git, writing$' "$PI_AGENT_ROOT/agents/git-worker.md"
 grep -q '^skills: workflow, review, review-findings, super-agent, writing$' "$PI_AGENT_ROOT/agents/coding-supervisor.md"
-grep -q '^skills: workflow, code-review, computer-use, writing$' "$PI_AGENT_ROOT/agents/live-validator.md"
+grep -q '^skills: code-quality, computer-use, review, test-audit, workflow, writing$' "$PI_AGENT_ROOT/agents/live-validator.md"
 grep -q '^skills: decision-records, web-search, writing$' "$PI_AGENT_ROOT/agents/critic.md"
 grep -q '^skills: review, review-findings, super-agent, writing$' "$PI_AGENT_ROOT/agents/review-worker.md"
 for name in cleanup-worker coding-supervisor review-worker; do
