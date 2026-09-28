@@ -5,8 +5,8 @@ description: Shape ideas, outline, draft, edit, and review prose for a reader â€
 
 # Writing
 
-One skill owns prose: the natural-writing rules, Miquel's voice profile, and the academic
-and LaTeX material.
+One skill owns prose: the natural-writing rules, Miquel's voice profile, Caveman
+concision, and the academic and LaTeX material.
 
 ## Read these two first
 
@@ -20,6 +20,12 @@ Read [references/academic.md](references/academic.md) and, when LaTeX is involve
 [references/latex.md](references/latex.md) only when the request is a paper, thesis, or
 formal report.
 
+`references/voice-profile.md` is the compressed voice profile and is enough for almost
+every task. Read [references/voice-interview.md](references/voice-interview.md) only when
+the compressed profile does not cover the format you are writing for, or when you need the
+actual answer behind a preference. Do not read the full interview by default; it is the
+source material, not the operating profile.
+
 ## Pick the register
 
 - **Academic or thesis:** read `references/academic.md`, and `references/latex.md` when the
@@ -31,6 +37,15 @@ formal report.
 
 Infer the reader and register from the request and context. Ask who this is for and where
 it will be published only when the answer would materially change the result.
+
+## Caveman concision
+
+Use Caveman for assistant-written prose: cut filler, pleasantries, repeated points, and
+words that do no work. Prefer short, direct sentences and fragments when they stay clear.
+Drop articles only where meaning remains obvious. Keep technical terms, code, quotes,
+errors, uncertainty, and necessary detail intact. Use full sentences when compressed
+wording could obscure order, risk, or meaning. Follow the requested register and preserve
+the original author's voice when editing; do not turn their writing into Caveman prose.
 
 ## Work at the requested stage
 
@@ -59,6 +74,7 @@ patterns, and the optional score report.
 | Task | Read |
 | --- | --- |
 | Any prose preparation, outline, draft, edit, or review | `references/natural-writing.md`, `references/voice-profile.md` |
+| The reason behind a voice preference, or a format the compressed profile does not cover | `references/voice-interview.md` |
 | Paper, thesis, or formal report | `references/academic.md` (plus the two above) |
 | LaTeX figures, tables, plots, or bibliography | `references/latex.md` |
 
