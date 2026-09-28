@@ -284,3 +284,90 @@ Status values: `done`, `partial`, `open`, `deferred`, `rejected`.
     `multi-agent-review` entry point while preserving its read-only specialist contracts;
     keep `review-plan`, `review-findings`, and `refine-plan` usable alone. Status: `done`
     — review reference and bootstrap inventory updated; live review pending.
+68. **Fold `code-review` into `review` and restructure `review` in the same change.**
+    "Fold code-review into review AND restructure review in the same change." The router
+    keeps `## Review modes`; former lines 8-141 move to `references/orchestration.md`,
+    142-162 to `references/ocr-evidence.md`, and 173-186 to
+    `references/convention-audit.md`; the old `code-review` body becomes
+    `references/code-review.md` with only its frontmatter dropped. Status: `done` —
+    consumers in bootstrap, tests, presets, and `review-findings` re-pointed; live review
+    pending.
+69. **Move `python-coding` to `code-quality/references/python.md` untouched.** Only the
+    four frontmatter lines are dropped so the 631 remaining lines stay byte-identical to
+    the original body. Status: `done` — verified identical by diff and checksum.
+70. **Make the `code-quality` standard mandatory for code work.** One bullet in
+    `config/AGENTS.md` plus `code-quality` granted to the roles that write, review, or
+    validate code, with `bootstrap.sh` requiring the skill. No PreToolUse hook: the policy
+    bullet and the role grants are the fix, and a hook is a separate decision. Status:
+    `done` — wired and covered by tests; live use pending.
+71. **Keep the engineering principles in `config/AGENTS.md`.** They stay always loaded and
+    cheap; `code-quality` owns the detailed standard plus its language references, and
+    nothing moves out of `AGENTS.md` except the new mandatory-standard bullet. Status:
+    `done` — line 13 of the quality-gates record points at the new shape.
+72. **Split the voice material into a compressed profile and the full interview.** "make not
+    mandatory for the agents to read the voice profile.md… voice-profile is rather a
+    compressed version of it that we can feed more nicely to the agent, and if they have to
+    write something for us, then they read the whole interview." Status: `done` —
+    `writing/references/voice-profile.md` is the compressed operating profile (157 lines:
+    core identity, the three labels, anti-overfitting, the quick reference card, the
+    how-to-use guide, and the agent instructions);
+    `writing/references/voice-interview.md` keeps the source material (716 lines: core
+    identity, all 7 sections, all 100 questions, and the post-interview calibration).
+    `writing/SKILL.md` reads the compressed profile by default and the interview only when
+    the compressed profile misses a format or the reason behind a preference is needed. The
+    two files share no operating section.
+73. **Store the interview's upstream source for future regeneration.**
+    <https://ruben.substack.com/p/i-am-just-a-text-file> is recorded in the README
+    attribution, in the header of `voice-interview.md`, and in the header of the compressed
+    `voice-profile.md`. Status: `done`.
+74. **One skill scouts, vets, and installs skills, with `skillspector` folded in.** "I want
+    to make a skill searcher… the skillspector will get folded inside that searcher bc after
+    a skill is cloned on a repo, it must get verified." Status: `done` —
+    `agent-home/skills/skill-scout/` replaces `skillspector` and `find-skills`. Its
+    `references/vetting.md` absorbs the static scan, the manual review of matched lines, and
+    the false-positive discipline, and adds a reachability check.
+75. **Keep a catalog of known project-agnostic skills.** "After you add skills for any
+    project, ask the us[er]… we must keep track of any skill that is 'project agnostic' but
+    we may want to keep for future similar projects." Status: `done` —
+    `references/catalog.md` holds the entry format, the ask-first rule, and the seeded
+    `design-review` (UI principles) entry.
+76. **Verification must judge usefulness and real usage, not popularity.** A skill is
+    rejected when its `SKILL.md` teaches the agent nothing it does not already know, when the
+    repository has no recent commits, real issues, or named maintainer, or when no outside
+    evidence of use exists. Stars and install counts never pass the gate on their own, and
+    evidence is sought on X/Twitter, Reddit, Stack Overflow, and other repositories. Status:
+    `done` — the usefulness gate in `skill-scout/SKILL.md`.
+77. **The scout pulls first and never merges on its own.** Every candidate that passes the
+    gate is pulled even when it overlaps another, then the overlap is listed for the user to
+    decide whether to merge or combine. Status: `done` — "Report overlaps and let the user
+    decide" and the non-negotiables in `skill-scout/SKILL.md`.
+78. **`skill-scout` carries the measured base rate for skills.** SWE-Skills-Bench (arXiv
+    2603.15401: 39 of 49 skills gave zero pass-rate improvement, mean +1.2%, overhead up to
+    +451%), SkillsBench (arXiv 2605.31408: curated skills help inconsistently, self-generated
+    skills gave no benefit), and the 34,000-skill loading study reported by The Decoder (16%
+    load rate in the hardest setting). Status: `done` — `references/evidence.md`, paraphrased
+    in `SKILL.md` as "the default answer to a candidate is no".
+79. **Merge `btca-first` and `btca-cli` into one `btca` skill.** They already cross-referenced
+    each other, which was the tell that one concern had been split in two. Status: `done` —
+    one `agent-home/skills/btca/SKILL.md` holding the scope, the ask workflow, the
+    missing-resource rule, and the administration section. Consumers re-pointed:
+    `grill-me`, `workflow/references/planning.md`, `review/references/effect-checks.md`.
+80. **State BTCA's real scope, and do not make it always-first.** "regarding the caveats that
+    means that we have not pulled enough resources… if you mean that we should not always use
+    it first so I agree with that perhaps I overstated it." Status: `done` — the `## Scope`
+    section names what it is for (external upstream behavior of a registered resource) and
+    what it is not (this repository's own code, general knowledge, topics with no resource),
+    and states the cost (up to 40 provider steps per question).
+81. **Agents must propose a new resource when the same external question recurs.** "when we
+    have been asking things regarding the same stuff on different turns of the same chat,
+    they can identify that and suggest hey, maybe we need a new BTCA resource." Status:
+    `done` — `## When a resource is missing` in `btca/SKILL.md`, plus one bullet in
+    `config/AGENTS.md`: propose the resource instead of answering upstream behavior from
+    memory.
+82. **OpenCode Go cannot serve BTCA.** Tested, not assumed: both the test key and the real
+    `opencode-go` key returned HTTP 402 `Insufficient account funds` on btca's path
+    `/zen/v1`, while a direct call to the Go path `/zen/go/v1/chat/completions` returned HTTP
+    400 `MissingSessionID` — Go requires an `x-opencode-session` header that the repository's
+    own OCR helper sends (`review/scripts/ocr-opencode-go`) and that btca cannot. Status:
+    `done` — recorded in `btca/SKILL.md` under Administration; btca left on `openai` /
+    `gpt-5.4`, and no API key was written into any repository.

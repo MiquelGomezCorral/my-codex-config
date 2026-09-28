@@ -97,9 +97,14 @@ replaces the former OpenCode `build`, `plan`, `general`, `explore`, `answer`, an
 reviewer capabilities. All five Git actions use `git-worker` by default; the `git` skill
 remains the sole owner of Git policy.
 
-Shared decision records live in each repository's `docs/decisions/`; they are separate from
-personal `.agents/` memory. Planning assesses applicable records and includes exact proposed
-record/index changes for approval; after approval, the main orchestrator applies those changes
+Shared product decision records live in each repository's `docs/decisions/`. Only the
+human-facing agent uses `agents-memory`: it reads relevant existing repository context and
+stores new private working notes, agent decisions, and plans under `agent-memory/` in the
+Git common directory shared by linked worktrees. Workers receive the relevant task context
+and return memory suggestions to that agent. Existing tracked `.agents/` files remain in
+place; separate clones do not share the private directory. Planning assesses applicable
+records and includes exact proposed record/index changes for approval; after approval,
+the main orchestrator applies those changes
 and passes protected invariants to implementation and review workers. Routine work reports no
 change, while intent conflicts require user resolution.
 
@@ -199,10 +204,24 @@ findings only; it is not a validated quality or authorship measure.
 The personal voice profile is built from Miquel's own 100-question interview, using the
 interview and anti-overfitting method in [Ruben Hassid's "I am just a text file"](https://ruben.substack.com/p/i-am-just-a-text-file).
 
+That full interview is stored verbatim at
+`agent-home/skills/writing/references/voice-interview.md` (100 questions, 7 sections, plus
+the post-interview calibration). It is the source material. The operating profile the
+agent reads by default is the compressed `voice-profile.md`, which carries only the rules,
+the boundaries, the quick reference card, and the anti-overfitting guide. The upstream
+article link above is the standing reference for regenerating or extending the interview.
+
 The `test-audit` skill adapts [OpenClaw's `test-audit`](https://github.com/openclaw/openclaw/blob/main/.agents/skills/test-audit/SKILL.md)
 (MIT, OpenClaw Foundation). Its value bar, junk patterns, retention bar, candidate evidence,
 edit shape, and campaign phases are kept. Its OpenClaw-specific skill names, Vitest scripts,
 and PR flow are replaced by this repository's own test commands and the `git` skill.
+
+The `skill-scout` skill replaces the former `find-skills` and `skillspector` skills, folding
+their marketplace discovery and static security scan into one find-vet-catalog flow. Its
+`references/evidence.md` cites the measurements it reasons from:
+[SWE-Skills-Bench](https://arxiv.org/abs/2603.15401),
+[SkillsBench](https://arxiv.org/abs/2605.31408), and a study of 34,000 real skills reported
+by The Decoder.
 
 ## Repository ownership
 
