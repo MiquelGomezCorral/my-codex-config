@@ -99,7 +99,7 @@ for skill_dir in sorted(path for path in root.iterdir() if path.is_dir()):
     names.append(name.group(1).strip())
 if len(names) != len(set(names)):
     raise SystemExit("Duplicate skill name found")
-for required in ("writing", "super-agent", "orca-cli", "orchestration", "computer-use", "decision-records", "git", "review-findings", "codegraph-setup", "agents-memory", "refine-plan", "workflow", "test-audit"):
+for required in ("writing", "super-agent", "orca-cli", "orchestration", "computer-use", "decision-records", "git", "review-findings", "codegraph-setup", "agents-memory", "refine-plan", "workflow", "test-audit", "code-quality", "skill-scout", "btca"):
     if required not in names:
         raise SystemExit(f"Missing shared skill: {required}")
 PY

@@ -90,17 +90,17 @@ import tomllib
 source = pathlib.Path(sys.argv[1])
 target = pathlib.Path(sys.argv[2])
 skills = {
-    "cleanup-worker": ["cleanup", "super-agent", "test-audit", "writing"],
-    "coder": ["code", "super-agent", "test-audit", "writing"],
+    "cleanup-worker": ["cleanup", "code-quality", "super-agent", "test-audit", "writing"],
+    "coder": ["code", "code-quality", "super-agent", "test-audit", "writing"],
     "git-worker": ["git", "writing"],
-    "coding-supervisor": ["workflow", "review", "review-findings", "super-agent", "test-audit", "writing"],
-    "live-validator": ["workflow", "code-review", "computer-use", "test-audit", "writing"],
+    "coding-supervisor": ["code-quality", "review", "review-findings", "super-agent", "test-audit", "workflow", "writing"],
+    "live-validator": ["code-quality", "computer-use", "review", "test-audit", "workflow", "writing"],
     "critic": ["decision-records", "web-search", "writing"],
-    "review-worker": ["review", "review-findings", "super-agent", "test-audit", "writing"],
-    "reviewer-arch": ["code-review", "test-audit", "writing"],
-    "reviewer-e2e": ["code-review", "test-audit", "writing"],
-    "reviewer-quick": ["code-review", "test-audit", "writing"],
-    "reviewer-reasoning": ["code-review", "test-audit", "writing"],
+    "review-worker": ["code-quality", "review", "review-findings", "super-agent", "test-audit", "writing"],
+    "reviewer-arch": ["code-quality", "review", "test-audit", "writing"],
+    "reviewer-e2e": ["code-quality", "review", "test-audit", "writing"],
+    "reviewer-quick": ["code-quality", "review", "test-audit", "writing"],
+    "reviewer-reasoning": ["code-quality", "review", "test-audit", "writing"],
 }
 
 for path in sorted(source.glob("*.toml")):
@@ -124,7 +124,7 @@ for path in sorted(source.glob("*.toml")):
         f"thinking: {thinking}",
         "systemPromptMode: replace",
         "inheritProjectContext: true",
-        "inheritSkills: true",
+        "inheritSkills: false",
         f"skills: {', '.join(skills.get(name, ['writing']))}",
         *(["allowNestedSubagents: true"] if name in {"cleanup-worker", "coding-supervisor", "review-worker"} else []),
         "defaultProgress: true",
