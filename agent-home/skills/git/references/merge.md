@@ -1,15 +1,15 @@
 # Merge
 
-Finish the current branch: merge it into its base branch and return to the branch you
-started on. Merging preserves the branch's own commits exactly as they are; this workflow
-never rebases.
+Sync the selected base branch into the current feature branch. Keep the feature branch
+checked out; never switch to the base and merge the feature into it. Merging preserves both
+branches' commits exactly as they are; this workflow never rebases.
 
 Base branch resolution: an explicit branch argument is the base branch; otherwise the base
 branch is local `main`. Do not fetch.
 
 If `git status --porcelain` reports staged, unstaged, or untracked changes, commit them
-through `commit.md` when the request authorizes a commit, then continue. Do not start a
-merge that would overwrite uncommitted work.
+through `commit.md` only when the accepted plan or direct request also names that commit.
+Otherwise stop. Do not start a merge that would overwrite uncommitted work.
 
 ## Repository gates
 
@@ -32,25 +32,21 @@ unrelated failure as a blocker instead of working around it.
 
 ## Merge
 
-Record the current branch, merge it into the base branch, and return to the branch you
-started on:
+Confirm the current branch is the planned feature target and is not the resolved base or a
+protected branch. Merge the base into that current feature branch:
 
 ```bash
-git checkout <base-branch>
-git merge --no-ff <branch>
-git checkout <branch>
+git merge --no-ff <base-branch>
 ```
 
 ## History integrity
 
-A merge must preserve every branch-only commit and the branch's own history. These rules are
+A merge must preserve every existing commit and both branches' histories. These rules are
 not negotiable and are not overridden by a convenient-looking cleanup:
 
-- Never squash: every branch-only commit survives as its own commit with its original
-  identity.
-- Never rebase, amend, or otherwise rewrite the commits a branch made for itself.
-- Always merge with `--no-ff`, so the branch's commits, their original identities, and the
-  branch topology stay visible.
+- Never squash, rebase, amend, or otherwise rewrite feature or base commits.
+- Always merge with `--no-ff`, so the base commits and their original identities stay
+  visible in the feature branch.
 - Never delete the merged branch unless the user asks. Never use `git branch -D` on a branch
   that is not fully merged.
 - Never force-push.
@@ -58,11 +54,12 @@ not negotiable and are not overridden by a convenient-looking cleanup:
 After merging, verify and report:
 
 ```bash
-git log --oneline <base-branch>..<branch>   # expect empty: nothing left unmerged
-git merge-base --is-ancestor <branch> <base-branch> && echo "branch fully contained"
-git diff <branch> <base-branch> --stat      # expect empty: content fully merged
+git merge-base --is-ancestor <base-branch> <feature-branch> && echo "base synced into feature"
+git log --oneline <feature-branch>..<base-branch>   # expect empty: base fully included
+git diff <base-branch>...<feature-branch> --stat    # inspect the feature-only change
 ```
 
-If any check is non-empty, stop, report it, and do not clean up or push.
+If the ancestry check fails or the base-only log is non-empty, stop and report it. Confirm
+the diff contains only the feature work; do not clean up or push.
 
 Do not push. Report the merge result, including the three verification outputs.

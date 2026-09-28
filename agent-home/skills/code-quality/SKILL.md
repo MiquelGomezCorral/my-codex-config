@@ -11,6 +11,10 @@ Writers use this standard before and during implementation. Reviewers use it to 
 changed behavior and its surrounding design. It supplements, rather than repeats, the
 universal rules in `AGENTS.md`.
 
+When tests are in scope, load `test-audit`. It gates every new or changed test at write
+time and audits existing tests that re-assert source, duplicate stronger proof, couple
+behavior to implementation, or keep test-only production seams alive.
+
 ## Choose a solution in this order
 
 Stop at the first option that fully solves the verified problem:

@@ -3,14 +3,18 @@ max_local_concurrency: 1
 codex:
   low:
     - gpt-6-luna
+  medium:
+    - gpt-6-luna
+  high:
+    - gpt-6-sol
 
 pi:
   low:
     - opencode-go/mimo-v2.6-flash
   medium:
-    - opencode-go/deepseek-v4-flash
-  high:
     - opencode-go/deepseek-v4.1-flash
+  high:
+    - opencode-go/glm-5.3-flash
   local:
     medium:
       - local-llama/Qwen3.8-27B-GSQ-RCO-IQ2_S

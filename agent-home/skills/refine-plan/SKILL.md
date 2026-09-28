@@ -63,6 +63,15 @@ Preserve the approved assessment, applicable record paths, protected invariants,
 record/index changes. The main orchestrator owns those approved document changes during
 execution; coders receive them as constraints and report conflicts.
 
+## Workflow and authorizations (complete workflow only)
+Record slice order, dependencies, per-slice scope and exclusions, coding size, owners,
+checks, samples, tool availability, review preset, acceptance evidence, required
+artifacts with editable source and preview paths, human gates, and known starting
+revisions; for later slices state the accepted-predecessor-head rule instead. List
+each approved live or Git action separately with its target and bounds; state `none` when
+there is no authorization. Workflow context and progress state do not create permission.
+Omit this section for standalone plans.
+
 ## Out of scope
 Files, behavior, cleanup, and follow-up work the executor must not perform.
 

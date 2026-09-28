@@ -5,10 +5,16 @@ description: Run the explicit `$cleanup` findings-only deslop audit with one fre
 
 # Cleanup Gate
 
-Run only for an explicit `$cleanup` invocation. Never trigger this workflow from
-`$code`, `$review`, or ordinary implementation. Load `super-agent` before
+Run only for an explicit `$cleanup` invocation or an approved complete workflow's cleanup
+stage. Never trigger this workflow from `$code`, `$review`, or ordinary implementation.
+Load `super-agent` before
 launching the configured `cleanup-worker`; the parent owns scope and orchestration,
 and the worker returns findings without changing the repository.
+
+An approved workflow may invoke this skill at its cleanup stage with the exact plan,
+scope, exclusions, progress path, and authorization summary. Context does not change this
+skill's read-only, findings-only contract: the workflow parent verifies findings before
+it decides whether to route a correction. Standalone `$cleanup` remains unchanged.
 
 ```text
 $cleanup [--slopo] [goal or persisted-plan context]
@@ -34,6 +40,9 @@ goal, task-owned paths and exclusions, and the complete status snapshot. The pac
 contain exactly one marker: `Slopo mode: enabled` when `$cleanup --slopo` was supplied,
 otherwise `Slopo mode: disabled`. Consume the flag in the parent; never forward it as
 shell input or user arguments.
+
+When present, pass the exact workflow context and current slice scope in a separate field;
+it does not expand the worker's read-only audit or Slopo opt-in.
 
 The coordinator audits production and tests and may delegate at most two fresh,
 read-only specialists only when distinct evidence surfaces justify it:

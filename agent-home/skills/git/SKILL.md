@@ -36,23 +36,28 @@ and a repository with its own convention simply overrides the matching default.
 
 ## Authority
 
-An explicit `$commit`, `$merge`, or direct request authorizes only that action's scope.
-Push, branch creation, pull-request work, history rewrite, and any destructive git action
-each need their own explicit authorization. Never commit, push, publish, or mutate shared
-state without it.
+An accepted human-approved plan authorizes only its named Git actions, targets, and bounds.
+It may authorize a local checkpoint before cleanup. Final human acceptance is the result
+gate before shipping those named actions, not a second Git authorization request. A
+checkpoint never authorizes an unlisted push or PR. Outside workflow context, a direct Git
+request authorizes only the action and scope it names. Repository rules and any required
+approval for destructive recovery still apply.
 
 ## Delegation
 
-`commit`, `push`, and `pr` hand the work to exactly one worker through `super-agent` — in
-Codex, `commit-worker`. `super-agent` owns harness, role, catalog tier, and model
+All five actions — `commit`, `push`, `pr`, `merge`, and `review-pr-comments` — go through
+exactly one worker via `super-agent`; in Codex, use `git-worker`. The Git skill stays the
+sole owner of Git policy. `super-agent` owns harness, role, catalog tier, and model
 selection; include the resolved tier in the packet and treat missing catalog coverage as a
 blocker. The worker prompt carries the current user request, every user option, any
 `--ignore <path-or-glob>` value unchanged, and `Plan path: <exact path>` when a persisted
 plan is available or `Plan path: unavailable` otherwise.
 
-`--no-delegation` makes the receiving agent perform the work inline with no subagent.
+Preserve the existing explicit `--no-delegation` override for commits. Otherwise, do not
+run `merge` or `review-pr-comments` inline.
 
-`merge` and `review-pr-comments` always run inline.
+When workflow context is present, pass its exact plan path, slice, scope, exclusions, and
+named Git authorization bounds to the worker. Do not synthesize or widen authorization.
 
 ## Route
 

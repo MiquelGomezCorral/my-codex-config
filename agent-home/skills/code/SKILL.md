@@ -1,17 +1,22 @@
 ---
 name: code
-description: Execute or correct the current finalized implementation plan with one retained worker routed through an available agent harness. Use only when the user explicitly invokes `$code`.
+description: Execute or correct the current finalized implementation plan with one retained worker routed through an available agent harness. Use when the user explicitly invokes `$code` or an approved complete workflow reaches its coding stage.
 ---
 
 # Code
 
 Load `super-agent`.
 
-Require a complete finalized plan from the current conversation. Collect any concrete
+When called from an approved workflow, require the complete workflow context and use its
+exact slice scope, exclusions, and plan path. Context routes this coding stage; it does
+not expand scope or grant live, Git, or destructive-action permission.
+
+Require a complete finalized plan from the current conversation, or from the approved
+workflow plan path when workflow context is present. Collect any concrete
 correction brief accepted by the user, including only accepted review findings or
 live-test evidence and never unaccepted suggestions.
 
-On the first `$code` call for this plan, before launching a worker:
+On the first standalone `$code` call for this plan, before launching a worker:
 
 1. Load the selected `decision-records` skill and compare the approved assessment with the
    current applicable records.
@@ -28,6 +33,11 @@ On the first `$code` call for this plan, before launching a worker:
    applicable record paths, protected constraints, and an explicit statement identifying
    document changes already applied by the main orchestrator.
 
+In approved workflow context, `$workflow` has already persisted the exact wave plan and
+applied approved decision-record changes. Require that plan path and reuse it unchanged;
+do not persist a second plan or repeat the first-call document writes. Pass the current
+approved slice refinement and amendments as context, without replacing the wave plan.
+
 The coder must not repeat or reinterpret those document edits. It implements within the
 approved constraints and reports any conflict. If implementation fails after records were
 written, report the failure and written paths accurately; do not claim implementation or
@@ -42,16 +52,26 @@ prefer the active harness and its configured implementation role. In Codex that 
 `coder`. A retained worker is harness-, role-, model-, and directory-locked; report a
 conflict instead of changing its identity.
 
-Launch or resume exactly one worker through `super-agent`:
+Launch or resume exactly one first-tier worker through `super-agent`. Standalone `$code`
+uses the configured implementation role (`coder` in Codex). For approved workflow context,
+read `Coding size` from the human-approved plan: `small` goes directly to one retained
+`coder`; `large` goes to the read-only `coding-supervisor`, with a bounded grant to direct
+exactly one retained coder and coordinate the plan-selected read-only review within the
+approved slice. Stop if size is missing or conflicts
+with the plan. Keep one product-code writer at a time.
 
-- `agent`: the selected harness's best matching configured implementation agent
+- `agent`: the selected harness's best matching configured implementation agent, or the
+  plan-sized `coder` / `coding-supervisor` route above
 - `prompt`: read the exact persisted plan path and preserve its goal; if this worker has
   no prior implementation turn, execute it, otherwise apply only the accepted correction
   brief and relevant evidence; if no later brief exists, stop without edits. Return a
   concise report of completion, partial completion, or failure; changed paths; readiness
   check results; blockers or unchecked requirements; and pending live validation. Keep
   implementation inspection and checks in the worker; do not return diffs, file contents,
-  or raw logs unless needed to explain a concrete blocker
+  or raw logs unless needed to explain a concrete blocker. In large-plan workflow context,
+  the supervisor verifies correction scope and evidence but does not edit product source.
+- When supplied, pass the exact approved workflow context, slice outcome, scope, exclusions,
+  progress path, and authorization bounds. Do not derive new permission from them.
 - `directory`: the current worktree; create or use an isolated worktree only when the user
   explicitly requested it
 
@@ -65,11 +85,15 @@ Apply the routing policy's visible quota substitution without changing the plan 
 Do not implement product changes yourself. Wait for the worker and use its report as
 the source for your status update. Do not review the implementation, inspect git status
 or diffs, read changed or new implementation files, rerun checks, or launch a reviewer
-to verify the worker's work. Review is deferred to a separate user request. Keep code
+to verify the worker's work. In an approved workflow, return control to `$workflow` for
+the next review or cleanup stage; `$code` itself still stops after implementation.
+Outside workflow context, review remains deferred to a separate user request. Keep code
 and inspection output out of your context.
 
-After a successful initial implementation, apply only the exact approved
+After a successful initial standalone implementation, apply only the exact approved
 `Main-agent memory updates` from the plan; skip them if the coder stopped with a blocker.
+In workflow context, the root applies them after the human accepts the verified result;
+`$code` must not duplicate those writes.
 Read only the memory content needed for those updates, without expanding into code
 inspection. If the worker's report is missing essential status, ask that worker for a
 concise clarification instead of investigating yourself. A stopped or failed worker
@@ -77,5 +101,5 @@ without a completion report is not evidence of success.
 
 Report the worker's stated outcome, changed paths, readiness results, blockers or gaps,
 and pending live `Flow`, `Expected`, and `Can run`. Attribute results to the worker;
-do not claim independent verification. Leave live validation pending user approval,
-then stop without starting review or follow-up work.
+do not claim independent verification. Leave live validation pending user approval.
+Without workflow context, stop without starting review or follow-up work.

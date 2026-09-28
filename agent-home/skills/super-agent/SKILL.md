@@ -70,7 +70,8 @@ Catalog rules:
   from the catalog. Never let a wrapper or harness choose an uncataloged default model; when
   compatible entries are exhausted, report the blocker.
 - `$code` and `$cleanup` keep their configured orchestrator-strength workers.
-- Keep at least `ceil(N / 2)` workers on the current harness when no roster was requested.
+- Keep at least `ceil(N / 2)` workers on the current harness only when no roster or
+  harness preference was supplied by the user or invoking skill.
 - Select each harness's real configured role by its description; never translate a role name
   across harnesses. Use a general agent only when that harness exposes no role catalog.
 

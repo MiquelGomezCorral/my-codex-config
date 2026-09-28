@@ -7,6 +7,9 @@ Post-implementation quality gates expose unnecessary production and test complex
 ## Current decisions
 
 - `$cleanup` is explicit, read-only, and findings-only.
+- An explicitly approved complete workflow may invoke that findings-only audit and route
+  verified in-scope simplifications to the implementation worker; the auditor never edits
+  or automatically accepts findings. Standalone cleanup retains its stopping behavior.
 - It assesses task-owned production and test changes against repository code-quality and Ponytail principles.
 - One cleanup coordinator may delegate at most two justified, bounded read-only investigations through `super-agent`.
 - Slopo runs only through `$cleanup --slopo`; OCR runs only through `$review --ocr`.
@@ -30,6 +33,8 @@ Post-implementation quality gates expose unnecessary production and test complex
 - OCR cannot replace the native review verdict or inspect unrelated workspace changes.
 - OCR provider credentials, sessions, and runtime state are never stored in this repository.
 - Before/after repository status must expose unexpected mutation.
+- Workflow corrections preserve approved behavior and scope, including meaningful tests;
+  non-blocking simplifications are eligible only after their evidence is verified.
 
 ## Rationale and tradeoffs
 
@@ -46,6 +51,8 @@ Separating diagnosis from correction lets the user choose which simplifications 
 
 ## History
 
+- 2026-09-27: Approved complete-workflow orchestration of read-only quality gates and
+  verified in-scope corrections, preserving standalone findings-only behavior.
 - 2026-09-21: Adopted read-only cleanup findings, production-and-test deslop analysis, bounded exploratory delegation, and opt-in OCR/Slopo evidence.
 - 2026-09-21: Connected opt-in OCR directly to OpenCode Go through a secret-free helper
   that can reuse Pi's credential store without using Pi as the review harness.

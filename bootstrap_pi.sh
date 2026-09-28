@@ -90,14 +90,17 @@ import tomllib
 source = pathlib.Path(sys.argv[1])
 target = pathlib.Path(sys.argv[2])
 skills = {
-    "cleanup-worker": ["core", "cleanup", "super-agent"],
-    "coder": ["core", "code", "super-agent"],
-    "commit-worker": ["core", "git"],
-    "review-worker": ["core", "review", "multi-agent-review", "super-agent"],
-    "reviewer-arch": ["core", "code-review"],
-    "reviewer-e2e": ["core", "code-review"],
-    "reviewer-quick": ["core", "code-review"],
-    "reviewer-reasoning": ["core", "code-review"],
+    "cleanup-worker": ["cleanup", "super-agent", "test-audit", "writing"],
+    "coder": ["code", "super-agent", "test-audit", "writing"],
+    "git-worker": ["git", "writing"],
+    "coding-supervisor": ["workflow", "review", "review-findings", "super-agent", "test-audit", "writing"],
+    "live-validator": ["workflow", "code-review", "computer-use", "test-audit", "writing"],
+    "critic": ["decision-records", "web-search", "writing"],
+    "review-worker": ["review", "review-findings", "super-agent", "test-audit", "writing"],
+    "reviewer-arch": ["code-review", "test-audit", "writing"],
+    "reviewer-e2e": ["code-review", "test-audit", "writing"],
+    "reviewer-quick": ["code-review", "test-audit", "writing"],
+    "reviewer-reasoning": ["code-review", "test-audit", "writing"],
 }
 
 for path in sorted(source.glob("*.toml")):
@@ -106,7 +109,7 @@ for path in sorted(source.glob("*.toml")):
     if name != path.stem:
         raise SystemExit(f"Agent name does not match filename: {path}")
     prompt = data["developer_instructions"].strip()
-    read_only = name == "cleanup-worker" or name == "review-worker" or name.startswith("reviewer-")
+    read_only = name in {"cleanup-worker", "coding-supervisor", "live-validator", "review-worker", "critic"} or name.startswith("reviewer-")
     tools = ["read", "grep", "find", "ls", "bash"]
     if not read_only:
         tools += ["edit", "write"]
@@ -122,8 +125,8 @@ for path in sorted(source.glob("*.toml")):
         "systemPromptMode: replace",
         "inheritProjectContext: true",
         "inheritSkills: true",
-        f"skills: {', '.join(skills.get(name, ['core']))}",
-        *(["allowNestedSubagents: true"] if name in {"cleanup-worker", "review-worker"} else []),
+        f"skills: {', '.join(skills.get(name, ['writing']))}",
+        *(["allowNestedSubagents: true"] if name in {"cleanup-worker", "coding-supervisor", "review-worker"} else []),
         "defaultProgress: true",
         "---",
         "",

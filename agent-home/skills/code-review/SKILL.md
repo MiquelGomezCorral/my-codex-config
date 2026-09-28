@@ -30,25 +30,27 @@ Findings are more valuable than commentary. False positives are worse than silen
 
 ## Findings
 
-Order findings by severity and cite `path:line`. Each finding must state the concrete
-failure or risk and the smallest useful correction.
+Order findings by severity and cite `path:line`. Every finding needs concrete source
+evidence, a scope classification (`in-scope`, `out-of-scope`, or `unclear`), the actual
+failure or cost, and the smallest useful correction.
 
-- `blocker`: unsafe to merge; data loss, security breach, or unusable behavior.
-- `issue`: real bug, regression, or unmet requirement.
-- `suggestion`: non-blocking maintainability or test weakness.
-- `nit`: rare, clearly optional convention issue.
-- `question`: missing fact whose answer can change the verdict.
+- **P0:** critical failure, security breach, data loss, or unusable behavior.
+- **P1:** serious regression or unmet acceptance requirement.
+- **P2:** non-blocking improvement.
+- **P3:** optional observation.
+- **Blocked/unverified:** required evidence is unavailable. This is a verification state,
+  not a severity or demonstrated defect.
 
 Do not add praise, summaries, or nits to fill space. If there are no findings, say so
 and name any residual verification gap.
 
 ## Output
 
-1. Findings.
+1. Findings by P0-P3, each with `path:line`, scope, evidence, and correction direction.
 2. Verdict: `Approve`, `Approve with non-blocking comments`, `Request changes`, or
    `Blocked`.
 3. Problem-solution check when a goal exists.
-4. Verification commands and observed results.
-5. Open questions that could not be verified.
+4. Inspected head, relevant base, verification commands, and observed results.
+5. Blocked/unverified evidence and open questions.
 
 Review-only requests never authorize edits, commits, pushes, or published comments.

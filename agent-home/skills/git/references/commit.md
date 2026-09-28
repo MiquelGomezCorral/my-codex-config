@@ -55,4 +55,8 @@ this format.
 
 - Never commit secrets, environment files, or large binaries.
 - Never bypass hooks; fix the reported source or report the blocker.
-- Do not push. Pushing needs the explicit authorization described in `push.md`.
+- Do not infer a push or PR from a commit. Those actions must also be named in the
+  approved plan or direct request and remain subject to `push.md` and `pr.md`.
+- In an approved workflow, create a local cleanup checkpoint only when the plan names that
+  action and its scope. Record the hash; do not push it or treat it as permission for an
+  unlisted shipping action.

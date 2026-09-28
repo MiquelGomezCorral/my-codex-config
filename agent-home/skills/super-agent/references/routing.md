@@ -33,6 +33,27 @@ Read-only review remains a task constraint: preserve no-edit, no-commit, and
 no-deployment instructions and any restricted tool lists. Do not describe these workers as
 OS-sandboxed.
 
+## Pi through Orca
+
+The supervised Orca worker launcher does not expose Pi's catalog model pin. For a Pi
+read-only worker, including a reviewer or critic, create the Pi terminal with the selected
+catalog ID, wait until it is ready, then
+attach the Task with `worker-start --terminal`. This keeps the Orca Dispatch lifecycle
+supervised while pinning the model in Pi's own command:
+
+```text
+orca terminal create --worktree active --title <worker> --command "pi --model <catalog_model> --tools read,grep,find,ls,bash" --json
+orca terminal wait --terminal <handle> --for tui-idle --timeout-ms 60000 --json
+orca orchestration worker-start --task <task_id> --worktree current --terminal <handle> --json
+```
+
+Use only a catalog model ID, never user text, in the terminal command. The task packet
+supplies the role instructions. Keep these Pi workers read-only: do not enable `edit` or `write`,
+and use `bash` only for the exact Orca lifecycle commands required to complete the Dispatch.
+Do not use `dispatch --inject` here; that leaves a custom terminal unsupervised. Compare any
+runtime-reported effective model with the catalog ID. If the runtime exposes no effective
+model, report the gap instead of claiming verification.
+
 ## Explicit one-shot adapters
 
 Direct cross-harness execution is an explicit escape hatch, not automatic fallback. The

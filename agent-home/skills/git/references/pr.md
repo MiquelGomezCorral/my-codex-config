@@ -10,6 +10,14 @@
 5. Ground every claim in the diff, commits, conversation, and supplied launch context, and
    write `Not provided` rather than inventing product claims.
 
+For a sequential slice, target the accepted predecessor PR branch while it remains
+unmerged, so the new PR exposes only the child slice. Verify the PR diff contains only the
+child slice; stop if ancestry or a squash merge makes that untrue. A merge is not required
+before work on the child starts. After the predecessor merges, reconcile the target and
+revalidate affected evidence. In a workflow, the accepted plan must name PR creation or
+update and its target/bounds; after result acceptance, do not ask for that same
+authorization again.
+
 ## Reviewer guidance
 
 - Add a TL;DR that matches the actual diff.

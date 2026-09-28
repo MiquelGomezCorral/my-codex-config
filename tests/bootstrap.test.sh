@@ -20,7 +20,7 @@ cmp -s "$CODEX_TARGET/config.toml" "$CODEX_SOURCE/config.toml"
 [[ -L "$CODEX_TARGET/hooks.json" ]]
 [[ -L "$CODEX_TARGET/commands" ]]
 [[ -L "$CODEX_TARGET/rules/my-opencode-config.rules" ]]
-for name in coder cleanup-worker commit-worker review-worker reviewer-quick reviewer-reasoning reviewer-arch reviewer-e2e; do
+for name in coder cleanup-worker git-worker review-worker reviewer-quick reviewer-reasoning reviewer-arch reviewer-e2e coding-supervisor live-validator critic; do
   [[ -f "$CODEX_TARGET/agents/$name.toml" ]]
   [[ ! -L "$CODEX_TARGET/agents/$name.toml" ]]
   cmp -s "$CODEX_TARGET/agents/$name.toml" "$CODEX_SOURCE/agents/$name.toml"
@@ -59,7 +59,7 @@ HOME="$TEST_HOME/home" BACKUP_ROOT="$BACKUP_ROOT" "$REPO_ROOT/bootstrap_agy.sh"
 PI_AGENT_ROOT="$TEST_HOME/home/.pi/agent"
 AGY_CONFIG_ROOT="$TEST_HOME/home/.gemini/config"
 AGY_PLUGIN_ROOT="$AGY_CONFIG_ROOT/plugins/my-codex-config"
-for name in coder cleanup-worker commit-worker review-worker reviewer-quick reviewer-reasoning reviewer-arch reviewer-e2e; do
+for name in coder cleanup-worker git-worker review-worker reviewer-quick reviewer-reasoning reviewer-arch reviewer-e2e coding-supervisor live-validator critic; do
   [[ -f "$PI_AGENT_ROOT/agents/$name.md" ]]
   [[ -f "$AGY_PLUGIN_ROOT/agents/$name/agent.md" ]]
   [[ -L "$AGY_CONFIG_ROOT/agents/$name/agent.md" ]]
@@ -95,13 +95,13 @@ assert settings["artifactReviewPolicy"] == "always-proceed"
 assert settings["enableTerminalSandbox"] is False
 assert settings["colorScheme"] == "dark"
 PY
-for name in review-worker reviewer-quick reviewer-reasoning reviewer-arch reviewer-e2e; do
+for name in coding-supervisor live-validator review-worker reviewer-quick reviewer-reasoning reviewer-arch reviewer-e2e critic; do
   grep -q '^  - view_file$' "$AGY_PLUGIN_ROOT/agents/$name/agent.md"
   grep -q '^  - run_command$' "$AGY_PLUGIN_ROOT/agents/$name/agent.md"
   ! grep -q '^  - replace_file_content$' "$AGY_PLUGIN_ROOT/agents/$name/agent.md"
   grep -q '^tools: read, grep, find, ls, bash$' "$PI_AGENT_ROOT/agents/$name.md"
 done
-for name in coder commit-worker; do
+for name in coder git-worker; do
   ! grep -q '^skills:' "$AGY_PLUGIN_ROOT/agents/$name/agent.md"
   grep -q '^  - run_command$' "$AGY_PLUGIN_ROOT/agents/$name/agent.md"
   grep -q '^  - replace_file_content$' "$AGY_PLUGIN_ROOT/agents/$name/agent.md"
@@ -110,13 +110,22 @@ done
 ! grep -q '^  - replace_file_content$' "$AGY_PLUGIN_ROOT/agents/cleanup-worker/agent.md"
 grep -q '^  - run_command$' "$AGY_PLUGIN_ROOT/agents/cleanup-worker/agent.md"
 grep -q '^tools: read, grep, find, ls, bash$' "$PI_AGENT_ROOT/agents/cleanup-worker.md"
-grep -q '^skills: core, cleanup, super-agent$' "$PI_AGENT_ROOT/agents/cleanup-worker.md"
-grep -q '^skills: core, code, super-agent$' "$PI_AGENT_ROOT/agents/coder.md"
-for name in cleanup-worker review-worker; do
+grep -q '^skills: cleanup, super-agent, writing$' "$PI_AGENT_ROOT/agents/cleanup-worker.md"
+grep -q '^skills: code, super-agent, writing$' "$PI_AGENT_ROOT/agents/coder.md"
+grep -q '^skills: git, writing$' "$PI_AGENT_ROOT/agents/git-worker.md"
+grep -q '^skills: workflow, review, review-findings, super-agent, writing$' "$PI_AGENT_ROOT/agents/coding-supervisor.md"
+grep -q '^skills: workflow, code-review, computer-use, writing$' "$PI_AGENT_ROOT/agents/live-validator.md"
+grep -q '^skills: decision-records, web-search, writing$' "$PI_AGENT_ROOT/agents/critic.md"
+grep -q '^skills: review, review-findings, super-agent, writing$' "$PI_AGENT_ROOT/agents/review-worker.md"
+for name in cleanup-worker coding-supervisor review-worker; do
   grep -q '^allowNestedSubagents: true$' "$PI_AGENT_ROOT/agents/$name.md"
 done
-for name in reviewer-quick reviewer-reasoning reviewer-arch reviewer-e2e; do
+for name in live-validator reviewer-quick reviewer-reasoning reviewer-arch reviewer-e2e critic; do
   ! grep -q '^allowNestedSubagents:' "$PI_AGENT_ROOT/agents/$name.md"
+done
+for name in coding-supervisor live-validator; do
+  ! grep -q '^  - replace_file_content$' "$AGY_PLUGIN_ROOT/agents/$name/agent.md"
+  grep -q '^sandbox_mode = "read-only"$' "$CODEX_SOURCE/agents/$name.toml"
 done
 
 printf 'retire Codex role\n' > "$CODEX_TARGET/agents/automation-runner.toml"

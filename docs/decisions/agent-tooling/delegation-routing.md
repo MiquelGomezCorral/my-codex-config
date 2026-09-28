@@ -13,6 +13,7 @@ Delegating workflows choose inexpensive worker models from one frequently editab
 - Automatic selection prefers an adequate local route with a free slot, then the lowest adequate online tier in catalog order. Automatic worker selection and fallback are limited to compatible catalog entries; exhausted coverage is a blocker.
 - Local routes are grouped under their capability tier, and at most one local model process may run at a time. The current orchestrator consumes that slot when it uses a cataloged local model.
 - `$code` and `$cleanup` retain their orchestrator-strength model policies instead of using the cheap worker catalog.
+- Review presets may declare a Pi-first reviewer preference through `super-agent`; exact user harness rosters override it. `super-agent` still selects the cheapest adequate cataloged model. Live end-to-end validation stays on the current Codex harness unless the user changes that route.
 
 ## Protected invariants
 
@@ -27,6 +28,7 @@ Delegating workflows choose inexpensive worker models from one frequently editab
 - Local-model concurrency never exceeds `max_local_concurrency`; excess work uses adequate online routes or waits for the local slot.
 - Route choice, fallback, serialization, and missing coverage remain visible to the caller.
 - Applicable provider-specific records, including harness-declared capability restrictions, filter candidate routes before generic preference rules.
+- A calling review skill's documented harness preference takes precedence over the generic current-harness majority default; explicit user harness choices remain exact.
 
 ## Rationale and tradeoffs
 
@@ -40,6 +42,7 @@ Cheap models change often, so keeping their identifiers in one small catalog avo
 
 ## History
 
+- 2026-09-28: Allowed the review skill to express its Pi-first routing preference while keeping model identifiers in the catalog and explicit user rosters authoritative.
 - 2026-09-25: Merged the former routing, swarm, and coordinator skills into `super-agent`; moved procedures and the model catalog into its references, made class grants relative, and removed vendor mechanics from the delegation policy.
 - 2026-09-18: Closed automatic worker selection over catalog identifiers; removed native-default fallback and required effective-model verification when the runtime exposes it.
 - 2026-09-18: Corrected local routes to tiered model lists and reaffirmed wrapper-native lifecycle ownership with current-harness native delegation when no wrapper is active.

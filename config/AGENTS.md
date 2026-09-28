@@ -20,8 +20,11 @@ not weaken security or explicit user constraints.
   repository-specific requirements applicable.
 - Preserve unrelated worktree changes. Inspect relevant files and surrounding patterns
   before editing, and do not broaden the task or add speculative features.
-- For non-trivial implementation, configuration, or refactoring, load `core` and its
-  smallest relevant focused skill. Use a subagent only when an independent scope justifies it.
+- For non-trivial implementation, configuration, or refactoring, load the smallest relevant
+  focused skill. Use a subagent only when an independent scope justifies it.
+- Before writing or editing any prose — messages, documentation, explainers, posts, or
+  academic text — load `writing` and read its `natural-writing` and `voice-profile`
+  references.
 - All agents, including nested workers, must load `super-agent` before delegating.
   A proven active wrapper owns agent launch, messaging, waiting, resume, and cleanup;
   without one, use the current harness's native lifecycle. Do not bypass an active wrapper

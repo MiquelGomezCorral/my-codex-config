@@ -23,7 +23,7 @@ test("repository commands load one skill and preserve arguments", () => {
     for (const [name, skill] of [
       ["bro", "bro"], ["cleanup", "cleanup"], ["code", "code"], ["commit", "git"],
       ["index", "codegraph-setup"], ["init", "agents-memory"], ["merge", "git"],
-      ["plan-implementation", "plan-implementation"],
+      ["workflow", "workflow"],
       ["refine-plan", "refine-plan"],
       ["review-findings", "review-findings"], ["review-plan", "review-plan"],
       ["review-pr-comments", "git"], ["review", "review"],
@@ -44,6 +44,12 @@ test("repository commands load one skill and preserve arguments", () => {
     const empty = runCommand(home, "/commands/cleanup")
     strictEqual(empty.status, 0, empty.stderr)
     doesNotMatch(JSON.parse(empty.stdout).hookSpecificOutput.additionalContext, /\(none\)/)
+
+    const combinedGit = runCommand(home, "/commands/commit --push --pr")
+    strictEqual(combinedGit.status, 0, combinedGit.stderr)
+    const gitContext = JSON.parse(combinedGit.stdout).hookSpecificOutput.additionalContext
+    match(gitContext, /\$git/)
+    match(gitContext, /--push --pr/)
 
     const unknown = runCommand(home, "/commands/does-not-exist")
     strictEqual(unknown.status, 0, unknown.stderr)

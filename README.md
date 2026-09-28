@@ -89,10 +89,13 @@ The configured endpoint is for US organizations. EU organizations use
 ## Skills and agents
 
 All shared skills are owned by `agent-home/skills` and installed at `~/.agents/skills`.
-Invoke one explicitly with `$skill-name`, for example `$code`, `$review`, `$cleanup`, or
-`$obsidian-vault`. Codex's native behavior replaces the former OpenCode `build`, `plan`,
-`general`, `explore`, `answer`, and `code-reviewer` roles. Eight focused Codex TOML agents
-preserve the distinctive worker and reviewer capabilities.
+Invoke one explicitly with `$skill-name`, for example `$workflow`, `$code`, `$review`,
+`$cleanup`, or `$writing`. `$workflow` starts with the idea and evidence, then carries an
+approved wave through its PR slices. Standalone stage skills keep their existing stopping behavior. Codex's native behavior
+replaces the former OpenCode `build`, `plan`, `general`, `explore`, `answer`, and
+`code-reviewer` roles. Eleven focused Codex TOML agents preserve the distinctive worker and
+reviewer capabilities. All five Git actions use `git-worker` by default; the `git` skill
+remains the sole owner of Git policy.
 
 Shared decision records live in each repository's `docs/decisions/`; they are separate from
 personal `.agents/` memory. Planning assesses applicable records and includes exact proposed
@@ -102,20 +105,24 @@ change, while intent conflicts require user resolution.
 
 Delegating skills load `super-agent`. A proven active wrapper such as Orca owns the
 worker lifecycle and exposes eligible harnesses; without a wrapper, delegation stays on
-the current harness and uses its native worker tools. Mixed swarms keep at least half their
-workers, rounded up, on the current harness by default. Outside a wrapper, another harness
+the current harness and uses its native worker tools. Generic mixed swarms keep at least
+half their workers, rounded up, on the current harness when no harness preference was
+supplied. The review skill prefers Pi reviewers under Orca, preserves explicit AGY/Pi
+rosters, and keeps live end-to-end validation on Codex. Outside a wrapper, another harness
 requires an explicit documented one-shot adapter; quota substitutions and missing coverage
 remain visible.
 
 Cheap worker choices live only in
 `agent-home/skills/super-agent/references/model-catalog.yaml`, organized by harness
-and the `low`, `medium`, `high`, and `local` tiers. Routing is harness-first, prefers the
-cheapest adequate local or online choice, and restricts automatic selection and fallback
-to compatible catalog entries. Exhausted catalog choices are reported as blockers instead
-of using a harness default. `$code` and `$cleanup` intentionally retain their configured
-orchestrator-strength models. Explicit cross-harness one-shot adapters are documented by
-`super-agent`; they pass catalog values as arguments and never evaluate them as shell
-code. Pi search remains on its local SearXNG MCP tools.
+and the `low`, `medium`, `high`, and `local` tiers. `super-agent` selects models from the
+catalog, preferring the cheapest adequate local or online choice for the requested route;
+automatic selection and fallback use only compatible catalog entries. Exhausted catalog
+choices are reported as blockers instead of using a harness default. `$code` and `$cleanup`
+intentionally retain their configured orchestrator-strength models. Pi's Orca route pins
+the selected model in a custom terminal and attaches the task through the supervised
+worker lifecycle. Explicit cross-harness one-shot adapters are documented by `super-agent`;
+they pass catalog values as arguments and never evaluate them as shell code. Pi search
+remains on its local SearXNG MCP tools.
 
 The `orchestration`, `orca-cli`, and `computer-use` skills are version-matched discovery
 stubs that fetch their guide from the installed binary; their content is intentionally not
@@ -135,7 +142,7 @@ forwarded exactly as `$ARGUMENTS`.
 | `/commands/index` | `codegraph-setup` |
 | `/commands/init` | `agents-memory` |
 | `/commands/merge` | `git` |
-| `/commands/plan-implementation` | `plan-implementation` |
+| `/commands/workflow` | `workflow` |
 | `/commands/refine-plan` | `refine-plan` |
 | `/commands/review-findings` | `review-findings` |
 | `/commands/review-plan` | `review-plan` |
@@ -146,7 +153,9 @@ For example, `/commands/review quick focus on the payment path` invokes `review`
 `quick focus on the payment path` as its arguments. Direct `$skill-name` invocation also
 remains available.
 
-`$review --ocr` adds OpenCodeReview evidence through OpenCode Go. Install OCR separately,
+The `$review --preset` values are `flash`, `swarm`, `swarm-smart`, and `full`, for one
+brief reviewer, adaptive swarm, verified swarm synthesis, or authorized live end-to-end
+validation. OCR stays a separate explicit `$review --ocr` opt-in. Install OCR separately,
 then authenticate `opencode-go` in Pi with `/login`; Pi is only the credential store, not
 the review harness. The review helper calls OpenCode Go directly, defaults to
 `deepseek-v4-flash`, and stores no credential or session state in this repository. Set
@@ -168,6 +177,32 @@ and trust its three lifecycle hooks in Codex once after the first install or a h
 `diagram-design` is installed from the `cathrynlavery/diagram-design` marketplace plugin during
 bootstrap. The Excalidraw skill is synced from `fabricioartur/codex-excalidraw-skill` into
 `~/.codex/skills/excalidraw`. Both are Codex-only and are not installed for other harnesses.
+
+### Attribution
+
+The `writing` skill's natural-writing rules merge two upstream sources:
+
+- [petergyang/no-ai-slop](https://github.com/petergyang/no-ai-slop/blob/main/skills/no-ai-slop/SKILL.md)
+  (MIT) — editing principles, voice preservation, pattern list.
+- [Humanize by Rich Tabor](https://github.com/richtabor/agent-skills/tree/main/skills/humanize),
+  also listed as `natural-writing-humanizer` on MCP Market, derives its catalogue from
+  [Wikipedia's "Signs of AI writing"](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing)
+  (WikiProject AI Cleanup, CC BY-SA) — rule identifiers, individual reference impacts,
+  scoring framework, and the coverage, no-new-patterns, and genre safeguards.
+
+The adaptation treats patterns as contextual heuristics, retaining source exceptions and
+the writer's preferences. It uses individual reference impacts instead of Humanize's
+inconsistent category-level summary. Its optional score retains the HIGH/MEDIUM deductions,
+treats LOW findings as advisory, avoids duplicate deductions, and measures checklist
+findings only; it is not a validated quality or authorship measure.
+
+The personal voice profile is built from Miquel's own 100-question interview, using the
+interview and anti-overfitting method in [Ruben Hassid's "I am just a text file"](https://ruben.substack.com/p/i-am-just-a-text-file).
+
+The `test-audit` skill adapts [OpenClaw's `test-audit`](https://github.com/openclaw/openclaw/blob/main/.agents/skills/test-audit/SKILL.md)
+(MIT, OpenClaw Foundation). Its value bar, junk patterns, retention bar, candidate evidence,
+edit shape, and campaign phases are kept. Its OpenClaw-specific skill names, Vitest scripts,
+and PR flow are replaced by this repository's own test commands and the `git` skill.
 
 ## Repository ownership
 

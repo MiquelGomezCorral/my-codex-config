@@ -1,0 +1,213 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2550" height="2100" viewBox="0 0 2550 2100">
+<rect width="100%" height="100%" fill="#fff"/>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#475569"/></marker></defs>
+<rect x="60" y="140" width="1530" height="1885" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/>
+<rect x="1630" y="140" width="890" height="1085" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/>
+<rect x="1630" y="1245" width="890" height="780" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/>
+<rect x="95" y="215" width="335" height="140" rx="10" fill="#eaf2ff" stroke="#3366a3" stroke-width="2"/>
+<rect x="465" y="215" width="335" height="140" rx="10" fill="#eaf2ff" stroke="#3366a3" stroke-width="2"/>
+<rect x="835" y="215" width="335" height="140" rx="10" fill="#eeeaff" stroke="#7256a8" stroke-width="2"/>
+<rect x="1205" y="215" width="335" height="140" rx="10" fill="#eaf2ff" stroke="#3366a3" stroke-width="2"/>
+<rect x="95" y="405" width="625" height="135" rx="10" fill="#eaf2ff" stroke="#3366a3" stroke-width="2"/>
+<polygon points="960.0,395 1115,472.5 960.0,550 805,472.5" fill="#fff7d6" stroke="#b7791f" stroke-width="2"/>
+<rect x="1200" y="405" width="340" height="135" rx="10" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<polygon points="240.0,635 375,707.5 240.0,780 105,707.5" fill="#fff7d6" stroke="#b7791f" stroke-width="2"/>
+<rect x="425" y="620" width="445" height="140" rx="10" fill="#eeeaff" stroke="#7256a8" stroke-width="2"/>
+<rect x="940" y="620" width="590" height="140" rx="10" fill="#e6f4ea" stroke="#388451" stroke-width="2"/>
+<rect x="100" y="835" width="1430" height="235" rx="10" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<rect x="100" y="1120" width="420" height="145" rx="10" fill="#fff7d6" stroke="#b7791f" stroke-width="2"/>
+<rect x="575" y="1120" width="420" height="145" rx="10" fill="#eeeaff" stroke="#7256a8" stroke-width="2"/>
+<rect x="1050" y="1120" width="480" height="145" rx="10" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<rect x="100" y="1350" width="475" height="150" rx="10" fill="#eaf2ff" stroke="#3366a3" stroke-width="2"/>
+<polygon points="800.0,1350 950,1425.0 800.0,1500 650,1425.0" fill="#fff7d6" stroke="#b7791f" stroke-width="2"/>
+<rect x="1020" y="1350" width="510" height="150" rx="10" fill="#fff7d6" stroke="#b7791f" stroke-width="2"/>
+<rect x="100" y="1570" width="680" height="135" rx="10" fill="#fff7d6" stroke="#b7791f" stroke-width="2"/>
+<rect x="850" y="1570" width="680" height="135" rx="10" fill="#eaf2ff" stroke="#3366a3" stroke-width="2"/>
+<rect x="1665" y="215" width="820" height="105" rx="10" fill="#eaf2ff" stroke="#3366a3" stroke-width="2"/>
+<rect x="1665" y="370" width="390" height="165" rx="10" fill="#eeeaff" stroke="#7256a8" stroke-width="2"/>
+<rect x="2085" y="370" width="400" height="165" rx="10" fill="#eeeaff" stroke="#7256a8" stroke-width="2"/>
+<rect x="2085" y="575" width="400" height="205" rx="10" fill="#eeeaff" stroke="#7256a8" stroke-width="2"/>
+<rect x="1665" y="825" width="820" height="155" rx="10" fill="#fff7d6" stroke="#b7791f" stroke-width="2"/>
+<rect x="1665" y="1015" width="820" height="155" rx="10" fill="#fff7d6" stroke="#b7791f" stroke-width="2"/>
+<rect x="1665" y="1320" width="820" height="160" rx="10" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<rect x="1665" y="1510" width="390" height="170" rx="10" fill="#eeeaff" stroke="#7256a8" stroke-width="2"/>
+<rect x="2085" y="1510" width="400" height="170" rx="10" fill="#fff7d6" stroke="#b7791f" stroke-width="2"/>
+<rect x="1665" y="1710" width="820" height="230" rx="10" fill="#fff7d6" stroke="#b7791f" stroke-width="2"/>
+<line x1="430" y1="285" x2="465" y2="285" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="800" y1="285" x2="835" y2="285" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="1170" y1="285" x2="1205" y2="285" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="720" y1="472" x2="805" y2="472" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="1115" y1="472" x2="1200" y2="472" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="375" y1="705" x2="425" y2="690" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="870" y1="690" x2="940" y2="690" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="1235" y1="760" x2="1235" y2="835" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="1235" y1="835" x2="1235" y2="760" stroke="#7256a8" stroke-width="2.5" marker-end="url(#arrow)" stroke-dasharray="8 7"/>
+<line x1="520" y1="1192" x2="575" y2="1192" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="995" y1="1192" x2="1050" y2="1192" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="1270" y1="1265" x2="340" y2="1350" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="575" y1="1425" x2="650" y2="1425" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="950" y1="1425" x2="1020" y2="1425" stroke="#388451" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="800" y1="1500" x2="440" y2="1570" stroke="#b7791f" stroke-width="2.5" marker-end="url(#arrow)" stroke-dasharray="8 7"/>
+<line x1="1275" y1="1500" x2="1190" y2="1570" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="2075" y1="320" x2="1860" y2="370" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="2075" y1="320" x2="2285" y2="370" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="2285" y1="535" x2="2285" y2="575" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="2285" y1="780" x2="2285" y2="825" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="2075" y1="980" x2="2075" y2="1015" stroke="#475569" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="70" y="63.19" text-anchor="start" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="500" fill="#111827">
+<tspan x="70" dy="0">Implemented Agentic Workflow</tspan>
+</text>
+<text x="72" y="100.7" text-anchor="start" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="500" fill="#475569">
+<tspan x="72" dy="0">Current repository behavior • explicit complete-workflow opt-in • evidence and limits in companion note</tspan>
+</text>
+<text x="80" y="176.77" text-anchor="start" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="500" fill="#334155">
+<tspan x="80" dy="0">COMPLETE WORKFLOW  |  human owns decisions, approvals, stage transitions, and shipping</tspan>
+</text>
+<text x="1650" y="176.77" text-anchor="start" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="500" fill="#334155">
+<tspan x="1650" dy="0">OPTIONAL REVIEW SUBFLOW  |  standalone $review or selected workflow preset</tspan>
+</text>
+<text x="1650" y="1281.77" text-anchor="start" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="500" fill="#334155">
+<tspan x="1650" dy="0">DELEGATION, CLEANUP, AND SOURCE GAPS</tspan>
+</text>
+<text x="262.5" y="279.68" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
+<tspan x="262.5" dy="0">1  First draft</tspan>
+<tspan x="262.5" dy="24.32">Evidence + independent proposal</tspan>
+</text>
+<text x="632.5" y="279.68" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
+<tspan x="632.5" dy="0">2  Improve candidate</tspan>
+<tspan x="632.5" dy="24.32">Resolve choices; human accepts</tspan>
+</text>
+<text x="1002.5" y="279.68" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
+<tspan x="1002.5" dy="0">3  Adversarial pass</tspan>
+<tspan x="1002.5" dy="24.32">One critic + planner rebuttal</tspan>
+</text>
+<text x="1372.5" y="279.68" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
+<tspan x="1372.5" dy="0">Finalize plan</tspan>
+<tspan x="1372.5" dy="24.32">$review-plan → $refine-plan</tspan>
+</text>
+<text x="407.5" y="467.18" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
+<tspan x="407.5" dy="0">4  Prepare one sequential slice</tspan>
+<tspan x="407.5" dy="24.32">Scope, size, owner, checks, samples, review preset</tspan>
+</text>
+<text x="960.0" y="455.94" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#172033">
+<tspan x="960.0" dy="0">Human approves</tspan>
+<tspan x="960.0" dy="23.04">implementation +</tspan>
+<tspan x="960.0" dy="23.04">worktree / live bounds</tspan>
+</text>
+<text x="1370.0" y="467.18" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
+<tspan x="1370.0" dy="0">Plan records size</tspan>
+<tspan x="1370.0" dy="24.32">small or large</tspan>
+</text>
+<text x="105" y="602.945" text-anchor="start" font-family="Inter, Arial, sans-serif" font-size="27" font-weight="500" fill="#334155">
+<tspan x="105" dy="0">5  Coding loop</tspan>
+</text>
+<text x="240.0" y="713.98" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#172033">
+<tspan x="240.0" dy="0">Plan size?</tspan>
+</text>
+<text x="647.5" y="673.4399999999999" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#172033">
+<tspan x="647.5" dy="0">Small → one retained coder</tspan>
+<tspan x="647.5" dy="23.04">Large → read-only coding-supervisor</tspan>
+<tspan x="647.5" dy="23.04">(directs exactly one coder)</tspan>
+</text>
+<text x="1235.0" y="684.6800000000001" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
+<tspan x="1235.0" dy="0">Coder owns product edits</tspan>
+<tspan x="1235.0" dy="24.32">One active writer; run only planned checks</tspan>
+</text>
+<text x="815.0" y="922.86" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
+<tspan x="815.0" dy="0">Checks + resulting-head review are required</tspan>
+<tspan x="815.0" dy="24.32">review-findings verifies reported claims and scope. Verified in-scope P0–P3 findings return to the coder;</tspan>
+<tspan x="815.0" dy="24.32">rerun affected checks. False positives are rejected; out-of-scope findings are recorded, not corrected.</tspan>
+<tspan x="815.0" dy="24.32">Escalate the same unresolved issue after two unsuccessful rounds.</tspan>
+</text>
+<text x="1245" y="803.63" text-anchor="start" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#7256a8">
+<tspan x="1245" dy="0">verified correction loop</tspan>
+</text>
+<text x="310.0" y="1187.1799999999998" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
+<tspan x="310.0" dy="0">6  After coding gates pass</tspan>
+<tspan x="310.0" dy="24.32">Authorized local checkpoint via $git</tspan>
+</text>
+<text x="785.0" y="1187.1799999999998" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
+<tspan x="785.0" dy="0">$cleanup</tspan>
+<tspan x="785.0" dy="24.32">Read-only cleanup-worker audit</tspan>
+</text>
+<text x="1290.0" y="1187.8449999999998" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
+<tspan x="1290.0" dy="0">Workflow parent verifies each finding</tspan>
+<tspan x="1290.0" dy="24.32">Verified simplifications return to coding</tspan>
+<tspan x="1290.0" dy="24.32">If cleanup regresses, preserve checkpoint</tspan>
+</text>
+<text x="337.5" y="1419.6799999999998" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
+<tspan x="337.5" dy="0">7  Present observed result</tspan>
+<tspan x="337.5" dy="24.32">Flow, expected / observed, checks, gaps, artifacts</tspan>
+</text>
+<text x="800.0" y="1419.96" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#172033">
+<tspan x="800.0" dy="0">Human accepts</tspan>
+<tspan x="800.0" dy="23.04">result?</tspan>
+</text>
+<text x="1275.0" y="1419.6799999999998" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
+<tspan x="1275.0" dy="0">8  After acceptance: $git</tspan>
+<tspan x="1275.0" dy="24.32">Only plan-named actions + bounds</tspan>
+</text>
+<text x="440.0" y="1632.1799999999998" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
+<tspan x="440.0" dy="0">Corrections that change code</tspan>
+<tspan x="440.0" dy="24.32">return through coding + affected review</tspan>
+</text>
+<text x="1190.0" y="1632.1799999999998" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
+<tspan x="1190.0" dy="0">Inspect required CI + review feedback</tspan>
+<tspan x="1190.0" dy="24.32">Then next slice or close the wave</tspan>
+</text>
+<text x="100" y="1788.63" text-anchor="start" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#475569">
+<tspan x="100" dy="0">Dependent slices stay sequential; start the next only after required reviews, checks, and human gates pass.</tspan>
+</text>
+<text x="2075.0" y="262.18" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
+<tspan x="2075.0" dy="0">$review entry</tspan>
+<tspan x="2075.0" dy="24.32">Explicit standalone review or plan-selected preset</tspan>
+</text>
+<text x="1860.0" y="436.57" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#172033">
+<tspan x="1860.0" dy="0">Direct review</tspan>
+<tspan x="1860.0" dy="23.04">flash → reviewer-quick</tspan>
+<tspan x="1860.0" dy="23.04">otherwise → review-worker</tspan>
+<tspan x="1860.0" dy="23.04">Read-only; no delegation</tspan>
+</text>
+<text x="2285.0" y="435.94" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#172033">
+<tspan x="2285.0" dy="0">Explicit swarm</tspan>
+<tspan x="2285.0" dy="23.04">review-worker coordinator</tspan>
+<tspan x="2285.0" dy="23.04">read-only synthesis</tspan>
+</text>
+<text x="2285.0" y="661.5699999999999" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#172033">
+<tspan x="2285.0" dy="0">Specialists</tspan>
+<tspan x="2285.0" dy="23.04">Quick + reasoning always;</tspan>
+<tspan x="2285.0" dy="23.04">arch / e2e when justified</tspan>
+<tspan x="2285.0" dy="23.04">Distinct lenses; no delegation</tspan>
+</text>
+<text x="2075.0" y="897.46" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#172033">
+<tspan x="2075.0" dy="0">swarm-smart / full → fresh review-worker verifies findings</tspan>
+<tspan x="2075.0" dy="23.04">full → live-validator only after exact bounded authorization</tspan>
+</text>
+<text x="2075.0" y="1087.46" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#172033">
+<tspan x="2075.0" dy="0">Missing authorization or safe environment → live flow is blocked / unverified.</tspan>
+<tspan x="2075.0" dy="23.04">Static checks are not a live pass. OCR and Slopo remain explicit opt-ins.</tspan>
+</text>
+<text x="2075.0" y="1383.44" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#172033">
+<tspan x="2075.0" dy="0">super-agent owns worker routing</tspan>
+<tspan x="2075.0" dy="23.04">Active wrapper → harness / role / model; preserves scope, permissions, limits, lifecycle.</tspan>
+<tspan x="2075.0" dy="23.04">Nesting needs parent grant + role capability.</tspan>
+</text>
+<text x="1860.0" y="1591.22" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#172033">
+<tspan x="1860.0" dy="0">Cleanup specialists</tspan>
+<tspan x="1860.0" dy="23.04">Up to 2 read-only reviewers</tspan>
+<tspan x="1860.0" dy="23.04">only when evidence surfaces differ;</tspan>
+<tspan x="1860.0" dy="23.04">otherwise cleanup-worker audits alone.</tspan>
+</text>
+<text x="2285.0" y="1579.07" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#172033">
+<tspan x="2285.0" dy="0">Git actions</tspan>
+<tspan x="2285.0" dy="23.04">$git → one git-worker</tspan>
+<tspan x="2285.0" dy="23.04">Plan names action, target, bounds;</tspan>
+<tspan x="2285.0" dy="23.04">never infer merge.</tspan>
+</text>
+<text x="2075.0" y="1796.92" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#172033">
+<tspan x="2075.0" dy="0">Source gaps shown, not inferred</tspan>
+<tspan x="2075.0" dy="23.04">• Workflow requires resulting-head review but names no reviewer dispatch.</tspan>
+<tspan x="2075.0" dy="23.04">• Independent proposal / planning critic has no named Codex role.</tspan>
+<tspan x="2075.0" dy="23.04">• No /workflow wrapper; complete workflow is an explicit skill.</tspan>
+</text>
+</svg>

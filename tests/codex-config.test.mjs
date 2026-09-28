@@ -1,5 +1,5 @@
 import { test } from "node:test"
-import { doesNotMatch, match, ok, strictEqual } from "node:assert"
+import { deepStrictEqual, doesNotMatch, match, ok, strictEqual } from "node:assert"
 import {
   chmodSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync,
   statSync, writeFileSync,
@@ -27,20 +27,98 @@ test("repository has one shared skill owner with unique valid names", () => {
   }
   strictEqual(new Set(names).size, names.length)
   for (const required of [
-    "core", "super-agent", "cleanup", "review", "code", "git",
+    "writing", "super-agent", "cleanup", "review", "code", "git",
     "review-findings", "codegraph-setup", "agents-memory",
-    "plan-implementation", "refine-plan", "review-plan",
+    "refine-plan", "review-plan", "workflow", "test-audit",
     "bro", "orca-cli", "orchestration", "computer-use", "decision-records",
   ]) ok(names.includes(required), `missing skill: ${required}`)
+  for (const removed of ["core", "miquel-voice", "objective-scholar", "plan-implementation", "implementation-planning", "multi-agent-review"]) {
+    ok(!names.includes(removed), `removed skill still present: ${removed}`)
+  }
   ok(!names.includes("task-model-recovery"))
   ok(!names.includes("opencode-go-worker"))
   ok(!names.includes("customize-opencode"))
   ok(!statSync(join(root, "config/skills"), { throwIfNoEntry: false }))
 })
 
+test("writing skill owns prose with two always-read references and two opt-in ones", () => {
+  const skill = read("agent-home/skills/writing/SKILL.md")
+  const natural = read("agent-home/skills/writing/references/natural-writing.md")
+  const profile = read("agent-home/skills/writing/references/voice-profile.md")
+
+  match(skill, /^name: writing$/m)
+  match(skill, /^## Read these two first$/m)
+  match(skill, /references\/natural-writing\.md/)
+  match(skill, /references\/voice-profile\.md/)
+  match(skill, /only when the request is a paper, thesis, or\s+formal report/)
+  match(skill, /references\/academic\.md/)
+  match(skill, /references\/latex\.md/)
+  match(skill, /Ask who this is for and where\s+it will be published only when/)
+
+  for (const reference of ["natural-writing.md", "voice-profile.md", "academic.md", "latex.md"]) {
+    ok(
+      statSync(join(root, `agent-home/skills/writing/references/${reference}`), { throwIfNoEntry: false }),
+      `missing reference: ${reference}`,
+    )
+  }
+
+  match(natural, /Preserve coverage/)
+  match(natural, /Do not introduce new AI patterns/)
+  match(natural, /must pass the same contextual checks it applies/)
+  match(natural, /Keep genre and audience intact/)
+  for (const prefix of ["content-", "language-", "style-", "comm-", "filler-", "voice-"]) {
+    match(natural, new RegExp(`\`${prefix}[a-z-]+\``))
+  }
+  match(natural, /^Start at 100\./m)
+  match(natural, /Below 70: many deductions/)
+
+  match(profile, /^## How to apply this profile$/m)
+  for (const tier of ["HARD RULE", "STRONG TENDENCY", "LIGHT PREFERENCE"]) {
+    match(profile, new RegExp(`\\*\\*${tier}`))
+  }
+  match(profile, /When no label exists, assume/)
+  match(profile, /^## Anti-overfitting$/m)
+  match(profile, /pasted unchanged into a message about anything/)
+  match(profile, /calibrate rhythm, not to be quoted back/)
+
+  ok(
+    !statSync(join(root, "agent-home/skills/writing/evals"), { throwIfNoEntry: false }),
+    "writing must not carry evals",
+  )
+})
+
+test("writing score example totals agree with its individual impacts and formula", () => {
+  const natural = read("agent-home/skills/writing/references/natural-writing.md")
+  const rules = [...natural.matchAll(/^- \*\*`([a-z-]+)` \((HIGH|MEDIUM|LOW)\):/gm)]
+  strictEqual(rules.length, 30)
+  strictEqual(new Set(rules.map(rule => rule[1])).size, 30)
+  for (const [id, impact] of [
+    ["content-notability", "MEDIUM"],
+    ["language-contractions", "LOW"],
+    ["style-title-case", "LOW"],
+  ]) {
+    strictEqual(rules.find(rule => rule[1] === id)?.[2], impact)
+  }
+
+  const rows = [...natural.matchAll(/^(\w+) +\| +(\d+)\/(\d+)\/(\d+) +\| +(\d+)\/(\d+)\/(\d+) *$/gm)]
+  const categories = rows.filter(row => row[1] !== "Overall")
+  deepStrictEqual(categories.map(row => row[1]), ["Content", "Language", "Style", "Communication", "Filler", "Voice"])
+  const overall = rows.find(row => row[1] === "Overall")
+  ok(overall)
+  const scores = natural.match(/^Score +\| +(\d+) +\| +(\d+) *$/m)
+  ok(scores)
+  for (const [side, offset] of [[1, 2], [2, 5]]) {
+    const counts = [0, 1, 2].map(index => categories.reduce((sum, row) => sum + Number(row[offset + index]), 0))
+    deepStrictEqual(overall.slice(offset, offset + 3).map(Number), counts)
+    strictEqual(Number(scores[side]), Math.max(0, 100 - 3 * counts[0] - counts[1]))
+  }
+})
+
 test("git skill owns five actions that resolve repository rules first", () => {
   const skill = read("agent-home/skills/git/SKILL.md")
   const merge = read("agent-home/skills/git/references/merge.md")
+  const gitWorker = read("codex/agents/git-worker.toml")
+  const pr = read("agent-home/skills/git/references/pr.md")
 
   match(skill, /^## Repository rules win$/m)
   match(skill, /Repository `AGENTS\.md` \/ `CLAUDE\.md`/)
@@ -52,7 +130,13 @@ test("git skill owns five actions that resolve repository rules first", () => {
   }
   match(skill, /^## Delegation$/m)
   match(skill, /--no-delegation/)
-  match(skill, /merge` and `review-pr-comments` always run inline/)
+  match(skill, /all five actions[\s\S]*exactly one worker via `super-agent`/i)
+  match(skill, /in Codex, use `git-worker`/)
+  match(skill, /accepted human-approved plan authorizes only its named Git actions/)
+  match(skill, /not a second Git authorization request/)
+  doesNotMatch(skill, /merge` and `review-pr-comments` always run inline/)
+  match(gitWorker, /Read\s+the repository's `git` skill and matching references/)
+  doesNotMatch(gitWorker, /--no-ff|force-push|pre-commit|--no-delegation/)
   for (const reference of ["commit", "push", "pr", "merge", "review-pr-comments"]) {
     match(skill, new RegExp(`references/${reference}\\.md`))
     ok(statSync(join(root, `agent-home/skills/git/references/${reference}.md`), { throwIfNoEntry: false }))
@@ -61,26 +145,27 @@ test("git skill owns five actions that resolve repository rules first", () => {
   match(merge, /^## History integrity$/m)
   match(merge, /Never squash/)
   match(merge, /--no-ff/)
-  match(merge, /is-ancestor/)
-  match(merge, /git log --oneline <base-branch>\.\.<branch>/)
+  match(merge, /Sync the selected base branch into the current feature branch/)
+  match(merge, /git merge --no-ff <base-branch>/)
+  match(merge, /git merge-base --is-ancestor <base-branch> <feature-branch>/)
+  doesNotMatch(merge, /git checkout <base-branch>/)
+  match(pr, /Verify the PR diff contains only the\s+child slice/)
+  match(pr, /accepted plan must name PR creation or\s+update and its target\/bounds/)
 })
 
-test("plan implementation renders deterministically and delegates diagrams only by request", () => {
-  const planning = read("agent-home/skills/plan-implementation/SKILL.md")
+test("workflow renders its native wave plan and delegates diagrams only by request", () => {
+  const planning = read("agent-home/skills/workflow/references/planning.md")
   const lavish = read("agent-home/skills/lavish/SKILL.md")
 
-  match(planning, /native plan.*authoritative/i)
-  match(planning, /render it with `node .*render-plan\.mjs.*`/i)
-  match(planning, /normal path is deterministic/i)
-  match(planning, /does not launch an agent or delegate to a model/i)
-  match(planning, /explicitly requests a custom diagram/i)
-  match(planning, /cataloged `medium` model at `low` thinking/i)
-  match(planning, /require the `luxury` palette/i)
-  match(planning, /absolute artifact path/i)
-  match(planning, /\[Open Lavish plan\]\(<target>\)/)
-  match(planning, /Do not run\s+`lavish-axi poll` unless the user explicitly asks/i)
-  match(planning, /rendering and Lavish failures are non-blocking/i)
-  match(planning, /always return the native plan/i)
+  match(planning, /Markdown file\s+authoritative/i)
+  match(planning, /node agent-home\/skills\/workflow\/scripts\/render-plan\.mjs/)
+  match(planning, /deterministic renderer never delegates/i)
+  match(planning, /custom diagram may use `super-agent` only\s+when requested/i)
+  match(planning, /Pi `medium` model at `low` thinking/i)
+  match(planning, /requiring the `luxury` palette/i)
+  match(planning, /Do not run `lavish-axi poll` unless the user asks/i)
+  match(planning, /Rendering or Lavish failure is non-blocking/i)
+  match(planning, /always present the native plan/i)
   match(lavish, /npx -y lavish-axi <html-file>/)
 })
 
@@ -124,7 +209,7 @@ test("local search setup keeps service and connector ownership separate", () => 
 
 test("decision records separate empty-index initialization from concern assessment", () => {
   const records = read("agent-home/skills/decision-records/SKILL.md")
-  const planning = read("agent-home/skills/implementation-planning/SKILL.md")
+  const planning = read("agent-home/skills/workflow/references/planning.md")
   const code = read("agent-home/skills/code/SKILL.md")
   const indexTemplate = read("agent-home/skills/decision-records/assets/index-template.md")
 
@@ -138,12 +223,14 @@ test("decision records separate empty-index initialization from concern assessme
   ok(statSync(join(root, "docs/decisions/index.md"), { throwIfNoEntry: false }))
 })
 
-test("Codex TOML agents use native fields and preserve all eight roles", () => {
+test("Codex TOML agents use native fields and preserve all eleven roles", () => {
   const names = [
-    "coder", "cleanup-worker", "commit-worker", "review-worker",
+    "coder", "cleanup-worker", "git-worker", "review-worker",
     "reviewer-quick", "reviewer-reasoning", "reviewer-arch", "reviewer-e2e",
+    "coding-supervisor", "live-validator", "critic",
   ]
   const config = read("codex/config.toml")
+  ok(!statSync(join(root, "codex/agents/commit-worker.toml"), { throwIfNoEntry: false }))
   const result = spawnSync("python3", ["-c", "import pathlib, sys, tomllib; [tomllib.loads(pathlib.Path(p).read_text()) for p in sys.argv[1:]]", "codex/config.toml", ...names.map((name) => `codex/agents/${name}.toml`)], { cwd: root, encoding: "utf8" })
   strictEqual(result.status, 0, result.stderr)
   for (const name of names) {
@@ -153,9 +240,32 @@ test("Codex TOML agents use native fields and preserve all eight roles", () => {
       doesNotMatch(body, new RegExp(`^${forbidden}\\s*=`, "m"))
     }
     match(body, /^approval_policy = "never"$/m)
-    match(body, /^sandbox_mode = "danger-full-access"$/m)
+    match(body, ["coding-supervisor", "live-validator", "critic"].includes(name)
+      ? /^sandbox_mode = "read-only"$/m
+      : /^sandbox_mode = "danger-full-access"$/m)
     ok(body.includes("developer_instructions"))
   }
+  for (const name of ["coding-supervisor", "live-validator", "critic"]) {
+    const body = read(`codex/agents/${name}.toml`)
+    match(body, /^model = "gpt-6-sol"$/m)
+    match(body, /^model_reasoning_effort = "high"$/m)
+    match(body, /^sandbox_mode = "read-only"$/m)
+  }
+  const supervisor = read("codex/agents/coding-supervisor.toml")
+  match(supervisor, /exactly\s+one retained `coder` through\s+`super-agent`/)
+  match(supervisor, /must never edit product\s+source/)
+  match(supervisor, /only for a workflow slice whose human-approved plan marks it `large`/)
+  match(supervisor, /bounded grant to direct exactly\s+one retained `coder`/)
+  match(supervisor, /every verified\s+in-scope P0-P3 correction/)
+  match(supervisor, /two unsuccessful\s+rounds/)
+  const validator = read("codex/agents/live-validator.toml")
+  match(validator, /target environment, exact flow, sample inputs, expected results/)
+  match(validator, /Do not install or authenticate\s+tools/)
+  match(validator, /blocked\/unverified/)
+  const critic = read("codex/agents/critic.toml")
+  match(critic, /plan, design,\s+research claim, bug diagnosis, or decision/)
+  match(critic, /complete supplied artifact and cited primary evidence/)
+  match(critic, /Do not change the goal/)
   ok(config.includes("[mcp_servers.codegraph]"))
   ok(config.includes('command = "codegraph"'))
   match(config, /^model = "gpt-5\.6-sol"$/m)
@@ -181,8 +291,6 @@ test("cheap model catalog is harness-first and keeps identifiers centralized", (
   match(catalog, /^    medium:\s*$/m)
   match(catalog, /^      -\s+\S+$/m)
   doesNotMatch(catalog, /capability:|models:/)
-  strictEqual(modelIds.length, 10)
-  strictEqual(new Set(modelIds).size, modelIds.length)
   match(routing, /Read `references\/model-catalog\.yaml` for every delegation/)
   match(routing, /cheapest adequate tier/)
   match(routing, /remaining entries in list order/)
@@ -193,13 +301,17 @@ test("cheap model catalog is harness-first and keeps identifiers centralized", (
   match(routing, /Count a\s+cataloged local orchestrator/)
   match(routingReference, /Explicit one-shot adapters/)
   match(routingReference, /argument vector/)
+  match(routingReference, /Pi through Orca/)
+  match(routingReference, /worker-start --task <task_id> --worktree current --terminal <handle>/)
+  match(routingReference, /Do not use `dispatch --inject` here/)
+  match(routingReference, /If the runtime exposes no effective\s+model/)
   match(routingReference, /Never concatenate catalog values into shell code/)
   for (const harness of ["Codex", "Pi", "AGY", "OpenCode"]) match(routingReference, new RegExp(harness))
   for (const path of [
     "README.md",
     "agent-home/skills/super-agent/references/swarm.md",
     "agent-home/skills/review/SKILL.md",
-    "agent-home/skills/multi-agent-review/SKILL.md",
+    "agent-home/skills/review/references/swarm-coordination.md",
     "agent-home/skills/git/SKILL.md",
   ]) {
     const body = read(path)
@@ -215,7 +327,7 @@ test("delegating skills require runtime-native capability-aware routing", () => 
   const lifecycle = read("agent-home/skills/super-agent/references/lifecycle.md")
   const swarm = read("agent-home/skills/super-agent/references/swarm.md")
   const review = read("agent-home/skills/review/SKILL.md")
-  const multiReview = read("agent-home/skills/multi-agent-review/SKILL.md")
+  const multiReview = read("agent-home/skills/review/references/swarm-coordination.md")
   const orchestration = read("agent-home/skills/orchestration/SKILL.md")
   const swarmEvals = JSON.parse(read("agent-home/skills/super-agent/evals/evals.json"))
 
@@ -240,11 +352,15 @@ test("delegating skills require runtime-native capability-aware routing", () => 
   doesNotMatch(routing, /Codex owns all subagent orchestration/)
 
   match(swarm, /other available harnesses/)
-  match(review, /Launch or resume exactly one coordinator through `super-agent`/)
+  match(review, /prefer Pi reviewers by default/)
+  match(review, /Preserve an explicit AGY\/Pi roster exactly/)
+  match(review, /For `flash`, route directly to one `reviewer-quick` through `super-agent`/)
+  match(read("agent-home/skills/review/references/presets/full.md"), /Codex `live-validator`/)
   match(multiReview, /When the user requests five/)
+  match(multiReview, /explicit or review-preset\s+preference/)
   match(read("agent-home/skills/code/SKILL.md"), /through `super-agent`/)
   match(read("agent-home/skills/cleanup/SKILL.md"), /through `super-agent`/)
-  match(read("agent-home/skills/git/SKILL.md"), /through `super-agent`/)
+  match(read("agent-home/skills/git/SKILL.md"), /via `super-agent`/)
   match(read("agent-home/skills/skill-creator/SKILL.md"), /move the whole pair/)
   strictEqual(swarmEvals.evals.length, 9)
   match(JSON.stringify(swarmEvals), /quota-exhausted/)
@@ -258,7 +374,7 @@ test("delegating skills require runtime-native capability-aware routing", () => 
     "agent-home/skills/super-agent/SKILL.md",
     "agent-home/skills/super-agent/references/swarm.md",
     "agent-home/skills/review/SKILL.md",
-    "agent-home/skills/multi-agent-review/SKILL.md",
+    "agent-home/skills/review/references/swarm-coordination.md",
   ]) {
     doesNotMatch(read(path), /Do not substitute workmux|exact Sol model has no fallback|Orca is the required lifecycle/)
   }
@@ -325,8 +441,121 @@ test("cleanup and review quality gates keep external evidence opt-in and read-on
   match(reviewWorker, /Verify every retained claim.*source/s)
   match(reviewWorker, /deduplicate OCR findings against native findings/s)
   match(reviewWorker, /never blocks the native verdict/)
-  match(bootstrapPi, /"cleanup-worker": \["core", "cleanup", "super-agent"\]/)
-  match(bootstrapPi, /\*\(\["allowNestedSubagents: true"\] if name in \{"cleanup-worker", "review-worker"\} else \[\]\),/)
+  match(bootstrapPi, /"cleanup-worker": \["cleanup", "super-agent", "test-audit", "writing"\]/)
+  doesNotMatch(bootstrapPi, /"core"/)
+  ok(bootstrapPi.includes("skills.get(name, ['writing'])"))
+  match(bootstrapPi, /\*\(\["allowNestedSubagents: true"\] if name in \{"cleanup-worker", "coding-supervisor", "review-worker"\} else \[\]\),/)
+})
+
+test("test-audit gates new tests and audits existing ones", () => {
+  const skill = read("agent-home/skills/test-audit/SKILL.md")
+  const campaign = read("agent-home/skills/test-audit/references/campaign.md")
+  const bootstrapPi = read("bootstrap_pi.sh")
+
+  match(skill, /^## Repository rules win$/m)
+  match(skill, /^## Authoring gate$/m)
+  for (const question of [
+    /observable behavior, invariant, or independent contract/,
+    /credible regression makes it fail/,
+    /one primary\s+test owner at the strongest boundary/,
+    /production seam/,
+  ]) match(skill, question)
+  match(skill, /^## Junk patterns$/m)
+  match(skill, /^## Retention bar$/m)
+  match(skill, /^## Candidate evidence$/m)
+  match(skill, /^## Edit shape$/m)
+  match(skill, /^## Validation$/m)
+  match(skill, /references\/campaign\.md/)
+  match(skill, /node --test <path>/)
+  match(skill, /classify the change with it and run the gate/)
+  match(skill, /never for coverage or\s+convention/i)
+  doesNotMatch(skill, /openclaw|Vitest|crabbox|autoreview|run-vitest/)
+
+  match(campaign, /^## 1\. Baseline$/m)
+  match(campaign, /^## 8\. Reconcile and hand off$/m)
+  match(campaign, /`R`: retain/)
+  match(campaign, /`F`: retain the contract but repair/)
+  match(campaign, /`C`: consolidate/)
+  match(campaign, /`D`: delete/)
+  match(campaign, /mutation/)
+  doesNotMatch(campaign, /openclaw|telegram|Vitest|run-vitest/i)
+
+  for (const role of [
+    "cleanup-worker", "coder", "coding-supervisor", "live-validator", "review-worker",
+    "reviewer-arch", "reviewer-e2e", "reviewer-quick", "reviewer-reasoning",
+  ]) {
+    match(bootstrapPi, new RegExp(`"${role}": \\[[^\\]]*"test-audit"`))
+  }
+  doesNotMatch(bootstrapPi, /"git-worker": \[[^\]]*"test-audit"/)
+  match(read("agent-home/skills/code-quality/SKILL.md"), /load `test-audit`/)
+})
+
+test("agentic workflow keeps stage contracts, approvals, and scenario definitions explicit", () => {
+  const workflowPath = "agent-home/skills/workflow/SKILL.md"
+  const workflow = read(workflowPath)
+  const codingLoop = read("agent-home/skills/workflow/references/coding-loop.md")
+  const cleanup = read("agent-home/skills/cleanup/SKILL.md")
+  const code = read("agent-home/skills/code/SKILL.md")
+  const review = read("agent-home/skills/review/SKILL.md")
+  const findings = read("agent-home/skills/code-review/SKILL.md")
+  const shipPr = read("agent-home/skills/workflow/references/ship-pr.md")
+  const scenariosPath = "agent-home/skills/workflow/references/scenarios.md"
+  const scenarios = read(scenariosPath)
+
+  for (const path of [
+    "agent-home/skills/workflow/templates/progress.md",
+    "agent-home/skills/workflow/references/coding-loop.md",
+    "agent-home/skills/workflow/references/cleanup.md",
+    "agent-home/skills/workflow/references/present-to-human.md",
+    "agent-home/skills/workflow/references/ship-pr.md",
+    "agent-home/skills/workflow/references/end-to-end.md",
+    scenariosPath,
+    "agent-home/skills/workflow/references/planning.md",
+    "agent-home/skills/workflow/references/first-draft.md",
+    "agent-home/skills/workflow/references/improvement-loop.md",
+    "agent-home/skills/workflow/references/adversarial.md",
+    "agent-home/skills/review/references/presets/flash.md",
+    "agent-home/skills/review/references/presets/swarm.md",
+    "agent-home/skills/review/references/presets/swarm-smart.md",
+    "agent-home/skills/review/references/presets/full.md",
+  ]) ok(statSync(join(root, path), { throwIfNoEntry: false }), `missing workflow artifact: ${path}`)
+
+  for (const match of workflow.matchAll(/\]\(([^)#]+\.md)\)/g)) {
+    const target = resolve(join(root, "agent-home/skills/workflow"), match[1])
+    ok(statSync(target, { throwIfNoEntry: false }), `broken workflow reference: ${match[1]}`)
+  }
+  match(workflow, /Workflow context: approved/)
+  match(workflow, /context routes work and narrows scope; it adds no authority/i)
+  match(workflow, /Keep slices sequential by default/)
+  match(workflow, /authorized local checkpoint/)
+  match(workflow, /small plan directly to one retained coder/)
+  match(workflow, /large plan.*bounded grant to direct one retained coder/s)
+  match(workflow, /two unsuccessful rounds/i)
+  match(codingLoop, /every verified in-scope P0-P3 finding/)
+  match(codingLoop, /For `small`.*For `large`/s)
+  match(codingLoop, /root coordinates and does not edit product code/i)
+  match(cleanup, /read-only, findings-only contract/)
+  match(shipPr, /follow its authority section/)
+  match(shipPr, /do\s+not request that same Git authorization again/)
+  match(code, /`\$code` itself still stops after implementation/)
+  match(findings, /Blocked\/unverified/)
+  for (const preset of ["flash", "swarm", "swarm-smart", "full"]) {
+    match(review, new RegExp(`--preset[^\\n]*${preset}`))
+  }
+  match(read("agent-home/skills/review/references/presets/swarm-smart.md"), /Pi\/`high`.*catalog-selected model/s)
+  match(review, /`flash` uses Pi\/`low`/)
+  match(review, /`full` uses a Codex\/`high` live validator/)
+  match(codingLoop, /\$review --preset/)
+  match(codingLoop, /reviewer reads the full plan/)
+  match(workflow, /coordinator advances routine stages/)
+  match(read("agent-home/skills/review/references/presets/full.md"), /bounded authorization/)
+  match(scenarios, /Small localized fix/)
+  match(scenarios, /Dependent two-slice feature/)
+  match(scenarios, /Interrupted slice with mixed findings/)
+  match(scenarios, /false-positive\s+review claim/)
+  match(scenarios, /out-of-scope observation/)
+  match(scenarios, /cleanup simplification\s+that regresses/)
+  match(scenarios, /pending separate authorization/)
 })
 
 test("OCR OpenCode Go helper resolves Pi credentials and provider settings", (t) => {

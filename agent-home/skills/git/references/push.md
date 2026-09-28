@@ -13,6 +13,9 @@ around it.
 - Never commit directly on `main`, `master`, `staging`, or another protected branch.
   Create a descriptive branch when one is needed, and only with the authorization for that
   action.
+- In a workflow, the accepted plan must name the push, target branch, and bounds. After the
+  human accepts the presented result, the plan's named push may proceed without another
+  action-level authorization request. A local checkpoint alone does not authorize a push.
 - Review repository instructions and checks. Stop if the worktree contains secrets, unclear
   unrelated changes, or failed required verification.
 - Push and set the upstream when required (`git push -u origin <branch>`). Never force-push
