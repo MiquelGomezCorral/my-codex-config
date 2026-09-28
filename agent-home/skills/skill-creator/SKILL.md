@@ -85,7 +85,7 @@ session model. Select the best description by held-out score, not training score
 ## 6. Ship Safely
 
 - Validate with `python3 scripts/quick_validate.py <skill-dir>` where applicable.
-- Load `skillspector` and investigate matched lines before treating scores as verdicts.
+- Load `skill-scout` and investigate matched lines before treating scores as verdicts.
 - Preserve an existing skill's public name when updating it.
 - When explicitly requested, package with `python3 -m scripts.package_skill <skill-dir>`.
 - Do not package, publish, install, commit, or push unless explicitly requested.
