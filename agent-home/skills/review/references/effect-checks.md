@@ -1,6 +1,6 @@
 # Effect Review Checks
 
-Apply these checks when the reviewed diff touches Effect code. Load `btca-first` only when current upstream guidance is needed and `effect-smol` exists in the live resource catalog.
+Apply these checks when the reviewed diff touches Effect code. Load `btca` only when current upstream guidance is needed and `effect-smol` exists in the live resource catalog.
 
 1. **Use `btca` before asserting current `effect-smol` guidance** — Run `btca ask -r effect-smol -q "..."` before judging current API usage, recommended composition, or preferred patterns that may have changed upstream.
 2. **Use repo patterns for repo-local conventions** — Compare upstream guidance against nearby code and project instructions. If repo behavior and external guidance disagree, report the mismatch explicitly instead of guessing.

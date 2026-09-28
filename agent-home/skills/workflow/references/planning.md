@@ -69,9 +69,10 @@ checkpoint is the scope-lock package rather than a duplicate ledger summary.
    points, input data, validation, state ownership, persistence, side effects,
    external calls, output data, user-visible result, and relevant failure behavior.
 6. If an external package or service matters, inspect its installed version and local
-   usage first. Load `btca-first` for current source behavior or `web-search` for other
-   current external facts. Research a concrete open decision; do not browse a generic
-   tutorial merely because the technology is unfamiliar.
+   usage first. Load `btca` for current source behavior of a registered resource, and
+   propose adding one when the same external question keeps coming back; use `web-search`
+   for other current external facts. Research a concrete open decision; do not browse a
+   generic tutorial merely because the technology is unfamiliar.
 
 ## Control Scope
 

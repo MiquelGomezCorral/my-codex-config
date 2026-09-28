@@ -18,7 +18,7 @@ them as accepted risk. Do not implement until the user explicitly switches modes
 3. Build a dependency-ordered decision tree: goal, success, constraints, non-goals,
    architecture, ownership, state, operations, risk, validation, rollout, rollback.
 4. Investigate answers available from files, logs, tests, history, or current docs.
-   Load `btca-first` when decisions depend on current external SDK behavior. Ask only
+   Load `btca` when decisions depend on current external SDK behavior. Ask only
    for user judgment that remains.
 5. Ask the highest-leverage unresolved question, explain why it matters, recommend an
    answer, and state what it unlocks. Batch up to three questions only when they share
