@@ -10,7 +10,8 @@ Post-implementation quality gates expose unnecessary production and test complex
 - An explicitly approved complete workflow may invoke that findings-only audit and route
   verified in-scope simplifications to the implementation worker; the auditor never edits
   or automatically accepts findings. Standalone cleanup retains its stopping behavior.
-- It assesses task-owned production and test changes against repository code-quality and Ponytail principles.
+- It assesses task-owned production and test changes against the `code-quality` standard,
+  its language references for the touched files, and Ponytail principles.
 - One cleanup coordinator may delegate at most two justified, bounded read-only investigations through `super-agent`.
 - Slopo runs only through `$cleanup --slopo`; OCR runs only through `$review --ocr`.
 - When `$cleanup --slopo` finds no `slopo.conf.yaml`, it may create Slopo's template once,
@@ -51,6 +52,10 @@ Separating diagnosis from correction lets the user choose which simplifications 
 
 ## History
 
+- 2026-09-28: Made the `code-quality` standard mandatory for code work and split the review
+  standard out of `review` into `references/code-review.md`, with `review` reduced to a
+  router over its references; the Python reference moved into `code-quality/references/`
+  unchanged.
 - 2026-09-27: Approved complete-workflow orchestration of read-only quality gates and
   verified in-scope corrections, preserving standalone findings-only behavior.
 - 2026-09-21: Adopted read-only cleanup findings, production-and-test deslop analysis, bounded exploratory delegation, and opt-in OCR/Slopo evidence.

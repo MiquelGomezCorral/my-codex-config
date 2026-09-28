@@ -1,8 +1,3 @@
----
-name: code-review
-description: Review code changes for goal fit, correctness, regressions, security, maintainability, and missing tests. Use for PRs, diffs, commits, patches, or readiness checks; do not use for greenfield implementation.
----
-
 # Code Review
 
 Findings are more valuable than commentary. False positives are worse than silence.

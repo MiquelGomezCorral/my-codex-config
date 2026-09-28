@@ -1,8 +1,8 @@
 # Swarm coordination inside `$review`
 
-Use this reference when `$review` explicitly selects a swarm-based preset. Load
-`code-review` and `super-agent` before proceeding. The selected
-review coordinator owns synthesis; in Codex this is `review-worker`.
+Use this reference when `$review` explicitly selects a swarm-based preset. Load the
+review skill's `references/code-review.md` and `super-agent` before proceeding. The
+selected review coordinator owns synthesis; in Codex this is `review-worker`.
 
 ## Review contract
 
@@ -86,11 +86,11 @@ untracked-file handling, source re-reading, adversarial refutation, deduplicatio
 verdict, and bounded repository-defined verification. Treat specialist reports as
 hypotheses: refute claims that do not survive source evidence, drop them, and deduplicate
 issues that describe the same failure. Apply the P0-P3, scope, evidence, and
-blocked/unverified contract from `code-review`. A workflow context does not authorize fixes,
-live testing, or publication.
+blocked/unverified contract from `references/code-review.md`. A workflow context does not
+authorize fixes, live testing, or publication.
 
-Return findings first with `path:line`, followed by the `code-review` verdict, inspected
-head and relevant base, the problem-solution check, observed bounded verification, and
-blocked/unverified evidence. Include missing specialist coverage when applicable, but
-never forward raw reviewer claims. Stop before live validation and wait for explicit
-bounded authorization.
+Return findings first with `path:line`, followed by the verdict and output contract in
+`references/code-review.md`, the inspected head and relevant base, the problem-solution
+check, observed bounded verification, and blocked/unverified evidence. Include missing
+specialist coverage when applicable, but never forward raw reviewer claims. Stop before
+live validation and wait for explicit bounded authorization.

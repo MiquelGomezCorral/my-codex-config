@@ -8,7 +8,8 @@ mark the verifier `Review mode: direct` and omit `Swarm models`. Use the default
 route and catalog-selected model from the review skill, or an approved explicit route. The verifier
 loads `review-findings`, checks every retained
 claim against source evidence, classifies scope, and returns only verified findings with
-the `code-review` output contract.
+the `references/code-review.md` output
+contract.
 
 The verifier is read-only and does not delegate. Never launch it while authoring or
 testing this skill; it is future workflow behavior. If `--ocr` was explicit, the primary

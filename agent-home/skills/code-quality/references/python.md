@@ -1,7 +1,3 @@
----
-name: python-coding
-description: When writing any Python code, maintain Python projects or create new ones from scratch. Read this.
----
 # Python Project Setup
 
 Follow the repository first. Use these defaults only when creating or maintaining a

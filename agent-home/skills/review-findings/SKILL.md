@@ -5,7 +5,8 @@ description: Assess other agents' findings against the goal and plan without edi
 
 # Review Findings
 
-Load `code-review`. Assess each supplied finding against the stated goal, current diff,
+Load the `review` skill and read its `references/code-review.md`. Assess each supplied
+finding against the stated goal, current diff,
 repository evidence, scope, and security boundaries. Verify its source claim before
 retaining it. Classify it as valid, false positive, already resolved, or needing a
 decision; deduplicate related findings and propose only the smallest verified in-scope

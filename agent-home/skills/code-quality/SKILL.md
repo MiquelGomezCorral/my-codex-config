@@ -1,6 +1,6 @@
 ---
 name: code-quality
-description: Apply the shared code-quality standard when writing or reviewing code.
+description: Apply the shared code-quality standard when writing or reviewing code, plus the language reference for the files you touch.
 ---
 
 # Code Quality Standard
@@ -14,6 +14,13 @@ universal rules in `AGENTS.md`.
 When tests are in scope, load `test-audit`. It gates every new or changed test at write
 time and audits existing tests that re-assert source, duplicate stronger proof, couple
 behavior to implementation, or keep test-only production seams alive.
+
+## Language references
+
+Read `references/<language>.md` for the language of the file you are about to touch. The
+universal rules apply first; the language reference narrows them for that language.
+
+- [Python](references/python.md)
 
 ## Choose a solution in this order
 
