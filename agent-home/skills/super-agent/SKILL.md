@@ -79,6 +79,9 @@ Catalog rules:
 
 - Preserve scope, exclusions, permissions, directory, read-only limits, and stop conditions
   across every route; do not broaden authority to make a route work.
+- The human-facing agent owns `agents-memory`. Pass workers only the relevant facts or
+  exact plan they need, not private memory access; workers report useful memory candidates
+  to their parent for the human-facing agent to assess.
 - Read-only work must not create a branch or worktree, edit, commit, push, publish, or change
   shared infrastructure without explicit authorization for that exact action.
 - Pass model identifiers and prompts as separate arguments; never evaluate a catalog value

@@ -8,7 +8,9 @@ description: Turn a rough ambition or draft Codex `$goal` into a compact, eviden
 Use a goal for long-running work with an evidence-based finish line, not one edits,
 simple answers, or short reviews. Draft by default; activate only when explicitly asked.
 
-For repository goals, load `agents-memory` and read only relevant project memory.
+For repository goals, only the human-facing agent loads `agents-memory` and reads relevant
+project memory. A delegate uses the supplied goal context and reports memory suggestions
+to its parent.
 
 ## Build The Contract
 

@@ -1,19 +1,23 @@
 # Project Agent Rules
 
-This file routes agents to project memory. Read it before changing code in this repo.
+This file routes the human-facing agent to project context and private working memory.
 
-## Memory Files
+## Project context
 
-- `.agents/architecture.md` — stack, layout, boundaries, important modules.
-- `.agents/conventions.md` — naming, style, imports, testing patterns.
-- `.agents/decisions.md` — closed project decisions and rationale.
-- `.agents/glossary.md` — domain terms and project-specific vocabulary.
-- `.agents/workflow.md` — setup, build, test, release, commit, PR flow.
-- `.agents/known-errors.md` — repeated symptoms, causes, fixes, and traps.
+Preserve existing repository instructions, `.agents/` files, and shared product decision
+records. Only the human-facing agent uses `agents-memory`; workers receive relevant task
+context from that agent and report suggested memory updates to it.
+
+## Private agent memory
+
+Resolve `git rev-parse --path-format=absolute --git-common-dir` and look under its
+`agent-memory/` directory for relevant notes and new plans. All linked worktrees of this
+clone share that directory. Create it only on `/init` or an authorized memory write; do
+not copy it into the worktree or commit it. Product decisions stay in `docs/decisions/`.
 
 ## Load Rules
 
-- Load only the memory file relevant to the current task.
+- The human-facing agent loads only the relevant tracked and private notes.
 - If a memory file conflicts with current code, trust current code and flag the memory entry as stale.
 - Do not update memory silently. Propose memory changes unless the user asks to write them.
 

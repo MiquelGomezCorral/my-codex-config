@@ -15,7 +15,7 @@ not proof of approval or completion.
 - Next action: `<stage/action and owner>`
 - Human decision pending: `<decision and reason, or none>`
 - Current slice: `<slice id or name, or none during planning>`
-- Wave plan: `<pending until finalized, then tracked .agents/plans/ path>`
+- Wave plan: `<pending until finalized, then absolute private agent-memory/plans/ path>`
 - Wave approval: `<pending|approval reference and bounds>`
 - Planning evidence and artifacts: `<source/diagram/HTML references or pending>`
 - Approved amendments: `<plan references or none>`

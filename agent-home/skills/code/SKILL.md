@@ -16,7 +16,8 @@ workflow plan path when workflow context is present. Collect any concrete
 correction brief accepted by the user, including only accepted review findings or
 live-test evidence and never unaccepted suggestions.
 
-On the first standalone `$code` call for this plan, before launching a worker:
+On the first standalone `$code` call for this plan, before launching a worker,
+the human-facing agent loads `agents-memory` and resolves the shared private plan path:
 
 1. Load the selected `decision-records` skill and compare the approved assessment with the
    current applicable records.
@@ -28,8 +29,10 @@ On the first standalone `$code` call for this plan, before launching a worker:
    update it atomically with approved concern changes, and never overwrite or duplicate links.
    Do not repeat approval after these changes are authorized.
 4. Persist the finalized plan unchanged as a self-contained
-   `.agents/plans/<short-kebab-task>.md` file, creating the directory when needed.
-5. Record the exact path for every later retained coder turn and dispatch the coder with the
+   `agent-memory/plans/<short-kebab-task>.md` file under the resolved Git common directory,
+   creating that private directory when needed. Reuse an exact existing approved plan path
+   when continuing older work.
+5. Record the absolute path for every later retained coder turn. Dispatch the coder with
    applicable record paths, protected constraints, and an explicit statement identifying
    document changes already applied by the main orchestrator.
 
@@ -38,7 +41,8 @@ applied approved decision-record changes. Require that plan path and reuse it un
 do not persist a second plan or repeat the first-call document writes. Pass the current
 approved slice refinement and amendments as context, without replacing the wave plan.
 
-The coder must not repeat or reinterpret those document edits. It implements within the
+The coder reads only the exact supplied plan, not other private memory. It must not
+repeat or reinterpret those document edits. It implements within the
 approved constraints and reports any conflict. If implementation fails after records were
 written, report the failure and written paths accurately; do not claim implementation or
 enforcement succeeded or silently roll back approved intent.

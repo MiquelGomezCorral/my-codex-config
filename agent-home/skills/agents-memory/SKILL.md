@@ -1,59 +1,86 @@
 ---
 name: agents-memory
-description: Persistent project memory bootstrap and maintenance. Use in any repository with (or needing) an `AGENTS.md` + `.agents/` system. **Triggers:**\n* **Initialization:** Starting in a new repo, running `/init`, or requests to "set up agents memory."\n* **Development:** Planning features, proposing architecture (→ decisions), writing code (→ conventions), or navigating the codebase (→ architecture).\n* **Debugging:** Fixing complex bugs, investigating issues, or encountering recurring mistakes (→ known-errors).\n* **Memory Management:** Fetching or proposing workflows, glossary terms, conventions, decisions, and known errors.
+description: Human-facing main agent only. Read and maintain private project working memory shared by Git worktrees; initialize it with `/init`. Delegated agents report memory suggestions to their parent instead of using this skill.
 ---
 
 # Agents Memory
 
-Persistent memory system for coding projects. It creates one router file (`AGENTS.md`) plus topical memory files under `.agents/` so agents can load only the project context they need.
+Only the agent directly interacting with the human uses this skill. Delegated agents do
+not load it, browse private memory, or write memory. An exact plan supplied as task input
+is allowed; it does not grant access to other notes. Delegates return useful memory
+candidates to the human-facing agent to assess.
+
+Keep existing repository `AGENTS.md` and tracked `.agents/` files as project context.
+New personal working memory and plans live outside every worktree, under the Git common
+directory shared by linked worktrees:
+
+```text
+$(git rev-parse --path-format=absolute --git-common-dir)/agent-memory/
+  architecture.md  conventions.md  decisions.md  glossary.md
+  workflow.md      known-errors.md  requirements.md
+  plans/
+```
+
+Resolve the directory from the current worktree each time; do not assume `.git` is a
+directory in a linked worktree. The private directory is local to one clone, not shared
+with separate clones or computers. Do not copy or symlink it into a worktree. If Git
+cannot resolve a common directory, report that shared private memory is unavailable;
+never silently put new private notes in a tracked path.
 
 ## Use When
 
 - The user runs `/init` or asks to initialize project memory.
-- Starting work in a repo that lacks `AGENTS.md` or `.agents/`.
-- The user asks to set up, inspect, or update agent memory files.
+- Starting repository work as the human-facing agent: read relevant existing project
+  context and any private notes already present.
+- The user asks to set up, inspect, or update private agent memory.
 - A repeated project convention, decision, workflow, glossary term, or known error should be proposed for memory.
 
-## Files
+## Ownership
 
-```text
-AGENTS.md
-.agents/
-  architecture.md
-  conventions.md
-  decisions.md
-  glossary.md
-  workflow.md
-  known-errors.md
-```
+Private `decisions.md` records the human's preferences about agent work and how to work
+in this project. Shared product and architecture decisions belong to the separate
+`decision-records` skill under `docs/decisions/`. Do not duplicate them here.
+The human-facing agent owns private writes, including candidates returned by workers.
+Read-only tasks may read existing notes but never initialize the directory.
 
 ## Bootstrap Workflow
 
-1. Inspect the current project before writing memory files: root files, package/dependency files, existing docs, and existing `AGENTS.md` or `CLAUDE.md`.
-2. If project memory already exists, update only missing files or clearly stale references after confirming the intent.
-3. Create `AGENTS.md` from `templates/AGENTS.md` and `.agents/*` from the matching templates.
-4. Replace placeholders with facts discovered in the repo. Leave sections as `None yet.` when there is no evidence.
-5. Do not invent conventions, decisions, commands, or architecture.
-6. Summarize created or updated memory files and any sections that still need user input.
+1. Inspect the current project, including existing `AGENTS.md`, `.agents/`, and decision
+   records. Preserve all existing tracked files and their history.
+2. On `/init`, or the first authorized private memory write, create `agent-memory/` in the
+   resolved Git common directory. Create only needed topical files from `templates/`;
+   create `plans/` when persisting a plan. Do not initialize during read-only discovery.
+3. Create `AGENTS.md` from `templates/AGENTS.md` only when the project has no agent
+   instructions and the user requested initialization. Never replace an existing one.
+4. Replace placeholders with observed facts. Do not invent conventions, decisions, or
+   commands. Summarize created files and missing information.
 
 ## Operating Rules
 
 - Read `AGENTS.md` first in projects that have it.
-- Lazy-load `.agents/*` by need; do not read all memory files by default.
-- Treat closed decisions in `.agents/decisions.md` as authoritative unless the user explicitly reopens them.
+- Lazy-load relevant tracked `.agents/*` and private `agent-memory/*` by need; do not read
+  everything by default. An absent private directory is normal.
+- Follow repository instructions and shared decision records. Apply later private agent
+  preferences only within those bounds; flag conflicts with tracked memory.
 - If code contradicts memory, trust the current code and flag the memory entry as stale.
-- Memory updates during normal work are propose-only unless the user explicitly asks to write them.
+- New agent-memory updates go only to the private directory. During normal work, propose
+  updates unless the user authorized them directly or in an approved workflow. Never
+  alter tracked `.agents/` merely to keep private memory current.
 
 ## Trigger Map
 
 | Situation | Read or update |
 |---|---|
-| Navigating repo or changing module boundaries | `.agents/architecture.md` |
-| Writing code | `.agents/conventions.md` |
-| Refactor, dependency swap, architecture choice | `.agents/decisions.md` |
-| Project-specific acronym, domain term, entity | `.agents/glossary.md` |
-| Build, test, release, commit, PR | `.agents/workflow.md` |
-| Debugging a repeated failure | `.agents/known-errors.md` |
+| Navigating repo or changing module boundaries | `architecture.md` |
+| Writing code | `conventions.md` |
+| Agent-work preference or decision | `decisions.md` |
+| Human-stated wants for agent work | `requirements.md` |
+| Project-specific acronym, domain term, entity | `glossary.md` |
+| Build, test, release, commit, PR | `workflow.md` |
+| Debugging a repeated failure | `known-errors.md` |
+
+Read a matching tracked `.agents/` file when one already exists, then the private file
+when present. The table names topics, not a requirement to create every file.
 
 ## Templates
 

@@ -12,8 +12,8 @@ them as accepted risk. Do not implement until the user explicitly switches modes
 
 ## Workflow
 
-1. Inspect the plan and available evidence. For repository plans, load
-   `agents-memory` and only relevant project memory.
+1. Inspect the plan and available evidence. For repository plans, only the human-facing
+   agent loads `agents-memory` and relevant project memory; delegates use supplied context.
 2. Summarize current understanding in 3-6 bullets.
 3. Build a dependency-ordered decision tree: goal, success, constraints, non-goals,
    architecture, ownership, state, operations, risk, validation, rollout, rollback.

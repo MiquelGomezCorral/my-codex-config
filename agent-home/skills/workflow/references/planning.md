@@ -50,7 +50,8 @@ checkpoint is the scope-lock package rather than a duplicate ledger summary.
 1. Preserve the user's stated intent. Clarify the problem, affected user or caller,
    desired outcome, purpose, observable success, constraints, and non-goals only as
    needed. High-level behavior comes before implementation details.
-2. Load `agents-memory` for repository work and read only relevant memory. Load the selected
+2. The human-facing coordinator loads `agents-memory` for repository work and reads only
+   relevant tracked context and private notes. Load the selected
    `decision-records` skill explicitly and follow its missing-index behavior: read
    `docs/decisions/index.md` when present, otherwise treat it as an empty existing-record set and
    propose exact initialization in the approval scope. Then read every applicable record. Inspect
@@ -95,7 +96,7 @@ When no material branch remains unresolved, present one proportional approval pa
 - Implementation outline, readiness check, and pending live validation.
 - Candidate wave map: proposed PR-sized slices, dependencies, scope/exclusions,
   per-slice validation, review depth, artifacts, and exact action bounds or none.
-- Exact durable `.agents` memory updates for the main agent, or state that no project
+- Exact private agent-memory updates for the main agent, or state that no project
   memory should change.
 
 Wait for explicit approval. If the user changes scope, resume the relevant phase and
@@ -124,14 +125,17 @@ Include only applicable sections from:
   exclusions, per-slice coding size, checks, samples, tool availability, review preset,
   artifacts, human gates, and exact bounded Git/live authorizations or none.
 
-Do not turn unanswered choices into assumptions. Persist the finalized native plan under
-`.agents/plans/` and list its supporting evidence and artifacts. Keep implementation
-choices and durable project decisions distinct. Render the plan using
+Do not turn unanswered choices into assumptions. Resolve the Git common directory through
+`agents-memory` and persist each new native plan under its `agent-memory/plans/` directory;
+preserve exact existing plan paths when continuing older work. List supporting evidence
+and artifacts. Keep implementation choices and durable project decisions distinct.
+Render the plan using
 `node agent-home/skills/workflow/scripts/render-plan.mjs --input <plan.md> --output <artifact.html>`;
 open the resulting HTML with `npx -y lavish-axi <artifact.html>`. Keep the Markdown file
-authoritative. Link local editable diagram sources and SVG previews from it; place copies
-beside the HTML when the rendered view needs relative links. Lavish displays the HTML and
-does not itself produce SVG. Only make diagrams that clarify a real decision or flow.
+authoritative. Keep the new HTML and any plan-specific editable diagrams/SVG previews
+beside the private plan so relative links work and no new plan artifact enters Git.
+Lavish displays the HTML and does not itself produce SVG. Only make diagrams that
+clarify a real decision or flow.
 The deterministic renderer never delegates. A custom diagram may use `super-agent` only
 when requested, selecting a Pi `medium` model at `low` thinking from the catalog and
 requiring the `luxury` palette. Do not run `lavish-axi poll` unless the user asks for an

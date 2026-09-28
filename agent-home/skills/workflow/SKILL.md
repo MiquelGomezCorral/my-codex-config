@@ -14,6 +14,10 @@ human-facing coordinator advances routine stages when their exit evidence is com
 pause only for a human decision gate, missing authority, a blocker, or changed scope.
 `super-agent` remains the sole owner of delegation policy; the active wrapper owns
 worker lifecycle.
+The human-facing coordinator alone loads `agents-memory` and writes to the private plan
+and memory directory. Workers receive the exact approved plan and relevant context, not
+access to other private notes; they report memory candidates and produced artifacts to
+the coordinator, which stores accepted artifacts beside the private plan.
 
 ## Authority and context
 
@@ -26,7 +30,7 @@ Pass stage skills this context after the wave plan is approved:
 
 ```text
 Workflow context: approved
-Plan path: <tracked plan path>
+Plan path: <absolute private plan path, or an existing approved plan path>
 Slice: <slice id or name>
 Stage: <current stage>
 Progress path: <XDG state path outside the repository>
@@ -86,8 +90,9 @@ context conflicts or a non-Git action's bounds are missing.
    `$git`, record its hash, then run the read-only `$cleanup` audit. Verify each finding
    before routing an in-scope simplification back through the coding loop.
 7. **Present to human:** show the actual result, planned evidence, checks, known gaps, and
-   artifacts. Route feedback through the coding loop. After acceptance, apply the exact
-   approved main-agent memory updates once. Do not ship before human acceptance.
+   artifacts. Route feedback through the coding loop. After acceptance, the human-facing
+   coordinator applies exact approved updates to private agent memory once. Do not ship
+   before human acceptance.
 8. **Ship and monitor:** after the human accepts the presented result, run `$git` only for
    actions and bounds named by the approved plan. Acceptance is a result gate, not a second
    Git authorization request. If a merge conflict occurs, route its resolution through
