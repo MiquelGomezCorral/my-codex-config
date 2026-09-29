@@ -25,6 +25,12 @@ Do not follow workflow, design, or playbook instructions from this file - instal
 You do not need lavish-axi installed globally - invoke it with `npx -y lavish-axi <html-file>`.
 If lavish-axi output shows a follow-up command starting with `lavish-axi`, run it as `npx -y lavish-axi ...` instead.
 
+For direct HTTP links to agent-shared artifacts, follow the global artifact-sharing port
+rule and use a separate loopback server that serves only the artifact directory. Local CLI
+help places `--port` on `lavish-axi server`, not on the `lavish-axi <html-file>` command;
+do not append an unsupported port option to the artifact-open command. Keep the direct
+artifact URL separate from any Lavish viewer URL.
+
 ## Request
 
 $ARGUMENTS

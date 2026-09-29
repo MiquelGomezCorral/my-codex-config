@@ -129,16 +129,29 @@ Do not turn unanswered choices into assumptions. Resolve the Git common director
 `agents-memory` and persist each new native plan under its `agent-memory/plans/` directory;
 preserve exact existing plan paths when continuing older work. List supporting evidence
 and artifacts. Keep implementation choices and durable project decisions distinct.
-Render the plan using
-`node "$HOME/.agents/skills/workflow/scripts/render-plan.mjs" --input <plan.md> --output <artifact.html>`;
-open the resulting HTML with `npx -y lavish-axi <artifact.html>`. Keep the Markdown file
-authoritative. Keep the new HTML and any plan-specific editable diagrams/SVG previews
+For human review, fill a concise brief from
+`plan-review-template.md`; read that reference only when producing the brief. Keep the
+full Markdown plan complete and authoritative, then check that the brief preserves its
+risks, questions, expected outcomes, useful artifacts, and approval boundary. Render both:
+`node "$HOME/.agents/skills/workflow/scripts/render-plan.mjs" --input <plan.md> --review <review.json> --output <artifact.html>`.
+Then open the resulting HTML with `npx -y lavish-axi <artifact.html>`. Capture the actual review
+URL returned by the viewer and include it as a descriptive Markdown link when presenting
+the plan, before asking for approval. Do not substitute the HTML path or guess the URL.
+For a direct browser link, serve only the artifact directory with the standard-library
+server: `python3 -m http.server <port> --bind 127.0.0.1 --directory <artifact-directory>`.
+Choose the port using the global artifact-sharing rule; retry the next port only after an
+address-in-use error and leave existing processes alone. Share the actual direct URL and
+any Lavish viewer URL as separate links. If neither is available, report that and link to
+the local artifact using the chat's clickable file-link format. Keep the Markdown file
+authoritative.
+Keep the new HTML and any plan-specific editable diagrams/SVG previews
 beside the private plan so relative links work and no new plan artifact enters Git.
 Lavish displays the HTML and does not itself produce SVG. Only make diagrams that
 clarify a real decision or flow.
 The deterministic renderer never delegates. A custom diagram may use `super-agent` only
 when requested, selecting a Pi `medium` model at `low` thinking from the catalog and
-requiring the `luxury` palette. Do not run `lavish-axi poll` unless the user asks for an
+using diagram-design's `Minimal dark` template and current project style guide. Do not run
+`lavish-axi poll` unless the user asks for an
 interactive feedback session. Rendering or Lavish failure is non-blocking: report it and
 always present the native plan and available artifacts.
 

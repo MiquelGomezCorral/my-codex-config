@@ -209,6 +209,11 @@ replaces the former OpenCode `build`, `plan`, `general`, `explore`, `answer`, an
 reviewer capabilities. All five Git actions use `git-worker` by default; the `git` skill
 remains the sole owner of Git policy.
 
+`$workflow` renders a short human view from the complete Markdown plan and a small
+`review.json` brief. See the [brief field guide](agent-home/skills/workflow/references/plan-review-template.md)
+and [compact example](agent-home/skills/workflow/templates/review.example.json). Existing
+Markdown-only renderer calls still work.
+
 Shared product decision records live in each repository's `docs/decisions/`. Only the
 human-facing agent uses `agents-memory`: it reads relevant existing repository context and
 stores new private working notes, agent decisions, and plans under `agent-memory/` in the
@@ -327,6 +332,10 @@ The `test-audit` skill adapts [OpenClaw's `test-audit`](https://github.com/openc
 (MIT, OpenClaw Foundation). Its value bar, junk patterns, retention bar, candidate evidence,
 edit shape, and campaign phases are kept. Its OpenClaw-specific skill names, Vitest scripts,
 and PR flow are replaced by this repository's own test commands and the `git` skill.
+
+The workflow renderer bundles selected [Lucide](https://github.com/lucide-icons/lucide)
+SVGs. Lucide's ISC notice and the MIT notice for Feather-derived icons are in
+`agent-home/skills/workflow/licenses/lucide.LICENSE`.
 
 The `skill-scout` skill replaces the former `find-skills` and `skillspector` skills, folding
 their marketplace discovery and static security scan into one find-vet-catalog flow. Its

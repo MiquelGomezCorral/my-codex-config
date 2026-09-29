@@ -20,10 +20,15 @@ function escapeHtml(value) {
   })[character])
 }
 
-function runRenderer(input, output) {
-  const args = [renderer, "--input", input]
+function runCli(args) {
+  return spawnSync(process.execPath, [renderer, ...args], { cwd: root, encoding: "utf8" })
+}
+
+function runRenderer(input, output, review) {
+  const args = ["--input", input]
+  if (review) args.push("--review", review)
   if (output) args.push("--output", output)
-  return spawnSync(process.execPath, args, { cwd: root, encoding: "utf8" })
+  return runCli(args)
 }
 
 const sandboxPlan = [
@@ -94,7 +99,7 @@ const rendererPlan = [
   "- No visualization model runs by default.",
 ].join("\n")
 
-test("renderer is stable and turns representative plans into semantic layouts", (t) => {
+test("renderer keeps Markdown-only input readable and collapsed", (t) => {
   const directory = mkdtempSync(join(tmpdir(), "plan-renderer-test-"))
   t.after(() => rmSync(directory, { recursive: true, force: true }))
   const input = join(directory, "sandbox.md")
@@ -117,31 +122,32 @@ test("renderer is stable and turns representative plans into semantic layouts", 
   const html = readFileSync(firstPath, "utf8")
   for (const expected of [
     "Fix Sandbox Authoring Review Findings", "Implementation Changes", "Policy hook",
-    "Prompts", "Evaluations", "Policy tests", "Evaluation tests", "lp-hero",
-    "lp-rows", "lp-group-row", "lp-command-row",
+    "Prompts", "Evaluations", "Policy tests", "Evaluation tests",
   ]) match(html, new RegExp(expected))
   match(html, /data-status="reject">reject<\/span>Newly introduced dangling references\./)
   match(html, /data-status="allow">allow<\/span>Normal title edits\./)
   match(html, /data-status="fail">fail<\/span>When the podcast character leaks\./)
   match(html, /data-status="pass">pass<\/span>When it remains podcast-only\./)
   match(html, /<code class="lp-command">bun typecheck<\/code>/)
-  match(html, /ul\.lp-list > li::before[^}]*content: "–"/)
-  doesNotMatch(html, /lp-grid|lp-group-card|lp-command-card|repeat\(auto-fit/)
-  match(html, /<html lang="en" data-theme="luxury">/)
-  match(html, /daisyui@5\.5\.19\/daisyui\.css/)
-  match(html, /daisyui@5\.5\.19\/themes\.css/)
-  match(html, /var\(--color-base-100, #17120e\)/)
-  match(html, /--lp-accent: #f6c453/)
-  doesNotMatch(html, /#111827|#1f2937/)
-  match(html, /<details class="lp-native">\s*<summary>Native plan<\/summary>/)
+  match(html, /font: 14px\/1\.55 system-ui/)
+  match(html, /\.lp-hero h1 \{ font-size: 24px;/)
+  match(html, /<details class="lp-detail"><summary>Implementation Changes<\/summary>/)
+  match(html, /<details class="lp-detail lp-source"><summary>Full Markdown source<\/summary>/)
   ok(html.includes(escapeHtml(sandboxPlan)))
-  doesNotMatch(html, /<script|<svg|@tailwind/i)
+  doesNotMatch(html, /daisyui|cdn\.jsdelivr|data-theme="luxury"|@tailwind/i)
+  doesNotMatch(html, /<details[^>]* open/)
+  doesNotMatch(html, /<script|<svg/i)
 
   const rendererHtml = readFileSync(rendererResult.stdout.trim(), "utf8")
-  for (const expected of ["lp-table", "answer = 42", "printf a|b", "Render quickly", "No visualization model runs by default"]) {
-    match(rendererHtml, new RegExp(expected))
-  }
-  doesNotMatch(rendererHtml, /<h2>Fake section<\/h2>|<h3>Fake group<\/h3>/)
+  match(rendererHtml, /<details class="lp-detail"><summary>Implementation Changes<\/summary>/)
+  match(rendererHtml, /<table class="lp-table">/)
+  match(rendererHtml, /printf a\|b/)
+  match(rendererHtml, /Render quickly/)
+  match(rendererHtml, /No visualization model runs by default/)
+  match(rendererHtml, /<th scope="col"/)
+  match(rendererHtml, /<code class="language-md">/)
+  match(rendererHtml, /## Fake section/)
+  doesNotMatch(rendererHtml, /<h2 class="lp-heading" id="fake-section">/)
 })
 
 test("renderer escapes HTML, rejects unsafe links, and keeps safe links", (t) => {
@@ -194,4 +200,165 @@ test("renderer rejects missing, empty, and unwritable destinations without artif
   const unwritableResult = runRenderer(valid, outputDirectory)
   notEqual(unwritableResult.status, 0)
   strictEqual(readdirSync(outputDirectory).length, 0)
+})
+
+test("brief view hides unused areas and keeps its authority context visible", (t) => {
+  const directory = mkdtempSync(join(tmpdir(), "plan-renderer-brief-"))
+  t.after(() => rmSync(directory, { recursive: true, force: true }))
+  const input = join(directory, "plan.md")
+  const reviewFile = join(directory, "review.json")
+  const output = join(directory, "plan.html")
+  writeFileSync(input, "# Full Plan\n\n## Technical plan\n\nKeep the full specification here.")
+  writeFileSync(reviewFile, JSON.stringify({
+    title: "Small <review>",
+    summary: "A concise view of the approved intent.",
+    actions: [{ title: "Keep scope clear", description: "Make only the listed changes." }],
+    success: [{ title: "Checks pass", description: "Expected outcomes stay separate from completed checks." }],
+    boundary: "Local renderer and checks only. Human approval still applies.",
+  }))
+
+  const result = runRenderer(input, output, reviewFile)
+  strictEqual(result.status, 0, result.stderr)
+  const html = readFileSync(output, "utf8")
+  match(html, /Small &lt;review&gt;/)
+  match(html, /Proposed actions/)
+  match(html, /Review boundary/)
+  match(html, /Human approval still applies/)
+  match(html, /<details class="lp-success"><summary><span>Expected outcomes<\/span><span class="lp-count">1 outcome<\/span><\/summary>/)
+  match(html, /<details class="lp-detail"><summary>Technical plan<\/summary>/)
+  doesNotMatch(html, /<section class="lp-risk|<section class="lp-questions|<section class="lp-visual-slot/)
+  doesNotMatch(html, /<div class="lp-tabs"/)
+  doesNotMatch(html, /<details[^>]* open/)
+})
+
+test("brief view renders icons, tabs, local previews, and complete plan details", (t) => {
+  const directory = mkdtempSync(join(tmpdir(), "plan-renderer-rich-"))
+  t.after(() => rmSync(directory, { recursive: true, force: true }))
+  const input = join(directory, "plan.md")
+  const reviewFile = join(directory, "review.json")
+  const outputDirectory = join(directory, "viewer")
+  mkdirSync(outputDirectory)
+  writeFileSync(input, "# Full Plan\n\n## Technical plan\n\nKeep every detail. See [source](https://example.com/spec).\n\n## Verification\n\n- Run focused checks.")
+  writeFileSync(join(directory, "flow.svg"), '<svg xmlns="http://www.w3.org/2000/svg" width="240" height="80"><rect width="200" height="50"/></svg>')
+  writeFileSync(join(directory, "flow.excalidraw"), "{}")
+  writeFileSync(join(directory, "preview.png"), "png placeholder")
+  writeFileSync(join(directory, "preview.jpg"), "jpg placeholder")
+  writeFileSync(join(directory, "preview.jpeg"), "jpeg placeholder")
+  writeFileSync(join(directory, "preview.webp"), "webp placeholder")
+  writeFileSync(join(directory, "mockup.html"), '<script>window.parent.parentCanary = true</script><p>Mockup</p>')
+  writeFileSync(join(directory, "notes.pdf"), "pdf placeholder")
+  writeFileSync(reviewFile, JSON.stringify({
+    title: "Review a complete proposal",
+    summary: "Compare proposed actions and supporting evidence.",
+    actions: [{ title: "Keep validation intact", description: "Retain current checks.", icon: "shield-check" }],
+    success: [{ title: "Existing flow works", description: "The original caller still succeeds." }],
+    boundary: "Source changes and focused checks only.",
+    risks: [{ title: "Caller behavior can vary", description: "The full plan covers each caller." }],
+    questions: [{ title: "Review sample data", description: "Confirm the generic example fits." }],
+    artifacts: [
+      {
+        title: "Linear flow",
+        caption: "Steps show a short path.",
+        steps: [{ title: "Read input", icon: "file-text" }, { title: "Return result", icon: "workflow" }],
+      },
+      {
+        title: "SVG preview",
+        caption: "The original-size image stays scrollable.",
+        path: "flow.svg",
+        sourcePath: "flow.excalidraw",
+      },
+      { title: "PNG preview", caption: "PNG files preview inline.", path: "preview.png" },
+      { title: "JPG preview", caption: "JPG files preview inline.", path: "preview.jpg" },
+      { title: "JPEG preview", caption: "JPEG files preview inline.", path: "preview.jpeg" },
+      { title: "WebP preview", caption: "WebP files preview inline.", path: "preview.webp" },
+      { title: "HTML mockup", caption: "HTML stays in its sandbox.", path: "mockup.html", placement: "wide" },
+      { title: "Notes file", caption: "Other files use a descriptive link.", path: "notes.pdf" },
+    ],
+  }))
+
+  const output = join(outputDirectory, "plan.html")
+  const result = runRenderer(input, output, reviewFile)
+  strictEqual(result.status, 0, result.stderr)
+  const html = readFileSync(output, "utf8")
+  match(html, /role="tablist" aria-label="Supporting visuals"/)
+  match(html, /role="tab" aria-controls="lp-artifact-1" aria-selected="true"/)
+  match(html, /aria-labelledby="lp-artifact-1-tab" tabindex="0"/)
+  match(html, /data-placement="wide"/)
+  match(html, /class="lp-icon" aria-hidden="true"/)
+  match(html, /src="\.\.\/flow\.svg" alt="SVG preview"/)
+  match(html, /src="\.\.\/preview\.png"/)
+  match(html, /src="\.\.\/preview\.jpg"/)
+  match(html, /src="\.\.\/preview\.jpeg"/)
+  match(html, /src="\.\.\/preview\.webp"/)
+  match(html, /href="\.\.\/flow\.excalidraw"/)
+  match(html, /Open full size/)
+  match(html, /Open Notes file/)
+  match(html, /PDF file/)
+  match(html, /sandbox="allow-scripts"/)
+  doesNotMatch(html, /parentCanary/)
+  doesNotMatch(html, /<article class="lp-artifact[^>]* hidden=/)
+  match(html, /Tabs need JavaScript; all artifact panels remain visible below/)
+  match(html, /ArrowRight/)
+  match(html, /ArrowLeft/)
+  match(html, /event\.key === "Home"/)
+  match(html, /event\.key === "End"/)
+  match(html, /Material risks/)
+  match(html, /Open questions/)
+  match(html, /Review boundary/)
+  match(html, /<details class="lp-detail"><summary>Technical plan<\/summary>/)
+  match(html, /href="https:\/\/example\.com\/spec"/)
+  match(html, /Run focused checks/)
+})
+
+test("renderer identifies malformed briefs, unknown icons, and unsafe or missing artifacts", (t) => {
+  const directory = mkdtempSync(join(tmpdir(), "plan-renderer-invalid-review-"))
+  t.after(() => rmSync(directory, { recursive: true, force: true }))
+  const input = join(directory, "plan.md")
+  const reviewFile = join(directory, "review.json")
+  writeFileSync(input, "# Full Plan\n\n## Scope\n\nThe plan remains complete.")
+  const base = {
+    title: "Check review input",
+    summary: "Validate the small human-facing brief.",
+    actions: [{ title: "Keep input valid", description: "Show actionable field errors." }],
+    success: [{ title: "Reject bad paths", description: "Do not write a broken page." }],
+    boundary: "Validation only.",
+  }
+  const malformedFile = join(directory, "malformed.json")
+  writeFileSync(malformedFile, "{")
+  const malformed = runRenderer(input, join(directory, "malformed.html"), malformedFile)
+  notEqual(malformed.status, 0)
+  match(malformed.stderr, /--review file is not valid JSON/)
+  strictEqual(existsSync(join(directory, "malformed.html")), false)
+
+  const cases = [
+    ["unknown-icon", { ...base, actions: [{ ...base.actions[0], icon: "not-in-bank" }] }, /--review\.actions\[0\]\.icon names an unknown icon/],
+    ["missing-file", { ...base, artifacts: [{ title: "Missing preview", caption: "This path is absent.", path: "missing.svg" }] }, /--review\.artifacts\[0\]\.path file does not exist/],
+    ["outside-path", { ...base, artifacts: [{ title: "Outside preview", caption: "This path escapes the plan.", path: "../outside.svg" }] }, /--review\.artifacts\[0\]\.path must stay inside the plan directory/],
+  ]
+  for (const [name, value, error] of cases) {
+    const output = join(directory, name + ".html")
+    writeFileSync(reviewFile, JSON.stringify(value))
+    const result = runRenderer(input, output, reviewFile)
+    notEqual(result.status, 0)
+    match(result.stderr, error)
+    strictEqual(existsSync(output), false)
+  }
+})
+
+test("icon commands list names and return one SVG", () => {
+  const names = runCli(["--list-icons"])
+  strictEqual(names.status, 0, names.stderr)
+  match(names.stdout, /^file-text\tDocument/m)
+  match(names.stdout, /^workflow\tWorkflow/m)
+  match(names.stdout, /^triangle-alert\tRisk status/m)
+
+  const icon = runCli(["--icon", "workflow"])
+  strictEqual(icon.status, 0, icon.stderr)
+  match(icon.stdout, /^<svg[^>]+viewBox="0 0 24 24"/)
+  match(icon.stdout, /<rect/)
+  doesNotMatch(icon.stdout, /file-text|triangle-alert/)
+
+  const unknown = runCli(["--icon", "unknown"])
+  notEqual(unknown.status, 0)
+  match(unknown.stderr, /--icon names an unknown icon/)
 })

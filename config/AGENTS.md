@@ -14,6 +14,17 @@ not weaken security or explicit user constraints.
 - Use the Caveman writing rules in `writing` for assistant-written prose. Keep meaning,
   technical accuracy, and natural clarity; do not apply the style to code or quoted text.
 - Cite code as `path/to/file:line`. Ask only when ambiguity changes scope or outcome.
+- Whenever the user must review an artifact, include a descriptive clickable Markdown
+  link in the same message, without waiting for them to ask. Prefer the actual browser
+  URL returned by the viewer or artifact tool over a filesystem path. If no browser URL
+  is available, say so and provide a clickable local-file link as the fallback. Never
+  invent a URL or publish a private artifact merely to obtain one.
+- When serving an agent-shared review artifact over HTTP, bind a local server to
+  `127.0.0.1` and serve only the artifact directory. Try port `3002` first; if binding
+  reports that it is occupied, leave that process alone and try `3003`, then continue
+  upward one port at a time. Stop on other bind errors. Report the actual URL with the
+  selected port. This applies to plans, mockups, diagrams, reports, and other agent-shared
+  artifacts; application development and deployment ports are independent and must not change.
 
 ## Authority and scope
 

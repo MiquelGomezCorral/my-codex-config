@@ -19,6 +19,11 @@ and memory directory. Workers receive the exact approved plan and relevant conte
 access to other private notes; they report memory candidates and produced artifacts to
 the coordinator, which stores accepted artifacts beside the private plan.
 
+Present every artifact the human must review as a descriptive clickable link in the
+same message, including plans, diagrams, mockups, reports, and validation evidence.
+For browser previews, return the viewer's actual URL as described in the planning
+reference; a bare path is not a review link. Apply this at every human gate.
+
 ## Authority and context
 
 Keep product edits with a retained implementation worker. Delegate substantial

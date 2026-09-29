@@ -1,11 +1,12 @@
 import {
-  accessSync, constants, existsSync, mkdtempSync, readFileSync,
+  accessSync, constants, existsSync, mkdtempSync, readFileSync, realpathSync,
   renameSync, rmSync, statSync, writeFileSync,
 } from "node:fs"
 import { tmpdir } from "node:os"
-import { dirname, join, resolve } from "node:path"
+import { dirname, extname, isAbsolute, join, relative, resolve, sep } from "node:path"
+import { getIcon, listIcons } from "./icons.mjs"
 
-const usage = "usage: node render-plan.mjs --input <plan.md> [--output <artifact.html>]"
+const usage = "usage: node render-plan.mjs --input <plan.md> [--review <review.json>] [--output <artifact.html>]"
 
 function escapeHtml(value) {
   return value.replace(/[&<>"']/g, (character) => ({
@@ -373,209 +374,487 @@ function parsePlan(source) {
   return plan
 }
 
-function dedent(lines) {
-  const indents = lines
-    .filter((line) => line.trim())
-    .map((line) => line.match(/^[ \t]*/)[0].replace(/\t/g, "    ").length)
-  const width = indents.length ? Math.min(...indents) : 0
-  return lines.map((line) => {
-    let index = 0
-    let removed = 0
-    while (index < line.length && removed < width && /[ \t]/.test(line[index])) {
-      removed += line[index] === "\t" ? 4 : 1
-      index += 1
+function isRecord(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+}
+
+function onlyKeys(value, allowed, field) {
+  for (const key of Object.keys(value)) {
+    if (!allowed.includes(key)) throw new Error(field + "." + key + " is not a supported field")
+  }
+}
+
+function requiredText(value, field) {
+  if (typeof value !== "string" || !value.trim()) throw new Error(field + " must be a non-empty string")
+  return value
+}
+
+function optionalIcon(value, field) {
+  if (value === undefined) return null
+  const name = requiredText(value, field)
+  if (!getIcon(name)) throw new Error(field + " names an unknown icon: " + name)
+  return name
+}
+
+function validateEntries(value, field, actionTitles = false, required = true) {
+  if (value === undefined && !required) return []
+  if (!Array.isArray(value) || (required && !value.length)) {
+    throw new Error(field + " must be a non-empty array")
+  }
+  return value.map((entry, index) => {
+    const entryField = field + "[" + index + "]"
+    if (!isRecord(entry)) throw new Error(entryField + " must be an object")
+    onlyKeys(entry, ["title", "description", "icon"], entryField)
+    const title = requiredText(entry.title, entryField + ".title")
+    if (actionTitles) {
+      const wordCount = title.trim().split(/\s+/).length
+      if (wordCount < 2 || wordCount > 10) {
+        throw new Error(entryField + ".title must contain 2–10 words")
+      }
     }
-    return line.slice(index)
+    return {
+      title,
+      description: requiredText(entry.description, entryField + ".description"),
+      icon: optionalIcon(entry.icon, entryField + ".icon"),
+    }
   })
 }
 
-function structuralListItems(lines) {
-  const items = []
-  let fence = null
-  for (let index = 0; index < lines.length; index += 1) {
-    if (fence) {
-      if (new RegExp(`^ {0,3}${fence[0]}{${fence.length},}[ \\t]*$`).test(lines[index])) fence = null
-      continue
-    }
-    const openingFence = isFence(lines[index])
-    if (openingFence) {
-      fence = openingFence[1]
-      continue
-    }
-    const item = listItem(lines[index])
-    if (item) items.push({ index, item })
+function isWithin(directory, file) {
+  const path = relative(directory, file)
+  return path !== "" && path !== ".." && !path.startsWith(".." + sep) && !isAbsolute(path)
+}
+
+function resolveAsset(directory, value, field) {
+  const relativePath = requiredText(value, field)
+  if (
+    isAbsolute(relativePath)
+    || /^[a-z][a-z\d+.-]*:/i.test(relativePath)
+    || relativePath.includes("\\")
+    || relativePath.includes("\0")
+  ) {
+    throw new Error(field + " must be a relative file path beside the plan")
   }
-  return items
-}
-
-function sectionEntries(lines) {
-  const items = structuralListItems(lines)
-  if (!items.length) return { intro: lines, entries: [] }
-  const baseIndent = Math.min(...items.map(({ item }) => item.indent))
-  const itemsByIndex = new Map(items.map(({ index, item }) => [index, item]))
-  const entries = []
-  const first = items.find(({ item }) => item.indent === baseIndent)
-  const intro = lines.slice(0, first.index)
-  let current = null
-
-  for (let index = first.index; index < lines.length; index += 1) {
-    const item = itemsByIndex.get(index)
-    if (item && item.indent === baseIndent) {
-      if (current) entries.push(current)
-      current = { title: item.text, lines: [] }
-    } else if (current) {
-      current.lines.push(lines[index])
-    }
+  const base = realpathSync(directory)
+  const candidate = resolve(directory, relativePath)
+  if (!isWithin(resolve(directory), candidate)) {
+    throw new Error(field + " must stay inside the plan directory")
   }
-  if (current) entries.push(current)
-  return { intro: trimBlankLines(intro), entries }
-}
-
-function cleanGroupTitle(value) {
-  return value.replace(/\s*:\s*$/, "").trim()
-}
-
-function renderGroupRow(entry) {
-  const title = cleanGroupTitle(entry.title)
-  const body = trimBlankLines(dedent(entry.lines))
-  const commandGroup = /^(?:run|checks?|commands?|verification)\b/i.test(title)
-  const bodyHtml = body.length ? renderMarkdown(body.join("\n")) : ""
-  return `<article class="lp-group-row${commandGroup ? " lp-command-row" : ""}">
-        <h3>${renderInline(title)}</h3>
-        <div class="lp-group-content">${bodyHtml}</div>
-      </article>`
-}
-
-function renderSection(section) {
-  const structured = sectionEntries(section.lines)
-  const grouped = structured.entries.filter((entry) => structuralListItems(trimBlankLines(entry.lines)).length)
-  const simple = structured.entries.filter((entry) => !grouped.includes(entry))
-  const intro = structured.intro.length ? `<div class="lp-section-intro">${renderMarkdown(structured.intro.join("\n"))}</div>` : ""
-
-  let content
-  if (grouped.length) {
-    const rows = grouped.map(renderGroupRow)
-    if (simple.length) {
-      const list = simple.map((entry) => `- ${entry.title}`).join("\n")
-      rows.push(`<article class="lp-group-row"><h3>Additional decisions</h3><div class="lp-group-content">${renderMarkdown(list)}</div></article>`)
-    }
-    content = `${intro}<div class="lp-rows">${rows.join("\n")}</div>`
-  } else {
-    content = `<div class="lp-section-content">${renderMarkdown(section.lines.join("\n"))}</div>`
+  let resolvedPath
+  try {
+    resolvedPath = realpathSync(candidate)
+  } catch {
+    throw new Error(field + " file does not exist: " + relativePath)
   }
-
-  return `<section class="lp-section">
-      <h2>${renderInline(section.title)}</h2>
-      ${content}
-    </section>`
+  if (!isWithin(base, resolvedPath)) {
+    throw new Error(field + " must stay inside the plan directory")
+  }
+  if (!statSync(resolvedPath).isFile()) throw new Error(field + " must point to a file: " + relativePath)
+  try {
+    accessSync(resolvedPath, constants.R_OK)
+  } catch {
+    throw new Error(field + " file is not readable: " + relativePath)
+  }
+  return { path: relativePath, resolvedPath }
 }
 
-function renderDocument(source) {
-  const plan = parsePlan(source)
+function validateSteps(value, field) {
+  if (!Array.isArray(value) || value.length < 2) {
+    throw new Error(field + " must be a short array with at least two steps")
+  }
+  return value.map((step, index) => {
+    const stepField = field + "[" + index + "]"
+    if (!isRecord(step)) throw new Error(stepField + " must be an object")
+    onlyKeys(step, ["title", "icon"], stepField)
+    return {
+      title: requiredText(step.title, stepField + ".title"),
+      icon: optionalIcon(step.icon, stepField + ".icon"),
+    }
+  })
+}
+
+function validateArtifacts(value, directory) {
+  if (value === undefined) return []
+  if (!Array.isArray(value)) throw new Error("--review.artifacts must be an array")
+  return value.map((artifact, index) => {
+    const field = "--review.artifacts[" + index + "]"
+    if (!isRecord(artifact)) throw new Error(field + " must be an object")
+    onlyKeys(artifact, ["title", "caption", "steps", "path", "sourcePath", "placement"], field)
+    const hasSteps = artifact.steps !== undefined
+    const hasPath = artifact.path !== undefined
+    if (hasSteps === hasPath) throw new Error(field + " must provide either steps or path")
+    if (artifact.sourcePath !== undefined && !hasPath) {
+      throw new Error(field + ".sourcePath requires path")
+    }
+    const placement = artifact.placement === undefined ? "side" : artifact.placement
+    if (placement !== "side" && placement !== "wide") {
+      throw new Error(field + '.placement must be "side" or "wide"')
+    }
+    const path = hasPath ? resolveAsset(directory, artifact.path, field + ".path") : null
+    const sourcePath = artifact.sourcePath === undefined
+      ? null
+      : resolveAsset(directory, artifact.sourcePath, field + ".sourcePath")
+    return {
+      title: requiredText(artifact.title, field + ".title"),
+      caption: requiredText(artifact.caption, field + ".caption"),
+      placement,
+      path,
+      sourcePath,
+      steps: hasSteps ? validateSteps(artifact.steps, field + ".steps") : null,
+    }
+  })
+}
+
+function validateReview(value, directory) {
+  if (!isRecord(value)) throw new Error("--review must contain a JSON object")
+  onlyKeys(value, ["title", "summary", "actions", "success", "boundary", "risks", "questions", "artifacts"], "--review")
+  return {
+    title: requiredText(value.title, "--review.title"),
+    summary: requiredText(value.summary, "--review.summary"),
+    actions: validateEntries(value.actions, "--review.actions", true),
+    success: validateEntries(value.success, "--review.success"),
+    boundary: requiredText(value.boundary, "--review.boundary"),
+    risks: validateEntries(value.risks, "--review.risks", false, false),
+    questions: validateEntries(value.questions, "--review.questions", false, false),
+    artifacts: validateArtifacts(value.artifacts, directory),
+  }
+}
+
+function iconMarkup(name) {
+  if (!name) return '<span class="lp-dot" aria-hidden="true"></span>'
+  return getIcon(name).replace("<svg ", '<svg class="lp-icon" aria-hidden="true" ')
+}
+
+function renderEntries(entries, label, className, defaultIcon = null) {
+  if (!entries.length) return ""
+  const items = entries.map((entry) => {
+    const icon = entry.icon || defaultIcon
+    return '<li class="lp-entry"><span class="lp-entry-marker">' + iconMarkup(icon) + '</span>'
+      + '<div><h3>' + renderInline(entry.title) + '</h3>'
+      + '<p>' + renderInline(entry.description) + '</p></div></li>'
+  }).join("\n")
+  return '<section class="lp-entry-section ' + className + '"><h2>' + label + '</h2>'
+    + '<ul class="lp-entry-list">' + items + '</ul></section>'
+}
+
+function renderSuccess(entries) {
+  const count = entries.length
+  const label = count === 1 ? "outcome" : "outcomes"
+  return '<details class="lp-success"><summary><span>Expected outcomes</span>'
+    + '<span class="lp-count">' + count + " " + label + '</span></summary>'
+    + '<ul class="lp-entry-list">' + entries.map((entry) => {
+      return '<li class="lp-entry"><span class="lp-entry-marker">'
+        + iconMarkup(entry.icon || "circle-check") + '</span><div><h3>'
+        + renderInline(entry.title) + '</h3><p>' + renderInline(entry.description)
+        + '</p></div></li>'
+    }).join("\n") + '</ul></details>'
+}
+
+function renderSteps(steps) {
+  return '<ol class="lp-flow" aria-label="Linear flow">' + steps.map((step) => {
+    return '<li><span class="lp-step-icon">' + iconMarkup(step.icon)
+      + '</span><span>' + renderInline(step.title) + '</span></li>'
+  }).join("\n") + '</ol>'
+}
+
+function assetHref(outputDirectory, file) {
+  const path = relative(outputDirectory, file).split(sep).map(encodeURIComponent).join("/")
+  return path.startsWith(".") ? path : "./" + path
+}
+
+function fileLink(href, label) {
+  return '<a class="lp-file-link" href="' + escapeHtml(href)
+    + '" target="_blank" rel="noopener noreferrer">' + label
+    + ' <span aria-hidden="true">↗</span></a>'
+}
+
+function renderArtifactContent(artifact, outputDirectory) {
+  if (artifact.steps) return renderSteps(artifact.steps)
+  const href = assetHref(outputDirectory, artifact.path.resolvedPath)
+  const extension = extname(artifact.path.path).toLowerCase()
+  if (extension === ".html") {
+    return '<iframe class="lp-html-preview" src="' + escapeHtml(href)
+      + '" title="' + escapeHtml(artifact.title)
+      + '" loading="lazy" sandbox="allow-scripts"></iframe>'
+      + fileLink(href, "Open HTML artifact")
+  }
+  if ([".svg", ".png", ".jpg", ".jpeg", ".webp"].includes(extension)) {
+    return '<div class="lp-image-scroll"><a href="' + escapeHtml(href)
+      + '" target="_blank" rel="noopener noreferrer" aria-label="Open full-size '
+      + escapeHtml(artifact.title) + '"><img src="' + escapeHtml(href)
+      + '" alt="' + escapeHtml(artifact.title) + '" loading="lazy"></a></div>'
+      + fileLink(href, "Open full size")
+  }
+  return '<div class="lp-attachment">' + fileLink(href, "Open " + escapeHtml(artifact.title))
+    + '<span>' + escapeHtml(extension ? extension.slice(1).toUpperCase() + " file" : "File")
+    + '</span></div>'
+}
+
+function renderArtifact(artifact, index, outputDirectory, tabbed) {
+  const id = "lp-artifact-" + (index + 1)
+  const tabAttributes = tabbed
+    ? ' role="tabpanel" aria-labelledby="' + id + '-tab" tabindex="0"'
+    : ""
+  const source = artifact.sourcePath
+    ? fileLink(assetHref(outputDirectory, artifact.sourcePath.resolvedPath), "Editable source")
+    : ""
+  return '<article class="lp-artifact lp-artifact--' + artifact.placement + '" id="' + id
+    + '" data-placement="' + artifact.placement + '"' + tabAttributes + '>'
+    + '<header><div><h3>' + renderInline(artifact.title) + '</h3><p>'
+    + renderInline(artifact.caption) + '</p></div></header>'
+    + renderArtifactContent(artifact, outputDirectory)
+    + (source ? '<p class="lp-source-link">' + source + '</p>' : "")
+    + '</article>'
+}
+
+function renderArtifactTabs(artifacts) {
+  if (artifacts.length < 2) return ""
+  return '<div class="lp-tabs" role="tablist" aria-label="Supporting visuals">'
+    + artifacts.map((artifact, index) => {
+      const id = "lp-artifact-" + (index + 1)
+      const selected = index === 0
+      return '<button type="button" id="' + id + '-tab" role="tab" aria-controls="'
+        + id + '" aria-selected="' + selected + '" tabindex="' + (selected ? "0" : "-1")
+        + '">' + renderInline(artifact.title) + '</button>'
+    }).join("\n") + '</div><noscript><p>Tabs need JavaScript; all artifact panels remain visible below.</p></noscript>'
+}
+
+function renderPlanDetails(plan, source) {
+  const preamble = plan.preamble.length
+    ? '<details class="lp-detail"><summary>Plan notes</summary><div class="lp-detail-body">'
+      + renderMarkdown(plan.preamble.join("\n")) + '</div></details>'
+    : ""
+  const sections = plan.sections.map((section) => {
+    return '<details class="lp-detail"><summary>' + renderInline(section.title)
+      + '</summary><div class="lp-detail-body">'
+      + renderMarkdown(section.lines.join("\n")) + '</div></details>'
+  }).join("\n")
+  return '<section class="lp-plan-details"><h2>Plan details</h2>'
+    + preamble + sections
+    + '<details class="lp-detail lp-source"><summary>Full Markdown source</summary>'
+    + '<pre><code>' + escapeHtml(source) + '</code></pre></details></section>'
+}
+
+function renderBrief(review, plan, source, outputDirectory) {
+  const artifacts = review.artifacts
+  const gridClass = artifacts.length
+    ? (artifacts.every((artifact) => artifact.placement === "wide")
+      ? "lp-review-grid lp-review-grid--wide-only"
+      : "lp-review-grid lp-review-grid--with-visuals")
+    : "lp-review-grid lp-review-grid--no-visuals"
+  const activePlacement = artifacts.length
+    ? ' data-active-placement="' + artifacts[0].placement + '"'
+    : ""
+  const visualSlot = artifacts.length
+    ? '<section class="lp-visual-slot" aria-labelledby="lp-visual-heading">'
+      + '<h2 id="lp-visual-heading">Supporting visuals</h2>'
+      + renderArtifactTabs(artifacts)
+      + artifacts.map((artifact, index) => renderArtifact(artifact, index, outputDirectory, artifacts.length > 1)).join("\n")
+      + '</section>'
+    : ""
+  return '<main class="lp-shell"><header class="lp-hero"><p class="lp-kicker">Plan review</p>'
+    + '<h1>' + renderInline(review.title) + '</h1><div class="lp-hero-copy">'
+    + renderMarkdown(review.summary) + '</div></header>'
+    + '<div class="' + gridClass + '"' + activePlacement + '><section class="lp-actions">'
+    + '<h2>Proposed actions</h2><ul class="lp-entry-list">'
+    + review.actions.map((entry) => {
+      return '<li class="lp-entry"><span class="lp-entry-marker">' + iconMarkup(entry.icon)
+        + '</span><div><h3>' + renderInline(entry.title) + '</h3><p>'
+        + renderInline(entry.description) + '</p></div></li>'
+    }).join("\n") + '</ul>' + renderSuccess(review.success)
+    + renderEntries(review.risks, "Material risks", "lp-risk", "triangle-alert")
+    + renderEntries(review.questions, "Open questions", "lp-questions")
+    + '<section class="lp-boundary"><h2>Review boundary</h2>'
+    + renderMarkdown(review.boundary) + '</section></section>' + visualSlot + '</div>'
+    + renderPlanDetails(plan, source) + '</main>'
+}
+
+function renderMarkdownPlan(plan, source) {
   const summaryIndex = plan.sections.findIndex((section) => section.title.toLowerCase() === "summary")
   const summary = summaryIndex >= 0 ? plan.sections[summaryIndex].lines : plan.preamble
-  const sections = plan.sections.filter((_, index) => index !== summaryIndex)
-  return `<!doctype html>
-<html lang="en" data-theme="luxury">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>${escapeHtml(plan.title)}</title>
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/daisyui.css" rel="stylesheet" type="text/css">
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/themes.css" rel="stylesheet" type="text/css">
-  <style>
-    :root { color-scheme: dark; --lp-bg: #17120e; --lp-surface: #21170f; --lp-raised: #2a1d12; --lp-text: #f7ead4; --lp-muted: #cbbda8; --lp-accent: #f6c453; --lp-border: #5d4528; --lp-success: #8bd17c; --lp-danger: #ff8b7f; }
-    html, body { margin: 0; min-height: 100%; background: var(--color-base-100, #17120e); color: var(--color-base-content, #f7ead4); }
-    body { background: var(--color-base-100, var(--lp-bg)); color: var(--color-base-content, var(--lp-text)); font: 16px/1.6 system-ui, sans-serif; }
-    *, *::before, *::after { box-sizing: border-box; }
-    .lp-shell { width: min(100% - 2rem, 64rem); margin: 0 auto; padding: 2rem 0 4rem; }
-    .lp-hero { border-bottom: 1px solid var(--lp-border); padding: 1rem 0 1.5rem; }
-    .lp-kicker { color: var(--color-primary, var(--lp-accent)); font-size: .75rem; font-weight: 800; letter-spacing: .16em; margin: 0 0 .7rem; text-transform: uppercase; }
-    .lp-hero h1 { color: var(--color-base-content, var(--lp-text)); font-size: clamp(2rem, 5vw, 2.25rem); line-height: 1.1; margin: 0; max-width: 28ch; }
-    .lp-hero-copy { color: var(--lp-muted); margin-top: 1.1rem; max-width: 75ch; }
-    .lp-hero-copy .lp-paragraph { color: inherit; }
-    .lp-section { margin-top: 2rem; min-width: 0; }
-    .lp-section > h2 { color: var(--color-base-content, var(--lp-text)); font-size: clamp(1.25rem, 3vw, 1.55rem); line-height: 1.2; margin: 0 0 .65rem; }
-    .lp-section-content, .lp-group-content { max-width: 70ch; overflow-wrap: anywhere; }
-    .lp-rows { border-top: 1px solid var(--lp-border); }
-    .lp-group-row { display: grid; grid-template-columns: minmax(9rem, 18ch) minmax(0, 1fr); gap: 1.5rem; border-bottom: 1px solid color-mix(in srgb, var(--lp-border) 65%, transparent); padding: 1rem 0; }
-    .lp-group-row h3 { color: var(--color-primary, var(--lp-accent)); font-size: .95rem; margin: 0; }
-    .lp-section-intro { color: var(--lp-muted); margin-bottom: 1rem; }
-    .lp-heading { color: var(--color-base-content, var(--lp-text)); line-height: 1.2; margin: 1.6em 0 .6em; }
-    .lp-heading:first-child { margin-top: 0; }
-    .lp-paragraph { color: var(--color-base-content, var(--lp-text)); margin: .7rem 0; }
-    .lp-list { color: var(--color-base-content, var(--lp-text)); margin: .25rem 0; padding-inline-start: 1.3rem; }
-    ul.lp-list { list-style: none; padding-inline-start: 1.2rem; }
-    ul.lp-list > li { position: relative; }
-    ul.lp-list > li::before { color: var(--lp-muted); content: "–"; left: -1.1rem; position: absolute; }
-    .lp-list .lp-list { border-left: 1px solid var(--lp-border); margin-top: .45rem; }
-    .lp-list li { margin: .45rem 0; padding-left: .2rem; }
-    .lp-code, .lp-native pre { max-width: 100%; overflow: auto; background: #0f0b08; color: var(--lp-text); border: 1px solid var(--lp-border); border-radius: .65rem; padding: 1rem; }
-    .lp-code code, .lp-native code { white-space: pre; font: .9em/1.5 ui-monospace, monospace; }
-    .lp-inline-code, .lp-command { background: #0f0b08; border: 1px solid var(--lp-border); border-radius: .3rem; color: var(--color-primary, var(--lp-accent)); padding: .1em .35em; }
-    .lp-command { white-space: normal; }
-    .lp-command-row .lp-command { background: #15100c; }
-    .lp-status { border: 1px solid currentColor; border-radius: 999px; display: inline-block; font-size: .68rem; font-weight: 800; letter-spacing: .04em; margin-right: .45rem; padding: .08rem .42rem; text-transform: uppercase; vertical-align: .08rem; }
-    .lp-status-success { color: var(--color-success, var(--lp-success)); }
-    .lp-status-danger { color: var(--color-error, var(--lp-danger)); }
-    .lp-link { color: var(--color-primary, var(--lp-accent)); text-decoration-thickness: .12em; }
-    .lp-table-wrap { max-width: 100%; overflow-x: auto; margin: 1.25rem 0; }
-    .lp-table { width: 100%; border-collapse: collapse; min-width: 30rem; }
-    .lp-table th, .lp-table td { border: 1px solid var(--lp-border); padding: .7rem .85rem; vertical-align: top; }
-    .lp-table th { background: var(--color-base-300, var(--lp-raised)); color: var(--color-primary, var(--lp-accent)); }
-    .lp-native { margin-top: 2.5rem; border-top: 1px solid var(--lp-border); padding-top: 1rem; }
-    .lp-native summary { cursor: pointer; color: var(--lp-muted); font-weight: 700; }
-    p, h1, h2, h3, h4, h5, h6, li, td, th, code { overflow-wrap: anywhere; }
-    img, svg, video, canvas, iframe { max-width: 100%; height: auto; }
-    pre, table { max-width: 100%; }
-    @media (max-width: 40rem) { .lp-shell { width: min(100% - 1rem, 64rem); padding-top: .5rem; } .lp-group-row { display: block; } .lp-group-row h3 { margin-bottom: .45rem; } }
-  </style>
-</head>
-<body>
-  <main class="lp-shell">
-    <header class="lp-hero">
-      <p class="lp-kicker">Implementation wave plan</p>
-      <h1>${renderInline(plan.title)}</h1>
-      ${summary.length ? `<div class="lp-hero-copy">${renderMarkdown(summary.join("\n"))}</div>` : ""}
-    </header>
-    ${sections.map(renderSection).join("\n")}
-    <details class="lp-native">
-      <summary>Native plan</summary>
-      <pre><code>${escapeHtml(source)}</code></pre>
-    </details>
-  </main>
-</body>
-</html>
-`
+  const sections = summaryIndex >= 0
+    ? plan.sections.filter((_, index) => index !== summaryIndex)
+    : plan.sections
+  return '<main class="lp-shell"><header class="lp-hero"><p class="lp-kicker">Implementation plan</p>'
+    + '<h1>' + renderInline(plan.title) + '</h1>'
+    + (summary.length ? '<div class="lp-hero-copy">' + renderMarkdown(summary.join("\n")) + '</div>' : "")
+    + '</header>' + renderPlanDetails({ ...plan, sections }, source) + '</main>'
+}
+
+function renderDocument(source, review, outputDirectory) {
+  const plan = parsePlan(source)
+  const body = review
+    ? renderBrief(review, plan, source, outputDirectory)
+    : renderMarkdownPlan(plan, source)
+  const style = [
+    ":root { color-scheme: dark; --lp-bg: #12171e; --lp-surface: #1a212a; --lp-raised: #222b36; --lp-text: #edf1f6; --lp-muted: #b5bfcb; --lp-accent: #66baf2; --lp-border: #35414e; --lp-success: #79d6b0; --lp-danger: #ff9888; }",
+    "html, body { margin: 0; min-height: 100%; background: var(--lp-bg); color: var(--lp-text); }",
+    "body { font: 14px/1.55 system-ui, sans-serif; }",
+    "*, *::before, *::after { box-sizing: border-box; }",
+    ".lp-shell { width: 100%; max-width: none; margin: 0; padding: 1.4rem clamp(1rem, 2.7vw, 2.75rem) 3.5rem; }",
+    ".lp-hero { border-bottom: 1px solid var(--lp-border); padding: 0 0 1rem; }",
+    ".lp-kicker { color: var(--lp-muted); font-size: .75rem; letter-spacing: .08em; margin: 0 0 .45rem; text-transform: uppercase; }",
+    ".lp-hero h1 { font-size: 24px; line-height: 1.2; margin: 0; }",
+    ".lp-hero-copy { color: var(--lp-muted); margin-top: .4rem; }",
+    ".lp-hero-copy .lp-paragraph { margin: 0; }",
+    ".lp-review-grid { display: block; margin-top: 1.6rem; }",
+    ".lp-review-grid--with-visuals, .lp-review-grid--wide-only { gap: 1.3rem; }",
+    ".js-enabled .lp-review-grid--with-visuals { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); grid-template-areas: \"actions visuals\"; align-items: start; }",
+    ".js-enabled .lp-review-grid--wide-only, .js-enabled .lp-review-grid--with-visuals[data-active-placement=\"wide\"] { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: \"actions\" \"visuals\"; }",
+    ".lp-review-grid--no-visuals { display: block; }",
+    ".lp-actions { grid-area: actions; min-width: 0; }",
+    ".lp-actions > h2, .lp-visual-slot > h2, .lp-plan-details > h2 { font-size: 17px; line-height: 1.3; margin: 0 0 .85rem; }",
+    ".lp-entry-list { list-style: none; margin: 0; padding: 0; }",
+    ".lp-entry { display: grid; grid-template-columns: 1.25rem minmax(0, 1fr); gap: .65rem; margin: .85rem 0; }",
+    ".lp-entry-marker { color: var(--lp-accent); padding-top: .12rem; }",
+    ".lp-dot { display: block; width: .58rem; height: .58rem; margin: .38rem 0 0 .14rem; border-radius: 50%; background: var(--lp-accent); }",
+    ".lp-icon { display: block; width: 1.1rem; height: 1.1rem; stroke: currentColor; }",
+    ".lp-entry h3, .lp-artifact h3 { font-size: 14px; font-weight: 650; line-height: 1.4; margin: 0; }",
+    ".lp-entry p, .lp-artifact header p { color: var(--lp-muted); margin: .16rem 0 0; }",
+    ".lp-success, .lp-risk, .lp-questions, .lp-boundary { margin-top: 1rem; }",
+    ".lp-success { border: 1px solid var(--lp-border); border-radius: .45rem; padding: .72rem .85rem; }",
+    ".lp-success summary { align-items: center; cursor: pointer; display: flex; font-weight: 650; justify-content: space-between; gap: 1rem; }",
+    ".lp-count { color: var(--lp-muted); font-size: .82rem; font-weight: 400; }",
+    ".lp-success .lp-entry-list { padding-top: .5rem; }",
+    ".lp-risk .lp-entry, .lp-questions .lp-entry { border: 1px solid var(--lp-border); border-radius: .45rem; margin: .5rem 0; padding: .7rem .8rem; }",
+    ".lp-risk .lp-entry-marker { color: var(--lp-danger); }",
+    ".lp-boundary { border-top: 1px solid var(--lp-border); padding-top: .8rem; }",
+    ".lp-boundary h2, .lp-entry-section h2 { font-size: 14px; margin: 0 0 .4rem; }",
+    ".lp-boundary p { color: var(--lp-muted); margin: .25rem 0; }",
+    ".lp-visual-slot { grid-area: visuals; min-width: 0; }",
+    ".lp-visual-slot > h2 { margin-bottom: .55rem; }",
+    ".lp-artifact { background: var(--lp-surface); border: 1px solid var(--lp-border); border-radius: .5rem; margin-top: .6rem; min-width: 0; padding: .85rem; }",
+    ".lp-artifact header { align-items: flex-start; display: flex; justify-content: space-between; gap: 1rem; margin-bottom: .85rem; }",
+    ".lp-tabs { border-bottom: 1px solid var(--lp-border); display: flex; gap: .3rem; overflow-x: auto; }",
+    ".lp-tabs button { background: transparent; border: 0; border-bottom: 2px solid transparent; color: var(--lp-muted); cursor: pointer; font: inherit; padding: .55rem .65rem; white-space: nowrap; }",
+    ".lp-tabs button[aria-selected=\"true\"] { border-bottom-color: var(--lp-accent); color: var(--lp-text); }",
+    ".lp-tabs button:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid var(--lp-accent); outline-offset: 3px; }",
+    ".lp-flow { display: grid; gap: .7rem; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); list-style: none; margin: .5rem 0; padding: 0; }",
+    ".lp-flow li { align-items: center; background: var(--lp-raised); border: 1px solid var(--lp-border); border-radius: .45rem; display: flex; flex-direction: column; gap: .4rem; justify-content: center; min-height: 6rem; padding: .8rem; position: relative; text-align: center; }",
+    ".lp-flow li:not(:last-child)::after { color: var(--lp-accent); content: \"→\"; font-size: 1.25rem; position: absolute; right: -.55rem; top: 50%; transform: translate(50%, -50%); z-index: 1; }",
+    ".lp-step-icon { color: var(--lp-accent); }",
+    ".lp-image-scroll { max-width: 100%; overflow: auto; }",
+    ".lp-image-scroll img { display: block; height: auto; max-width: none; width: auto; }",
+    ".lp-html-preview { background: #fff; border: 1px solid var(--lp-border); border-radius: .35rem; height: min(70vh, 52rem); min-height: 28rem; width: 100%; }",
+    ".lp-file-link { color: var(--lp-accent); display: inline-block; margin-top: .45rem; text-decoration-thickness: .08em; }",
+    ".lp-attachment { align-items: center; background: var(--lp-raised); border: 1px solid var(--lp-border); border-radius: .4rem; display: flex; justify-content: space-between; gap: 1rem; padding: .8rem; }",
+    ".lp-attachment .lp-file-link { margin: 0; }",
+    ".lp-attachment > span, .lp-source-link { color: var(--lp-muted); font-size: .85rem; }",
+    ".lp-source-link { margin: .5rem 0 0; }",
+    ".lp-plan-details { margin-top: 2.2rem; }",
+    ".lp-detail { border: 1px solid var(--lp-border); border-radius: .35rem; margin: .35rem 0; }",
+    ".lp-detail summary { align-items: center; color: var(--lp-text); cursor: pointer; display: flex; font-weight: 600; justify-content: space-between; padding: .72rem .85rem; }",
+    ".lp-detail-body { border-top: 1px solid var(--lp-border); overflow-wrap: anywhere; padding: .65rem .85rem .9rem; }",
+    ".lp-detail-body > :first-child { margin-top: 0; }",
+    ".lp-detail-body > :last-child { margin-bottom: 0; }",
+    ".lp-heading { font-size: 16px; line-height: 1.3; margin: 1.35em 0 .55em; }",
+    ".lp-paragraph { margin: .65rem 0; }",
+    ".lp-list { margin: .35rem 0; padding-inline-start: 1.35rem; }",
+    ".lp-list li { margin: .35rem 0; }",
+    ".lp-code, .lp-source pre { background: #0c1015; border: 1px solid var(--lp-border); border-radius: .35rem; max-width: 100%; overflow: auto; padding: .85rem; }",
+    ".lp-code code, .lp-source code { font: .9em/1.5 ui-monospace, monospace; white-space: pre; }",
+    ".lp-inline-code, .lp-command { background: #0c1015; border: 1px solid var(--lp-border); border-radius: .25rem; color: var(--lp-accent); padding: .08em .3em; }",
+    ".lp-table-wrap { max-width: 100%; overflow-x: auto; }",
+    ".lp-table { border-collapse: collapse; min-width: 30rem; width: 100%; }",
+    ".lp-table th, .lp-table td { border: 1px solid var(--lp-border); padding: .55rem .7rem; text-align: start; vertical-align: top; }",
+    ".lp-table th { background: var(--lp-raised); }",
+    ".lp-link { color: var(--lp-accent); }",
+    "img, video, canvas, iframe { max-width: 100%; }",
+    "pre, table { max-width: 100%; }",
+    "@media (max-width: 44rem) { .js-enabled .lp-review-grid--with-visuals, .js-enabled .lp-review-grid--wide-only, .js-enabled .lp-review-grid--with-visuals[data-active-placement=\"wide\"] { display: block; } .lp-visual-slot { margin-top: 1.2rem; } .lp-flow { grid-template-columns: 1fr; } .lp-flow li:not(:last-child)::after { content: \"↓\"; bottom: -.8rem; right: 50%; top: auto; transform: translate(50%, 50%); } .lp-attachment { align-items: flex-start; flex-direction: column; } }",
+  ].join("\n")
+  const tabsScript = review && review.artifacts.length ? [
+    "<script>",
+    "(() => {",
+    '  document.documentElement.classList.add("js-enabled");',
+    '  const grid = document.querySelector(".lp-review-grid");',
+    '  const tabs = Array.from(document.querySelectorAll(".lp-tabs [role=tab]"));',
+    "  if (!grid || !tabs.length) return;",
+    "  const select = (index, moveFocus = false) => {",
+    '    const panel = document.getElementById(tabs[index].getAttribute("aria-controls"));',
+    "    tabs.forEach((tab, tabIndex) => {",
+    '      const selected = tabIndex === index;',
+    '      tab.setAttribute("aria-selected", String(selected));',
+    '      tab.setAttribute("tabindex", selected ? "0" : "-1");',
+    '      document.getElementById(tab.getAttribute("aria-controls")).hidden = !selected;',
+    "    });",
+    '    grid.dataset.activePlacement = panel.dataset.placement;',
+    "    if (moveFocus) tabs[index].focus();",
+    "  };",
+    "  tabs.forEach((tab, index) => {",
+    '    tab.addEventListener("click", () => select(index));',
+    '    tab.addEventListener("keydown", (event) => {',
+    "      let next = index;",
+    '      if (event.key === "ArrowRight") next = (index + 1) % tabs.length;',
+    '      else if (event.key === "ArrowLeft") next = (index + tabs.length - 1) % tabs.length;',
+    '      else if (event.key === "Home") next = 0;',
+    '      else if (event.key === "End") next = tabs.length - 1;',
+    "      else return;",
+    "      event.preventDefault();",
+    "      select(next, true);",
+    "    });",
+    "  });",
+    "  select(0);",
+    "})();",
+    "</script>",
+  ].join("\n") : ""
+  return '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
+    + '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
+    + '<meta name="color-scheme" content="dark">\n<title>' + escapeHtml(review ? review.title : plan.title)
+    + '</title>\n<style>\n' + style + '\n</style>\n</head>\n<body>\n'
+    + body + '\n' + tabsScript + '\n</body>\n</html>\n'
 }
 
 function parseArgs(argv) {
-  let input
-  let output
+  const options = {}
   for (let index = 0; index < argv.length; index += 1) {
     const flag = argv[index]
-    if (flag === "--input" || flag === "--output") {
+    if (["--input", "--review", "--output", "--icon"].includes(flag)) {
       const value = argv[index + 1]
-      if (!value || value.startsWith("--")) throw new Error(`${flag} requires a path`)
-      if (flag === "--input") input = value
-      else output = value
+      if (!value || value.startsWith("--")) throw new Error(flag + " requires a value")
+      options[flag.slice(2)] = value
       index += 1
+    } else if (flag === "--list-icons") {
+      options.listIcons = true
     } else if (flag === "--help") {
-      console.log(usage)
+      console.log(usage + "\n       node render-plan.mjs --list-icons\n       node render-plan.mjs --icon <name>")
       return null
     } else {
-      throw new Error(`unknown argument: ${flag}`)
+      throw new Error("unknown argument: " + flag)
     }
   }
-  if (!input) throw new Error(`missing --input; ${usage}`)
-  return { input, output }
+  if (options.listIcons || options.icon) {
+    if (options.listIcons && options.icon) throw new Error("--list-icons and --icon cannot be combined")
+    if (options.input || options.review || options.output) {
+      throw new Error("icon lookup cannot be combined with plan rendering")
+    }
+    return options
+  }
+  if (!options.input) throw new Error("missing --input; " + usage)
+  return options
 }
 
-function writeArtifact(html, requestedOutput) {
+function readReview(file, directory) {
+  let source
+  try {
+    source = readFileSync(file, "utf8")
+  } catch {
+    throw new Error("--review file cannot be read: " + file)
+  }
+  let value
+  try {
+    value = JSON.parse(source)
+  } catch {
+    throw new Error("--review file is not valid JSON: " + file)
+  }
+  return validateReview(value, directory)
+}
+
+function writeArtifact(render, requestedOutput) {
   if (!requestedOutput) {
     const directory = mkdtempSync(join(tmpdir(), "codex-plan-"))
     const path = join(directory, "plan.html")
-    writeFileSync(path, html, { encoding: "utf8", flag: "wx" })
+    writeFileSync(path, render(directory), { encoding: "utf8", flag: "wx" })
     return path
   }
 
@@ -590,7 +869,7 @@ function writeArtifact(html, requestedOutput) {
   const temporary = mkdtempSync(join(parent, ".render-plan-"))
   try {
     const path = join(temporary, "plan.html")
-    writeFileSync(path, html, { encoding: "utf8", flag: "wx" })
+    writeFileSync(path, render(parent), { encoding: "utf8", flag: "wx" })
     renameSync(path, output)
     return output
   } finally {
@@ -601,15 +880,30 @@ function writeArtifact(html, requestedOutput) {
 function main() {
   const options = parseArgs(process.argv.slice(2))
   if (!options) return
+  if (options.listIcons) {
+    console.log(listIcons())
+    return
+  }
+  if (options.icon) {
+    const icon = getIcon(options.icon)
+    if (!icon) throw new Error("--icon names an unknown icon: " + options.icon)
+    console.log(icon)
+    return
+  }
+
   const input = resolve(options.input)
   let source
   try {
     source = readFileSync(input, "utf8")
   } catch {
-    throw new Error("input plan cannot be read")
+    throw new Error("input plan cannot be read: " + input)
   }
-  if (!source.trim()) throw new Error("input plan is empty")
-  const path = writeArtifact(renderDocument(source), options.output)
+  if (!source.trim()) throw new Error("input plan is empty: " + input)
+  const review = options.review ? readReview(resolve(options.review), dirname(input)) : null
+  const path = writeArtifact(
+    (outputDirectory) => renderDocument(source, review, outputDirectory),
+    options.output,
+  )
   console.log(resolve(path))
 }
 

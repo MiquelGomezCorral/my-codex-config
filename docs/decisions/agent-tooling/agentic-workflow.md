@@ -57,6 +57,12 @@ slices with inspectable verification and explicit human authority across project
   worker, Git, and hosting-service state remains authoritative for reconciliation.
 - Brief tasks reduce effort and artifacts while preserving applicable authority,
   scope, evidence, and human-validation gates.
+- Human plan review uses a concise filled-in brief and a reusable workflow-owned HTML
+  renderer. The renderer owns layout, icons, tabs, and expandable detail; agents supply
+  content and useful artifacts. The complete Markdown specification remains authoritative.
+- Plans present useful diagrams, mockups, and evidence beside the brief or at full width,
+  with descriptive clickable viewer links. Optional sections disappear when unused; long
+  technical sections remain accessible without overwhelming the initial review.
 
 ## Protected invariants
 
@@ -74,6 +80,8 @@ slices with inspectable verification and explicit human authority across project
 - Read-only reviewers and cleanup auditors never edit product source or become fixers.
 - Required unavailable evidence is blocked/unverified, not an approval or invented defect.
 - Original approved plans keep their objective; approved amendments remain attached.
+- A concise review must preserve material risks, unresolved decisions, and approval bounds;
+  collapsed details and visual controls never create or expand approval.
 - Raw logs, runtime handles, credentials, and sessions are not persisted in tracked source.
 - Standalone commands retain their stopping behavior; complete-flow continuation requires
   approved workflow context.
@@ -91,6 +99,8 @@ Approved implementation targets are the workflow and stage skills, coding-superv
 live-validator roles, Pi role generation, and focused configuration/bootstrap checks.
 Human approvals, context independence, evidence quality, and real lifecycle recovery
 remain Review-only until demonstrated in an explicitly authorized live trial.
+Plan presentation is owned by the workflow renderer and planning reference, with focused
+renderer tests. Agreement between the human brief and full specification remains Review-only.
 
 ## History
 
@@ -105,3 +115,5 @@ remain Review-only until demonstrated in an explicitly authorized live trial.
   explicit gates.
 - 2026-09-28: Clarified that the final Git worker commits accepted task deliverables left
   after cleanup before an authorized push, while excluding working-only agent artifacts.
+- 2026-09-29: Approved a reusable concise plan-review template with useful visible artifacts,
+  expandable full specifications, and unchanged human approval boundaries.
