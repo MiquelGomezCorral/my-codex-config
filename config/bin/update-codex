@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+# update-codex — install or update the standalone Codex CLI that the `codex` on
+# PATH already belongs to.
+#
+# Why this exists: invoking the raw installer broke whenever /tmp was cleaned
+# and /tmp/codex-install.sh disappeared. This always downloads a fresh installer
+# into a private temp dir, and it derives the target from the live `codex`
+# symlink so it cannot install a second copy or need the long CODEX_HOME prefix.
+#
+# Usage:
+#   update-codex              # latest stable
+#   update-codex 0.158.0      # specific version ('v' / 'rust-v' accepted)
+#
+# Optional overrides:
+#   CODEX_HOME          Codex home to install into
+#   CODEX_INSTALL_DIR   Directory holding the `codex` symlink
+set -euo pipefail
+
+VERSION="${1:-latest}"
+CANONICAL_INSTALLER="https://releases.openai.com/codex/install.sh"
+
+resolve_home() {
+  local codex_bin standalone_home
+  if [[ -n "${CODEX_HOME:-}" ]]; then
+    printf '%s\n' "$CODEX_HOME"
+    return
+  fi
+  if [[ -n "${ORCA_CODEX_HOME:-}" ]]; then
+    printf '%s\n' "$ORCA_CODEX_HOME"
+    return
+  fi
+  codex_bin="$(command -v codex || true)"
+  if [[ -n "$codex_bin" ]]; then
+    codex_bin="$(readlink -f "$codex_bin" 2>/dev/null || printf '%s' "$codex_bin")"
+    if [[ "$codex_bin" == */packages/standalone/* ]]; then
+      standalone_home="${codex_bin%%/packages/standalone/*}"
+      printf '%s\n' "$standalone_home"
+      return
+    fi
+  fi
+  printf '%s\n' "$HOME/.codex"
+}
+
+resolve_install_dir() {
+  local codex_path dir
+  if [[ -n "${CODEX_INSTALL_DIR:-}" ]]; then
+    printf '%s\n' "$CODEX_INSTALL_DIR"
+    return
+  fi
+  codex_path="$(command -v codex || true)"
+  if [[ -n "$codex_path" ]]; then
+    dir="$(dirname "$codex_path")"
+    if [[ "$dir" != *"/packages/standalone/"* && "$dir" != *"/releases/"* ]]; then
+      printf '%s\n' "$dir"
+      return
+    fi
+  fi
+  printf '%s\n' "$HOME/.local/bin"
+}
+
+CODEX_RUNTIME_HOME="$(resolve_home)"
+INSTALL_DIR="$(resolve_install_dir)"
+
+tmp_dir="$(mktemp -d)"
+trap 'rm -rf "$tmp_dir"' EXIT
+installer="$tmp_dir/install.sh"
+
+fetch() {
+  local url="$1" out="$2" attempts="${3:-3}" attempt
+  for ((attempt = 1; attempt <= attempts; attempt++)); do
+    if curl -fsSL --connect-timeout 10 --max-time 300 "$url" -o "$out"; then
+      return 0
+    fi
+    echo "download failed (attempt $attempt/$attempts): $url" >&2
+    if (( attempt < attempts )); then
+      sleep 2
+    fi
+  done
+  return 1
+}
+
+if [[ "$VERSION" != "latest" ]]; then
+  ver="${VERSION#rust-v}"; ver="${ver#v}"
+  echo "==> fetching installer pinned to ${ver}"
+  fetch "https://github.com/openai/codex/releases/download/rust-v${ver}/install.sh" "$installer" 1 \
+    || fetch "$CANONICAL_INSTALLER" "$installer"
+else
+  echo "==> fetching latest installer"
+  fetch "$CANONICAL_INSTALLER" "$installer"
+fi
+
+echo "==> installing Codex ${VERSION}"
+echo "    CODEX_HOME=$CODEX_RUNTIME_HOME"
+echo "    install dir=$INSTALL_DIR"
+
+CODEX_HOME="$CODEX_RUNTIME_HOME" \
+CODEX_INSTALL_DIR="$INSTALL_DIR" \
+CODEX_INSTALLER_USE_RELEASES_OPENAI_COM=0 \
+CODEX_NON_INTERACTIVE=1 \
+sh "$installer" --release "$VERSION"
+
+echo "==> verifying"
+ls -l "$CODEX_RUNTIME_HOME/packages/standalone/current"
+"$INSTALL_DIR/codex" --version
+echo "==> done. Restart any running Codex sessions to pick up the new version."

@@ -197,6 +197,7 @@ check_source() {
     config/plugins/vault-context/stopwords/en.json
     config/plugins/vault-context/stopwords/es.json
     config/bin/codegraph-dependency.sh
+    config/bin/update-codex
     agent-home/skills/review/scripts/ocr-opencode-go
     config/searxng/settings.yml
     agent-home/skills/super-agent/references/model-catalog.yaml
@@ -449,6 +450,7 @@ install_config() {
   link_managed "$SKILLS_SOURCE" "$HOME/.agents/skills"
   link_managed "$ROOT/config/bin/codex-command-dispatch.mjs" "$CODEX_TARGET/bin/codex-command-dispatch.mjs"
   link_managed "$SKILLS_SOURCE/review/scripts/ocr-opencode-go" "$HOME/.local/bin/ocr-go"
+  link_managed "$ROOT/config/bin/update-codex" "$HOME/.local/bin/update-codex"
   link_managed "$ROOT/config/plugins/vault-context" "$CODEX_TARGET/vault-context"
   write_generated_agents
 }

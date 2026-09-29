@@ -33,6 +33,8 @@ done
 [[ -L "$CODEX_TARGET/bin/codex-command-dispatch.mjs" ]]
 [[ -L "$TEST_HOME/home/.local/bin/ocr-go" ]]
 [[ "$(readlink "$TEST_HOME/home/.local/bin/ocr-go")" == "$SKILLS_SOURCE/review/scripts/ocr-opencode-go" ]]
+[[ -L "$TEST_HOME/home/.local/bin/update-codex" ]]
+[[ "$(readlink "$TEST_HOME/home/.local/bin/update-codex")" == "$ROOT/config/bin/update-codex" ]]
 [[ -L "$CODEX_TARGET/vault-context" ]]
 [[ -L "$TEST_HOME/home/.agents/skills" ]]
 [[ ! -e "$CODEX_TARGET/bin/opencode-go-worker.mjs" ]]

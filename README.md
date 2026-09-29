@@ -8,6 +8,50 @@ OpenCode configuration remains separately owned by `my-opencode-config`.
 
 ## Workflow diagrams
 
+### What to tell the agent
+
+Send these prompts to the main agent in chat. Replace `<...>` with your project details.
+Start the complete flow with:
+
+```text
+$workflow --full I want <outcome>. The current problem is <problem>.
+Keep <constraints> and exclude <out-of-scope work>.
+```
+
+You can also pass a brief with `$workflow --full @path/to/brief.md`, or request a smaller
+planning pass with `$workflow --brief <task>`. Once started, the coordinator advances
+routine stages automatically. You supply decisions, action permissions, and acceptance.
+
+| Moment | What to say | What happens next |
+| --- | --- | --- |
+| First draft | Use the `$workflow` prompt above. | The agent gathers evidence, compares current and desired behavior, and asks about material choices. |
+| Planning and improvement | “Keep `<decision>`, change `<behavior>`, and exclude `<scope>`. Show the revised plan and a diagram or mockup for `<part>`.” | The candidate plan is revised before implementation. |
+| Candidate ready | “I accept this candidate for adversarial review.” | The coordinator runs `$review-plan`, resolves the critique, and uses `$refine-plan` to finalize the wave. |
+| Final wave ready | “I approve this wave. Start delivery in `<approved checkout/worktree>`. Local checkpoint commits are authorized.” | The agent prepares each slice and starts coding within the approved scope. Include any other Git/live permissions and their targets in the plan. |
+| Coding and review | No extra command needed. To correct direction: “The result must do `<expected behavior>`; `<observed behavior>` is wrong.” | The coordinator runs coding, the selected review preset, and verified corrections. Changed scope returns to you. |
+| Live validation | “Run `<specific flow>` in `<local/test environment>` using `<sample data>`.” | The agent runs that bounded live check. Give this permission during planning if you want it to proceed without another pause. |
+| Checkpoint and cleanup | No extra command if the local checkpoint was authorized. | The Git worker creates the checkpoint; `$cleanup` audits the whole slice and verified corrections return through coding and review. |
+| Result presented | “Change `<detail>`” or “I accept this result.” | Feedback returns through the correction loop. Acceptance allows already-authorized shipping actions to proceed. |
+| Shipping not yet authorized | “$git Commit the accepted changes and push to `origin/<branch>`. Create a PR targeting `<base>`.” | The Git worker gathers accepted deliverables, excludes working files, commits if needed, pushes, and creates the requested PR. Omit the PR sentence if you only want a push. |
+| PR feedback or merge | “Assess the PR comments” or “$git Merge PR `<number>` using `<method>` after required checks pass.” | The first request assesses feedback; the second explicitly authorizes the merge. A push never implies merge permission. |
+
+To run one stage separately, use the following skills. Standalone calls stop at their own
+boundary; they do not start the complete workflow.
+
+| Need | Prompt |
+| --- | --- |
+| Pressure-test unresolved choices | `$grill-me <idea or plan>` |
+| Format a complete existing plan | `$refine-plan` |
+| Critique an approved plan and finalize it | `$review-plan` (already includes `$refine-plan`) |
+| Implement the finalized plan | `$code` |
+| Review changes with a swarm | `$review --preset swarm` |
+| Verify another review's findings | `$review-findings <findings>` |
+| Audit unnecessary complexity | `$cleanup` (findings only; request corrections afterward) |
+| Commit, push, open a PR, or merge | `$git <exact actions and targets>` |
+
+After an interruption: “Resume the approved workflow from its saved plan and progress;
+verify the current state and continue within the existing permissions.”
+
 ![Whole workflow](workflow-diagrams/Whole-Flow.png)
 
 <details>
@@ -90,6 +134,9 @@ continues; a missing CLI never fails the bootstrap.
 `bootstrap.sh` validates its dependencies and source files before installing. It manages
 individual durable entries only; it never replaces or upgrades binaries, reads or links
 the complete `~/.codex` runtime directory, or writes under `~/.config/opencode`.
+`config/bin/update-codex` is an explicit, opt-in updater for the standalone Codex CLI:
+bootstrap links it to `~/.local/bin/update-codex` but never runs it, so upgrading Codex stays
+a deliberate user action.
 
 Conflicting managed entries are backed up under
 `${XDG_STATE_HOME:-$HOME/.local/state}/my-codex-config/backups/<timestamp>/` with private
@@ -155,6 +202,7 @@ only agent definition; the Pi and AGY role files are generated from it and never
 | `bin/codex-command-dispatch.mjs` | symlink |
 | `vault-context/` | symlink |
 | `~/.local/bin/ocr-go` | symlink to `agent-home/skills/review/scripts/ocr-opencode-go` |
+| `~/.local/bin/update-codex` | symlink to `config/bin/update-codex`; explicit updater, never run by bootstrap |
 | `~/.agents/skills` | symlink to `agent-home/skills` |
 | `~/.codex/skills/excalidraw` | synced from an external clone |
 | Ponytail, diagram-design | `codex plugin marketplace add` then `codex plugin add` |
