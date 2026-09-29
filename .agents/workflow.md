@@ -20,22 +20,16 @@ runtime state remain outside Git.
 Run `./bootstrap.sh --check`, the focused Node tests, and `bash tests/bootstrap.test.sh`.
 The isolated-home bootstrap is available as a user-approved live/readiness flow, not as
 an automatic deployment step.
-For the agentic workflow and Git-worker correction, the focused configuration/dispatch
-suite passed 16/16 tests and the full Node suite passed 21/21. Quick validation passed for
-the six changed skills, and `git diff --check` passed. `./bootstrap.sh --check` still stops
-on the existing machine-specific Orca hook path; `bash tests/bootstrap.test.sh` stops at
-the existing non-TTY Codex CLI probe before Pi/AGY generation assertions. The supervised
-Pi smoke test and live workflow scenarios remain unverified.
-After the stage/review/critic correction on 2026-09-28, the focused configuration suite
-passed 15/15 and the full Node suite passed 21/21. Codex TOML and shell syntax checks,
-four skill quick validations, and direct Pi/AGY critic-role rendering passed. The two
-bootstrap blockers above remain; no live agentic flow was run.
-The base-into-feature merge and stacked-PR check is covered by static contracts only; the
-repo-only migration rules prohibit the disposable repository needed for a live Git exercise.
-After the single-entry consolidation on 2026-09-28, the full Node suite passed 22/22,
-including command dispatch, skill contracts, and local SVG preview safety. The five
-changed skills passed quick validation; shell and renderer syntax plus `git diff --check`
-passed. The same pre-existing bootstrap blockers above remain. No live workflow was run.
+
+`--check` is read-only: it validates the source inventory, the dependency set, and the Codex
+configuration, then exits. `--check-deps` validates only the source and dependencies. Note
+that `--check` requires `codegraph` on `PATH`, while the full run installs it when missing.
+
+After the 2026-09-29 bootstrap handover repair, `./bootstrap.sh --check`,
+`bash tests/bootstrap.test.sh`, shell syntax checks, and the full Node suite passed (26/26).
+The actual `./bootstrap.sh --pi --agy` run installed all eleven roles and preserved local
+Codex settings; the reviewer recheck approved the result. The live disposable workflow
+remains unverified and still requires explicit user approval.
 
 For delegation-routing changes, edit model identifiers only in
 `agent-home/skills/super-agent/references/model-catalog.yaml`. Harness sections use

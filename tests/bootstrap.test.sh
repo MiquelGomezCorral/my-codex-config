@@ -150,13 +150,13 @@ done
 ! grep -q '^  - replace_file_content$' "$AGY_PLUGIN_ROOT/agents/cleanup-worker/agent.md"
 grep -q '^  - run_command$' "$AGY_PLUGIN_ROOT/agents/cleanup-worker/agent.md"
 grep -q '^tools: read, grep, find, ls, bash$' "$PI_AGENT_ROOT/agents/cleanup-worker.md"
-grep -q '^skills: cleanup, super-agent, writing$' "$PI_AGENT_ROOT/agents/cleanup-worker.md"
-grep -q '^skills: code, super-agent, writing$' "$PI_AGENT_ROOT/agents/coder.md"
+grep -q '^skills: cleanup, code-quality, super-agent, test-audit, writing$' "$PI_AGENT_ROOT/agents/cleanup-worker.md"
+grep -q '^skills: code, code-quality, super-agent, test-audit, writing$' "$PI_AGENT_ROOT/agents/coder.md"
 grep -q '^skills: git, writing$' "$PI_AGENT_ROOT/agents/git-worker.md"
-grep -q '^skills: workflow, review, review-findings, super-agent, writing$' "$PI_AGENT_ROOT/agents/coding-supervisor.md"
+grep -q '^skills: code-quality, review, review-findings, super-agent, test-audit, workflow, writing$' "$PI_AGENT_ROOT/agents/coding-supervisor.md"
 grep -q '^skills: code-quality, computer-use, review, test-audit, workflow, writing$' "$PI_AGENT_ROOT/agents/live-validator.md"
 grep -q '^skills: decision-records, web-search, writing$' "$PI_AGENT_ROOT/agents/critic.md"
-grep -q '^skills: review, review-findings, super-agent, writing$' "$PI_AGENT_ROOT/agents/review-worker.md"
+grep -q '^skills: code-quality, review, review-findings, super-agent, test-audit, writing$' "$PI_AGENT_ROOT/agents/review-worker.md"
 for name in cleanup-worker coding-supervisor review-worker; do
   grep -q '^allowNestedSubagents: true$' "$PI_AGENT_ROOT/agents/$name.md"
 done

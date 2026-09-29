@@ -279,6 +279,54 @@ test("decision records separate empty-index initialization from concern assessme
   ok(statSync(join(root, "docs/decisions/index.md"), { throwIfNoEntry: false }))
 })
 
+test("documented harness install map matches the installers", () => {
+  const readme = read("README.md")
+  const architecture = read(".agents/architecture.md")
+  const workflow = read(".agents/workflow.md")
+  const bootstrap = read("bootstrap.sh")
+  const pi = read("bootstrap_pi.sh")
+  const agy = read("bootstrap_agy.sh")
+
+  // all three harnesses are documented, with their targets
+  match(readme, /^## What gets installed where$/m)
+  match(readme, /^### Codex/m)
+  match(readme, /^### Pi/m)
+  match(readme, /^### AGY/m)
+  match(readme, /^### The eleven roles$/m)
+  match(readme, /`~\/\.pi\/agent`/)
+  match(readme, /`~\/\.gemini\/config`/)
+  match(readme, /\| `hooks\.json` \| private copy \|/)
+  match(readme, /retired `automation-runner` and `commit-worker` agents.*each harness/s)
+  match(readme, /--install-extension/)
+  match(readme, /`~\/\.gemini\/antigravity-cli\/settings\.json`/)
+
+  // the memory files point at the map instead of restating it
+  match(architecture, /bootstrap_pi\.sh` and `bootstrap_agy\.sh`/)
+  match(architecture, /What gets installed where/)
+  match(workflow, /`--check` is read-only/)
+  match(workflow, /codegraph` on `PATH`/)
+
+  // every declared role is documented, and both renderers generate from the TOMLs
+  const namesBlock = bootstrap.match(/CODEX_AGENT_NAMES=\(([\s\S]*?)\)/)
+  ok(namesBlock, "bootstrap.sh must declare CODEX_AGENT_NAMES")
+  const names = namesBlock[1].split(/\s+/).filter(Boolean)
+  strictEqual(names.length, 11, "bootstrap.sh must declare eleven roles")
+  for (const name of names) {
+    ok(readme.includes(`\`${name}\``), `README must document the ${name} role`)
+  }
+
+  for (const script of [pi, agy]) {
+    match(script, /source\.glob\("\*\.toml"\)/)
+    match(script, /\{"cleanup-worker", "coding-supervisor", "live-validator", "review-worker", "critic"\}/)
+  }
+
+  // the read-only set must stay identical across the two renderers
+  const readOnlyPi = pi.match(/read_only = name in \{[^}]*\}/)
+  const readOnlyAgy = agy.match(/read_only = name in \{[^}]*\}/)
+  ok(readOnlyPi && readOnlyAgy, "both renderers must declare a read-only set")
+  strictEqual(readOnlyPi[0], readOnlyAgy[0], "read-only roles must match across Pi and AGY")
+})
+
 test("Codex TOML agents use native fields and preserve all eleven roles", () => {
   const names = [
     "coder", "cleanup-worker", "git-worker", "review-worker",

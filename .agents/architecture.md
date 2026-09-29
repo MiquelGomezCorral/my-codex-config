@@ -8,6 +8,12 @@ Node.js adapters.
 ## Layout
 
 - `codex/` is the canonical individually managed Codex user configuration.
+- `bootstrap.sh` installs Codex. `bootstrap_pi.sh` and `bootstrap_agy.sh` render the same
+  eleven roles for Pi and AGY. `codex/agents/*.toml` is the only agent source; the Pi and
+  AGY role files are generated and never committed.
+- The per-entry install map, target by target, lives in `README.md` under
+  "What gets installed where". That table is the owner of those facts; do not restate it
+  here.
 - `agent-home/skills/` owns all shared skills and is linked to `~/.agents/skills`.
 - `config/` owns policy sources and portable helper/adapters; it is not a second skill
   owner.
@@ -38,8 +44,10 @@ and host evidence.
 
 ## Entry Points
 
-`bootstrap.sh` checks and installs the Codex configuration. The explicit Vault adapter is
-`config/plugins/vault-context/bin/search.mjs`; Ponytail lifecycle behavior is owned by
-`codex/hooks.json`.
+`bootstrap.sh` checks and installs the Codex configuration, and reaches Pi and AGY only
+through `--pi` and `--agy`, which delegate to `bootstrap_pi.sh` and `bootstrap_agy.sh`. All
+three share one skill source, `agent-home/skills`, linked through `~/.agents/skills`. The
+explicit Vault adapter is `config/plugins/vault-context/bin/search.mjs`; Ponytail lifecycle
+behavior is owned by `codex/hooks.json`.
 `$workflow` is the single opt-in planning-to-delivery entry point; `$code`,
 `$review`, `$cleanup`, and `$git` remain usable on their own.

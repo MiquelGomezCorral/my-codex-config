@@ -36,6 +36,16 @@ SearXNG connector; either flag leaves the other part unchanged.
 For isolated Pi configuration, run `./bootstrap_pi.sh`; add `--install-extension` to install
 Pi Subagents, the MCP adapter, and the SearXNG connector.
 
+Use `./bootstrap.sh --agy` to configure AGY. It writes a `my-codex-config` plugin under
+`~/.gemini/config/plugins/`, symlinks the eleven roles into `~/.gemini/config/agents/`, links
+the shared skills, and merges `toolPermission`, `artifactReviewPolicy`, and
+`enableTerminalSandbox` into `~/.gemini/antigravity-cli/settings.json`. For isolated AGY
+configuration, run `./bootstrap_agy.sh`.
+
+Both harness flags are opt-in and independent. `--pi --agy` configures both. If the matching
+CLI is not on `PATH`, that harness is skipped with a message and the rest of the install
+continues; a missing CLI never fails the bootstrap.
+
 `bootstrap.sh` validates its dependencies and source files before installing. It manages
 individual durable entries only; it never replaces or upgrades binaries, reads or links
 the complete `~/.codex` runtime directory, or writes under `~/.config/opencode`.
@@ -85,6 +95,63 @@ codex
 
 The configured endpoint is for US organizations. EU organizations use
 `https://api-eu.braintrust.dev/mcp` in `codex/config.toml`.
+
+## What gets installed where
+
+Each harness receives its own rendering from the same sources. `codex/agents/*.toml` is the
+only agent definition; the Pi and AGY role files are generated from it and never committed.
+
+### Codex — `$CODEX_HOME`, default `~/.codex`
+
+| Entry | Mechanism |
+| --- | --- |
+| `config.toml` | private copy; the runtime tail from `[marketplaces]`, `[plugins]`, `[hooks.state]`, or `[projects]` onward is preserved |
+| `hooks.json` | private copy |
+| `commands/` | symlink |
+| `rules/my-opencode-config.rules` | symlink |
+| `agents/<name>.toml`, 11 roles | private copy, because Codex appends trust state and rejects symlinked role files |
+| `AGENTS.md` | generated: header, then `config/AGENTS.md`, then `# Security Rules` and `config/security-rules.md` |
+| `bin/codex-command-dispatch.mjs` | symlink |
+| `vault-context/` | symlink |
+| `~/.local/bin/ocr-go` | symlink to `agent-home/skills/review/scripts/ocr-opencode-go` |
+| `~/.agents/skills` | symlink to `agent-home/skills` |
+| `~/.codex/skills/excalidraw` | synced from an external clone |
+| Ponytail, diagram-design | `codex plugin marketplace add` then `codex plugin add` |
+| SearXNG | Docker container, unless `--no-searxng` |
+
+The retired `automation-runner` and `commit-worker` agents are backed up and removed from
+each harness on every run.
+
+### Pi — `~/.pi/agent`
+
+| Entry | Mechanism |
+| --- | --- |
+| `agents/<name>.md`, 11 roles | generated from the Codex TOMLs; frontmatter carries `tools`, `thinking`, `skills`, and `allowNestedSubagents` |
+| `skills` | symlink to `~/.agents/skills` |
+| `mcp.json` | merged, not replaced: the `codegraph` and `searxng` servers, both lazy |
+| extensions | only with `--install-extension`: `pi-subagents`, `pi-mcp-adapter@2.34.0`, and `mcp-searxng@1.11.1` unless `--no-searxng-mcp` |
+
+### AGY — `~/.gemini/config`
+
+| Entry | Mechanism |
+| --- | --- |
+| `plugins/my-codex-config/plugin.json` | generated manifest |
+| `plugins/my-codex-config/agents/<name>/agent.md`, 11 roles | generated; `subagent: true`, `model: inherit`, `commandExecutionPolicy: eager`, and AGY-native tool names |
+| `plugins/my-codex-config/skills` | symlink to `~/.agents/skills` |
+| `agents/<name>/agent.md` | symlink to the plugin agent |
+| `skills` | symlink to `~/.agents/skills` |
+| `~/.gemini/antigravity-cli/settings.json` | merged: `toolPermission`, `artifactReviewPolicy`, `enableTerminalSandbox` |
+
+### The eleven roles
+
+`coder`, `cleanup-worker`, `git-worker`, `review-worker`, `reviewer-quick`,
+`reviewer-reasoning`, `reviewer-arch`, `reviewer-e2e`, `coding-supervisor`,
+`live-validator`, `critic`.
+
+Pi and AGY give the read-only roles only read tools. That set is `cleanup-worker`,
+`coding-supervisor`, `live-validator`, `review-worker`, `critic`, and every `reviewer-*`.
+Every other role may edit. Only `cleanup-worker`, `coding-supervisor`, and `review-worker`
+may nest subagents.
 
 ## Skills and agents
 
