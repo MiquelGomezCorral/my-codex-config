@@ -19,9 +19,9 @@ Treat the arguments as user intent, not a strict CLI grammar. Flags are optional
 Correct obvious spelling, transposition, punctuation, and wording mistakes when one
 interpretation is materially more likely. Do not silently rewrite an explicit model.
 
-When `--preset` is present, load its matching [flash](references/presets/flash.md),
-[swarm](references/presets/swarm.md), [swarm-smart](references/presets/swarm-smart.md),
-or [full](references/presets/full.md) reference. Ask once if the value is missing,
+When `--preset` is present, load its matching [flash](presets/flash.md),
+[swarm](presets/swarm.md), [swarm-smart](presets/swarm-smart.md),
+or [full](presets/full.md) reference. Ask once if the value is missing,
 unknown, or conflicts with an explicit mode. Without a preset, preserve the existing review
 mode and stopping behavior, then apply the default harness preference below. Presets never
 enable OCR or Slopo; `--ocr` remains an independent, explicit choice.
@@ -80,9 +80,14 @@ above>` in the coordinator packet. The coordinator applies the catalog's harness
 selection, local concurrency limit, and catalog-only fallback to each specialist.
 
 In approved workflow context, require the exact complete approved plan and amendments;
-each reviewer reads them in full and checks the diff against the current slice's intended
-result and exclusions. A plan summary alone is insufficient. Outside workflow context,
-include the exact persisted plan path established by `$code` when present. The packet
+each reviewer reads them in full and checks the current slice's intended result and
+exclusions. A plan summary alone is insufficient. Use the recorded slice base and inspect
+all changes from that base through the current head, plus task-owned staged, unstaged, and
+untracked worktree changes. Do not let staged-first selection omit committed checkpoint
+changes or task-owned untracked files. Pass the base revision, inspected head, and explicit
+task-owned path list in the reviewer packet; reviewers report those revisions and the
+worktree changes they inspected. Outside workflow context, retain staged-first selection
+and include the exact persisted plan path established by `$code` when present. The packet
 must preserve the normalized OCR marker.
 When supplied, also pass the exact workflow context, current slice scope, exclusions, and
 authorization bounds; the context cannot enable live testing or publication.
@@ -107,7 +112,7 @@ only after the authorization check in its preset reference.
 
 - `agent`: `reviewer-quick` for `flash`, otherwise the selected harness's best matching
   configured review coordinator
-- `prompt`: the complete current relevant diff and stated goal, exact mode, swarm-model,
+- `prompt`: the complete relevant diff basis and stated goal, exact mode, swarm-model,
   and OCR markers, harness-routing intent, complete approved plan and amendments when in
   workflow context, remaining context, and permission to delegate only for swarm mode
 - `model`: the exact catalog model selected for the route, unless the user explicitly
@@ -129,6 +134,5 @@ writers remain forbidden. Retained follow-ups use the selected harness's exact-s
 identity checks. The coordinator and specialists use bounded verification; publishing and
 unapproved edits remain unavailable.
 
-For swarm modes, follow [swarm coordination](references/swarm-coordination.md) within
+For swarm modes, follow [swarm coordination](swarm-coordination.md) within
 this `$review` run. It is not a separate skill or user entry point.
-

@@ -29,13 +29,12 @@ not proof of approval or completion.
 
 ## Slices
 
-| Slice | Depends on | Starting revision | Worktree | Checks/reviews | State |
-| --- | --- | --- | --- | --- | --- |
-| `<id>` | `<accepted predecessor or none>` | `<revision>` | `<workspace>` | `<evidence refs>` | `<state>` |
+| Slice | Depends on | Slice base revision | Worktree | Checkpoint hash | Final commit hash | Checks/reviews | State |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `<id>` | `<accepted predecessor or none>` | `<revision>` | `<workspace>` | `<hash or none>` | `<hash or none>` | `<evidence refs>` | `<state>` |
 
 ## Delivery
 
-- Checkpoint commit: `<hash or none>`
 - PR and target: `<link/branch or none>`
 - CI and review: `<state and evidence>`
 - Human presentation: `<state and evidence>`

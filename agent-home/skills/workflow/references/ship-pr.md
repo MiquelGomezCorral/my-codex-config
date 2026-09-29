@@ -5,6 +5,14 @@ must name each action, target, and bound; after the human accepts the presented 
 not request that same Git authorization again. A checkpoint alone does not authorize an
 unlisted push. Do not infer an unlisted merge.
 
+After acceptance, the Git worker inspects all remaining changes against the approved scope
+and the presented result. It stages explicit task-owned deliverables, commits only when
+needed, and then performs the plan-authorized push. Exclude private memory, progress files,
+temporary agent artifacts, and unrelated changes; classify plan-scoped skills and agent
+configuration as deliverables by their approved scope, not as working-only files by type.
+Verify the final tree matches the accepted result before shipping. Record both checkpoint
+and final commit hashes, and stop if ownership or the accepted tree is unclear.
+
 For a dependent slice, base its worktree on the predecessor PR's accepted head after its
 reviews, required CI, and human gates pass. While the predecessor is unmerged, target its
 branch so the child PR shows only the new slice. After the predecessor merges, reconcile

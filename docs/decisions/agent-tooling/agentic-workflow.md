@@ -34,6 +34,10 @@ slices with inspectable verification and explicit human authority across project
 - Live application testing and live tool preflight require explicit, bounded authorization.
 - A local checkpoint commit precedes cleanup. Cleanup audits stay read-only; an approved
   workflow may route verified in-scope simplifications to the implementation worker.
+- After the human accepts the result, the Git worker gathers remaining accepted task-owned
+  deliverables, excludes working-only agent artifacts and unrelated changes, makes a final
+  commit only when needed, and then performs only the plan-authorized push. The shipped tree
+  must match the result the human accepted.
 - Coding fixes verified in-scope findings at any severity, using P0-P3 to order work.
   Non-blocking out-of-scope findings are
   recorded and excluded; scope-expanding blockers escalate. Two unsuccessful rounds for
@@ -65,6 +69,8 @@ slices with inspectable verification and explicit human authority across project
   report the inspected head and relevant base, and changed evidence is revalidated.
 - Checkpoint recovery preserves unrelated work and existing history; no implicit reset,
   rebase, squash, amendment, force-push, or branch deletion is introduced.
+- A checkpoint alone does not prove that cleanup corrections were committed or shipped;
+  ambiguous ownership or a changed accepted result stops the final Git handoff.
 - Read-only reviewers and cleanup auditors never edit product source or become fixers.
 - Required unavailable evidence is blocked/unverified, not an approval or invented defect.
 - Original approved plans keep their objective; approved amendments remain attached.
@@ -97,3 +103,5 @@ remain Review-only until demonstrated in an explicitly authorized live trial.
 - 2026-09-28: Consolidated planning and delivery under `$workflow`, moved swarm
   coordination under `$review`, and made the full visual wave and per-slice refinement
   explicit gates.
+- 2026-09-28: Clarified that the final Git worker commits accepted task deliverables left
+  after cleanup before an authorized push, while excluding working-only agent artifacts.

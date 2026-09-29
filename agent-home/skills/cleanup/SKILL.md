@@ -27,16 +27,21 @@ $cleanup [--slopo] [goal or persisted-plan context]
    approved behavior that must remain unchanged. Stop rather than infer a missing goal.
 2. Capture complete Git status, staged and unstaged diffs, and untracked files. Identify
    task-owned changes from the plan, goal, and accepted corrections while preserving
-   pre-existing and unrelated worktree changes. Stop if ownership is ambiguous.
-3. If no relevant task-owned diff exists, report that cleanup was skipped and do not
-   launch a worker.
+   pre-existing and unrelated worktree changes. In approved workflow context, compare from
+   the recorded slice base through the current head so committed checkpoint changes are
+   included, then add later task-owned staged, unstaged, and untracked changes. Stop if
+   ownership is ambiguous.
+3. Skip cleanup only when the complete task-owned comparison is empty. In workflow context,
+   a clean post-checkpoint status alone does not establish that; report the base and
+   checkpoint revisions used.
 4. Inspect only the task diff and enough surrounding code, callers, tests, and project
    structure to verify a finding. Do not use diff size as a target.
 
 ## Launch
 
 Launch exactly one fresh `cleanup-worker` through `super-agent` with the plan or
-goal, task-owned paths and exclusions, and the complete status snapshot. The packet must
+goal, task-owned paths and exclusions, the complete status snapshot, and the workflow
+comparison basis when supplied. The packet must
 contain exactly one marker: `Slopo mode: enabled` when `$cleanup --slopo` was supplied,
 otherwise `Slopo mode: disabled`. Consume the flag in the parent; never forward it as
 shell input or user arguments.

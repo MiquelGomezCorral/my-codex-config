@@ -57,18 +57,14 @@
 <text x="70" y="63.19" text-anchor="start" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="500" fill="#111827">
 <tspan x="70" dy="0">Implemented Agentic Workflow</tspan>
 </text>
-<text x="72" y="100.7" text-anchor="start" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="500" fill="#475569">
-<tspan x="72" dy="0">Current repository behavior • explicit complete-workflow opt-in • evidence and limits in companion note</tspan>
-</text>
+<text x="72" y="100.7" text-anchor="start" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="500" fill="#475569"><tspan x="72" dy="0">Current workflow • complete-slice review and cleanup • accepted-tree Git handoff • limits in companion note</tspan></text>
 <text x="80" y="176.77" text-anchor="start" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="500" fill="#334155">
 <tspan x="80" dy="0">COMPLETE WORKFLOW  |  human owns decisions, approvals, stage transitions, and shipping</tspan>
 </text>
 <text x="1650" y="176.77" text-anchor="start" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="500" fill="#334155">
 <tspan x="1650" dy="0">OPTIONAL REVIEW SUBFLOW  |  standalone $review or selected workflow preset</tspan>
 </text>
-<text x="1650" y="1281.77" text-anchor="start" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="500" fill="#334155">
-<tspan x="1650" dy="0">DELEGATION, CLEANUP, AND SOURCE GAPS</tspan>
-</text>
+<text x="1650" y="1281.77" text-anchor="start" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="500" fill="#334155"><tspan x="1650" dy="0">DELEGATION, CLEANUP, AND VALIDATION</tspan></text>
 <text x="262.5" y="279.68" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
 <tspan x="262.5" dy="0">1  First draft</tspan>
 <tspan x="262.5" dy="24.32">Evidence + independent proposal</tspan>
@@ -77,18 +73,12 @@
 <tspan x="632.5" dy="0">2  Improve candidate</tspan>
 <tspan x="632.5" dy="24.32">Resolve choices; human accepts</tspan>
 </text>
-<text x="1002.5" y="279.68" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
-<tspan x="1002.5" dy="0">3  Adversarial pass</tspan>
-<tspan x="1002.5" dy="24.32">One critic + planner rebuttal</tspan>
-</text>
+<text x="1002.5" y="279.68" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033"><tspan x="1002.5" dy="0">3  Adversarial pass</tspan><tspan x="1002.5" dy="24.32">High-tier cross-family critic</tspan></text>
 <text x="1372.5" y="279.68" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
 <tspan x="1372.5" dy="0">Finalize plan</tspan>
 <tspan x="1372.5" dy="24.32">$review-plan → $refine-plan</tspan>
 </text>
-<text x="407.5" y="467.18" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
-<tspan x="407.5" dy="0">4  Prepare one sequential slice</tspan>
-<tspan x="407.5" dy="24.32">Scope, size, owner, checks, samples, review preset</tspan>
-</text>
+<text x="407.5" y="467.18" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033"><tspan x="407.5" dy="0">4  Prepare one sequential slice</tspan><tspan x="407.5" dy="24.32">Scope, owner, base revision, size, checks, review preset</tspan></text>
 <text x="960.0" y="455.94" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#172033">
 <tspan x="960.0" dy="0">Human approves</tspan>
 <tspan x="960.0" dy="23.04">implementation +</tspan>
@@ -113,12 +103,7 @@
 <tspan x="1235.0" dy="0">Coder owns product edits</tspan>
 <tspan x="1235.0" dy="24.32">One active writer; run only planned checks</tspan>
 </text>
-<text x="815.0" y="922.86" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
-<tspan x="815.0" dy="0">Checks + resulting-head review are required</tspan>
-<tspan x="815.0" dy="24.32">review-findings verifies reported claims and scope. Verified in-scope P0–P3 findings return to the coder;</tspan>
-<tspan x="815.0" dy="24.32">rerun affected checks. False positives are rejected; out-of-scope findings are recorded, not corrected.</tspan>
-<tspan x="815.0" dy="24.32">Escalate the same unresolved issue after two unsuccessful rounds.</tspan>
-</text>
+<text x="815.0" y="922.86" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033"><tspan x="815.0" dy="0">Review reads the full plan + complete slice</tspan><tspan x="815.0" dy="24.32">Recorded base → head + task-owned staged, unstaged, and untracked changes</tspan><tspan x="815.0" dy="24.32">Report inspected base/head; verify claims and scope</tspan><tspan x="815.0" dy="24.32">Verified in-scope P0–P3 return to coding; rerun affected checks</tspan><tspan x="815.0" dy="24.32">Reject false positives; record out-of-scope; escalate the same issue after 2 failed rounds</tspan></text>
 <text x="1245" y="803.63" text-anchor="start" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#7256a8">
 <tspan x="1245" dy="0">verified correction loop</tspan>
 </text>
@@ -130,23 +115,13 @@
 <tspan x="785.0" dy="0">$cleanup</tspan>
 <tspan x="785.0" dy="24.32">Read-only cleanup-worker audit</tspan>
 </text>
-<text x="1290.0" y="1187.8449999999998" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
-<tspan x="1290.0" dy="0">Workflow parent verifies each finding</tspan>
-<tspan x="1290.0" dy="24.32">Verified simplifications return to coding</tspan>
-<tspan x="1290.0" dy="24.32">If cleanup regresses, preserve checkpoint</tspan>
-</text>
-<text x="337.5" y="1419.6799999999998" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
-<tspan x="337.5" dy="0">7  Present observed result</tspan>
-<tspan x="337.5" dy="24.32">Flow, expected / observed, checks, gaps, artifacts</tspan>
-</text>
+<text x="1290.0" y="1187.8449999999998" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033"><tspan x="1290.0" dy="0">Pass slice base + checkpoint hash</tspan><tspan x="1290.0" dy="24.32">Compare base → checkpoint + later task work</tspan><tspan x="1290.0" dy="24.32">Skip only if full task diff is empty</tspan></text>
+<text x="337.5" y="1419.6799999999998" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033"><tspan x="337.5" dy="0">7  Present observed result</tspan><tspan x="337.5" dy="24.32">Show expected/observed flow, checks, and gaps</tspan><tspan x="337.5" dy="24.32">After cleanup corrections pass checks + review</tspan></text>
 <text x="800.0" y="1419.96" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#172033">
 <tspan x="800.0" dy="0">Human accepts</tspan>
 <tspan x="800.0" dy="23.04">result?</tspan>
 </text>
-<text x="1275.0" y="1419.6799999999998" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
-<tspan x="1275.0" dy="0">8  After acceptance: $git</tspan>
-<tspan x="1275.0" dy="24.32">Only plan-named actions + bounds</tspan>
-</text>
+<text x="1275.0" y="1419.6799999999998" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033"><tspan x="1275.0" dy="0">8  After acceptance: Git worker</tspan><tspan x="1275.0" dy="24.32">Stage accepted files; commit only if needed</tspan><tspan x="1275.0" dy="24.32">Verify accepted tree; run plan-authorized push</tspan></text>
 <text x="440.0" y="1632.1799999999998" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
 <tspan x="440.0" dy="0">Corrections that change code</tspan>
 <tspan x="440.0" dy="24.32">return through coding + affected review</tspan>
@@ -158,10 +133,7 @@
 <text x="100" y="1788.63" text-anchor="start" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#475569">
 <tspan x="100" dy="0">Dependent slices stay sequential; start the next only after required reviews, checks, and human gates pass.</tspan>
 </text>
-<text x="2075.0" y="262.18" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033">
-<tspan x="2075.0" dy="0">$review entry</tspan>
-<tspan x="2075.0" dy="24.32">Explicit standalone review or plan-selected preset</tspan>
-</text>
+<text x="2075.0" y="262.18" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500" fill="#172033"><tspan x="2075.0" dy="0">$review entry</tspan><tspan x="2075.0" dy="24.32">Standalone staged-first; workflow reviews the complete slice</tspan></text>
 <text x="1860.0" y="436.57" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#172033">
 <tspan x="1860.0" dy="0">Direct review</tspan>
 <tspan x="1860.0" dy="23.04">flash → reviewer-quick</tspan>
@@ -187,27 +159,13 @@
 <tspan x="2075.0" dy="0">Missing authorization or safe environment → live flow is blocked / unverified.</tspan>
 <tspan x="2075.0" dy="23.04">Static checks are not a live pass. OCR and Slopo remain explicit opt-ins.</tspan>
 </text>
-<text x="2075.0" y="1383.44" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#172033">
-<tspan x="2075.0" dy="0">super-agent owns worker routing</tspan>
-<tspan x="2075.0" dy="23.04">Active wrapper → harness / role / model; preserves scope, permissions, limits, lifecycle.</tspan>
-<tspan x="2075.0" dy="23.04">Nesting needs parent grant + role capability.</tspan>
-</text>
+<text x="2075.0" y="1383.44" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#172033"><tspan x="2075.0" dy="0">super-agent owns worker routing</tspan><tspan x="2075.0" dy="23.04">Active wrapper, explicit route, and catalog select models.</tspan><tspan x="2075.0" dy="23.04">Critic family constraint applies; nesting needs grant + role.</tspan></text>
 <text x="1860.0" y="1591.22" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#172033">
 <tspan x="1860.0" dy="0">Cleanup specialists</tspan>
 <tspan x="1860.0" dy="23.04">Up to 2 read-only reviewers</tspan>
 <tspan x="1860.0" dy="23.04">only when evidence surfaces differ;</tspan>
 <tspan x="1860.0" dy="23.04">otherwise cleanup-worker audits alone.</tspan>
 </text>
-<text x="2285.0" y="1579.07" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#172033">
-<tspan x="2285.0" dy="0">Git actions</tspan>
-<tspan x="2285.0" dy="23.04">$git → one git-worker</tspan>
-<tspan x="2285.0" dy="23.04">Plan names action, target, bounds;</tspan>
-<tspan x="2285.0" dy="23.04">never infer merge.</tspan>
-</text>
-<text x="2075.0" y="1796.92" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#172033">
-<tspan x="2075.0" dy="0">Source gaps shown, not inferred</tspan>
-<tspan x="2075.0" dy="23.04">• Workflow requires resulting-head review but names no reviewer dispatch.</tspan>
-<tspan x="2075.0" dy="23.04">• Independent proposal / planning critic has no named Codex role.</tspan>
-<tspan x="2075.0" dy="23.04">• No /workflow wrapper; complete workflow is an explicit skill.</tspan>
-</text>
+<text x="2285.0" y="1579.07" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#172033"><tspan x="2285.0" dy="0">Git worker after acceptance</tspan><tspan x="2285.0" dy="23.04">Stage accepted scope; commit if needed</tspan><tspan x="2285.0" dy="23.04">Exclude private/progress/temp/unrelated</tspan><tspan x="2285.0" dy="23.04">Match tree; record both hashes; plan push</tspan></text>
+<text x="2075.0" y="1796.92" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#172033"><tspan x="2075.0" dy="0">Live validation remains pending</tspan><tspan x="2075.0" dy="23.04">• Review and cleanup use the complete task-owned slice.</tspan><tspan x="2075.0" dy="23.04">• Final Git handoff checks the accepted tree.</tspan><tspan x="2075.0" dy="23.04">• Disposable end-to-end flow awaits user approval.</tspan></text>
 </svg>

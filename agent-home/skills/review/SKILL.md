@@ -12,7 +12,9 @@ This skill owns the shared review standard and `$review` orchestration.
 Any review, including one a specialist performs, reads
 [references/code-review.md](references/code-review.md) before reviewing. Findings, P0-P3
 severity, scope classification, and the output contract come from there and are not
-restated here. Inspect the staged diff first; use the unstaged diff when nothing is staged.
+restated here. Standalone `$review` inspects the staged diff first and uses the unstaged
+diff when nothing is staged. Approved workflow review uses the complete slice basis in
+[references/orchestration.md](references/orchestration.md), not staged-first selection.
 
 ## Review modes
 

@@ -60,3 +60,9 @@ this format.
 - In an approved workflow, create a local cleanup checkpoint only when the plan names that
   action and its scope. Record the hash; do not push it or treat it as permission for an
   unlisted shipping action.
+- For the final post-acceptance handoff, inspect every remaining staged, unstaged, and
+  untracked change against the approved scope and presented result. Stage explicit
+  task-owned deliverable paths; exclude private memory, progress files, temporary agent
+  artifacts, and unrelated changes. A plan-scoped skill or agent-configuration file is a
+  deliverable by scope, not a working-only artifact by filename. Create a final commit only
+  when needed, record its hash, and stop if ownership or the accepted result is unclear.

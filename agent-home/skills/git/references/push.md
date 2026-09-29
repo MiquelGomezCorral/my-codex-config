@@ -16,6 +16,9 @@ around it.
 - In a workflow, the accepted plan must name the push, target branch, and bounds. After the
   human accepts the presented result, the plan's named push may proceed without another
   action-level authorization request. A local checkpoint alone does not authorize a push.
+- In the final workflow handoff, push only after the Git worker has staged the accepted
+  task-owned deliverables, created a final commit if needed, and verified that the resulting
+  tree matches the presented result. Record the checkpoint and final commit hashes.
 - Review repository instructions and checks. Stop if the worktree contains secrets, unclear
   unrelated changes, or failed required verification.
 - Push and set the upstream when required (`git push -u origin <branch>`). Never force-push

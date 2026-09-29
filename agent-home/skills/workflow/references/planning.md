@@ -130,7 +130,7 @@ Do not turn unanswered choices into assumptions. Resolve the Git common director
 preserve exact existing plan paths when continuing older work. List supporting evidence
 and artifacts. Keep implementation choices and durable project decisions distinct.
 Render the plan using
-`node agent-home/skills/workflow/scripts/render-plan.mjs --input <plan.md> --output <artifact.html>`;
+`node "$HOME/.agents/skills/workflow/scripts/render-plan.mjs" --input <plan.md> --output <artifact.html>`;
 open the resulting HTML with `npx -y lavish-axi <artifact.html>`. Keep the Markdown file
 authoritative. Keep the new HTML and any plan-specific editable diagrams/SVG previews
 beside the private plan so relative links work and no new plan artifact enters Git.

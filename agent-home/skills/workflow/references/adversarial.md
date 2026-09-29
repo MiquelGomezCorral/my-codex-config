@@ -1,14 +1,18 @@
 # Adversarial review
 
 Run `$review-plan` once for this phase; it routes one independent, read-only `critic`
-through `super-agent` to challenge necessity, feasibility, scope, assumptions, evidence,
-and acceptance conditions. Do not launch a second critic before or after that review.
-Under Orca, default
-to the Pi harness and `high` tier; otherwise use the current harness and `high` tier.
-Read the exact model identifier from `super-agent/references/model-catalog.yaml` at
-dispatch. Preserve an explicit human harness or model choice. Give the critic the complete
-candidate plan, claims, cited sources, bug evidence, user requirements, and exclusions;
-require source checks for consequential claims rather than a summary verdict.
+through `super-agent` at the `high` tier to challenge necessity, feasibility, scope,
+assumptions, evidence, and acceptance conditions. Prefer an available cataloged critic from
+a different model family than the planner. Use the planner's effective model when the
+runtime reports it, otherwise its configured model. Under Orca, prefer Pi only when its
+cataloged high-tier route meets the family condition; otherwise select another available
+cataloged high-tier route. Preserve an explicit human harness or model choice. If that
+route cannot meet the family condition, report the limitation instead of silently
+substituting. Pass the planner's effective model and family to `super-agent` so it can
+select a critic from a different family. Do not launch a second critic before or after
+that review. Give the critic the complete candidate plan, claims, cited sources, bug
+evidence, user requirements, and
+exclusions; require source checks for consequential claims rather than a summary verdict.
 
 Give the planner one rebuttal to address the critique. Consolidate valid findings,
 distinguish missing evidence from a demonstrated defect, and resolve remaining material

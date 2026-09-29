@@ -34,6 +34,10 @@ triage have one owner per fact without losing the repository's own rules.
   including a local checkpoint before cleanup. The final human gate validates the result
   before shipping without a second action-level authorization. A checkpoint does not
   authorize an unplanned push, and workflow context alone authorizes no Git mutation.
+- After result acceptance, the Git worker inspects all remaining changes, stages only
+  accepted task-owned deliverables, creates a final commit if those changes require one,
+  and then performs the plan-authorized push. Working-only agent artifacts and unrelated
+  changes stay out of the commit and push.
 - Sequential workflow slices start from the accepted predecessor PR head without requiring
   its merge. While that parent is unmerged, the new PR targets the parent branch; after a
   parent merge, reconcile the target and revalidate affected review/CI evidence.
@@ -52,6 +56,8 @@ triage have one owner per fact without losing the repository's own rules.
 - A repository without this skill still receives complete working git defaults.
 - Checkpoints and stacked PRs preserve unrelated work and history. Destructive recovery
   requires explicit approval; implementers never inherit merge permission from coding.
+- The final pushed tree matches the accepted result; ambiguous ownership or a material
+  difference from that result stops shipping.
 
 ## Rationale and tradeoffs
 
@@ -82,6 +88,8 @@ resolution it required is gone with it.
 - 2026-09-28: Assigned all five Git actions to one `git-worker`, accepted named plan
   authority without repeated Git permission prompts, and changed merge direction to
   synchronize the protected base into the feature branch.
+- 2026-09-28: Clarified the final Git worker's responsibility to commit accepted
+  post-cleanup deliverables before an authorized push and exclude working-only artifacts.
 - 2026-09-27: Approved bounded local checkpoint commits, sequential stacked PR targets,
   and named shipping authority carried by approved plans, without weakening repository gates.
 - 2026-09-25: Consolidated seven overlapping git skills into one `git` skill with five

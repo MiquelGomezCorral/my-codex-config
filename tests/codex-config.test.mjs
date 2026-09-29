@@ -214,7 +214,7 @@ test("workflow renders its native wave plan and delegates diagrams only by reque
   const lavish = read("agent-home/skills/lavish/SKILL.md")
 
   match(planning, /Markdown file\s+authoritative/i)
-  match(planning, /node agent-home\/skills\/workflow\/scripts\/render-plan\.mjs/)
+  match(planning, /node "\$HOME\/\.agents\/skills\/workflow\/scripts\/render-plan\.mjs"/)
   match(planning, /deterministic renderer never delegates/i)
   match(planning, /custom diagram may use `super-agent` only\s+when requested/i)
   match(planning, /Pi `medium` model at `low` thinking/i)
@@ -384,9 +384,12 @@ test("cheap model catalog is harness-first and keeps identifiers centralized", (
   const routingReference = read("agent-home/skills/super-agent/references/routing.md")
   const modelIds = [...catalog.matchAll(/^\s+-\s+(\S+)$/gm)].map(([, id]) => id)
   const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  const defaultSubagentModel = read("codex/config.toml").match(/^default_subagent_model = "([^"]+)"$/m)?.[1]
 
   match(catalog, /^max_local_concurrency:\s*1$/m)
   match(catalog, /^codex:\n  low:\n    - \S+$/m)
+  strictEqual(defaultSubagentModel, "gpt-6-luna")
+  ok(modelIds.includes(defaultSubagentModel), "Codex default subagent model must come from the catalog")
   for (const harness of ["pi", "agy"]) {
     match(catalog, new RegExp(`^${harness}:$`, "m"))
     for (const tier of ["low", "medium", "high"]) match(catalog, new RegExp(`^  ${tier}:$`, "m"))
@@ -430,12 +433,9 @@ test("cheap model catalog is harness-first and keeps identifiers centralized", (
 test("delegating skills require runtime-native capability-aware routing", () => {
   const routing = read("agent-home/skills/super-agent/SKILL.md")
   const routingReference = read("agent-home/skills/super-agent/references/routing.md")
-  const defaultSubagentModel = read("codex/config.toml").match(/^default_subagent_model = "([^"]+)"$/m)?.[1]
   const lifecycle = read("agent-home/skills/super-agent/references/lifecycle.md")
   const swarm = read("agent-home/skills/super-agent/references/swarm.md")
   const review = read("agent-home/skills/review/SKILL.md")
-  strictEqual(defaultSubagentModel, "gpt-6-luna")
-  ok(modelIds.includes(defaultSubagentModel), "Codex default subagent model must come from the catalog")
   const reviewOrchestration = read("agent-home/skills/review/references/orchestration.md")
   const multiReview = read("agent-home/skills/review/references/swarm-coordination.md")
   const orchestration = read("agent-home/skills/orchestration/SKILL.md")
@@ -504,7 +504,7 @@ test("cleanup and review quality gates keep external evidence opt-in and read-on
   match(cleanup, /explicit `\$cleanup` invocation/)
   match(cleanup, /findings only|findings-only/i)
   match(cleanup, /complete Git status/i)
-  match(cleanup, /task-owned.*diff/i)
+  match(cleanup, /task-owned changes/i)
   match(cleanup, /production and tests/i)
   match(cleanup, /reviewer-arch/)
   match(cleanup, /reviewer-reasoning/)
@@ -615,6 +615,10 @@ test("agentic workflow keeps stage contracts, approvals, and scenario definition
   const shipPr = read("agent-home/skills/workflow/references/ship-pr.md")
   const scenariosPath = "agent-home/skills/workflow/references/scenarios.md"
   const scenarios = read(scenariosPath)
+  const hooks = JSON.parse(read("codex/hooks.json"))
+  const hookCommands = Object.values(hooks.hooks).flatMap((events) => (
+    events.flatMap(({ hooks: registeredHooks }) => registeredHooks.map(({ command }) => command))
+  )).filter((command) => command.includes("codex-hook.sh"))
 
   for (const path of [
     "agent-home/skills/workflow/templates/progress.md",
@@ -649,8 +653,19 @@ test("agentic workflow keeps stage contracts, approvals, and scenario definition
   match(codingLoop, /For `small`.*For `large`/s)
   match(codingLoop, /root coordinates and does not edit product code/i)
   match(cleanup, /read-only, findings-only contract/)
+  match(cleanup, /committed checkpoint changes/)
+  match(cleanup, /complete task-owned comparison is empty/)
   match(shipPr, /follow its authority section/)
   match(shipPr, /do\s+not request that same Git authorization again/)
+  match(shipPr, /stages explicit task-owned deliverables/)
+  match(shipPr, /final tree matches the accepted result/)
+  match(reviewOrchestration, /task-owned staged, unstaged, and\s+untracked worktree changes/)
+  match(reviewOrchestration, /reviewers report those revisions/)
+  ok(hookCommands.length > 0, "Codex config must retain the Orca hook")
+  for (const command of hookCommands) {
+    match(command, /\$HOME\/\.orca\/agent-hooks\/codex-hook\.sh/)
+    doesNotMatch(command, /\/home\/[^/]+\/\.orca\/agent-hooks\/codex-hook\.sh/)
+  }
   match(code, /`\$code` itself still stops after implementation/)
   match(findings, /Blocked\/unverified/)
   for (const preset of ["flash", "swarm", "swarm-smart", "full"]) {

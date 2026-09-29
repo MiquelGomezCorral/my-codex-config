@@ -56,8 +56,10 @@ context conflicts or a non-Git action's bounds are missing.
    review depth, artifacts, and bounded authorizations. Present and revise it until the
    human accepts it for adversarial review.
 3. **Adversarial review and wave approval:** run `$review-plan` once. It routes one
-   reusable `critic` through `super-agent`; verify consequential claims and bug evidence,
-   allow one planner rebuttal, and escalate remaining disputes. `$review-plan` calls
+   reusable `critic` through `super-agent` at the `high` tier, using an available cataloged
+   model from a different family than the planner. Preserve an explicit user route and
+   report when it cannot meet that family condition. Verify consequential claims and bug
+   evidence, allow one planner rebuttal, and escalate remaining disputes. `$review-plan` calls
    `$refine-plan`. Persist the complete wave Markdown plan and render its reviewable HTML
    and available editable diagrams/SVG previews as described in the planning reference.
    Show all wave evidence, slices, artifacts, and authorizations to the human. Ask whether
@@ -67,7 +69,8 @@ context conflicts or a non-Git action's bounds are missing.
    can do it for `large` under a bounded grant. Refinement may change technical steps
    within the approved outcome and scope; report amendments. Escalate changed behavior,
    scope, dependencies, validation method, or authority to the human. Record its
-   result, owner, coding size, checks, samples, tools, review preset, and artifacts. The
+   result, owner, coding size, checks, samples, tools, review preset, artifacts, and exact
+   slice base revision before coding. The
    human-approved plan records `small` or `large`, with any human override. The wave
    approval covers its exact implementation and worktree bounds; ask for missing live
    authorization before that action. Apply only the exact approved decision-record
@@ -81,24 +84,37 @@ context conflicts or a non-Git action's bounds are missing.
 5. **Coding loop:** send a small plan directly to one retained coder. For a large plan, use
    a read-only `coding-supervisor` with a bounded grant to direct one retained coder and
    coordinate the selected review within the approved slice. The small-slice coordinator
-   or large-slice supervisor invokes `$review --preset <approved preset>` on the resulting
-   head with the complete approved plan, amendments, diff basis, checks, and slice context.
+   or large-slice supervisor invokes `$review --preset <approved preset>` with the complete
+   approved plan, amendments, checks, and slice context. In workflow context, the review
+   basis includes changes from the recorded slice base through the inspected head plus
+   every task-owned staged, unstaged, and untracked change. Pass the base, head, and
+   task-owned paths to the reviewer, who reports the inspected revisions. Standalone
+   `$review` keeps staged-first selection.
    Verify findings before correction; correct every verified in-scope P0-P3 finding, using
    priority to order work. Escalate after two unsuccessful rounds for the same unresolved
    problem.
 6. **Cleanup:** after coding gates pass, run the authorized local checkpoint through
-   `$git`, record its hash, then run the read-only `$cleanup` audit. Verify each finding
-   before routing an in-scope simplification back through the coding loop.
+   `$git`, record its hash, then run the read-only `$cleanup` audit with the slice base and
+   checkpoint hash. Compare the complete task-owned changes from base through the current
+   tree, including the checkpoint and later staged, unstaged, or untracked worktree changes.
+   Skip cleanup only when that complete comparison is empty; a clean post-checkpoint status
+   alone is not enough. Verify each finding before routing an in-scope simplification back
+   through the coding loop. A correction must pass affected checks and review before
+   presentation.
 7. **Present to human:** show the actual result, planned evidence, checks, known gaps, and
-   artifacts. Route feedback through the coding loop. After acceptance, the human-facing
-   coordinator applies exact approved updates to private agent memory once. Do not ship
-   before human acceptance.
-8. **Ship and monitor:** after the human accepts the presented result, run `$git` only for
-   actions and bounds named by the approved plan. Acceptance is a result gate, not a second
-   Git authorization request. If a merge conflict occurs, route its resolution through
-   `git-worker`, rerun affected checks and review, and re-present the result if behavior
-   changed or remains uncertain. Inspect required CI and review feedback; never infer an
-   unnamed action.
+   artifacts after cleanup corrections pass their affected gates. Route feedback through
+   the coding loop. After acceptance, the human-facing coordinator applies exact approved
+   updates to private agent memory once. Do not ship before human acceptance.
+8. **Ship and monitor:** after acceptance, the Git worker inspects remaining changes
+   against the approved scope and accepted result, stages explicit task-owned deliverables,
+   and creates a final commit only when needed. It excludes private memory, progress files,
+   temporary agent artifacts, and unrelated changes; approved skill and agent-configuration
+   files remain deliverables. Verify the final tree matches the accepted result before
+   performing only the plan-authorized push. Record checkpoint and final commit hashes.
+   Acceptance is a result gate, not a second Git authorization request. If a merge
+   conflict occurs, route its resolution through `git-worker`, rerun affected checks and
+   review, and re-present the result if behavior changed or remains uncertain. Inspect
+   required CI and review feedback; never infer an unnamed action.
 9. **Close the wave:** record completed and unfinished slices, next decisions, deferred
    findings, and lessons in local progress state.
 

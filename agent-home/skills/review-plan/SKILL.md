@@ -13,11 +13,17 @@ When an approved workflow context is supplied, preserve its slice order, scope, 
 and exact bounded authorizations. Plan review does not itself authorize implementation,
 live testing, or Git actions; report missing or conflicting approval requirements.
 
-Load `super-agent` without restarting planning. Under Orca, route one fresh `critic` role
-through Pi at the `high` tier; otherwise use the current harness at `high`. Select the
-exact model from `super-agent/references/model-catalog.yaml` and preserve an explicit
-human route. Give it the main agent's complete planning context: the user's
-request and corrections, every decision and answered question, unresolved questions,
+Load `super-agent` without restarting planning. Route one fresh `critic` role at the
+`high` tier through a cataloged model family different from the planner's effective model.
+Use the runtime-reported planner model when available, otherwise its configured model.
+Pass the planner's effective model and family to `super-agent` so it can enforce the
+family difference when selecting the exact critic model.
+Under Orca, prefer Pi only when its cataloged high-tier route meets this condition; without
+an explicit route, use another available cataloged high-tier route when needed. Preserve an
+explicit human harness or model choice; if it prevents a different-family route, report the
+limitation instead of substituting. `super-agent` selects the exact model from
+`super-agent/references/model-catalog.yaml`. Give it the main agent's complete planning
+context: the user's request and corrections, every decision and answered question, unresolved questions,
 alternatives considered and why they were rejected, repository evidence, applicable
 instructions, the separate approved `Decision records` section, and the full proposed and
 approved plan. Do not assume it inherits the
