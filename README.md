@@ -6,6 +6,47 @@ Delegation uses an active wrapper's lifecycle when one is present; otherwise it 
 current harness's native worker tools.
 OpenCode configuration remains separately owned by `my-opencode-config`.
 
+## Workflow diagrams
+
+![Whole workflow](workflow-diagrams/Whole-Flow.png)
+
+<details>
+<summary>Stage diagrams and legend</summary>
+
+### Legend
+
+![Diagram legend](workflow-diagrams/Legend.png)
+
+### First draft
+
+![First draft](workflow-diagrams/First-Draft.png)
+
+### Planning
+
+![Planning](workflow-diagrams/Planning.png)
+
+### Adversarial review
+
+![Adversarial review](workflow-diagrams/Adversarial.png)
+
+### Improvement plan loop
+
+![Improvement plan loop](workflow-diagrams/Improvement-Plan-Loop.png)
+
+### Wave implementation
+
+![Wave implementation](workflow-diagrams/Wave-Implementation.png)
+
+### Coding loop
+
+![Coding loop](workflow-diagrams/Coding-loop.png)
+
+### Review
+
+![Review](workflow-diagrams/Reviw.png)
+
+</details>
+
 ## Requirements
 
 - macOS or Linux with Bash and Git.
