@@ -158,7 +158,10 @@ PY
   link_managed "$HOME/.agents/skills" "$AGY_CONFIG_ROOT/skills"
   link_managed "$HOME/.agents/skills" "$AGY_PLUGIN_TARGET/skills"
 
-  retire_agent "$AGY_GLOBAL_AGENTS/automation-runner/agent.md"
+  for name in automation-runner commit-worker; do
+    retire_agent "$AGY_GLOBAL_AGENTS/$name/agent.md"
+    retire_agent "$AGY_PLUGIN_TARGET/agents/$name/agent.md"
+  done
 
   RENDER_DIR=$(mktemp -d "${TMPDIR:-/tmp}/my-codex-config-agy.XXXXXX")
   render_agents "$RENDER_DIR"

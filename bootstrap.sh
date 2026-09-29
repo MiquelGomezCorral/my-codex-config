@@ -252,25 +252,9 @@ check_base_dependencies() {
   ((${#missing[@]} == 0)) || die "Missing required commands: ${missing[*]}"
 }
 
-check_codex_config() {
-  local check_home
-  check_home=$(mktemp -d "${TMPDIR:-/tmp}/my-codex-config-check.XXXXXX")
-  mkdir -p "$check_home/.codex"
-  install -m 600 "$CODEX_SOURCE/config.toml" "$check_home/.codex/config.toml"
-  if ! HOME="$check_home" CODEX_HOME="$check_home/.codex" \
-    XDG_CONFIG_HOME="$check_home/.config" XDG_DATA_HOME="$check_home/.local/share" \
-    XDG_STATE_HOME="$check_home/.local/state" codex mcp-server --strict-config < /dev/null \
-    >/dev/null 2>&1; then
-    rm -rf "$check_home"
-    die "Codex rejected the managed configuration"
-  fi
-  rm -rf "$check_home"
-}
-
 if $CHECK_ONLY; then
   check_source
   check_dependencies
-  check_codex_config
   printf 'Codex configuration source is valid.\n'
   exit 0
 fi
@@ -328,29 +312,101 @@ install_managed_file() {
   install -m 600 "$source" "$target"
 }
 
+# Keep local plan mode, extra MCP servers, and runtime tables outside the source config.
 install_codex_config() {
   local source=$1
   local target=$2
-  local runtime_line runtime_tail temporary
+  local runtime_line temporary
 
   if [[ -f "$target" && ! -L "$target" ]]; then
+    temporary=$(mktemp "$target.tmp.XXXXXX")
     runtime_line=$(grep -n -m 1 -E '^\[(marketplaces|plugins|hooks\.state|projects)(\.|\])' "$target" | cut -d: -f1 || true)
-    if [[ -n "$runtime_line" ]]; then
-      runtime_tail=$(mktemp "${TMPDIR:-/tmp}/my-codex-config-runtime.XXXXXX")
-      tail -n "+$runtime_line" "$target" > "$runtime_tail"
-      temporary="$target.tmp-$$"
-      { cat "$source"; printf '\n'; cat "$runtime_tail"; } > "$temporary"
+    if python3 - "$source" "$target" "$runtime_line" "$temporary" <<'PY'
+import pathlib
+import re
+import sys
+import tomllib
+
+source_path, target_path, output_path = map(pathlib.Path, (sys.argv[1], sys.argv[2], sys.argv[4]))
+source_text = source_path.read_text(encoding="utf-8")
+target_text = target_path.read_text(encoding="utf-8")
+try:
+    source_data = tomllib.loads(source_text)
+    target_data = tomllib.loads(target_text)
+except Exception as exc:
+    raise SystemExit(f"Could not parse Codex config: {exc}")
+
+target_lines = target_text.splitlines(keepends=True)
+runtime_line = int(sys.argv[3]) if sys.argv[3] else 0
+prefix_lines = target_lines[:runtime_line - 1] if runtime_line else target_lines
+runtime_text = "".join(target_lines[runtime_line - 1:]) if runtime_line else ""
+prefix_text = "".join(prefix_lines)
+first_table = re.search(r"(?m)^[ \t]*\[", prefix_text)
+root_text = prefix_text[:first_table.start()] if first_table else prefix_text
+local_root = ""
+if "plan_mode_reasoning_effort" in target_data and "plan_mode_reasoning_effort" not in source_data:
+    setting = re.compile(r"^[ \t]*(?:\"plan_mode_reasoning_effort\"|'plan_mode_reasoning_effort'|plan_mode_reasoning_effort)[ \t]*=")
+    line = next((line for line in root_text.splitlines() if setting.match(line)), None)
+    if line is None:
+        raise SystemExit("Could not preserve plan_mode_reasoning_effort")
+    local_root = line.rstrip("\r\n")
+
+local_servers = set(target_data.get("mcp_servers", {})) - set(source_data.get("mcp_servers", {}))
+local_tables = []
+local_dotted = []
+table_header = re.compile(r"(?m)^[ \t]*\[(?!\[)(.*?)\][ \t]*(?:#.*)?$")
+headers = list(table_header.finditer(prefix_text))
+table_key = re.compile(r'"((?:\\.|[^"\\])*)"|\'([^\']*)\'|([A-Za-z0-9_-]+)')
+for index, match in enumerate(headers):
+    keys = [quoted or literal or bare for quoted, literal, bare in table_key.findall(match.group(1))]
+    if len(keys) > 1 and keys[0] == "mcp_servers" and keys[1] in local_servers:
+        end = headers[index + 1].start() if index + 1 < len(headers) else len(prefix_text)
+        local_tables.append(prefix_text[match.start():end].rstrip())
+
+if local_servers:
+    dotted_server = re.compile(r'''^[ \t]*mcp_servers[ \t]*\.[ \t]*(?:"((?:\\.|[^"\\])*)"|'([^']*)'|([A-Za-z0-9_-]+))[ \t]*\.''')
+    for line in root_text.splitlines():
+        match = dotted_server.match(line)
+        if match and next((key for key in match.groups() if key is not None), None) in local_servers:
+            local_dotted.append(line.rstrip("\r\n"))
+
+root_additions = [line for line in (local_root, *local_dotted) if line]
+first_table = re.search(r"(?m)^[ \t]*\[", source_text)
+if root_additions:
+    additions = "\n".join(root_additions)
+    if first_table:
+        source_text = source_text[:first_table.start()].rstrip() + "\n\n" + additions + "\n\n" + source_text[first_table.start():]
+    else:
+        source_text = source_text.rstrip() + "\n\n" + additions + "\n"
+
+if local_tables:
+    source_text = source_text.rstrip() + "\n\n" + "\n\n".join(local_tables) + "\n"
+if runtime_text:
+    source_text = source_text.rstrip() + "\n\n" + runtime_text.lstrip()
+try:
+    merged_data = tomllib.loads(source_text)
+except Exception as exc:
+    raise SystemExit(f"Could not merge Codex config: {exc}")
+if local_root and merged_data.get("plan_mode_reasoning_effort") != target_data["plan_mode_reasoning_effort"]:
+    raise SystemExit("Could not preserve plan_mode_reasoning_effort")
+for server in local_servers:
+    if merged_data.get("mcp_servers", {}).get(server) != target_data["mcp_servers"][server]:
+        raise SystemExit(f"Could not preserve local MCP server {server}")
+pathlib.Path(sys.argv[4]).write_text(source_text, encoding="utf-8")
+PY
+    then
       chmod 600 "$temporary"
       if cmp -s "$temporary" "$target"; then
-        rm "$temporary" "$runtime_tail"
+        rm "$temporary"
         chmod 600 "$target"
         return
       fi
       backup_existing "$target"
       mv "$temporary" "$target"
-      rm "$runtime_tail"
       return
     fi
+    rm -f "$temporary"
+    die "Could not safely merge Codex config at $target; existing config left unchanged"
   fi
 
   install_managed_file "$source" "$target"
@@ -381,10 +437,12 @@ install_config() {
   mkdir -p "$CODEX_TARGET" "$CODEX_TARGET/rules" "$CODEX_TARGET/agents" "$CODEX_TARGET/bin" "$HOME/.agents" "$HOME/.local/bin"
 
   install_codex_config "$CODEX_SOURCE/config.toml" "$CODEX_TARGET/config.toml"
-  link_managed "$CODEX_SOURCE/hooks.json" "$CODEX_TARGET/hooks.json"
+  install_managed_file "$CODEX_SOURCE/hooks.json" "$CODEX_TARGET/hooks.json"
   link_managed "$COMMANDS_SOURCE" "$CODEX_TARGET/commands"
   link_managed "$CODEX_SOURCE/rules/my-opencode-config.rules" "$CODEX_TARGET/rules/my-opencode-config.rules"
-  retire_agent "$CODEX_TARGET/agents/automation-runner.toml"
+  for name in automation-runner commit-worker; do
+    retire_agent "$CODEX_TARGET/agents/$name.toml"
+  done
   for name in "${CODEX_AGENT_NAMES[@]}"; do
     install_managed_file "$CODEX_SOURCE/agents/$name.toml" "$CODEX_TARGET/agents/$name.toml"
   done

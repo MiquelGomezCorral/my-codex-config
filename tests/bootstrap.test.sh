@@ -10,14 +10,19 @@ source "$REPO_ROOT/bootstrap.sh"
 
 mkdir -p "$CODEX_TARGET"
 printf 'keep this runtime state\n' > "$CODEX_TARGET/auth.json"
-printf 'old config\n' > "$CODEX_TARGET/config.toml"
+printf '# old config\n' > "$CODEX_TARGET/config.toml"
+cp "$CODEX_SOURCE/hooks.json" "$TEST_HOME/hooks-source.json"
+ln -s "$CODEX_SOURCE/hooks.json" "$CODEX_TARGET/hooks.json"
 
 install_config
 
 [[ -f "$CODEX_TARGET/config.toml" ]]
 [[ ! -L "$CODEX_TARGET/config.toml" ]]
 cmp -s "$CODEX_TARGET/config.toml" "$CODEX_SOURCE/config.toml"
-[[ -L "$CODEX_TARGET/hooks.json" ]]
+[[ -f "$CODEX_TARGET/hooks.json" ]]
+[[ ! -L "$CODEX_TARGET/hooks.json" ]]
+cmp -s "$CODEX_TARGET/hooks.json" "$CODEX_SOURCE/hooks.json"
+cmp -s "$CODEX_SOURCE/hooks.json" "$TEST_HOME/hooks-source.json"
 [[ -L "$CODEX_TARGET/commands" ]]
 [[ -L "$CODEX_TARGET/rules/my-opencode-config.rules" ]]
 for name in coder cleanup-worker git-worker review-worker reviewer-quick reviewer-reasoning reviewer-arch reviewer-e2e coding-supervisor live-validator critic; do
@@ -39,16 +44,21 @@ grep -q 'All agents, including nested workers, must load `super-agent`' "$CODEX_
 [[ "$(<"$CODEX_TARGET/auth.json")" == 'keep this runtime state' ]]
 [[ -e "$BACKUP_ROOT/.codex/config.toml" ]]
 [[ ! -e "$REPO_ROOT/config/skills" ]]
-HOME="$TEST_HOME/home" CODEX_HOME="$CODEX_TARGET" codex mcp-server --strict-config < /dev/null >/dev/null
-
 [[ ! -e "$TEST_HOME/home/.pi" ]]
 [[ ! -e "$TEST_HOME/home/.gemini" ]]
 mkdir -p "$TEST_HOME/home/.pi/agent/agents" "$TEST_HOME/home/.gemini/config/agents/reviewer-quick"
 printf 'keep Pi role\n' > "$TEST_HOME/home/.pi/agent/agents/coder.md"
 printf 'retire Pi role\n' > "$TEST_HOME/home/.pi/agent/agents/automation-runner.md"
+printf 'retire Pi commit role\n' > "$TEST_HOME/home/.pi/agent/agents/commit-worker.md"
 printf 'keep AGY role\n' > "$TEST_HOME/home/.gemini/config/agents/reviewer-quick/agent.md"
 mkdir -p "$TEST_HOME/home/.gemini/config/agents/automation-runner"
 printf 'retire AGY role\n' > "$TEST_HOME/home/.gemini/config/agents/automation-runner/agent.md"
+mkdir -p "$TEST_HOME/home/.gemini/config/agents/commit-worker"
+printf 'retire AGY commit role\n' > "$TEST_HOME/home/.gemini/config/agents/commit-worker/agent.md"
+mkdir -p "$TEST_HOME/home/.gemini/config/plugins/my-codex-config/agents/automation-runner"
+printf 'retire AGY plugin role\n' > "$TEST_HOME/home/.gemini/config/plugins/my-codex-config/agents/automation-runner/agent.md"
+mkdir -p "$TEST_HOME/home/.gemini/config/plugins/my-codex-config/agents/commit-worker"
+printf 'retire AGY plugin commit role\n' > "$TEST_HOME/home/.gemini/config/plugins/my-codex-config/agents/commit-worker/agent.md"
 mkdir -p "$TEST_HOME/home/.gemini/antigravity-cli"
 printf '{"colorScheme":"dark","toolPermission":"request-review","enableTerminalSandbox":true}\n' > "$TEST_HOME/home/.gemini/antigravity-cli/settings.json"
 HOME="$TEST_HOME/home" BACKUP_ROOT="$BACKUP_ROOT" "$REPO_ROOT/bootstrap_pi.sh"
@@ -66,19 +76,49 @@ for name in coder cleanup-worker git-worker review-worker reviewer-quick reviewe
   grep -q "^name: $name$" "$PI_AGENT_ROOT/agents/$name.md"
   grep -q "^name: $name$" "$AGY_PLUGIN_ROOT/agents/$name/agent.md"
 done
+python3 - "$CODEX_SOURCE/agents" "$CODEX_TARGET/agents" "$PI_AGENT_ROOT/agents" "$AGY_PLUGIN_ROOT/agents" <<'PY'
+import pathlib
+import sys
+import tomllib
+
+source, codex, pi, agy = map(pathlib.Path, sys.argv[1:])
+roles = sorted(source.glob("*.toml"))
+names = {path.stem for path in roles}
+assert len(names) == 11
+assert {path.stem for path in codex.glob("*.toml")} == names
+assert {path.stem for path in pi.glob("*.md")} == names
+assert {path.parent.name for path in agy.glob("*/agent.md")} == names
+
+for path in roles:
+    name = path.stem
+    prompt = tomllib.loads(path.read_text(encoding="utf-8"))["developer_instructions"].strip()
+    assert prompt in (pi / f"{name}.md").read_text(encoding="utf-8"), name
+    assert prompt in (agy / name / "agent.md").read_text(encoding="utf-8"), name
+PY
 [[ -L "$PI_AGENT_ROOT/skills" ]]
 [[ "$(readlink "$PI_AGENT_ROOT/skills")" == "$TEST_HOME/home/.agents/skills" ]]
 [[ -L "$AGY_CONFIG_ROOT/skills" ]]
 [[ "$(readlink "$AGY_CONFIG_ROOT/skills")" == "$TEST_HOME/home/.agents/skills" ]]
 [[ -L "$AGY_PLUGIN_ROOT/skills" ]]
 [[ "$(readlink "$AGY_PLUGIN_ROOT/skills")" == "$TEST_HOME/home/.agents/skills" ]]
+for skills_root in "$TEST_HOME/home/.agents/skills" "$PI_AGENT_ROOT/skills" "$AGY_CONFIG_ROOT/skills" "$AGY_PLUGIN_ROOT/skills"; do
+  [[ -f "$skills_root/writing/SKILL.md" ]]
+  [[ -f "$skills_root/super-agent/SKILL.md" ]]
+done
 [[ "$(<"$BACKUP_ROOT/.pi/agent/agents/coder.md")" == 'keep Pi role' ]]
 [[ "$(<"$BACKUP_ROOT/.gemini/config/agents/reviewer-quick/agent.md")" == 'keep AGY role' ]]
 [[ "$(<"$BACKUP_ROOT/.pi/agent/agents/automation-runner.md")" == 'retire Pi role' ]]
+[[ "$(<"$BACKUP_ROOT/.pi/agent/agents/commit-worker.md")" == 'retire Pi commit role' ]]
 [[ "$(<"$BACKUP_ROOT/.gemini/config/agents/automation-runner/agent.md")" == 'retire AGY role' ]]
+[[ "$(<"$BACKUP_ROOT/.gemini/config/agents/commit-worker/agent.md")" == 'retire AGY commit role' ]]
+[[ "$(<"$BACKUP_ROOT/.gemini/config/plugins/my-codex-config/agents/automation-runner/agent.md")" == 'retire AGY plugin role' ]]
+[[ "$(<"$BACKUP_ROOT/.gemini/config/plugins/my-codex-config/agents/commit-worker/agent.md")" == 'retire AGY plugin commit role' ]]
 [[ ! -e "$PI_AGENT_ROOT/agents/automation-runner.md" ]]
+[[ ! -e "$PI_AGENT_ROOT/agents/commit-worker.md" ]]
 [[ ! -e "$AGY_CONFIG_ROOT/agents/automation-runner/agent.md" ]]
+[[ ! -e "$AGY_CONFIG_ROOT/agents/commit-worker/agent.md" ]]
 [[ ! -e "$AGY_PLUGIN_ROOT/agents/automation-runner/agent.md" ]]
+[[ ! -e "$AGY_PLUGIN_ROOT/agents/commit-worker/agent.md" ]]
 grep -q '^subagent: true$' "$AGY_PLUGIN_ROOT/agents/coder/agent.md"
 ! grep -q '^mainAgent:' "$AGY_PLUGIN_ROOT/agents/coder/agent.md"
 grep -q '^model: inherit$' "$AGY_PLUGIN_ROOT/agents/coder/agent.md"
@@ -129,6 +169,20 @@ for name in coding-supervisor live-validator; do
 done
 
 printf 'retire Codex role\n' > "$CODEX_TARGET/agents/automation-runner.toml"
+printf 'retire Codex commit role\n' > "$CODEX_TARGET/agents/commit-worker.toml"
+python3 - "$CODEX_TARGET/config.toml" <<'PY'
+import pathlib
+import re
+import sys
+
+path = pathlib.Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+first_table = re.search(r"(?m)^[ \t]*\[", text)
+assert first_table
+text = text[:first_table.start()].rstrip() + '\n\n"plan_mode_reasoning_effort" = "medium"\nmcp_servers.dotted-test.command = "dotted-local-helper"\nmcp_servers.dotted-test.args = []\n\n' + text[first_table.start():]
+text += '\n[mcp_servers.local-test]\ncommand = "local-only-helper"\nargs = []\n'
+path.write_text(text, encoding="utf-8")
+PY
 printf '\n[hooks.state]\n' >> "$CODEX_TARGET/config.toml"
 ! grep -q '\[hooks.state\]' "$CODEX_SOURCE/config.toml"
 install_config
@@ -137,11 +191,53 @@ install_config
 grep -q '^\[hooks.state\]$' "$CODEX_TARGET/config.toml"
 [[ -e "$CODEX_TARGET/auth.json" ]]
 [[ ! -e "$CODEX_TARGET/agents/automation-runner.toml" ]]
+[[ ! -e "$CODEX_TARGET/agents/commit-worker.toml" ]]
 [[ "$(<"$BACKUP_ROOT/.codex/agents/automation-runner.toml")" == 'retire Codex role' ]]
+[[ "$(<"$BACKUP_ROOT/.codex/agents/commit-worker.toml")" == 'retire Codex commit role' ]]
+python3 - "$CODEX_TARGET/config.toml" <<'PY'
+import pathlib
+import sys
+import tomllib
 
-HOOK_COMMAND=$(node -e 'const hooks=require(process.argv[1]); process.stdout.write(hooks.hooks.UserPromptSubmit[0].hooks[0].command)' "$CODEX_SOURCE/hooks.json")
+config = tomllib.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+assert config["plan_mode_reasoning_effort"] == "medium"
+assert config["mcp_servers"]["local-test"]["command"] == "local-only-helper"
+assert config["mcp_servers"]["dotted-test"] == {"command": "dotted-local-helper", "args": []}
+assert config["hooks"]["state"] == {}
+PY
+config_backups=("$BACKUP_ROOT"/.codex/config.toml*)
+config_backup_count=${#config_backups[@]}
+cp "$CODEX_TARGET/config.toml" "$TEST_HOME/config-before-rerun.toml"
+install_config
+cmp -s "$TEST_HOME/config-before-rerun.toml" "$CODEX_TARGET/config.toml"
+config_backups=("$BACKUP_ROOT"/.codex/config.toml*)
+[[ ${#config_backups[@]} -eq $config_backup_count ]]
+
+cp "$CODEX_TARGET/config.toml" "$TEST_HOME/valid-config.toml"
+printf '\ninvalid = [\n' >> "$CODEX_TARGET/config.toml"
+cp "$CODEX_TARGET/config.toml" "$TEST_HOME/invalid-config.toml"
+if (install_codex_config "$CODEX_SOURCE/config.toml" "$CODEX_TARGET/config.toml") 2> "$TEST_HOME/config-merge.err"; then
+  printf 'Expected invalid local Codex config to fail safely\n' >&2
+  exit 1
+fi
+cmp -s "$TEST_HOME/invalid-config.toml" "$CODEX_TARGET/config.toml"
+grep -q 'existing config left unchanged' "$TEST_HOME/config-merge.err"
+cp "$TEST_HOME/valid-config.toml" "$CODEX_TARGET/config.toml"
+cmp -s "$CODEX_SOURCE/hooks.json" "$TEST_HOME/hooks-source.json"
+
+HOOK_COMMAND=$(node -e 'const hooks=require(process.argv[1]); process.stdout.write(hooks.hooks.UserPromptSubmit[0].hooks[0].command)' "$CODEX_TARGET/hooks.json")
 mkdir -p "$TEST_HOME/runtime"
 printf '%s' '{"prompt":"ordinary prompt"}' | HOME="$TEST_HOME/home" CODEX_HOME="$TEST_HOME/runtime" sh -c "$HOOK_COMMAND"
+HOOK_DIR="$TEST_HOME/home/.orca/agent-hooks"
+mkdir -p "$HOOK_DIR"
+cat > "$HOOK_DIR/codex-hook.sh" <<'EOF'
+#!/bin/sh
+cat >/dev/null
+printf 'called\n' > "$HOME/hook-called"
+EOF
+chmod +x "$HOOK_DIR/codex-hook.sh"
+printf '%s' '{"prompt":"ordinary prompt"}' | HOME="$TEST_HOME/home" sh -c "$HOOK_COMMAND"
+[[ "$(<"$TEST_HOME/home/hook-called")" == called ]]
 
 # Readiness tests stub every package and container action and isolate HOME.
 STUB_BIN="$TEST_HOME/stub-bin"

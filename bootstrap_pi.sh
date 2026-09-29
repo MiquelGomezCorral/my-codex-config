@@ -220,7 +220,9 @@ main() {
   mkdir -p "$HOME/.agents"
   link_managed "$SKILLS_SOURCE" "$HOME/.agents/skills"
   link_managed "$HOME/.agents/skills" "$PI_AGENT_ROOT/skills"
-  retire_agent "$PI_AGENT_ROOT/agents/automation-runner.md"
+  for name in automation-runner commit-worker; do
+    retire_agent "$PI_AGENT_ROOT/agents/$name.md"
+  done
 
   RENDER_DIR=$(mktemp -d "${TMPDIR:-/tmp}/my-codex-config-pi.XXXXXX")
   render_agents "$RENDER_DIR"

@@ -324,7 +324,7 @@ test("Codex TOML agents use native fields and preserve all eleven roles", () => 
   match(critic, /Do not change the goal/)
   ok(config.includes("[mcp_servers.codegraph]"))
   ok(config.includes('command = "codegraph"'))
-  match(config, /^model = "gpt-5\.6-sol"$/m)
+  match(config, /^model = "gpt-6-sol"$/m)
   match(config, /^web_search = "live"$/m)
   doesNotMatch(config, /\[mcp_servers\.(?:playwright|searxng)\]/)
   doesNotMatch(config, /\/Users\/|\/Applications\/|\/home\/[^/]+\//)
@@ -382,9 +382,12 @@ test("cheap model catalog is harness-first and keeps identifiers centralized", (
 test("delegating skills require runtime-native capability-aware routing", () => {
   const routing = read("agent-home/skills/super-agent/SKILL.md")
   const routingReference = read("agent-home/skills/super-agent/references/routing.md")
+  const defaultSubagentModel = read("codex/config.toml").match(/^default_subagent_model = "([^"]+)"$/m)?.[1]
   const lifecycle = read("agent-home/skills/super-agent/references/lifecycle.md")
   const swarm = read("agent-home/skills/super-agent/references/swarm.md")
   const review = read("agent-home/skills/review/SKILL.md")
+  strictEqual(defaultSubagentModel, "gpt-6-luna")
+  ok(modelIds.includes(defaultSubagentModel), "Codex default subagent model must come from the catalog")
   const reviewOrchestration = read("agent-home/skills/review/references/orchestration.md")
   const multiReview = read("agent-home/skills/review/references/swarm-coordination.md")
   const orchestration = read("agent-home/skills/orchestration/SKILL.md")
