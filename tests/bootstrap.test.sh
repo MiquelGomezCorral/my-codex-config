@@ -25,7 +25,7 @@ cmp -s "$CODEX_TARGET/hooks.json" "$CODEX_SOURCE/hooks.json"
 cmp -s "$CODEX_SOURCE/hooks.json" "$TEST_HOME/hooks-source.json"
 [[ -L "$CODEX_TARGET/commands" ]]
 [[ -L "$CODEX_TARGET/rules/my-opencode-config.rules" ]]
-for name in coder cleanup-worker git-worker review-worker reviewer-quick reviewer-reasoning reviewer-arch reviewer-e2e coding-supervisor live-validator critic; do
+for name in coder cleanup-worker git-worker review-worker reviewer-quick reviewer-reasoning reviewer-arch reviewer-e2e coding-supervisor live-validator critic diagram-worker; do
   [[ -f "$CODEX_TARGET/agents/$name.toml" ]]
   [[ ! -L "$CODEX_TARGET/agents/$name.toml" ]]
   cmp -s "$CODEX_TARGET/agents/$name.toml" "$CODEX_SOURCE/agents/$name.toml"
@@ -71,7 +71,7 @@ HOME="$TEST_HOME/home" BACKUP_ROOT="$BACKUP_ROOT" "$REPO_ROOT/bootstrap_agy.sh"
 PI_AGENT_ROOT="$TEST_HOME/home/.pi/agent"
 AGY_CONFIG_ROOT="$TEST_HOME/home/.gemini/config"
 AGY_PLUGIN_ROOT="$AGY_CONFIG_ROOT/plugins/my-codex-config"
-for name in coder cleanup-worker git-worker review-worker reviewer-quick reviewer-reasoning reviewer-arch reviewer-e2e coding-supervisor live-validator critic; do
+for name in coder cleanup-worker git-worker review-worker reviewer-quick reviewer-reasoning reviewer-arch reviewer-e2e coding-supervisor live-validator critic diagram-worker; do
   [[ -f "$PI_AGENT_ROOT/agents/$name.md" ]]
   [[ -f "$AGY_PLUGIN_ROOT/agents/$name/agent.md" ]]
   [[ -L "$AGY_CONFIG_ROOT/agents/$name/agent.md" ]]
@@ -86,7 +86,7 @@ import tomllib
 source, codex, pi, agy = map(pathlib.Path, sys.argv[1:])
 roles = sorted(source.glob("*.toml"))
 names = {path.stem for path in roles}
-assert len(names) == 11
+assert len(names) == 12
 assert {path.stem for path in codex.glob("*.toml")} == names
 assert {path.stem for path in pi.glob("*.md")} == names
 assert {path.parent.name for path in agy.glob("*/agent.md")} == names
@@ -149,6 +149,9 @@ for name in coder git-worker; do
   grep -q '^  - replace_file_content$' "$AGY_PLUGIN_ROOT/agents/$name/agent.md"
   grep -q '^tools: read, grep, find, ls, bash, edit, write$' "$PI_AGENT_ROOT/agents/$name.md"
 done
+grep -q '^tools: read, edit, write, bash$' "$PI_AGENT_ROOT/agents/diagram-worker.md"
+grep -q '^skills: diagram-design$' "$PI_AGENT_ROOT/agents/diagram-worker.md"
+! grep -q '^allowNestedSubagents:' "$PI_AGENT_ROOT/agents/diagram-worker.md"
 ! grep -q '^  - replace_file_content$' "$AGY_PLUGIN_ROOT/agents/cleanup-worker/agent.md"
 grep -q '^  - run_command$' "$AGY_PLUGIN_ROOT/agents/cleanup-worker/agent.md"
 grep -q '^tools: read, grep, find, ls, bash$' "$PI_AGENT_ROOT/agents/cleanup-worker.md"
@@ -355,6 +358,7 @@ PATH="$STUB_BIN:/usr/bin:/bin" STUB_LOG="$STUB_LOG" PI_LOG="$PI_LOG" \
 grep -q 'npm install --global @colbymchenry/codegraph@1.6.0' "$STUB_LOG"
 grep -q 'pi install npm:pi-subagents' "$PI_LOG"
 grep -q 'pi install npm:pi-mcp-adapter@2.34.0' "$PI_LOG"
+grep -q 'pi install https://github.com/cathrynlavery/diagram-design' "$PI_LOG"
 grep -q 'pi install npm:mcp-searxng@1.11.1' "$PI_LOG"
 grep -q 'docker run' "$STUB_LOG"
 grep -q 'Started SearXNG container' "$TEST_HOME/full.out"
@@ -377,10 +381,12 @@ assert_pi_connector "$FULL_HOME"
 grep -q '^    - json$' "$FULL_HOME/.local/share/my-codex-config/searxng/config/settings.yml"
 
 before_runs=$(grep -c '^docker run' "$STUB_LOG")
+before_diagram_installs=$(grep -c 'pi install https://github.com/cathrynlavery/diagram-design' "$PI_LOG")
 PATH="$STUB_BIN:/usr/bin:/bin" STUB_LOG="$STUB_LOG" PI_LOG="$PI_LOG" \
   DOCKER_STATE="$FULL_STATE" DOCKER_INSPECT_COUNT_FILE="$FULL_INSPECT_COUNT" HOME="$FULL_HOME" \
   "$REPO_ROOT/bootstrap.sh" --home "$FULL_HOME" --pi > "$TEST_HOME/repeat.out" 2> "$TEST_HOME/repeat.err"
 [[ "$(grep -c '^docker run' "$STUB_LOG")" -eq "$before_runs" ]]
+[[ "$(grep -c 'pi install https://github.com/cathrynlavery/diagram-design' "$PI_LOG")" -eq $((before_diagram_installs + 1)) ]]
 grep -q 'Started managed SearXNG container' "$TEST_HOME/repeat.out"
 
 NO_SERVICE_HOME="$TEST_HOME/no-service-home"

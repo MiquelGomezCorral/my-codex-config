@@ -54,6 +54,27 @@ Do not use `dispatch --inject` here; that leaves a custom terminal unsupervised.
 runtime-reported effective model with the catalog ID. If the runtime exposes no effective
 model, report the gap instead of claiming verification.
 
+For a bounded artifact worker, select the `medium` Pi tier and `low` thinking from the
+catalog, then create the terminal in its assigned artifact directory with only the tools it
+needs to read evidence and write those artifacts:
+
+```text
+orca terminal create --worktree active --title <worker> --command "cd <artifact_directory> && pi --model <catalog_model> --thinking low --tools read,edit,write,bash" --json
+orca terminal wait --terminal <handle> --for tui-idle --timeout-ms 60000 --json
+orca orchestration worker-start --task <task_id> --worktree current --terminal <handle> --json
+```
+
+The task packet must supply the `diagram-worker` contract, grounded brief, relevant evidence,
+and exact output directory. The directory is a task constraint, not a filesystem sandbox;
+the Pi launch remains unsandboxed under the approved launch policy. Enable `bash` only for
+the exact Orca Dispatch lifecycle commands named in the injected task packet, such as its
+heartbeat, check, and `worker_done` calls. Do not use it for other shell commands, file
+operations, Git, package installation, or helper checks and exports. The coordinator owns
+helper checks and exports. Preserve the read-only tool list for reviewers. Verify returned
+files stay in the assigned directory, compare their claims with the full plan, and report
+unavailable or failing helpers, or an unavailable or mismatched route without using its
+output.
+
 ## Explicit one-shot adapters
 
 Direct cross-harness execution is an explicit escape hatch, not automatic fallback. The

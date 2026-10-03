@@ -69,7 +69,7 @@ source "$ROOT/config/bin/codegraph-dependency.sh"
 CODEX_AGENT_NAMES=(
   coder cleanup-worker git-worker review-worker
   reviewer-quick reviewer-reasoning reviewer-arch reviewer-e2e
-  coding-supervisor live-validator critic
+  coding-supervisor live-validator critic diagram-worker
 )
 
 die() {

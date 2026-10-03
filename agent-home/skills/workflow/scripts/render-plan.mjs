@@ -31,6 +31,36 @@ function findClosing(text, marker, start) {
   return closing < 0 ? null : closing
 }
 
+function isWordCharacter(character) {
+  return character !== undefined && /[\p{L}\p{N}_]/u.test(character)
+}
+
+function findUnderscoreEnd(text, marker, start) {
+  let closing = text.indexOf(marker, start)
+  while (closing >= 0) {
+    const before = text[closing - 1]
+    const after = text[closing + marker.length]
+    if (!/\s/u.test(before ?? "") && !isWordCharacter(after)) return closing
+    closing = text.indexOf(marker, closing + marker.length)
+  }
+  return null
+}
+
+function findUnderlineEnd(text, start) {
+  for (let index = start; index < text.length; index += 1) {
+    if (text[index] === "`") {
+      const ticks = text.slice(index).match(/^`+/)[0]
+      const codeEnd = findClosing(text, ticks, index + ticks.length)
+      if (codeEnd !== null) {
+        index = codeEnd + ticks.length - 1
+        continue
+      }
+    }
+    if (text.startsWith("</u>", index)) return index
+  }
+  return null
+}
+
 function findLinkEnd(text, start) {
   let depth = 1
   for (let index = start; index < text.length; index += 1) {
@@ -54,6 +84,15 @@ function renderInline(text) {
       if (end !== null) {
         output += `<code class="lp-inline-code">${escapeHtml(text.slice(index + ticks.length, end).trim())}</code>`
         index = end + ticks.length
+        continue
+      }
+    }
+
+    if (text.startsWith("<u>", index)) {
+      const end = findUnderlineEnd(text, index + 3)
+      if (end !== null) {
+        output += `<u class="lp-inline-underline">${renderInline(text.slice(index + 3, end))}</u>`
+        index = end + 4
         continue
       }
     }
@@ -82,18 +121,24 @@ function renderInline(text) {
     let marker = null
     if (text.startsWith("**", index) || text.startsWith("__", index)) marker = text.slice(index, index + 2)
     else if (text[index] === "*" || text[index] === "_") marker = text[index]
-    if (marker && text[index + marker.length] !== " ") {
-      const end = findClosing(text, marker, index + marker.length)
+    const underscoreMarker = marker?.[0] === "_"
+    const validUnderscoreOpener = !underscoreMarker
+      || (!isWordCharacter(text[index - 1]) && !/\s/u.test(text[index + marker.length] ?? ""))
+    if (marker && text[index + marker.length] !== " " && validUnderscoreOpener) {
+      const end = underscoreMarker
+        ? findUnderscoreEnd(text, marker, index + marker.length)
+        : findClosing(text, marker, index + marker.length)
       if (end !== null && end > index + marker.length) {
         const tag = marker.length === 2 ? "strong" : "em"
-        output += `<${tag}>${renderInline(text.slice(index + marker.length, end))}</${tag}>`
+        const className = tag === "em" ? ' class="lp-inline-em"' : ""
+        output += `<${tag}${className}>${renderInline(text.slice(index + marker.length, end))}</${tag}>`
         index = end + marker.length
         continue
       }
     }
 
     let next = index + 1
-    while (next < text.length && !"`![*_".includes(text[next])) next += 1
+    while (next < text.length && !"`![*_<".includes(text[next])) next += 1
     output += escapeHtml(text.slice(index, next))
     index = next
   }
@@ -404,7 +449,7 @@ function validateEntries(value, field, actionTitles = false, required = true) {
   return value.map((entry, index) => {
     const entryField = field + "[" + index + "]"
     if (!isRecord(entry)) throw new Error(entryField + " must be an object")
-    onlyKeys(entry, ["title", "description", "icon"], entryField)
+    onlyKeys(entry, ["title", "description", "technical", "icon"], entryField)
     const title = requiredText(entry.title, entryField + ".title")
     if (actionTitles) {
       const wordCount = title.trim().split(/\s+/).length
@@ -415,9 +460,87 @@ function validateEntries(value, field, actionTitles = false, required = true) {
     return {
       title,
       description: requiredText(entry.description, entryField + ".description"),
+      technical: entry.technical === undefined ? null : requiredText(entry.technical, entryField + ".technical"),
       icon: optionalIcon(entry.icon, entryField + ".icon"),
     }
   })
+}
+
+function validateDetails(value) {
+  if (value === undefined) return null
+  const field = "--review.details"
+  if (!isRecord(value)) throw new Error(field + " must be an object")
+  onlyKeys(value, ["intro", "groups"], field)
+  if (!Array.isArray(value.groups) || !value.groups.length) {
+    throw new Error(field + ".groups must be a non-empty array")
+  }
+  return {
+    intro: requiredText(value.intro, field + ".intro"),
+    groups: value.groups.map((group, groupIndex) => {
+      const groupField = field + ".groups[" + groupIndex + "]"
+      if (!isRecord(group)) throw new Error(groupField + " must be an object")
+      onlyKeys(group, ["title", "sections"], groupField)
+      if (!Array.isArray(group.sections) || !group.sections.length) {
+        throw new Error(groupField + ".sections must be a non-empty array")
+      }
+      return {
+        title: requiredText(group.title, groupField + ".title"),
+        sections: group.sections.map((section, sectionIndex) => {
+          const sectionField = groupField + ".sections[" + sectionIndex + "]"
+          if (!isRecord(section)) throw new Error(sectionField + " must be an object")
+          onlyKeys(section, ["heading", "summary", "icon", "layered"], sectionField)
+          if (section.layered !== undefined && typeof section.layered !== "boolean") {
+            throw new Error(sectionField + ".layered must be a boolean")
+          }
+          return {
+            heading: requiredText(section.heading, sectionField + ".heading"),
+            summary: requiredText(section.summary, sectionField + ".summary"),
+            icon: optionalIcon(section.icon, sectionField + ".icon"),
+            layered: section.layered === true,
+          }
+        }),
+      }
+    }),
+  }
+}
+
+function firstProseParagraph(section, field) {
+  const lines = section.lines
+  let start = lines.findIndex((line) => line.trim())
+  if (start < 0 || isBlockStart(lines, start)) {
+    throw new Error(field + " layered body must start with a prose paragraph")
+  }
+  let end = start + 1
+  while (end < lines.length && lines[end].trim() && !isBlockStart(lines, end)) end += 1
+  return {
+    explanation: lines.slice(start, end).join("\n"),
+    deeper: lines.slice(end).join("\n"),
+  }
+}
+
+function validateDetailReferences(details, plan) {
+  if (!details) return null
+  const assigned = new Set()
+  return {
+    ...details,
+    groups: details.groups.map((group, groupIndex) => ({
+      ...group,
+      sections: group.sections.map((reference, sectionIndex) => {
+        const field = "--review.details.groups[" + groupIndex + "].sections[" + sectionIndex + "]"
+        const matches = plan.sections.filter((section) => section.title === reference.heading)
+        if (!matches.length) throw new Error(field + ".heading does not match a plan H2 section: " + reference.heading)
+        if (matches.length > 1) throw new Error(field + ".heading matches more than one plan H2 section: " + reference.heading)
+        const section = matches[0]
+        if (assigned.has(section)) throw new Error(field + ".heading assigns a plan H2 section more than once: " + reference.heading)
+        assigned.add(section)
+        return {
+          ...reference,
+          section,
+          body: reference.layered ? firstProseParagraph(section, field) : null,
+        }
+      }),
+    })),
+  }
 }
 
 function isWithin(directory, file) {
@@ -507,15 +630,18 @@ function validateArtifacts(value, directory) {
 
 function validateReview(value, directory) {
   if (!isRecord(value)) throw new Error("--review must contain a JSON object")
-  onlyKeys(value, ["title", "summary", "actions", "success", "boundary", "risks", "questions", "artifacts"], "--review")
+  onlyKeys(value, ["title", "summary", "actions", "actionsIntro", "success", "boundary", "risks", "risksIntro", "questions", "details", "artifacts"], "--review")
   return {
     title: requiredText(value.title, "--review.title"),
     summary: requiredText(value.summary, "--review.summary"),
+    actionsIntro: value.actionsIntro === undefined ? null : requiredText(value.actionsIntro, "--review.actionsIntro"),
     actions: validateEntries(value.actions, "--review.actions", true),
     success: validateEntries(value.success, "--review.success"),
     boundary: requiredText(value.boundary, "--review.boundary"),
     risks: validateEntries(value.risks, "--review.risks", false, false),
+    risksIntro: value.risksIntro === undefined ? null : requiredText(value.risksIntro, "--review.risksIntro"),
     questions: validateEntries(value.questions, "--review.questions", false, false),
+    details: validateDetails(value.details),
     artifacts: validateArtifacts(value.artifacts, directory),
   }
 }
@@ -525,15 +651,21 @@ function iconMarkup(name) {
   return getIcon(name).replace("<svg ", '<svg class="lp-icon" aria-hidden="true" ')
 }
 
-function renderEntries(entries, label, className, defaultIcon = null) {
+function renderEntry(entry, defaultIcon = null) {
+  const technical = entry.technical
+    ? '<div class="lp-entry-technical">' + renderMarkdown(entry.technical) + '</div>'
+    : ""
+  return '<li class="lp-entry"><span class="lp-entry-marker">'
+    + iconMarkup(entry.icon || defaultIcon) + '</span><div><h3>'
+    + renderInline(entry.title) + '</h3><p>' + renderInline(entry.description)
+    + '</p>' + technical + '</div></li>'
+}
+
+function renderEntries(entries, label, className, defaultIcon = null, intro = null) {
   if (!entries.length) return ""
-  const items = entries.map((entry) => {
-    const icon = entry.icon || defaultIcon
-    return '<li class="lp-entry"><span class="lp-entry-marker">' + iconMarkup(icon) + '</span>'
-      + '<div><h3>' + renderInline(entry.title) + '</h3>'
-      + '<p>' + renderInline(entry.description) + '</p></div></li>'
-  }).join("\n")
+  const items = entries.map((entry) => renderEntry(entry, defaultIcon)).join("\n")
   return '<section class="lp-entry-section ' + className + '"><h2>' + label + '</h2>'
+    + (intro ? '<p class="lp-section-intro">' + renderInline(intro) + '</p>' : "")
     + '<ul class="lp-entry-list">' + items + '</ul></section>'
 }
 
@@ -541,13 +673,10 @@ function renderSuccess(entries) {
   const count = entries.length
   const label = count === 1 ? "outcome" : "outcomes"
   return '<details class="lp-success"><summary><span>Expected outcomes</span>'
-    + '<span class="lp-count">' + count + " " + label + '</span></summary>'
-    + '<ul class="lp-entry-list">' + entries.map((entry) => {
-      return '<li class="lp-entry"><span class="lp-entry-marker">'
-        + iconMarkup(entry.icon || "circle-check") + '</span><div><h3>'
-        + renderInline(entry.title) + '</h3><p>' + renderInline(entry.description)
-        + '</p></div></li>'
-    }).join("\n") + '</ul></details>'
+    + '<span class="lp-success-summary-end"><span class="lp-count">' + count + " " + label
+    + '</span><span class="lp-disclosure-indicator" aria-hidden="true"></span></span></summary>'
+    + '<ul class="lp-entry-list">' + entries.map((entry) => renderEntry(entry, "circle-check")).join("\n")
+    + '</ul></details>'
 }
 
 function renderSteps(steps) {
@@ -619,20 +748,62 @@ function renderArtifactTabs(artifacts) {
     }).join("\n") + '</div><noscript><p>Tabs need JavaScript; all artifact panels remain visible below.</p></noscript>'
 }
 
-function renderPlanDetails(plan, source) {
-  const preamble = plan.preamble.length
-    ? '<details class="lp-detail"><summary>Plan notes</summary><div class="lp-detail-body">'
-      + renderMarkdown(plan.preamble.join("\n")) + '</div></details>'
+function renderDisclosure(title, preview, icon, content, className = "") {
+  const classes = className ? "lp-detail " + className : "lp-detail"
+  return '<details class="' + classes + '"><summary>'
+    + '<span class="lp-detail-summary-icon">' + iconMarkup(icon || "file-text") + '</span>'
+    + '<span class="lp-detail-summary-text"><span class="lp-detail-title">'
+    + renderInline(title) + '</span>'
+    + (preview ? '<span class="lp-detail-preview">' + renderInline(preview) + '</span>' : "")
+    + '</span><span class="lp-disclosure-indicator" aria-hidden="true"></span></summary>'
+    + '<div class="lp-detail-body">' + content + '</div></details>'
+}
+
+function renderPlanSection(section, metadata = {}) {
+  const body = metadata.body
+    ? renderMarkdown(metadata.body.explanation)
+      + (metadata.body.deeper.trim()
+        ? '<div class="lp-detail-deeper">' + renderMarkdown(metadata.body.deeper) + '</div>'
+        : "")
+    : renderMarkdown(section.lines.join("\n"))
+  return renderDisclosure(section.title, metadata.summary, metadata.icon, body)
+}
+
+function renderDetailGroup(group, className) {
+  return '<div class="lp-detail-group lp-detail-group--' + className + '"><h3>'
+    + renderInline(group.title) + '</h3>'
+    + group.sections.map(({ section, ...metadata }) => renderPlanSection(section, metadata)).join("\n")
+    + '</div>'
+}
+
+function renderPlanDetails(plan, source, details = null) {
+  const intro = details
+    ? '<p class="lp-plan-intro">' + renderInline(details.intro) + '</p>'
     : ""
-  const sections = plan.sections.map((section) => {
-    return '<details class="lp-detail"><summary>' + renderInline(section.title)
-      + '</summary><div class="lp-detail-body">'
-      + renderMarkdown(section.lines.join("\n")) + '</div></details>'
-  }).join("\n")
+  const preamble = plan.preamble.length
+    ? renderDisclosure("Plan notes", "Opening context from the original plan.", "file-text", renderMarkdown(plan.preamble.join("\n")))
+    : ""
+  let sections
+  if (details) {
+    const assigned = new Set(details.groups.flatMap((group) => group.sections.map((item) => item.section)))
+    const colors = ["violet", "teal", "gold"]
+    sections = details.groups.map((group, index) => renderDetailGroup(group, colors[index % colors.length]))
+      .join("\n")
+    const additional = plan.sections.filter((section) => !assigned.has(section))
+    if (additional.length) {
+      sections += (sections ? "\n" : "") + renderDetailGroup({
+        title: "Additional details",
+        sections: additional.map((section) => ({ section })),
+      }, "neutral")
+    }
+  } else {
+    sections = plan.sections.map((section) => renderPlanSection(section)).join("\n")
+  }
+  const sourceDocument = '<h3 class="lp-source-heading">Source document</h3>'
+    + renderDisclosure("Full Markdown source", "Complete Markdown used to render this page.", "file-text",
+      '<pre><code>' + escapeHtml(source) + '</code></pre>', "lp-source")
   return '<section class="lp-plan-details"><h2>Plan details</h2>'
-    + preamble + sections
-    + '<details class="lp-detail lp-source"><summary>Full Markdown source</summary>'
-    + '<pre><code>' + escapeHtml(source) + '</code></pre></details></section>'
+    + intro + preamble + sections + sourceDocument + '</section>'
 }
 
 function renderBrief(review, plan, source, outputDirectory) {
@@ -656,17 +827,15 @@ function renderBrief(review, plan, source, outputDirectory) {
     + '<h1>' + renderInline(review.title) + '</h1><div class="lp-hero-copy">'
     + renderMarkdown(review.summary) + '</div></header>'
     + '<div class="' + gridClass + '"' + activePlacement + '><section class="lp-actions">'
-    + '<h2>Proposed actions</h2><ul class="lp-entry-list">'
-    + review.actions.map((entry) => {
-      return '<li class="lp-entry"><span class="lp-entry-marker">' + iconMarkup(entry.icon)
-        + '</span><div><h3>' + renderInline(entry.title) + '</h3><p>'
-        + renderInline(entry.description) + '</p></div></li>'
-    }).join("\n") + '</ul>' + renderSuccess(review.success)
-    + renderEntries(review.risks, "Material risks", "lp-risk", "triangle-alert")
+    + '<h2>Proposed actions</h2>'
+    + (review.actionsIntro ? '<p class="lp-section-intro">' + renderInline(review.actionsIntro) + '</p>' : "")
+    + '<ul class="lp-entry-list">' + review.actions.map((entry) => renderEntry(entry)).join("\n") + '</ul>'
+    + renderSuccess(review.success)
+    + renderEntries(review.risks, "Material risks", "lp-risk", "triangle-alert", review.risksIntro)
     + renderEntries(review.questions, "Open questions", "lp-questions")
     + '<section class="lp-boundary"><h2>Review boundary</h2>'
     + renderMarkdown(review.boundary) + '</section></section>' + visualSlot + '</div>'
-    + renderPlanDetails(plan, source) + '</main>'
+    + renderPlanDetails(plan, source, review.details) + '</main>'
 }
 
 function renderMarkdownPlan(plan, source) {
@@ -681,8 +850,7 @@ function renderMarkdownPlan(plan, source) {
     + '</header>' + renderPlanDetails({ ...plan, sections }, source) + '</main>'
 }
 
-function renderDocument(source, review, outputDirectory) {
-  const plan = parsePlan(source)
+function renderDocument(source, review, outputDirectory, plan) {
   const body = review
     ? renderBrief(review, plan, source, outputDirectory)
     : renderMarkdownPlan(plan, source)
@@ -711,12 +879,18 @@ function renderDocument(source, review, outputDirectory) {
     ".lp-icon { display: block; width: 1.1rem; height: 1.1rem; stroke: currentColor; }",
     ".lp-entry h3, .lp-artifact h3 { font-size: 14px; font-weight: 650; line-height: 1.4; margin: 0; }",
     ".lp-entry p, .lp-artifact header p { color: var(--lp-muted); margin: .16rem 0 0; }",
+    ".lp-section-intro { color: var(--lp-muted); margin: -.35rem 0 .75rem; }",
+    ".lp-entry-technical, .lp-detail-deeper { background: var(--lp-raised); border-left: 2px solid var(--lp-border); border-radius: 0 .3rem .3rem 0; margin-top: .5rem; padding: .45rem .65rem; }",
+    ".lp-entry-technical > :first-child, .lp-detail-deeper > :first-child { margin-top: 0; }",
+    ".lp-entry-technical > :last-child, .lp-detail-deeper > :last-child { margin-bottom: 0; }",
     ".lp-success, .lp-risk, .lp-questions, .lp-boundary { margin-top: 1rem; }",
     ".lp-success { border: 1px solid var(--lp-border); border-radius: .45rem; padding: .72rem .85rem; }",
     ".lp-success summary { align-items: center; cursor: pointer; display: flex; font-weight: 650; justify-content: space-between; gap: 1rem; }",
+    ".lp-success-summary-end { align-items: center; display: flex; gap: .75rem; }",
+    ".lp-success-summary-end .lp-disclosure-indicator { margin-left: 0; }",
     ".lp-count { color: var(--lp-muted); font-size: .82rem; font-weight: 400; }",
     ".lp-success .lp-entry-list { padding-top: .5rem; }",
-    ".lp-risk .lp-entry, .lp-questions .lp-entry { border: 1px solid var(--lp-border); border-radius: .45rem; margin: .5rem 0; padding: .7rem .8rem; }",
+    ".lp-actions > .lp-entry-list > .lp-entry, .lp-risk .lp-entry, .lp-questions .lp-entry { border: 1px solid var(--lp-border); border-radius: .45rem; margin: .5rem 0; padding: .7rem .8rem; }",
     ".lp-risk .lp-entry-marker { color: var(--lp-danger); }",
     ".lp-boundary { border-top: 1px solid var(--lp-border); padding-top: .8rem; }",
     ".lp-boundary h2, .lp-entry-section h2 { font-size: 14px; margin: 0 0 .4rem; }",
@@ -743,7 +917,20 @@ function renderDocument(source, review, outputDirectory) {
     ".lp-source-link { margin: .5rem 0 0; }",
     ".lp-plan-details { margin-top: 2.2rem; }",
     ".lp-detail { border: 1px solid var(--lp-border); border-radius: .35rem; margin: .35rem 0; }",
-    ".lp-detail summary { align-items: center; color: var(--lp-text); cursor: pointer; display: flex; font-weight: 600; justify-content: space-between; padding: .72rem .85rem; }",
+    ".lp-detail summary { align-items: center; color: var(--lp-text); cursor: pointer; display: flex; font-weight: 600; gap: .65rem; padding: .72rem .85rem; }",
+    ".lp-disclosure-indicator { border-bottom: 1.5px solid currentColor; border-right: 1.5px solid currentColor; color: var(--lp-muted); flex: none; height: .42rem; margin-left: auto; transform: rotate(-45deg); width: .42rem; }",
+    "details[open] > summary .lp-disclosure-indicator { transform: rotate(45deg); }",
+    ".lp-detail-summary-icon { color: var(--lp-detail-accent, var(--lp-muted)); flex: none; }",
+    ".lp-detail-summary-text { display: grid; gap: .12rem; min-width: 0; overflow-wrap: anywhere; }",
+    ".lp-detail-preview { color: var(--lp-muted); font-size: .9em; font-weight: 400; }",
+    ".lp-plan-intro { color: var(--lp-muted); margin: 0 0 1rem; }",
+    ".lp-detail-group { --lp-detail-accent: var(--lp-group-accent); margin-top: 1.1rem; }",
+    ".lp-detail-group > h3, .lp-source-heading { color: var(--lp-group-accent, var(--lp-muted)); font-size: 14px; margin: 0 0 .45rem; }",
+    ".lp-detail-group--violet { --lp-group-accent: #c0b3eb; }",
+    ".lp-detail-group--teal { --lp-group-accent: #91d9c5; }",
+    ".lp-detail-group--gold { --lp-group-accent: #e6cf8d; }",
+    ".lp-detail-group--neutral { --lp-group-accent: var(--lp-muted); }",
+    ".lp-source-heading { margin-top: 1.2rem; }",
     ".lp-detail-body { border-top: 1px solid var(--lp-border); overflow-wrap: anywhere; padding: .65rem .85rem .9rem; }",
     ".lp-detail-body > :first-child { margin-top: 0; }",
     ".lp-detail-body > :last-child { margin-bottom: 0; }",
@@ -751,9 +938,15 @@ function renderDocument(source, review, outputDirectory) {
     ".lp-paragraph { margin: .65rem 0; }",
     ".lp-list { margin: .35rem 0; padding-inline-start: 1.35rem; }",
     ".lp-list li { margin: .35rem 0; }",
+    ".lp-list .lp-list { margin: .2rem 0; padding-inline-start: 1.05rem; }",
+    ".lp-list .lp-list > li { margin: .2rem 0; }",
+    ".lp-list ul.lp-list > li::marker { color: var(--lp-muted); }",
     ".lp-code, .lp-source pre { background: #0c1015; border: 1px solid var(--lp-border); border-radius: .35rem; max-width: 100%; overflow: auto; padding: .85rem; }",
     ".lp-code code, .lp-source code { font: .9em/1.5 ui-monospace, monospace; white-space: pre; }",
-    ".lp-inline-code, .lp-command { background: #0c1015; border: 1px solid var(--lp-border); border-radius: .25rem; color: var(--lp-accent); padding: .08em .3em; }",
+    ".lp-inline-code { background: transparent; border: 0; border-radius: 0; color: #9fcced; font: inherit; overflow-wrap: anywhere; padding: 0; vertical-align: baseline; }",
+    ".lp-inline-em { color: #afd3b1; font: inherit; font-style: normal; vertical-align: baseline; }",
+    ".lp-inline-underline { color: inherit; font: inherit; text-decoration: underline dotted; text-underline-offset: .14em; vertical-align: baseline; }",
+    ".lp-command { background: #0c1015; border: 1px solid var(--lp-border); border-radius: .25rem; color: var(--lp-accent); padding: .08em .3em; }",
     ".lp-table-wrap { max-width: 100%; overflow-x: auto; }",
     ".lp-table { border-collapse: collapse; min-width: 30rem; width: 100%; }",
     ".lp-table th, .lp-table td { border: 1px solid var(--lp-border); padding: .55rem .7rem; text-align: start; vertical-align: top; }",
@@ -900,8 +1093,12 @@ function main() {
   }
   if (!source.trim()) throw new Error("input plan is empty: " + input)
   const review = options.review ? readReview(resolve(options.review), dirname(input)) : null
+  const plan = parsePlan(source)
+  const validatedReview = review
+    ? { ...review, details: validateDetailReferences(review.details, plan) }
+    : null
   const path = writeArtifact(
-    (outputDirectory) => renderDocument(source, review, outputDirectory),
+    (outputDirectory) => renderDocument(source, validatedReview, outputDirectory, plan),
     options.output,
   )
   console.log(resolve(path))

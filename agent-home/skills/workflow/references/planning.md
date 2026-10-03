@@ -1,10 +1,11 @@
 # Planning inside `$workflow`
 
 Turn a freeform idea or referenced brief into a scope-locked wave plan. Do not implement,
-edit product files, or persist project memory during discovery. Start the workflow progress
-record at intake, before a plan path exists.
+edit product files, or persist project memory during discovery. Initialize run state with
+the [workflow-progress skill](../workflow-progress/SKILL.md) at intake, before a plan path exists.
 
 Load `first-draft.md`, `improvement-loop.md`, and `adversarial.md` as their phases begin.
+Read `diagrams.md` when proposing, commissioning, revising, or checking a diagram.
 The context does not replace human approval or authorize
 implementation, live actions, or changes to decision records.
 
@@ -147,10 +148,11 @@ authoritative.
 Keep the new HTML and any plan-specific editable diagrams/SVG previews
 beside the private plan so relative links work and no new plan artifact enters Git.
 Lavish displays the HTML and does not itself produce SVG. Only make diagrams that
-clarify a real decision or flow.
-The deterministic renderer never delegates. A custom diagram may use `super-agent` only
-when requested, selecting a Pi `medium` model at `low` thinking from the catalog and
-using diagram-design's `Minimal dark` template and current project style guide. Do not run
+clarify a real decision or flow. Follow `diagrams.md` for the brief, presentation, artifact,
+and validation contract. The deterministic renderer never delegates. A useful custom
+diagram may use `super-agent`: route an artifact-only worker through Pi at `medium` tier and
+`low` thinking, resolving the exact model from the catalog at dispatch. Give it the chosen
+project style or pass diagram-design's `Minimal dark` template explicitly. Do not run
 `lavish-axi poll` unless the user asks for an
 interactive feedback session. Rendering or Lavish failure is non-blocking: report it and
 always present the native plan and available artifacts.

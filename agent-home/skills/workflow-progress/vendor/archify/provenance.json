@@ -1,0 +1,34 @@
+{
+  "upstream": "https://github.com/tt-a1i/archify/tree/d5a1333d7447c866a765adac7d4d062f2f02e4d2",
+  "commit": "d5a1333d7447c866a765adac7d4d062f2f02e4d2",
+  "files": {
+    "template.html": "b0b550d644b77cad401bbc4b21375919ef01db45d235122a0ee42b732cb34233",
+    "utils.mjs": "422b66c6945de473b1f96e4f3641339b6a24c8ccef60795a38ca2386e10bc26b",
+    "i18n.mjs": "03f5356110a08b2cf684a484af5502bb392482de1ef61123707c6da2724c5201",
+    "LICENSE": "b799ab081703e7821ae5096d2c1abdf14bbdc75e8ea1c4045998c36ed6db9706",
+    "FONT-LICENSE.txt": "eb1b7a7a480d2baced88505864d3e8d8db49deba1fd39531b3b2c424890db5d2"
+  },
+  "font": {
+    "family": "JetBrains Mono",
+    "embeddedIn": "template.html",
+    "license": "SIL Open Font License 1.1"
+  },
+  "drawioExport": {
+    "tool": "draw.io Desktop",
+    "version": "31.5.3",
+    "settings": [
+      "--format svg",
+      "--uncompressed",
+      "--embed-diagram",
+      "--transparent"
+    ],
+    "source": {
+      "path": "agent-workflow.drawio",
+      "sha256": "c0afd490bf5933e91b77e568a85bdb2c2f270d6153e53d795b0938bf308f7207"
+    },
+    "svg": {
+      "path": "workflow.svg",
+      "sha256": "a8c0cb97a220f920ddc59306b4beffd9d837ec4cc44dc6be34790191e602ce70"
+    }
+  }
+}

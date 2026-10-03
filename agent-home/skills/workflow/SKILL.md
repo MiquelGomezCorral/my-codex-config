@@ -5,10 +5,11 @@ description: Run the complete agentic workflow from an initial idea and evidence
 
 # Workflow
 
-Accept the initial request, evidence, ideas, or `@file` as input. Load the [planning
-reference](references/planning.md) and create [progress](templates/progress.md) at intake;
-the plan path remains pending until the wave is finalized. This single entry point owns
-planning and delivery. The human owns material
+Accept the initial request, evidence, ideas, or `@file` as input. Load the
+[workflow-progress skill](../workflow-progress/SKILL.md) and initialize run state at
+intake; load the [planning reference](references/planning.md) as planning begins. The plan
+path remains pending until the wave is finalized. This single entry point owns planning
+and delivery. The human owns material
 decisions, bounded approvals, final result acceptance, and shipping authority. The
 human-facing coordinator advances routine stages when their exit evidence is complete;
 pause only for a human decision gate, missing authority, a blocker, or changed scope.
@@ -23,6 +24,8 @@ Present every artifact the human must review as a descriptive clickable link in 
 same message, including plans, diagrams, mockups, reports, and validation evidence.
 For browser previews, return the viewer's actual URL as described in the planning
 reference; a bare path is not a review link. Apply this at every human gate.
+Use the [plan-review icon catalog](references/plan-review-template.md#icons) when selecting
+icons for review JSON.
 
 ## Authority and context
 
@@ -132,8 +135,8 @@ After a parent merge, reconcile the target and revalidate affected evidence. Ret
 only within their assigned loop and explicitly settle, retain, or release them through the
 active wrapper.
 
-Use [the progress template](templates/progress.md) from intake to record each completed gate, its
-evidence, the current stage, and the next action before advancing. Reconcile that record
+Use [workflow-progress](../workflow-progress/SKILL.md) at intake and each transition to
+record completed gates, evidence, current activity, and next action. Reconcile its state
 with the plan and real worker state after interruption; it never supplies missing approval.
 
 ## Evidence and recovery
@@ -144,12 +147,11 @@ out-of-scope observations without putting them in correction briefs. Required un
 evidence is blocked/unverified, never an invented defect or approval. Deeper review presets
 do not enable OCR or Slopo; those remain explicit opt-ins.
 
-Keep the human-editable progress record under `${XDG_STATE_HOME:-$HOME/.local/state}`
-and associate it with the repository and active run. Reconcile it against Orca, Git, and hosting-service
-state; it is not proof of completion. Do not store raw logs, handles, credentials, or
-sessions there. Preserve checkpoints and unrelated changes during recovery. No implicit
-reset, rebase, squash, amendment, force-push, or branch deletion; destructive restoration
-needs explicit approval.
+Keep script-maintained JSON run state and its generated HTML under `${XDG_STATE_HOME:-$HOME/.local/state}`.
+Reconcile them against Orca, Git, and hosting-service state; they are not proof of completion.
+Do not store raw logs, handles, credentials, or sessions there. Preserve checkpoints and
+unrelated changes during recovery. No implicit reset, rebase, squash, amendment, force-push,
+or branch deletion; destructive restoration needs explicit approval.
 
 Brief tasks may shorten investigation and artifacts but retain applicable scope,
 evidence, authorization, and human-validation gates. Scope-expanding blockers stop the
@@ -166,4 +168,5 @@ affected work and escalate.
 - [Ship and PR](references/ship-pr.md)
 - [End-to-end flow](references/end-to-end.md)
 - [Scenario definitions](references/scenarios.md)
-- [Progress template](templates/progress.md)
+- [Workflow progress state and page](../workflow-progress/SKILL.md)
+- [Legacy progress template](templates/progress.md)

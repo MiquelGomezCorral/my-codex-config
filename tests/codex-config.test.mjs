@@ -209,8 +209,11 @@ test("git skill owns five actions that resolve repository rules first", () => {
   match(pr, /accepted plan must name PR creation or\s+update and its target\/bounds/)
 })
 
-test("workflow renders its native wave plan and delegates diagrams only by request", () => {
+test("workflow renders its native wave plan and can commission useful planning diagrams", () => {
   const planning = read("agent-home/skills/workflow/references/planning.md")
+  const firstDraft = read("agent-home/skills/workflow/references/first-draft.md")
+  const improvement = read("agent-home/skills/workflow/references/improvement-loop.md")
+  const routing = read("agent-home/skills/super-agent/references/routing.md")
   const lavish = read("agent-home/skills/lavish/SKILL.md")
 
   match(planning, /Markdown file\s+authoritative/i)
@@ -218,9 +221,16 @@ test("workflow renders its native wave plan and delegates diagrams only by reque
   match(planning, /--review <review\.json>/)
   match(planning, /plan-review-template\.md/)
   match(planning, /deterministic renderer never delegates/i)
-  match(planning, /custom diagram may use `super-agent` only\s+when requested/i)
-  match(planning, /Pi `medium` model at `low` thinking/i)
-  match(planning, /diagram-design's `Minimal dark` template and current project style guide/i)
+  match(firstDraft, /diagram guide/)
+  match(improvement, /revise affected diagrams with feedback/)
+  match(planning, /useful custom\s+diagram may use `super-agent`/i)
+  doesNotMatch(planning, /custom diagram may use `super-agent` only\s+when requested/i)
+  const artifactRoute = routing.slice(routing.indexOf("For a bounded artifact worker"), routing.indexOf("## Explicit one-shot adapters"))
+  match(artifactRoute, /--tools read,edit,write,bash/)
+  doesNotMatch(artifactRoute, /--tools[^\n]*\b(?:grep|find|ls)\b/)
+  match(artifactRoute, /task constraint, not a filesystem sandbox/i)
+  match(artifactRoute, /exact Orca Dispatch lifecycle commands/)
+  match(artifactRoute, /coordinator owns\s+helper checks and exports/i)
   match(planning, /Do not run\s+`lavish-axi poll` unless the user asks/i)
   match(planning, /Rendering or Lavish failure is non-blocking/i)
   match(planning, /always present the native plan/i)
@@ -294,7 +304,7 @@ test("documented harness install map matches the installers", () => {
   match(readme, /^### Codex/m)
   match(readme, /^### Pi/m)
   match(readme, /^### AGY/m)
-  match(readme, /^### The eleven roles$/m)
+  match(readme, /^### The twelve roles$/m)
   match(readme, /`~\/\.pi\/agent`/)
   match(readme, /`~\/\.gemini\/config`/)
   match(readme, /\| `hooks\.json` \| private copy \|/)
@@ -312,7 +322,7 @@ test("documented harness install map matches the installers", () => {
   const namesBlock = bootstrap.match(/CODEX_AGENT_NAMES=\(([\s\S]*?)\)/)
   ok(namesBlock, "bootstrap.sh must declare CODEX_AGENT_NAMES")
   const names = namesBlock[1].split(/\s+/).filter(Boolean)
-  strictEqual(names.length, 11, "bootstrap.sh must declare eleven roles")
+  strictEqual(names.length, 12, "bootstrap.sh must declare twelve roles")
   for (const name of names) {
     ok(readme.includes(`\`${name}\``), `README must document the ${name} role`)
   }
@@ -329,11 +339,11 @@ test("documented harness install map matches the installers", () => {
   strictEqual(readOnlyPi[0], readOnlyAgy[0], "read-only roles must match across Pi and AGY")
 })
 
-test("Codex TOML agents use native fields and preserve all eleven roles", () => {
+test("Codex TOML agents use native fields and preserve all twelve roles", () => {
   const names = [
     "coder", "cleanup-worker", "git-worker", "review-worker",
     "reviewer-quick", "reviewer-reasoning", "reviewer-arch", "reviewer-e2e",
-    "coding-supervisor", "live-validator", "critic",
+    "coding-supervisor", "live-validator", "critic", "diagram-worker",
   ]
   const config = read("codex/config.toml")
   ok(!statSync(join(root, "codex/agents/commit-worker.toml"), { throwIfNoEntry: false }))
@@ -348,7 +358,9 @@ test("Codex TOML agents use native fields and preserve all eleven roles", () => 
     match(body, /^approval_policy = "never"$/m)
     match(body, ["coding-supervisor", "live-validator", "critic"].includes(name)
       ? /^sandbox_mode = "read-only"$/m
-      : /^sandbox_mode = "danger-full-access"$/m)
+      : name === "diagram-worker"
+        ? /^sandbox_mode = "workspace-write"$/m
+        : /^sandbox_mode = "danger-full-access"$/m)
     ok(body.includes("developer_instructions"))
   }
   for (const name of ["coding-supervisor", "live-validator", "critic"]) {
@@ -372,6 +384,14 @@ test("Codex TOML agents use native fields and preserve all eleven roles", () => 
   match(critic, /plan, design,\s+research claim, bug diagnosis, or decision/)
   match(critic, /complete supplied artifact and cited primary evidence/)
   match(critic, /Do not change the goal/)
+  const diagramWorker = read("codex/agents/diagram-worker.toml")
+  doesNotMatch(diagramWorker, /^model\s*=/m)
+  match(diagramWorker, /^model_reasoning_effort = "low"$/m)
+  match(diagramWorker, /Write only the requested editable source and preview inside the assigned output directory/)
+  match(diagramWorker, /task constraint, not a filesystem sandbox/i)
+  match(diagramWorker, /Use Bash only for the exact Orca Dispatch\s+lifecycle commands/)
+  match(diagramWorker, /The coordinator owns helper checks and exports/)
+  match(diagramWorker, /operate Git.*install tools; publish; or delegate/s)
   ok(config.includes("[mcp_servers.codegraph]"))
   ok(config.includes('command = "codegraph"'))
   match(config, /^model = "gpt-6-sol"$/m)
@@ -631,6 +651,7 @@ test("agentic workflow keeps stage contracts, approvals, and scenario definition
     "agent-home/skills/workflow/references/end-to-end.md",
     scenariosPath,
     "agent-home/skills/workflow/references/planning.md",
+    "agent-home/skills/workflow/references/diagrams.md",
     "agent-home/skills/workflow/references/first-draft.md",
     "agent-home/skills/workflow/references/improvement-loop.md",
     "agent-home/skills/workflow/references/adversarial.md",

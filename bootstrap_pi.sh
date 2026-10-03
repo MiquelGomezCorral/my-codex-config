@@ -96,6 +96,7 @@ skills = {
     "coding-supervisor": ["code-quality", "review", "review-findings", "super-agent", "test-audit", "workflow", "writing"],
     "live-validator": ["code-quality", "computer-use", "review", "test-audit", "workflow", "writing"],
     "critic": ["decision-records", "web-search", "writing"],
+    "diagram-worker": ["diagram-design"],
     "review-worker": ["code-quality", "review", "review-findings", "super-agent", "test-audit", "writing"],
     "reviewer-arch": ["code-quality", "review", "test-audit", "writing"],
     "reviewer-e2e": ["code-quality", "review", "test-audit", "writing"],
@@ -110,9 +111,12 @@ for path in sorted(source.glob("*.toml")):
         raise SystemExit(f"Agent name does not match filename: {path}")
     prompt = data["developer_instructions"].strip()
     read_only = name in {"cleanup-worker", "coding-supervisor", "live-validator", "review-worker", "critic"} or name.startswith("reviewer-")
-    tools = ["read", "grep", "find", "ls", "bash"]
-    if not read_only:
-        tools += ["edit", "write"]
+    if name == "diagram-worker":
+        tools = ["read", "edit", "write", "bash"]
+    else:
+        tools = ["read", "grep", "find", "ls", "bash"]
+        if not read_only:
+            tools += ["edit", "write"]
     thinking = data.get("model_reasoning_effort", "")
     if thinking not in {"minimal", "low", "medium", "high", "xhigh", "max"}:
         thinking = "high"
@@ -204,6 +208,7 @@ PY
 install_pi_extensions() {
   pi install npm:pi-subagents
   pi install npm:pi-mcp-adapter@2.34.0
+  pi install https://github.com/cathrynlavery/diagram-design
   if $SEARXNG_MCP_ENABLED; then
     pi install npm:mcp-searxng@1.11.1
   fi

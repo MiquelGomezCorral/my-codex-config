@@ -1,6 +1,6 @@
 # End-to-end flow
 
-1. Start local progress at intake. Gather evidence and produce an independent first proposal without source code or the
+1. Initialize run state with the workflow-progress CLI at intake. Gather evidence and produce an independent first proposal without source code or the
    preferred solution.
 2. Improve the candidate, resolve material choices, and obtain human acceptance.
 3. Run one adversarial critique and rebuttal, then persist and present the full wave plan,
