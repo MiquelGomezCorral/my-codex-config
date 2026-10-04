@@ -29,51 +29,47 @@ uses `--sandbox danger-full-access` and `--ask-for-approval never`; AGY uses
 settings for these launches and are not re-approved. Pass them through the active wrapper's
 documented launch path; if that path cannot express them, report the limitation.
 
-Read-only review remains a task constraint: preserve no-edit, no-commit, and
-no-deployment instructions and any restricted tool lists. Do not describe these workers as
-OS-sandboxed.
+Role metadata does not restrict tools. The role task still defines read-only work, output
+directories, nesting grants, and any no-edit, no-commit, or no-deployment boundaries. Keep
+those limits in the task packet and report gaps. All tools remain available; do not add
+launch tool allowlists or describe these workers as OS-sandboxed.
 
 ## Pi through Orca
 
-The supervised Orca worker launcher does not expose Pi's catalog model pin. For a Pi
-read-only worker, including a reviewer or critic, create the Pi terminal with the selected
-catalog ID, wait until it is ready, then
-attach the Task with `worker-start --terminal`. This keeps the Orca Dispatch lifecycle
-supervised while pinning the model in Pi's own command:
+The supervised Orca worker launcher does not expose Pi's catalog model pin. Create the Pi
+terminal with the selected catalog ID, wait until it is ready, then attach the Task with
+`worker-start --terminal`. This keeps the Orca Dispatch lifecycle supervised while pinning
+the model in Pi's own command:
 
 ```text
-orca terminal create --worktree active --title <worker> --command "pi --model <catalog_model> --tools read,grep,find,ls,bash" --json
+orca terminal create --worktree active --title <worker> --command "pi --model <catalog_model>" --json
 orca terminal wait --terminal <handle> --for tui-idle --timeout-ms 60000 --json
 orca orchestration worker-start --task <task_id> --worktree current --terminal <handle> --json
 ```
 
 Use only a catalog model ID, never user text, in the terminal command. The task packet
-supplies the role instructions. Keep these Pi workers read-only: do not enable `edit` or `write`,
-and use `bash` only for the exact Orca lifecycle commands required to complete the Dispatch.
-Do not use `dispatch --inject` here; that leaves a custom terminal unsupervised. Compare any
-runtime-reported effective model with the catalog ID. If the runtime exposes no effective
-model, report the gap instead of claiming verification.
+supplies the role instructions and tool-use bounds. Do not use `dispatch --inject` here; it
+leaves a custom terminal unsupervised. Compare any runtime-reported effective model with
+the catalog ID. If the runtime exposes no effective model, report the gap instead of
+claiming verification.
 
 For a bounded artifact worker, select the `medium` Pi tier and `low` thinking from the
-catalog, then create the terminal in its assigned artifact directory with only the tools it
-needs to read evidence and write those artifacts:
+catalog, then create the terminal in its assigned artifact directory:
 
 ```text
-orca terminal create --worktree active --title <worker> --command "cd <artifact_directory> && pi --model <catalog_model> --thinking low --tools read,edit,write,bash" --json
+orca terminal create --worktree active --title <worker> --command "cd <artifact_directory> && pi --model <catalog_model> --thinking low" --json
 orca terminal wait --terminal <handle> --for tui-idle --timeout-ms 60000 --json
 orca orchestration worker-start --task <task_id> --worktree current --terminal <handle> --json
 ```
 
 The task packet must supply the `diagram-worker` contract, grounded brief, relevant evidence,
-and exact output directory. The directory is a task constraint, not a filesystem sandbox;
-the Pi launch remains unsandboxed under the approved launch policy. Enable `bash` only for
-the exact Orca Dispatch lifecycle commands named in the injected task packet, such as its
-heartbeat, check, and `worker_done` calls. Do not use it for other shell commands, file
-operations, Git, package installation, or helper checks and exports. The coordinator owns
-helper checks and exports. Preserve the read-only tool list for reviewers. Verify returned
-files stay in the assigned directory, compare their claims with the full plan, and report
-unavailable or failing helpers, or an unavailable or mismatched route without using its
-output.
+and exact output directory. That directory is a task constraint, not a filesystem sandbox.
+Use Bash only for the exact Orca Dispatch lifecycle commands named in the injected task
+packet, such as its heartbeat, check, and worker_done calls.
+The coordinator owns helper checks and exports.
+Verify returned files stay in the assigned directory, compare their claims with the full plan,
+and report unavailable or failing helpers, or an unavailable or mismatched route without
+using its output.
 
 ## Explicit one-shot adapters
 

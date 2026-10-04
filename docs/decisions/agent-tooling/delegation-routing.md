@@ -6,7 +6,7 @@ Delegating workflows choose inexpensive worker models from one frequently editab
 
 ## Current decisions
 
-- `agent-home/skills/super-agent/references/model-catalog.yaml` is the single owner of cheap worker model identifiers, grouped by harness and the `low`, `medium`, `high`, and `local` vocabulary.
+- `config/skills/super-agent/references/model-catalog.yaml` is the single owner of cheap worker model identifiers, grouped by harness and the `low`, `medium`, `high`, and `local` vocabulary.
 - `super-agent` is the single owner of delegation policy and class grants: whether to delegate, which harness, role, and cataloged model run the work, how much nesting is allowed, and what the caller reports. The former routing, swarm, and unused coordinator skills no longer own any part of that policy.
 - A proven active wrapper owns worker lifecycle and exposes the harnesses available through it; the policy names no wrapper product. Without a wrapper, automatic delegation stays on the current harness and uses its native subagent tooling.
 - Outside a wrapper, another harness is eligible only when the user names it explicitly, using its documented one-shot direct adapter.
@@ -37,7 +37,7 @@ Cheap models change often, so keeping their identifiers in one small catalog avo
 ## Enforcement
 
 - Catalog and behavior checks: [configuration tests](../../../tests/codex-config.test.mjs) and [bootstrap tests](../../../tests/bootstrap.test.sh).
-- Delegation instructions and evaluations: [super agent](../../../agent-home/skills/super-agent/SKILL.md), its [routing reference](../../../agent-home/skills/super-agent/references/routing.md), and its [swarm evaluations](../../../agent-home/skills/super-agent/evals/evals.json).
+- Delegation instructions and evaluations: [super agent](../../../config/skills/super-agent/SKILL.md), its [routing reference](../../../config/skills/super-agent/references/routing.md), and its [swarm evaluations](../../../config/skills/super-agent/evals/evals.json).
 - Review-only: confirm runtime evidence and wrapper-native lifecycle for live launches, which static checks cannot prove.
 
 ## History

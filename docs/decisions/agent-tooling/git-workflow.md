@@ -74,12 +74,12 @@ resolution it required is gone with it.
 
 ## Enforcement
 
-- Skill and reference instructions: [git skill](../../../agent-home/skills/git/SKILL.md)
-  and its [merge reference](../../../agent-home/skills/git/references/merge.md).
+- Skill and reference instructions: [git skill](../../../config/skills/git/SKILL.md)
+  and its [merge reference](../../../config/skills/git/references/merge.md).
 - Static enforcement: [configuration tests](../../../tests/codex-config.test.mjs),
   [command-dispatch tests](../../../tests/codex-command-dispatch.test.mjs), and
-  [bootstrap inventory checks](../../../bootstrap.sh).
-- Delegation contract: [super agent](../../../agent-home/skills/super-agent/SKILL.md).
+  [bootstrap inventory checks](../../../bootstrap_codex.sh).
+- Delegation contract: [super agent](../../../config/skills/super-agent/SKILL.md).
 - Review-only: base-into-feature and stacked-PR ancestry/diff checks run against live
   repositories and cannot be proven statically.
 

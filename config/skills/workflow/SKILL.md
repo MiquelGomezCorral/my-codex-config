@@ -58,7 +58,10 @@ context conflicts or a non-Git action's bounds are missing.
 1. **First draft:** follow the planning reference and its first-draft phase: establish
    the problem, current and desired behavior, scope, exclusions, evidence, and validation.
    Get an independent code-blind proposal before sharing the preferred solution. Grill
-   the human on material decisions after researching discoverable facts.
+   the human on material decisions after researching discoverable facts. Validation means
+   a defined live test of the real behavior, not unit tests; unit tests only cover small
+   things, algorithms, and model or shape assertions. Define how to live test every change
+   on the plan, and ask the user whenever that route is not fully clear.
 2. **Improvement:** incorporate feedback, resolve choices, and add useful diagrams or
    mockups. Build a complete candidate wave with proposed slices, dependencies, checks,
    review depth, artifacts, and bounded authorizations. Present and revise it until the

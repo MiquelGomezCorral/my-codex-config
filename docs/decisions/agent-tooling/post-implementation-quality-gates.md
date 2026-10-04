@@ -43,10 +43,10 @@ Separating diagnosis from correction lets the user choose which simplifications 
 
 ## Enforcement
 
-- Cleanup instructions: [cleanup skill](../../../agent-home/skills/cleanup/SKILL.md) and [cleanup worker](../../../codex/agents/cleanup-worker.toml).
-- Review instructions: [review skill](../../../agent-home/skills/review/SKILL.md),
-  [OpenCode Go helper](../../../agent-home/skills/review/scripts/ocr-opencode-go), and
-  [review worker](../../../codex/agents/review-worker.toml).
+- Cleanup instructions: [cleanup skill](../../../config/skills/cleanup/SKILL.md) and [cleanup worker](../../../config/agents/cleanup-worker.toml).
+- Review instructions: [review skill](../../../config/skills/review/SKILL.md),
+  [OpenCode Go helper](../../../config/skills/review/scripts/ocr-opencode-go), and
+  [review worker](../../../config/agents/review-worker.toml).
 - Static enforcement: [configuration tests](../../../tests/codex-config.test.mjs) and [bootstrap tests](../../../tests/bootstrap.test.sh).
 - Review-only: provider availability and source transmission remain live-validation concerns.
 

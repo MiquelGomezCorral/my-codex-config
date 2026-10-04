@@ -1,8 +1,8 @@
 # Project Agent Rules
 
-This repository is the canonical, secret-free Codex configuration. `config/AGENTS.md`
-and `config/security-rules.md` are the authoritative global policy sources; the
-bootstrap generates the installed `~/.codex/AGENTS.md` from them.
+This repository is the canonical, secret-free harness configuration. `config/AGENTS.md`
+is the single authoritative global policy source; each dedicated bootstrap appends it to
+that harness's native user policy file.
 
 ## Memory Files
 
@@ -34,6 +34,6 @@ context from that agent and report memory suggestions back; they do not use
 
 ## Commands
 
-- `./bootstrap.sh --check`
+- `./bootstrap_codex.sh --check`
 - `node --test tests/*.mjs config/plugins/vault-context/test/plugin.test.mjs`
 - `bash tests/bootstrap.test.sh`

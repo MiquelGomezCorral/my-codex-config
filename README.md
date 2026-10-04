@@ -1,9 +1,11 @@
-# my-codex-config
+# my-harness-config
 
-Repository-managed Codex configuration with portable shared skills and native Codex
-agents. Codex owns its configuration, permissions, hooks, MCP definitions, and synthesis.
-Delegation uses an active wrapper's lifecycle when one is present; otherwise it uses the
-current harness's native worker tools.
+Repository-managed configuration for Codex, Claude Code, Pi, and Antigravity. All four
+share the same skills, roles, command intent, policy, and three managed MCP servers; each
+bootstrap writes native assets while preserving unrelated user configuration. Delegation
+uses an active wrapper's lifecycle when one is present; otherwise it uses the current
+harness's native worker tools.
+
 OpenCode configuration remains separately owned by `my-opencode-config`.
 
 ## Workflow diagrams
@@ -49,171 +51,103 @@ OpenCode configuration remains separately owned by `my-opencode-config`.
 
 ## Requirements
 
-- macOS or Linux with Bash and Git.
-- An app-managed Codex CLI installation.
-- Python 3, Node.js, and npm (`npx`).
-- `btca` and `headroom` for the configured MCP servers. Bootstrap installs the official
-  CodeGraph package when `codegraph` is missing.
-- Docker must already be installed and running for the full setup. Bootstrap never installs
-  Docker; if Docker is unavailable, it warns and continues without starting SearXNG.
-- GitHub CLI (`gh`) authenticated to GitHub for the private-repository clone command.
+- Bash, Git, Python 3, Node.js, npm, and `npx`.
+- Install each desired harness separately: Codex CLI, Claude Code, Pi, or Antigravity.
+- If BTCA is missing, install Bun first; the shared bootstrap then uses the official
+  `bun add -g btca` command. The bootstrap does not install Bun.
+- Docker is optional. If it is available and running, SearXNG is deployed at
+  `http://localhost:8080`; otherwise setup continues with a warning.
+- GitHub CLI (`gh`) authenticated to clone this private repository.
 
 ## Install On Another Computer
 
-Clone the private repository and run the installer:
+Clone the repository, then run the bootstraps for the harnesses you use:
 
 ```bash
 gh auth login
 gh repo clone MiquelGomezCorral/my-codex-config ~/code/my-codex-config
 cd ~/code/my-codex-config
-./bootstrap.sh
-codex login
+./bootstrap_codex.sh
+./bootstrap_claude.sh
+./bootstrap_pi.sh
+./bootstrap_agy.sh
 ```
 
-Use `./bootstrap.sh --pi` to configure Pi, including CodeGraph and local SearXNG MCP tools.
-SearXNG is deployed by default with the official Docker image at `http://localhost:8080`.
-Use `--no-searxng` to skip its container deployment or `--no-searxng-mcp` to skip Pi's
-SearXNG connector; either flag leaves the other part unchanged.
-For isolated Pi configuration, run `./bootstrap_pi.sh`; add `--install-extension` to install
-Pi Subagents, the MCP adapter, diagram-design, and the SearXNG connector.
+Each dedicated bootstrap calls `bootstrap_common.sh`. It checks for CodeGraph, BTCA, the
+pinned SearXNG connector, the portable skill sources, and the SearXNG service; it installs
+or starts only what is missing. It never installs a harness CLI, Docker, or authentication.
+Portable Ponytail, diagram-design, and Excalidraw skills do not require Codex login. The four
+scripts can also run separately.
 
-Use `./bootstrap.sh --agy` to configure AGY. It writes a `my-codex-config` plugin under
-`~/.gemini/config/plugins/`, symlinks the twelve roles into `~/.gemini/config/agents/`, links
-the shared skills, and merges `toolPermission`, `artifactReviewPolicy`, and
-`enableTerminalSandbox` into `~/.gemini/antigravity-cli/settings.json`. For isolated AGY
-configuration, run `./bootstrap_agy.sh`.
+Use `--no-searxng` to skip only the shared Docker service or `--no-searxng-mcp` to skip the
+connector and managed SearXNG entry. Both defaults enable them.
 
-Both harness flags are opt-in and independent. `--pi --agy` configures both. If the matching
-CLI is not on `PATH`, that harness is skipped with a message and the rest of the install
-continues; a missing CLI never fails the bootstrap.
-
-`bootstrap.sh` validates its dependencies and source files before installing. It manages
-individual durable entries only; it never replaces or upgrades binaries, reads or links
-the complete `~/.codex` runtime directory, or writes under `~/.config/opencode`.
-`config/bin/update-codex` is an explicit, opt-in updater for the standalone Codex CLI:
-bootstrap links it to `~/.local/bin/update-codex` but never runs it, so upgrading Codex stays
-a deliberate user action.
-
+Default user locations are `~/.codex`, `${CLAUDE_CONFIG_DIR:-~/.claude}`,
+`${PI_CODING_AGENT_DIR:-~/.pi/agent}`, and `~/.gemini/config`; Antigravity CLI assets
+also use `~/.gemini/antigravity-cli`. Existing configured roots remain supported.
 Conflicting managed entries are backed up under
 `${XDG_STATE_HOME:-$HOME/.local/state}/my-codex-config/backups/<timestamp>/` with private
-permissions. Restart Codex after installation so it reloads config, skills, agents, and
-hooks.
+permissions. Shared external skill sources live under
+`${XDG_DATA_HOME:-$HOME/.local/share}/my-codex-config/external-skills/`.
 
 CodeGraph does not index projects automatically. In each project where semantic search is
-needed, run `codegraph init` and `codegraph index`, then restart Codex or Pi so the MCP
-tools are discovered. Pi's SearXNG connector remains installed when the local service is
-offline, but search and URL reading report that limitation and do not fall back to paid APIs
-or Codex search.
+needed, run `codegraph init` and `codegraph index`, then restart the harness so its MCP
+tools are discovered. Pi keeps its configured-root connector-path repair and continues to
+use local SearXNG search without paid-search or Codex-search fallback.
+Pi also pins `pi-subagents@0.73.1` and `pi-mcp-adapter@2.34.0`, and installs the
+diagram-design Pi extension when missing.
+`config/bin/update-codex` remains an explicit, opt-in updater; bootstrap never runs it.
 
-Bootstrap installs `config.toml` and agent TOMLs as private copies because Codex appends
-local trust state to the config and rejects symlinked role files. Other immutable managed
-entries remain symlinked to the repository.
+Retired MCP entries are removed from managed native configuration when a harness bootstrap
+runs. Packages and authentication state are not uninstalled or deleted.
 
-Verify the installation:
+Verify source and local prerequisites with:
 
 ```bash
-./bootstrap.sh --check
-codex doctor
-codex mcp list
+./bootstrap_codex.sh --check
 ```
+
+The isolated bootstrap tests use temporary directories and stub external installers and
+services. They do not install into a live home or require authentication.
 
 ## Authentication
 
-Codex authentication is manual and never stored in this repository:
-
-```bash
-codex login
-```
-
-Braintrust MCP uses a bearer token for headless access. Put your Braintrust API key in
-each worktree's ignored `.env` as `BRAINTRUST_MCP_TOKEN=<key>`. Launch Codex from that
-worktree in its own process with the variable exported; Codex does not load `.env`
-automatically:
-
-```bash
-set -a
-. ./.env
-set +a
-codex
-```
-
-The configured endpoint is for US organizations. EU organizations use
-`https://api-eu.braintrust.dev/mcp` in `codex/config.toml`.
+Authentication stays in each harness's native store and is never copied into this
+repository or inspected by the bootstraps. Sign in through each harness's own documented
+flow.
 
 ## What gets installed where
 
-Each harness receives its own rendering from the same sources. `codex/agents/*.toml` is the
-only agent definition; the Pi and AGY role files are generated from it and never committed.
+All 31 repository skills, 12 focused roles, and 13 command intents share the sources under
+`config/`. Native adapters load each command's owning skill and forward its arguments.
+Skills are linked one entry at a time, so unrelated user skills remain available. Native
+mutable config is merged; malformed files are left untouched and managed conflicts receive
+private backups.
 
-### Codex — `$CODEX_HOME`, default `~/.codex`
+| Harness | Shared assets and policy | Roles and commands | MCP configuration |
+| --- | --- | --- | --- |
+| Codex | `~/.agents/skills`, individual links; managed policy appended to `~/.codex/AGENTS.md` | `~/.codex/agents` private role copies; linked `commands/` | `~/.codex/config.toml` merged with local MCPs and runtime tables preserved; native hooks, plugins, dispatcher, and updater remain Codex-owned |
+| Claude Code | `~/.claude/skills`, individual links; policy appended to `CLAUDE.md` | `agents/*.md`; command aliases are thin skills, with `harness-init` and `harness-review` reserved | User-scoped `claude mcp` commands add the three managed stdio servers and remove retired IDs |
+| Pi | Configured agent-root `skills/`; `AGENTS.md` policy append | `agents/*.md`, native `prompts/*.md`; async child agents inherit project/global context and skills | `mcp.json` merged; uses a compatible configured-root connector executable when present, otherwise the resolved shared binary |
+| Antigravity | CLI and IDE plugin each link shared skill entries; global policy and plugin policy are appended | CLI command TOML plus plugin skill aliases; CLI/IDE roles derive from the shared role source | `mcp_config.json` merged while preserving unrelated entries |
 
-| Entry | Mechanism |
-| --- | --- |
-| `config.toml` | private copy; the runtime tail from `[marketplaces]`, `[plugins]`, `[hooks.state]`, or `[projects]` onward is preserved |
-| `hooks.json` | private copy |
-| `commands/` | symlink |
-| `rules/my-opencode-config.rules` | symlink |
-| `agents/<name>.toml`, 12 roles | private copy, because Codex appends trust state and rejects symlinked role files |
-| `AGENTS.md` | generated: header, then `config/AGENTS.md`, then `# Security Rules` and `config/security-rules.md` |
-| `bin/codex-command-dispatch.mjs` | symlink |
-| `vault-context/` | symlink |
-| `~/.local/bin/ocr-go` | symlink to `agent-home/skills/review/scripts/ocr-opencode-go` |
-| `~/.local/bin/update-codex` | symlink to `config/bin/update-codex`; explicit updater, never run by bootstrap |
-| `~/.agents/skills` | symlink to `agent-home/skills` |
-| `~/.codex/skills/excalidraw` | synced from an external clone |
-| Ponytail, diagram-design | `codex plugin marketplace add` then `codex plugin add` |
-| SearXNG | Docker container, unless `--no-searxng` |
-
-The retired `automation-runner` and `commit-worker` agents are backed up and removed from
-each harness on every run.
-
-### Pi — `~/.pi/agent`
-
-| Entry | Mechanism |
-| --- | --- |
-| `agents/<name>.md`, 12 roles | generated from the Codex TOMLs; frontmatter carries `tools`, `thinking`, `skills`, and `allowNestedSubagents` |
-| `skills` | symlink to `~/.agents/skills` |
-| `mcp.json` | merged, not replaced: the `codegraph` and `searxng` servers, both lazy |
-| extensions | only with `--install-extension`: `pi-subagents`, `pi-mcp-adapter@2.34.0`, `diagram-design`, and `mcp-searxng@1.11.1` unless `--no-searxng-mcp` |
-
-### AGY — `~/.gemini/config`
-
-| Entry | Mechanism |
-| --- | --- |
-| `plugins/my-codex-config/plugin.json` | generated manifest |
-| `plugins/my-codex-config/agents/<name>/agent.md`, 12 roles | generated; `subagent: true`, `model: inherit`, `commandExecutionPolicy: eager`, and AGY-native tool names |
-| `plugins/my-codex-config/skills` | symlink to `~/.agents/skills` |
-| `agents/<name>/agent.md` | symlink to the plugin agent |
-| `skills` | symlink to `~/.agents/skills` |
-| `~/.gemini/antigravity-cli/settings.json` | merged: `toolPermission`, `artifactReviewPolicy`, `enableTerminalSandbox` |
-
-### The twelve roles
-
-`coder`, `cleanup-worker`, `git-worker`, `review-worker`, `reviewer-quick`,
-`reviewer-reasoning`, `reviewer-arch`, `reviewer-e2e`, `coding-supervisor`,
-`live-validator`, `critic`, `diagram-worker`.
-
-Pi and AGY give the read-only roles only read tools. That set is `cleanup-worker`,
-`coding-supervisor`, `live-validator`, `review-worker`, `critic`, and every `reviewer-*`.
-`diagram-worker` may write assigned planning artifacts; its task contract bars product edits,
-Git, and delegation. Only `cleanup-worker`, `coding-supervisor`, and `review-worker` may
-nest subagents.
+The common MCP source is exactly CodeGraph, SearXNG, and BTCA in `config/mcp.json`.
+Clients receive native command paths and fields. MCP connection success still depends on
+the service, executable, and each harness's native runtime.
 
 ## Skills and agents
 
-All shared skills are owned by `agent-home/skills` and installed at `~/.agents/skills`.
-Invoke one explicitly with `$skill-name`, for example `$workflow`, `$code`, `$review`,
-`$cleanup`, or `$writing`. `$workflow` starts with the idea and evidence, then carries an
-approved wave through its PR slices. Standalone stage skills keep their existing stopping behavior. Codex's native behavior
-replaces the former OpenCode `build`, `plan`, `general`, `explore`, `answer`, and
-`code-reviewer` roles. Twelve focused Codex TOML agents preserve the distinctive worker and
-reviewer capabilities. `diagram-worker` creates planning visuals under the workflow's
-[diagram guide](agent-home/skills/workflow/references/diagrams.md). All five Git actions use
+All shared skills are owned by `config/skills`. Invoke one explicitly with `$skill-name`,
+for example `$workflow`, `$code`, `$review`, `$cleanup`, or `$writing`. `$workflow` starts
+with the idea and evidence, then carries an approved wave through its PR slices. Twelve
+focused TOML roles in `config/agents/` render to each harness's native role format.
+`diagram-worker` creates planning visuals under the workflow's
+[diagram guide](config/skills/workflow/references/diagrams.md). All five Git actions use
 `git-worker` by default; the `git` skill remains the sole owner of Git policy.
 
 `$workflow` renders a short human view from the complete Markdown plan and a small
-`review.json` brief. See the [brief field guide](agent-home/skills/workflow/references/plan-review-template.md)
-and [compact example](agent-home/skills/workflow/templates/review.example.json). Existing
+`review.json` brief. See the [brief field guide](config/skills/workflow/references/plan-review-template.md)
+and [compact example](config/skills/workflow/templates/review.example.json). Existing
 Markdown-only renderer calls still work.
 
 Shared product decision records live in each repository's `docs/decisions/`. Only the
@@ -237,7 +171,7 @@ requires an explicit documented one-shot adapter; quota substitutions and missin
 remain visible.
 
 Cheap worker choices live only in
-`agent-home/skills/super-agent/references/model-catalog.yaml`, organized by harness
+`config/skills/super-agent/references/model-catalog.yaml`, organized by harness
 and the `low`, `medium`, `high`, and `local` tiers. `super-agent` selects models from the
 catalog, preferring the cheapest adequate local or online choice for the requested route;
 automatic selection and fallback use only compatible catalog entries. Exhausted catalog
@@ -252,30 +186,31 @@ The `orchestration`, `orca-cli`, and `computer-use` skills are version-matched d
 stubs that fetch their guide from the installed binary; their content is intentionally not
 duplicated here.
 
-Repository commands keep the OpenCode command-wrapper flow: the command passes its
-arguments to one skill, and the skill owns the workflow. Use the `/commands/` namespace
-because Codex reserves unqualified slash commands. Everything after the command name is
-forwarded exactly as `$ARGUMENTS`.
+Repository command intents pass their arguments to one named skill, and that skill owns the
+workflow. Each harness gets its native form: Codex slash commands, Pi prompt templates,
+Claude thin skill aliases, and Antigravity CLI command TOML plus IDE skill aliases. Claude
+reserves native `init`, `review`, and `code-review` names, producing `harness-init` and
+`harness-review`; it also prefixes aliases that match their owning skill. Each alias loads
+its owning skill and forwards the full invocation arguments.
 
 | Command | Skill |
 | --- | --- |
-| `/commands/bro` | `bro` |
-| `/commands/cleanup` | `cleanup` |
-| `/commands/code` | `code` |
-| `/commands/commit` | `git` |
-| `/commands/index` | `codegraph-setup` |
-| `/commands/init` | `agents-memory` |
-| `/commands/merge` | `git` |
-| `/commands/workflow` | `workflow` |
-| `/commands/refine-plan` | `refine-plan` |
-| `/commands/review-findings` | `review-findings` |
-| `/commands/review-plan` | `review-plan` |
-| `/commands/review-pr-comments` | `git` |
-| `/commands/review` | `review` |
+| `bro` | `bro` |
+| `cleanup` | `cleanup` |
+| `code` | `code` |
+| `commit` | `git` |
+| `index` | `codegraph-setup` |
+| `init` | `agents-memory` |
+| `merge` | `git` |
+| `workflow` | `workflow` |
+| `refine-plan` | `refine-plan` |
+| `review-findings` | `review-findings` |
+| `review-plan` | `review-plan` |
+| `review-pr-comments` | `git` |
+| `review` | `review` |
 
-For example, `/commands/review quick focus on the payment path` invokes `review` with
-`quick focus on the payment path` as its arguments. Direct `$skill-name` invocation also
-remains available.
+For example, a native `review` alias passes `quick focus on the payment path` to the
+`review` skill. Direct `$skill-name` invocation also remains available.
 
 The `$review --preset` values are `flash`, `swarm`, `swarm-smart`, and `full`, for one
 brief reviewer, adaptive swarm, verified swarm synthesis, or authorized live end-to-end
@@ -294,14 +229,10 @@ ocr --version
 
 From any repository, run `ocr-go review --preview` and then `ocr-go review`.
 
-Ponytail is installed from `DietrichGebert/ponytail` during bootstrap. Its skills, hooks,
-and commands are maintained by that plugin rather than copied into this repository. Review
-and trust its three lifecycle hooks in Codex once after the first install or a hook update.
-
-`diagram-design` is installed from the `cathrynlavery/diagram-design` marketplace plugin for
-Codex and through Pi's native extension installer. AGY does not install the package. The
-Excalidraw skill is synced from `fabricioartur/codex-excalidraw-skill` into
-`~/.codex/skills/excalidraw`; it remains Codex-only.
+The shared installer obtains only the skill folders for Ponytail, diagram-design, and
+Excalidraw from their public repositories, then links those skills into each harness.
+Sources are cached outside the repository under the XDG data directory. Native plugin
+hooks are not copied or translated.
 
 ### Attribution
 
@@ -325,7 +256,7 @@ The personal voice profile is built from Miquel's own 100-question interview, us
 interview and anti-overfitting method in [Ruben Hassid's "I am just a text file"](https://ruben.substack.com/p/i-am-just-a-text-file).
 
 That full interview is stored verbatim at
-`agent-home/skills/writing/references/voice-interview.md` (100 questions, 7 sections, plus
+`config/skills/writing/references/voice-interview.md` (100 questions, 7 sections, plus
 the post-interview calibration). It is the source material. The operating profile the
 agent reads by default is the compressed `voice-profile.md`, which carries only the rules,
 the boundaries, the quick reference card, and the anti-overfitting guide. The upstream
@@ -338,7 +269,7 @@ and PR flow are replaced by this repository's own test commands and the `git` sk
 
 The workflow renderer bundles selected [Lucide](https://github.com/lucide-icons/lucide)
 SVGs. Lucide's ISC notice and the MIT notice for Feather-derived icons are in
-`agent-home/skills/workflow/licenses/lucide.LICENSE`.
+`config/skills/workflow/licenses/lucide.LICENSE`.
 
 The `skill-scout` skill replaces the former `find-skills` and `skillspector` skills, folding
 their marketplace discovery and static security scan into one find-vet-catalog flow. Its
@@ -370,7 +301,7 @@ Codex.
 ## Check
 
 ```bash
-./bootstrap.sh --check
+./bootstrap_codex.sh --check
 bash tests/bootstrap.test.sh
 node --test tests/*.mjs config/plugins/vault-context/test/plugin.test.mjs
 ```

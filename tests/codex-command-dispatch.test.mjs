@@ -19,7 +19,7 @@ function runCommand(home, prompt) {
 test("repository commands load one skill and preserve arguments", () => {
   const home = mkdtempSync(join(tmpdir(), "codex-command-"))
   try {
-    symlinkSync(join(root, "codex/commands"), join(home, "commands"), "dir")
+    symlinkSync(join(root, "config/commands"), join(home, "commands"), "dir")
     for (const [name, skill] of [
       ["bro", "bro"], ["cleanup", "cleanup"], ["code", "code"], ["commit", "git"],
       ["index", "codegraph-setup"], ["init", "agents-memory"], ["merge", "git"],

@@ -12,7 +12,7 @@ const root = resolve(new URL("..", import.meta.url).pathname)
 const read = (path) => readFileSync(join(root, path), "utf8")
 
 test("repository has one shared skill owner with unique valid names", () => {
-  const skills = join(root, "agent-home/skills")
+  const skills = join(root, "config/skills")
   const names = []
   for (const entry of readdirSync(skills)) {
     const path = join(skills, entry, "SKILL.md")
@@ -38,12 +38,13 @@ test("repository has one shared skill owner with unique valid names", () => {
   ok(!names.includes("task-model-recovery"))
   ok(!names.includes("opencode-go-worker"))
   ok(!names.includes("customize-opencode"))
-  ok(!statSync(join(root, "config/skills"), { throwIfNoEntry: false }))
+  ok(statSync(join(root, "config/skills"), { throwIfNoEntry: false }))
+  ok(!statSync(join(root, "agent-home"), { throwIfNoEntry: false }))
 })
 
 test("review is a thin router and code-quality owns its language references", () => {
-  const review = read("agent-home/skills/review/SKILL.md")
-  const quality = read("agent-home/skills/code-quality/SKILL.md")
+  const review = read("config/skills/review/SKILL.md")
+  const quality = read("config/skills/code-quality/SKILL.md")
   const bootstrapPi = read("bootstrap_pi.sh")
 
   match(review, /^## Review modes$/m)
@@ -52,13 +53,13 @@ test("review is a thin router and code-quality owns its language references", ()
   ]) {
     match(review, new RegExp(`\\[references/${reference}\\.md\\]\\(references/${reference}\\.md\\)`))
     ok(
-      statSync(join(root, `agent-home/skills/review/references/${reference}.md`), { throwIfNoEntry: false }),
+      statSync(join(root, `config/skills/review/references/${reference}.md`), { throwIfNoEntry: false }),
       `missing review reference: ${reference}`,
     )
   }
   ok(review.split("\n").length < 100, "review/SKILL.md must stay a short router")
 
-  const standard = read("agent-home/skills/review/references/code-review.md")
+  const standard = read("config/skills/review/references/code-review.md")
   for (const marker of [
     "P0", "P1", "P2", "P3", "Blocked/unverified", "Approve with non-blocking comments",
     "in-scope", "out-of-scope", "unclear",
@@ -67,26 +68,29 @@ test("review is a thin router and code-quality owns its language references", ()
   match(quality, /references\/<language>\.md/)
   match(quality, /references\/python\.md/)
   match(quality, /universal rules apply first/)
-  const python = read("agent-home/skills/code-quality/references/python.md")
+  const python = read("config/skills/code-quality/references/python.md")
   match(python, /^# Python Project Setup$/m)
   ok(python.split("\n").length >= 631)
 
   match(read("config/AGENTS.md"), /The standard is mandatory, not advisory/)
 
-  for (const role of [
-    "cleanup-worker", "coder", "coding-supervisor", "live-validator", "review-worker",
-    "reviewer-arch", "reviewer-e2e", "reviewer-quick", "reviewer-reasoning",
-  ]) {
-    match(bootstrapPi, new RegExp(`"${role}": \\[[^\\]]*"code-quality"`))
-  }
-  doesNotMatch(bootstrapPi, /"code-review"|"python-coding"/)
-  match(bootstrapPi, /"git-worker": \["git", "writing"\]/)
+  const assets = read("config/bin/harness-assets.py")
+  match(bootstrapPi, /harness-assets\.py/)
+  match(assets, /systemPromptMode: append/)
+  match(assets, /inheritProjectContext: true/)
+  match(assets, /inheritGlobalContext: true/)
+  match(assets, /inheritSkills: true/)
+  match(assets, /async: true/)
+  match(assets, /allowNestedSubagents: true/)
+  doesNotMatch(assets, /^\s*tools:/m)
+  doesNotMatch(bootstrapPi, /skills = \{/)
+
 })
 
 test("writing skill owns prose with two always-read references and two opt-in ones", () => {
-  const skill = read("agent-home/skills/writing/SKILL.md")
-  const natural = read("agent-home/skills/writing/references/natural-writing.md")
-  const profile = read("agent-home/skills/writing/references/voice-profile.md")
+  const skill = read("config/skills/writing/SKILL.md")
+  const natural = read("config/skills/writing/references/natural-writing.md")
+  const profile = read("config/skills/writing/references/voice-profile.md")
 
   match(skill, /^name: writing$/m)
   match(skill, /^## Read these two first$/m)
@@ -99,7 +103,7 @@ test("writing skill owns prose with two always-read references and two opt-in on
 
   for (const reference of ["natural-writing.md", "voice-profile.md", "voice-interview.md", "academic.md", "latex.md"]) {
     ok(
-      statSync(join(root, `agent-home/skills/writing/references/${reference}`), { throwIfNoEntry: false }),
+      statSync(join(root, `config/skills/writing/references/${reference}`), { throwIfNoEntry: false }),
       `missing reference: ${reference}`,
     )
   }
@@ -123,7 +127,7 @@ test("writing skill owns prose with two always-read references and two opt-in on
   match(profile, /pasted unchanged into a message about anything/)
   match(profile, /calibrate rhythm, not to be quoted back/)
 
-  const interview = read("agent-home/skills/writing/references/voice-interview.md")
+  const interview = read("config/skills/writing/references/voice-interview.md")
   match(skill, /references\/voice-interview\.md/)
   ok(
     profile.split("\n").length < 200,
@@ -138,13 +142,13 @@ test("writing skill owns prose with two always-read references and two opt-in on
   doesNotMatch(profile, /^### Q\d+/m)
 
   ok(
-    !statSync(join(root, "agent-home/skills/writing/evals"), { throwIfNoEntry: false }),
+    !statSync(join(root, "config/skills/writing/evals"), { throwIfNoEntry: false }),
     "writing must not carry evals",
   )
 })
 
 test("writing score example totals agree with its individual impacts and formula", () => {
-  const natural = read("agent-home/skills/writing/references/natural-writing.md")
+  const natural = read("config/skills/writing/references/natural-writing.md")
   const rules = [...natural.matchAll(/^- \*\*`([a-z-]+)` \((HIGH|MEDIUM|LOW)\):/gm)]
   strictEqual(rules.length, 30)
   strictEqual(new Set(rules.map(rule => rule[1])).size, 30)
@@ -171,10 +175,10 @@ test("writing score example totals agree with its individual impacts and formula
 })
 
 test("git skill owns five actions that resolve repository rules first", () => {
-  const skill = read("agent-home/skills/git/SKILL.md")
-  const merge = read("agent-home/skills/git/references/merge.md")
-  const gitWorker = read("codex/agents/git-worker.toml")
-  const pr = read("agent-home/skills/git/references/pr.md")
+  const skill = read("config/skills/git/SKILL.md")
+  const merge = read("config/skills/git/references/merge.md")
+  const gitWorker = read("config/agents/git-worker.toml")
+  const pr = read("config/skills/git/references/pr.md")
 
   match(skill, /^## Repository rules win$/m)
   match(skill, /Repository `AGENTS\.md` \/ `CLAUDE\.md`/)
@@ -182,7 +186,7 @@ test("git skill owns five actions that resolve repository rules first", () => {
   match(skill, /pre-push/)
   match(skill, /hard gate|Never bypass a hook/)
   for (const reference of ["push", "merge"]) {
-    match(read(`agent-home/skills/git/references/${reference}.md`), /hard gate/)
+    match(read(`config/skills/git/references/${reference}.md`), /hard gate/)
   }
   match(skill, /^## Delegation$/m)
   match(skill, /--no-delegation/)
@@ -195,7 +199,7 @@ test("git skill owns five actions that resolve repository rules first", () => {
   doesNotMatch(gitWorker, /--no-ff|force-push|pre-commit|--no-delegation/)
   for (const reference of ["commit", "push", "pr", "merge", "review-pr-comments"]) {
     match(skill, new RegExp(`references/${reference}\\.md`))
-    ok(statSync(join(root, `agent-home/skills/git/references/${reference}.md`), { throwIfNoEntry: false }))
+    ok(statSync(join(root, `config/skills/git/references/${reference}.md`), { throwIfNoEntry: false }))
   }
 
   match(merge, /^## History integrity$/m)
@@ -210,11 +214,11 @@ test("git skill owns five actions that resolve repository rules first", () => {
 })
 
 test("workflow renders its native wave plan and can commission useful planning diagrams", () => {
-  const planning = read("agent-home/skills/workflow/references/planning.md")
-  const firstDraft = read("agent-home/skills/workflow/references/first-draft.md")
-  const improvement = read("agent-home/skills/workflow/references/improvement-loop.md")
-  const routing = read("agent-home/skills/super-agent/references/routing.md")
-  const lavish = read("agent-home/skills/lavish/SKILL.md")
+  const planning = read("config/skills/workflow/references/planning.md")
+  const firstDraft = read("config/skills/workflow/references/first-draft.md")
+  const improvement = read("config/skills/workflow/references/improvement-loop.md")
+  const routing = read("config/skills/super-agent/references/routing.md")
+  const lavish = read("config/skills/lavish/SKILL.md")
 
   match(planning, /Markdown file\s+authoritative/i)
   match(planning, /node "\$HOME\/\.agents\/skills\/workflow\/scripts\/render-plan\.mjs"/)
@@ -226,8 +230,7 @@ test("workflow renders its native wave plan and can commission useful planning d
   match(planning, /useful custom\s+diagram may use `super-agent`/i)
   doesNotMatch(planning, /custom diagram may use `super-agent` only\s+when requested/i)
   const artifactRoute = routing.slice(routing.indexOf("For a bounded artifact worker"), routing.indexOf("## Explicit one-shot adapters"))
-  match(artifactRoute, /--tools read,edit,write,bash/)
-  doesNotMatch(artifactRoute, /--tools[^\n]*\b(?:grep|find|ls)\b/)
+  doesNotMatch(artifactRoute, /--tools\b/)
   match(artifactRoute, /task constraint, not a filesystem sandbox/i)
   match(artifactRoute, /exact Orca Dispatch lifecycle commands/)
   match(artifactRoute, /coordinator owns\s+helper checks and exports/i)
@@ -238,8 +241,8 @@ test("workflow renders its native wave plan and can commission useful planning d
 })
 
 test("review-plan delegates final template rendering to refine-plan", () => {
-  const reviewPlan = read("agent-home/skills/review-plan/SKILL.md")
-  const refinePlan = read("agent-home/skills/refine-plan/SKILL.md")
+  const reviewPlan = read("config/skills/review-plan/SKILL.md")
+  const refinePlan = read("config/skills/refine-plan/SKILL.md")
 
   match(reviewPlan, /Load the `refine-plan` skill/)
   doesNotMatch(reviewPlan, /^## Planning mode$/m)
@@ -250,23 +253,25 @@ test("review-plan delegates final template rendering to refine-plan", () => {
 })
 
 test("local search setup keeps service and connector ownership separate", () => {
-  const bootstrap = read("bootstrap.sh")
+  const bootstrap = read("bootstrap_codex.sh")
   const piBootstrap = read("bootstrap_pi.sh")
-  const codegraph = read("agent-home/skills/codegraph-setup/SKILL.md")
-  const search = read("agent-home/skills/web-search/SKILL.md")
+  const common = read("bootstrap_common.sh")
+  const mcpConfig = read("config/bin/mcp-config.py")
+  const codegraph = read("config/skills/codegraph-setup/SKILL.md")
+  const search = read("config/skills/web-search/SKILL.md")
   const searxng = read("config/searxng/settings.yml")
 
   match(bootstrap, /--no-searxng/)
   match(bootstrap, /--no-searxng-mcp/)
-  match(bootstrap, /docker\.io\/searxng\/searxng:latest/)
-  match(bootstrap, /127\.0\.0\.1:8080:8080/)
-  match(bootstrap, /--restart unless-stopped/)
-  match(bootstrap, /warn 'Docker is unavailable/)
-  match(piBootstrap, /pi install npm:pi-mcp-adapter@2\.34\.0/)
-  match(piBootstrap, /pi install npm:mcp-searxng@1\.11\.1/)
-  match(piBootstrap, /SEARXNG_URL.*http:\/\/localhost:8080/)
-  match(piBootstrap, /"lifecycle": "lazy"/)
-  match(piBootstrap, /"directTools": True/)
+  match(common, /docker\.io\/searxng\/searxng:latest/)
+  match(common, /127\.0\.0\.1:8080:8080/)
+  match(common, /--restart unless-stopped/)
+  match(common, /Docker is unavailable/)
+  match(piBootstrap, /install_pi_package pi-mcp-adapter npm:pi-mcp-adapter@2\.34\.0 2\.34\.0/)
+  match(common, /npm install --global mcp-searxng@1\.11\.1/)
+  match(mcpConfig, /SEARXNG_URL.*http:\/\/localhost:8080/)
+  match(piBootstrap, /npm\/node_modules\/\.bin\/mcp-searxng/)
+  match(mcpConfig, /lifecycle="lazy", directTools=True/)
   match(codegraph, /@colbymchenry\/codegraph@1\.6\.0/)
   match(codegraph, /never indexes a project automatically/i)
   match(search, /searxng_web_search/)
@@ -276,10 +281,10 @@ test("local search setup keeps service and connector ownership separate", () => 
 })
 
 test("decision records separate empty-index initialization from concern assessment", () => {
-  const records = read("agent-home/skills/decision-records/SKILL.md")
-  const planning = read("agent-home/skills/workflow/references/planning.md")
-  const code = read("agent-home/skills/code/SKILL.md")
-  const indexTemplate = read("agent-home/skills/decision-records/assets/index-template.md")
+  const records = read("config/skills/decision-records/SKILL.md")
+  const planning = read("config/skills/workflow/references/planning.md")
+  const code = read("config/skills/code/SKILL.md")
+  const indexTemplate = read("config/skills/decision-records/assets/index-template.md")
 
   ok(indexTemplate.startsWith("# Decision records\n"))
   ok(indexTemplate.includes("No decision records exist yet."))
@@ -291,52 +296,121 @@ test("decision records separate empty-index initialization from concern assessme
   ok(statSync(join(root, "docs/decisions/index.md"), { throwIfNoEntry: false }))
 })
 
-test("documented harness install map matches the installers", () => {
+test("four native bootstraps share dependencies and deliver portable assets", () => {
   const readme = read("README.md")
-  const architecture = read(".agents/architecture.md")
-  const workflow = read(".agents/workflow.md")
-  const bootstrap = read("bootstrap.sh")
-  const pi = read("bootstrap_pi.sh")
-  const agy = read("bootstrap_agy.sh")
+  const scripts = ["bootstrap_codex.sh", "bootstrap_claude.sh", "bootstrap_pi.sh", "bootstrap_agy.sh"]
+  const source = scripts.map(read)
+  const common = read("bootstrap_common.sh")
+  const assets = read("config/bin/harness-assets.py")
+  const mcpConfig = read("config/bin/mcp-config.py")
+  const mcp = JSON.parse(read("config/mcp.json"))
 
-  // all three harnesses are documented, with their targets
   match(readme, /^## What gets installed where$/m)
-  match(readme, /^### Codex/m)
-  match(readme, /^### Pi/m)
-  match(readme, /^### AGY/m)
-  match(readme, /^### The twelve roles$/m)
-  match(readme, /`~\/\.pi\/agent`/)
-  match(readme, /`~\/\.gemini\/config`/)
-  match(readme, /\| `hooks\.json` \| private copy \|/)
-  match(readme, /retired `automation-runner` and `commit-worker` agents.*each harness/s)
-  match(readme, /--install-extension/)
-  match(readme, /`~\/\.gemini\/antigravity-cli\/settings\.json`/)
-
-  // the memory files point at the map instead of restating it
-  match(architecture, /bootstrap_pi\.sh` and `bootstrap_agy\.sh`/)
-  match(architecture, /What gets installed where/)
-  match(workflow, /`--check` is read-only/)
-  match(workflow, /codegraph` on `PATH`/)
-
-  // every declared role is documented, and both renderers generate from the TOMLs
-  const namesBlock = bootstrap.match(/CODEX_AGENT_NAMES=\(([\s\S]*?)\)/)
-  ok(namesBlock, "bootstrap.sh must declare CODEX_AGENT_NAMES")
-  const names = namesBlock[1].split(/\s+/).filter(Boolean)
-  strictEqual(names.length, 12, "bootstrap.sh must declare twelve roles")
-  for (const name of names) {
-    ok(readme.includes(`\`${name}\``), `README must document the ${name} role`)
+  for (const harness of ["Codex", "Claude Code", "Pi", "Antigravity"]) {
+    match(readme, new RegExp(`\\| ${harness} \\|`))
   }
-
-  for (const script of [pi, agy]) {
-    match(script, /source\.glob\("\*\.toml"\)/)
-    match(script, /\{"cleanup-worker", "coding-supervisor", "live-validator", "review-worker", "critic"\}/)
+  match(readme, /31 repository skills, 12 focused roles, and 13 command intents/)
+  match(readme, /harness-init/)
+  match(readme, /configured-root connector-path repair/)
+  for (const script of source) match(script, /common_install_shared/)
+  match(common, /ensure_codegraph/)
+  match(common, /bun add -g btca/)
+  match(common, /mcp-searxng@1\.11\.1/)
+  match(common, /external-skills/)
+  deepStrictEqual(Object.keys(mcp.mcpServers).sort(), ["btca", "codegraph", "searxng"])
+  for (const retired of ["braintrust", "vidext-operator-my-workspace", "headroom", "sequential-thinking"]) {
+    ok(mcpConfig.includes(retired), `missing managed retirement rule: ${retired}`)
   }
+  match(assets, /Load and follow the `\{skill\}` skill/)
+  match(assets, /\$@/)
+  match(assets, /\{\{args\}\}/)
+  match(assets, /the full invocation text/)
+  match(assets, /reserved = \{"init", "review", "code-review"\}/)
+  match(assets, /return f"harness-\{name\}" if name in reserved else name/)
+  doesNotMatch(assets, /^\s*tools:/m)
+  const temp = mkdtempSync(join(tmpdir(), "harness-renderer-"))
+  try {
+    for (const [command, alias] of [["init", "harness-init"], ["review", "harness-review"]]) {
+      const target = join(temp, command)
+      const result = spawnSync("python3", [
+        "config/bin/harness-assets.py", "render-command", "--format", "claude",
+        "--source", `config/commands/${command}.md`, "--target", target,
+        "--backup", join(temp, "backups"),
+      ], { cwd: root, encoding: "utf8" })
+      strictEqual(result.status, 0, result.stderr)
+      ok(statSync(join(target, alias, "SKILL.md"), { throwIfNoEntry: false }))
+    }
+  } finally {
+    rmSync(temp, { recursive: true, force: true })
+  }
+  for (const agent of readdirSync(join(root, "config/agents"))) {
+    if (!agent.endsWith(".toml")) continue
+    const body = read(`config/agents/${agent}`)
+    doesNotMatch(body, /^sandbox_mode = "(?:read-only|workspace-write)"$/m)
+  }
+})
 
-  // the read-only set must stay identical across the two renderers
-  const readOnlyPi = pi.match(/read_only = name in \{[^}]*\}/)
-  const readOnlyAgy = agy.match(/read_only = name in \{[^}]*\}/)
-  ok(readOnlyPi && readOnlyAgy, "both renderers must declare a read-only set")
-  strictEqual(readOnlyPi[0], readOnlyAgy[0], "read-only roles must match across Pi and AGY")
+test("legacy policy migration preserves local tails and backs up the replaced file", () => {
+  const temp = mkdtempSync(join(tmpdir(), "harness-policy-"))
+  const source = join(temp, "source.md")
+  const backupRoot = join(temp, "backups")
+  const policy = "# Global Agent Rules\n\nCurrent shared instructions.\n\n# Security Rules\n\nCurrent security instructions."
+  const legacyMarker = "# Generated by my-codex-config bootstrap."
+  const security = policy.slice(policy.indexOf("# Security Rules"))
+  const legacyPolicy = `# Global Agent Rules\n\nOld generated global instructions.\n\n${security}`
+  const prefix = "Local introduction."
+  const tails = [
+    ["heading", "# Local Instructions\n\nKeep this locally added section."],
+    ["subheading", "## Local Instructions\n\nKeep this locally added section."],
+    ["plain", "Keep this plain local tail."],
+  ]
+
+  try {
+    writeFileSync(source, `${policy}\n`)
+    const install = (target) => spawnSync("python3", [
+      "config/bin/harness-assets.py", "install-policy", "--source", source,
+      "--target", target, "--backup", backupRoot,
+    ], { cwd: root, encoding: "utf8" })
+
+    for (const [name, tail] of tails) {
+      const target = join(temp, `AGENTS-${name}.md`)
+      const original = `${prefix}\n\n${legacyMarker}\n\n${legacyPolicy}\n\n${tail}\n`
+      const installed = `${prefix}\n\n<!-- BEGIN my-harness-config policy -->\n\n${policy}\n\n<!-- END my-harness-config policy -->\n\n${tail}\n`
+      writeFileSync(target, original)
+
+      let result = install(target)
+      strictEqual(result.status, 0, result.stderr)
+      strictEqual(readFileSync(target, "utf8"), installed)
+      strictEqual(readFileSync(join(backupRoot, `AGENTS-${name}.md`), "utf8"), original)
+      strictEqual((installed.match(/^# Global Agent Rules$/gm) ?? []).length, 1)
+      strictEqual((installed.match(/^# Security Rules$/gm) ?? []).length, 1)
+
+      result = install(target)
+      strictEqual(result.status, 0, result.stderr)
+      strictEqual(readFileSync(target, "utf8"), installed)
+    }
+
+    const wholeTarget = join(temp, "AGENTS-whole.md")
+    const wholeLegacy = `${legacyMarker}\n\n${legacyPolicy}\n`
+    writeFileSync(wholeTarget, wholeLegacy)
+    const wholeResult = install(wholeTarget)
+    strictEqual(wholeResult.status, 0, wholeResult.stderr)
+    strictEqual(
+      readFileSync(wholeTarget, "utf8"),
+      `<!-- BEGIN my-harness-config policy -->\n\n${policy}\n\n<!-- END my-harness-config policy -->\n`,
+    )
+    strictEqual(readFileSync(join(backupRoot, "AGENTS-whole.md"), "utf8"), wholeLegacy)
+
+    const uncertainTarget = join(temp, "AGENTS-uncertain.md")
+    const uncertain = `${legacyMarker}\n\n# Global Agent Rules\n\nOld rules.\n\n# Security Rules\n\nLocally edited security content.\n`
+    writeFileSync(uncertainTarget, uncertain)
+    const uncertainResult = install(uncertainTarget)
+    strictEqual(uncertainResult.status, 1)
+    strictEqual(readFileSync(uncertainTarget, "utf8"), uncertain)
+    ok(!statSync(join(backupRoot, "AGENTS-uncertain.md"), { throwIfNoEntry: false }))
+  } finally {
+    rmSync(temp, { recursive: true, force: true })
+  }
 })
 
 test("Codex TOML agents use native fields and preserve all twelve roles", () => {
@@ -345,46 +419,42 @@ test("Codex TOML agents use native fields and preserve all twelve roles", () => 
     "reviewer-quick", "reviewer-reasoning", "reviewer-arch", "reviewer-e2e",
     "coding-supervisor", "live-validator", "critic", "diagram-worker",
   ]
-  const config = read("codex/config.toml")
-  ok(!statSync(join(root, "codex/agents/commit-worker.toml"), { throwIfNoEntry: false }))
-  const result = spawnSync("python3", ["-c", "import pathlib, sys, tomllib; [tomllib.loads(pathlib.Path(p).read_text()) for p in sys.argv[1:]]", "codex/config.toml", ...names.map((name) => `codex/agents/${name}.toml`)], { cwd: root, encoding: "utf8" })
+  const config = read("config/codex.toml")
+  ok(!statSync(join(root, "config/agents/commit-worker.toml"), { throwIfNoEntry: false }))
+  const result = spawnSync("python3", ["-c", "import pathlib, sys, tomllib; [tomllib.loads(pathlib.Path(p).read_text()) for p in sys.argv[1:]]", "config/codex.toml", ...names.map((name) => `config/agents/${name}.toml`)], { cwd: root, encoding: "utf8" })
   strictEqual(result.status, 0, result.stderr)
   for (const name of names) {
-    const body = read(`codex/agents/${name}.toml`)
+    const body = read(`config/agents/${name}.toml`)
     match(body, new RegExp(`^name = "${name}"$`, "m"))
     for (const forbidden of ["mode", "temperature", "steps", "task_key", "permission"]) {
       doesNotMatch(body, new RegExp(`^${forbidden}\\s*=`, "m"))
     }
     match(body, /^approval_policy = "never"$/m)
-    match(body, ["coding-supervisor", "live-validator", "critic"].includes(name)
-      ? /^sandbox_mode = "read-only"$/m
-      : name === "diagram-worker"
-        ? /^sandbox_mode = "workspace-write"$/m
-        : /^sandbox_mode = "danger-full-access"$/m)
+    doesNotMatch(body, /^sandbox_mode = "(?:read-only|workspace-write)"$/m)
     ok(body.includes("developer_instructions"))
   }
   for (const name of ["coding-supervisor", "live-validator", "critic"]) {
-    const body = read(`codex/agents/${name}.toml`)
+    const body = read(`config/agents/${name}.toml`)
     match(body, /^model = "gpt-6-sol"$/m)
     match(body, /^model_reasoning_effort = "high"$/m)
-    match(body, /^sandbox_mode = "read-only"$/m)
+    doesNotMatch(body, /^sandbox_mode = "read-only"$/m)
   }
-  const supervisor = read("codex/agents/coding-supervisor.toml")
+  const supervisor = read("config/agents/coding-supervisor.toml")
   match(supervisor, /exactly\s+one retained `coder` through\s+`super-agent`/)
   match(supervisor, /must never edit product\s+source/)
   match(supervisor, /only for a workflow slice whose human-approved plan marks it `large`/)
   match(supervisor, /bounded grant to direct exactly\s+one retained `coder`/)
   match(supervisor, /every verified\s+in-scope P0-P3 correction/)
   match(supervisor, /two unsuccessful\s+rounds/)
-  const validator = read("codex/agents/live-validator.toml")
+  const validator = read("config/agents/live-validator.toml")
   match(validator, /target environment, exact flow, sample inputs, expected results/)
   match(validator, /Do not install or authenticate\s+tools/)
   match(validator, /blocked\/unverified/)
-  const critic = read("codex/agents/critic.toml")
+  const critic = read("config/agents/critic.toml")
   match(critic, /plan, design,\s+research claim, bug diagnosis, or decision/)
   match(critic, /complete supplied artifact and cited primary evidence/)
   match(critic, /Do not change the goal/)
-  const diagramWorker = read("codex/agents/diagram-worker.toml")
+  const diagramWorker = read("config/agents/diagram-worker.toml")
   doesNotMatch(diagramWorker, /^model\s*=/m)
   match(diagramWorker, /^model_reasoning_effort = "low"$/m)
   match(diagramWorker, /Write only the requested editable source and preview inside the assigned output directory/)
@@ -392,8 +462,8 @@ test("Codex TOML agents use native fields and preserve all twelve roles", () => 
   match(diagramWorker, /Use Bash only for the exact Orca Dispatch\s+lifecycle commands/)
   match(diagramWorker, /The coordinator owns helper checks and exports/)
   match(diagramWorker, /operate Git.*install tools; publish; or delegate/s)
-  ok(config.includes("[mcp_servers.codegraph]"))
-  ok(config.includes('command = "codegraph"'))
+  doesNotMatch(config, /^\[mcp_servers\./m)
+  deepStrictEqual(Object.keys(JSON.parse(read("config/mcp.json")).mcpServers).sort(), ["btca", "codegraph", "searxng"])
   match(config, /^model = "gpt-6-sol"$/m)
   match(config, /^web_search = "live"$/m)
   doesNotMatch(config, /\[mcp_servers\.(?:playwright|searxng)\]/)
@@ -401,12 +471,12 @@ test("Codex TOML agents use native fields and preserve all twelve roles", () => 
 })
 
 test("cheap model catalog is harness-first and keeps identifiers centralized", () => {
-  const catalog = read("agent-home/skills/super-agent/references/model-catalog.yaml")
-  const routing = read("agent-home/skills/super-agent/SKILL.md")
-  const routingReference = read("agent-home/skills/super-agent/references/routing.md")
+  const catalog = read("config/skills/super-agent/references/model-catalog.yaml")
+  const routing = read("config/skills/super-agent/SKILL.md")
+  const routingReference = read("config/skills/super-agent/references/routing.md")
   const modelIds = [...catalog.matchAll(/^\s+-\s+(\S+)$/gm)].map(([, id]) => id)
   const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-  const defaultSubagentModel = read("codex/config.toml").match(/^default_subagent_model = "([^"]+)"$/m)?.[1]
+  const defaultSubagentModel = read("config/codex.toml").match(/^default_subagent_model = "([^"]+)"$/m)?.[1]
 
   match(catalog, /^max_local_concurrency:\s*1$/m)
   match(catalog, /^codex:\n  low:\n    - \S+$/m)
@@ -438,30 +508,30 @@ test("cheap model catalog is harness-first and keeps identifiers centralized", (
   for (const harness of ["Codex", "Pi", "AGY", "OpenCode"]) match(routingReference, new RegExp(harness))
   for (const path of [
     "README.md",
-    "agent-home/skills/super-agent/references/swarm.md",
-    "agent-home/skills/review/SKILL.md",
-    "agent-home/skills/review/references/orchestration.md",
-    "agent-home/skills/review/references/ocr-evidence.md",
-    "agent-home/skills/review/references/swarm-coordination.md",
-    "agent-home/skills/git/SKILL.md",
+    "config/skills/super-agent/references/swarm.md",
+    "config/skills/review/SKILL.md",
+    "config/skills/review/references/orchestration.md",
+    "config/skills/review/references/ocr-evidence.md",
+    "config/skills/review/references/swarm-coordination.md",
+    "config/skills/git/SKILL.md",
   ]) {
     const body = read(path)
     for (const id of modelIds) doesNotMatch(body, new RegExp(escapeRegExp(id)))
   }
-  doesNotMatch(read("agent-home/skills/code/SKILL.md"), new RegExp(modelIds.map(escapeRegExp).join("|")))
-  doesNotMatch(read("agent-home/skills/cleanup/SKILL.md"), new RegExp(modelIds.map(escapeRegExp).join("|")))
+  doesNotMatch(read("config/skills/code/SKILL.md"), new RegExp(modelIds.map(escapeRegExp).join("|")))
+  doesNotMatch(read("config/skills/cleanup/SKILL.md"), new RegExp(modelIds.map(escapeRegExp).join("|")))
 })
 
 test("delegating skills require runtime-native capability-aware routing", () => {
-  const routing = read("agent-home/skills/super-agent/SKILL.md")
-  const routingReference = read("agent-home/skills/super-agent/references/routing.md")
-  const lifecycle = read("agent-home/skills/super-agent/references/lifecycle.md")
-  const swarm = read("agent-home/skills/super-agent/references/swarm.md")
-  const review = read("agent-home/skills/review/SKILL.md")
-  const reviewOrchestration = read("agent-home/skills/review/references/orchestration.md")
-  const multiReview = read("agent-home/skills/review/references/swarm-coordination.md")
-  const orchestration = read("agent-home/skills/orchestration/SKILL.md")
-  const swarmEvals = JSON.parse(read("agent-home/skills/super-agent/evals/evals.json"))
+  const routing = read("config/skills/super-agent/SKILL.md")
+  const routingReference = read("config/skills/super-agent/references/routing.md")
+  const lifecycle = read("config/skills/super-agent/references/lifecycle.md")
+  const swarm = read("config/skills/super-agent/references/swarm.md")
+  const review = read("config/skills/review/SKILL.md")
+  const reviewOrchestration = read("config/skills/review/references/orchestration.md")
+  const multiReview = read("config/skills/review/references/swarm-coordination.md")
+  const orchestration = read("config/skills/orchestration/SKILL.md")
+  const swarmEvals = JSON.parse(read("config/skills/super-agent/evals/evals.json"))
 
   match(routing, /ceil\(N \/ 2\)/)
   match(lifecycle, /quota or rate limit is exhausted/)
@@ -479,48 +549,48 @@ test("delegating skills require runtime-native capability-aware routing", () => 
   match(read("config/AGENTS.md"), /All agents, including nested workers, must load `super-agent`/)
   doesNotMatch(routing + swarm, /`spawn_agent`|`wait_agent`|`followup_task`/)
   doesNotMatch(routing, /Orca|ORCA/)
-  match(read("agent-home/skills/code/SKILL.md"), /active wrapper through `super-agent`/)
-  match(read("agent-home/skills/super-agent/references/swarm.md"), /## Isolated tasks/)
+  match(read("config/skills/code/SKILL.md"), /active wrapper through `super-agent`/)
+  match(read("config/skills/super-agent/references/swarm.md"), /## Isolated tasks/)
   doesNotMatch(routing, /Codex owns all subagent orchestration/)
 
   match(swarm, /other available harnesses/)
   match(reviewOrchestration, /prefer Pi reviewers by default/)
   match(reviewOrchestration, /Preserve an explicit AGY\/Pi roster exactly/)
   match(reviewOrchestration, /For `flash`, route directly to one `reviewer-quick` through `super-agent`/)
-  match(read("agent-home/skills/review/references/presets/full.md"), /Codex `live-validator`/)
+  match(read("config/skills/review/references/presets/full.md"), /Codex `live-validator`/)
   match(multiReview, /When the user requests five/)
   match(multiReview, /explicit or review-preset\s+preference/)
-  match(read("agent-home/skills/code/SKILL.md"), /through `super-agent`/)
-  match(read("agent-home/skills/cleanup/SKILL.md"), /through `super-agent`/)
-  match(read("agent-home/skills/git/SKILL.md"), /via `super-agent`/)
-  match(read("agent-home/skills/skill-creator/SKILL.md"), /move the whole pair/)
+  match(read("config/skills/code/SKILL.md"), /through `super-agent`/)
+  match(read("config/skills/cleanup/SKILL.md"), /through `super-agent`/)
+  match(read("config/skills/git/SKILL.md"), /via `super-agent`/)
+  match(read("config/skills/skill-creator/SKILL.md"), /move the whole pair/)
   strictEqual(swarmEvals.evals.length, 9)
   match(JSON.stringify(swarmEvals), /quota-exhausted/)
   match(JSON.stringify(swarmEvals), /catalog tier/)
   match(JSON.stringify(swarmEvals), /local-search protection/)
   match(JSON.stringify(swarmEvals), /closed allowlist/)
-  match(read("codex/agents/review-worker.toml"), /available harnesses/)
-  match(read("codex/agents/review-worker.toml"), /pin an exact model from the cheap-model\s+catalog/)
+  match(read("config/agents/review-worker.toml"), /available harnesses/)
+  match(read("config/agents/review-worker.toml"), /pin an exact model from the cheap-model\s+catalog/)
 
   for (const path of [
-    "agent-home/skills/super-agent/SKILL.md",
-    "agent-home/skills/super-agent/references/swarm.md",
-    "agent-home/skills/review/SKILL.md",
-    "agent-home/skills/review/references/swarm-coordination.md",
+    "config/skills/super-agent/SKILL.md",
+    "config/skills/super-agent/references/swarm.md",
+    "config/skills/review/SKILL.md",
+    "config/skills/review/references/swarm-coordination.md",
   ]) {
     doesNotMatch(read(path), /Do not substitute workmux|exact Sol model has no fallback|Orca is the required lifecycle/)
   }
 })
 
 test("cleanup and review quality gates keep external evidence opt-in and read-only", () => {
-  const cleanup = read("agent-home/skills/cleanup/SKILL.md")
-  const cleanupMetadata = read("agent-home/skills/cleanup/agents/openai.yaml")
-  const cleanupWorker = read("codex/agents/cleanup-worker.toml")
-  const cleanupEvals = JSON.parse(read("agent-home/skills/cleanup/evals/evals.json"))
-  const review = read("agent-home/skills/review/SKILL.md")
-  const reviewOcr = read("agent-home/skills/review/references/ocr-evidence.md")
-  const reviewOrchestration = read("agent-home/skills/review/references/orchestration.md")
-  const reviewWorker = read("codex/agents/review-worker.toml")
+  const cleanup = read("config/skills/cleanup/SKILL.md")
+  const cleanupMetadata = read("config/skills/cleanup/agents/openai.yaml")
+  const cleanupWorker = read("config/agents/cleanup-worker.toml")
+  const cleanupEvals = JSON.parse(read("config/skills/cleanup/evals/evals.json"))
+  const review = read("config/skills/review/SKILL.md")
+  const reviewOcr = read("config/skills/review/references/ocr-evidence.md")
+  const reviewOrchestration = read("config/skills/review/references/orchestration.md")
+  const reviewWorker = read("config/agents/review-worker.toml")
   const bootstrapPi = read("bootstrap_pi.sh")
 
   match(cleanup, /explicit `\$cleanup` invocation/)
@@ -577,16 +647,16 @@ test("cleanup and review quality gates keep external evidence opt-in and read-on
   match(reviewWorker, /Verify every retained claim.*source/s)
   match(reviewWorker, /deduplicate OCR findings against native findings/s)
   match(reviewWorker, /never blocks the native verdict/)
-  match(bootstrapPi, /"cleanup-worker": \["cleanup", "code-quality", "super-agent", "test-audit", "writing"\]/)
+  match(bootstrapPi, /render-agent --format pi/)
+  match(read("config/bin/harness-assets.py"), /inheritSkills: true/)
+  doesNotMatch(read("config/bin/harness-assets.py"), /^\s*tools:/m)
   doesNotMatch(bootstrapPi, /"core"/)
-  ok(bootstrapPi.includes("skills.get(name, ['writing'])"))
-  match(bootstrapPi, /\*\(\["allowNestedSubagents: true"\] if name in \{"cleanup-worker", "coding-supervisor", "review-worker"\} else \[\]\),/)
 })
 
 test("test-audit gates new tests and audits existing ones", () => {
-  const skill = read("agent-home/skills/test-audit/SKILL.md")
-  const campaign = read("agent-home/skills/test-audit/references/campaign.md")
-  const bootstrapPi = read("bootstrap_pi.sh")
+  const skill = read("config/skills/test-audit/SKILL.md")
+  const campaign = read("config/skills/test-audit/references/campaign.md")
+  const assets = read("config/bin/harness-assets.py")
 
   match(skill, /^## Repository rules win$/m)
   match(skill, /^## Authoring gate$/m)
@@ -620,49 +690,49 @@ test("test-audit gates new tests and audits existing ones", () => {
     "cleanup-worker", "coder", "coding-supervisor", "live-validator", "review-worker",
     "reviewer-arch", "reviewer-e2e", "reviewer-quick", "reviewer-reasoning",
   ]) {
-    match(bootstrapPi, new RegExp(`"${role}": \\[[^\\]]*"test-audit"`))
+    match(read(`config/agents/${role}.toml`), /^developer_instructions =/m)
   }
-  doesNotMatch(bootstrapPi, /"git-worker": \[[^\]]*"test-audit"/)
-  match(read("agent-home/skills/code-quality/SKILL.md"), /load `test-audit`/)
+  doesNotMatch(assets, /^\s*tools:/m)
+  match(read("config/skills/code-quality/SKILL.md"), /load `test-audit`/)
 })
 
 test("agentic workflow keeps stage contracts, approvals, and scenario definitions explicit", () => {
-  const workflowPath = "agent-home/skills/workflow/SKILL.md"
+  const workflowPath = "config/skills/workflow/SKILL.md"
   const workflow = read(workflowPath)
-  const codingLoop = read("agent-home/skills/workflow/references/coding-loop.md")
-  const cleanup = read("agent-home/skills/cleanup/SKILL.md")
-  const code = read("agent-home/skills/code/SKILL.md")
-  const reviewOrchestration = read("agent-home/skills/review/references/orchestration.md")
-  const findings = read("agent-home/skills/review/references/code-review.md")
-  const shipPr = read("agent-home/skills/workflow/references/ship-pr.md")
-  const scenariosPath = "agent-home/skills/workflow/references/scenarios.md"
+  const codingLoop = read("config/skills/workflow/references/coding-loop.md")
+  const cleanup = read("config/skills/cleanup/SKILL.md")
+  const code = read("config/skills/code/SKILL.md")
+  const reviewOrchestration = read("config/skills/review/references/orchestration.md")
+  const findings = read("config/skills/review/references/code-review.md")
+  const shipPr = read("config/skills/workflow/references/ship-pr.md")
+  const scenariosPath = "config/skills/workflow/references/scenarios.md"
   const scenarios = read(scenariosPath)
-  const hooks = JSON.parse(read("codex/hooks.json"))
+  const hooks = JSON.parse(read("config/codex-hooks.json"))
   const hookCommands = Object.values(hooks.hooks).flatMap((events) => (
     events.flatMap(({ hooks: registeredHooks }) => registeredHooks.map(({ command }) => command))
   )).filter((command) => command.includes("codex-hook.sh"))
 
   for (const path of [
-    "agent-home/skills/workflow/templates/progress.md",
-    "agent-home/skills/workflow/references/coding-loop.md",
-    "agent-home/skills/workflow/references/cleanup.md",
-    "agent-home/skills/workflow/references/present-to-human.md",
-    "agent-home/skills/workflow/references/ship-pr.md",
-    "agent-home/skills/workflow/references/end-to-end.md",
+    "config/skills/workflow/templates/progress.md",
+    "config/skills/workflow/references/coding-loop.md",
+    "config/skills/workflow/references/cleanup.md",
+    "config/skills/workflow/references/present-to-human.md",
+    "config/skills/workflow/references/ship-pr.md",
+    "config/skills/workflow/references/end-to-end.md",
     scenariosPath,
-    "agent-home/skills/workflow/references/planning.md",
-    "agent-home/skills/workflow/references/diagrams.md",
-    "agent-home/skills/workflow/references/first-draft.md",
-    "agent-home/skills/workflow/references/improvement-loop.md",
-    "agent-home/skills/workflow/references/adversarial.md",
-    "agent-home/skills/review/references/presets/flash.md",
-    "agent-home/skills/review/references/presets/swarm.md",
-    "agent-home/skills/review/references/presets/swarm-smart.md",
-    "agent-home/skills/review/references/presets/full.md",
+    "config/skills/workflow/references/planning.md",
+    "config/skills/workflow/references/diagrams.md",
+    "config/skills/workflow/references/first-draft.md",
+    "config/skills/workflow/references/improvement-loop.md",
+    "config/skills/workflow/references/adversarial.md",
+    "config/skills/review/references/presets/flash.md",
+    "config/skills/review/references/presets/swarm.md",
+    "config/skills/review/references/presets/swarm-smart.md",
+    "config/skills/review/references/presets/full.md",
   ]) ok(statSync(join(root, path), { throwIfNoEntry: false }), `missing workflow artifact: ${path}`)
 
   for (const match of workflow.matchAll(/\]\(([^)#]+\.md)\)/g)) {
-    const target = resolve(join(root, "agent-home/skills/workflow"), match[1])
+    const target = resolve(join(root, "config/skills/workflow"), match[1])
     ok(statSync(target, { throwIfNoEntry: false }), `broken workflow reference: ${match[1]}`)
   }
   match(workflow, /Workflow context: approved/)
@@ -694,13 +764,13 @@ test("agentic workflow keeps stage contracts, approvals, and scenario definition
   for (const preset of ["flash", "swarm", "swarm-smart", "full"]) {
     match(reviewOrchestration, new RegExp(`--preset[^\\n]*${preset}`))
   }
-  match(read("agent-home/skills/review/references/presets/swarm-smart.md"), /Pi\/`high`.*catalog-selected model/s)
+  match(read("config/skills/review/references/presets/swarm-smart.md"), /Pi\/`high`.*catalog-selected model/s)
   match(reviewOrchestration, /`flash` uses Pi\/`low`/)
   match(reviewOrchestration, /`full` uses a Codex\/`high` live validator/)
   match(codingLoop, /\$review --preset/)
   match(codingLoop, /reviewer reads the full plan/)
   match(workflow, /coordinator advances routine stages/)
-  match(read("agent-home/skills/review/references/presets/full.md"), /bounded authorization/)
+  match(read("config/skills/review/references/presets/full.md"), /bounded authorization/)
   match(scenarios, /Small localized fix/)
   match(scenarios, /Dependent two-slice feature/)
   match(scenarios, /Interrupted slice with mixed findings/)
@@ -736,7 +806,7 @@ printf 'ok\\n'
   chmodSync(ocr, 0o700)
 
   const result = spawnSync(
-    join(root, "agent-home/skills/review/scripts/ocr-opencode-go"),
+    join(root, "config/skills/review/scripts/ocr-opencode-go"),
     ["review", "--audience", "agent", "--background", "goal"],
     {
       encoding: "utf8",
@@ -751,15 +821,15 @@ printf 'ok\\n'
 })
 
 test("skill-scout vets before installing and never merges on its own", () => {
-  const skill = read("agent-home/skills/skill-scout/SKILL.md")
-  const sources = read("agent-home/skills/skill-scout/references/sources.md")
-  const vetting = read("agent-home/skills/skill-scout/references/vetting.md")
-  const evidence = read("agent-home/skills/skill-scout/references/evidence.md")
-  const catalog = read("agent-home/skills/skill-scout/references/catalog.md")
+  const skill = read("config/skills/skill-scout/SKILL.md")
+  const sources = read("config/skills/skill-scout/references/sources.md")
+  const vetting = read("config/skills/skill-scout/references/vetting.md")
+  const evidence = read("config/skills/skill-scout/references/evidence.md")
+  const catalog = read("config/skills/skill-scout/references/catalog.md")
 
   for (const reference of ["sources.md", "vetting.md", "evidence.md", "catalog.md"]) {
     ok(
-      statSync(join(root, `agent-home/skills/skill-scout/references/${reference}`), { throwIfNoEntry: false }),
+      statSync(join(root, `config/skills/skill-scout/references/${reference}`), { throwIfNoEntry: false }),
       `missing reference: ${reference}`,
     )
   }
@@ -804,7 +874,7 @@ test("skill-scout vets before installing and never merges on its own", () => {
 })
 
 test("btca is scoped to registered upstream sources and proposes missing resources", () => {
-  const skill = read("agent-home/skills/btca/SKILL.md")
+  const skill = read("config/skills/btca/SKILL.md")
   const agents = read("config/AGENTS.md")
 
   match(skill, /^## Scope$/m)
@@ -825,7 +895,7 @@ test("btca is scoped to registered upstream sources and proposes missing resourc
   match(agents, /not a first step in every task/)
   match(agents, /propose adding the resource instead of guessing/)
 
-  doesNotMatch(read("agent-home/skills/grill-me/SKILL.md"), /btca-first|btca-cli/)
-  doesNotMatch(read("agent-home/skills/review/references/effect-checks.md"), /btca-first|btca-cli/)
-  doesNotMatch(read("agent-home/skills/workflow/references/planning.md"), /btca-first|btca-cli/)
+  doesNotMatch(read("config/skills/grill-me/SKILL.md"), /btca-first|btca-cli/)
+  doesNotMatch(read("config/skills/review/references/effect-checks.md"), /btca-first|btca-cli/)
+  doesNotMatch(read("config/skills/workflow/references/planning.md"), /btca-first|btca-cli/)
 })

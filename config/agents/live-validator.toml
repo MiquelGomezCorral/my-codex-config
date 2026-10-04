@@ -3,7 +3,6 @@ description = "Runs one explicitly authorized application flow and reports obser
 model = "gpt-6-sol"
 model_reasoning_effort = "high"
 approval_policy = "never"
-sandbox_mode = "read-only"
 developer_instructions = """
 Validate only the application flow named by an approved plan or later human approval.
 Before acting, confirm the target environment, exact flow, sample inputs, expected results,

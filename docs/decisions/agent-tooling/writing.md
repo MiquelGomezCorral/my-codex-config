@@ -35,10 +35,9 @@ academic material stranded in a skill that nothing else references.
 - No evals are carried over from `miquel-voice`. Voice fidelity is judged by a human reading
   the draft, not by an eval file.
 - Imported rule provenance is recorded in `README.md` only, never inside a skill file.
-- Every rendered agent receives `writing`: it is in all eight `bootstrap_pi.sh` skill lists
-  and is the fallback skill. `config/AGENTS.md` instructs every agent to load it before
-  writing or editing prose.
-- `core` is deleted. `codex/config.toml`'s `inherit = "core"` is a shell-environment-policy
+- Every rendered agent can discover `writing` through the shared skills. `config/AGENTS.md`
+  instructs every agent to load it before writing or editing prose.
+- `core` is deleted. `config/codex.toml`'s `inherit = "core"` is a shell-environment-policy
   value and is unrelated to the removed skill.
 
 ## Protected invariants
@@ -77,7 +76,7 @@ arrives as a second reference.
   four references, the always-read instruction, the opt-in academic line, the three
   safeguards, one rule id per category prefix, the three tier labels, and the absence of an
   `evals` directory; the score example's counts and arithmetic are checked as well.
-- Skill inventory and rendered skill lists: [bootstrap checks](../../../bootstrap.sh) and
+- Skill inventory and rendered skill lists: [bootstrap checks](../../../bootstrap_codex.sh) and
   [bootstrap tests](../../../tests/bootstrap.test.sh).
 - Global instruction: [global agent rules](../../../config/AGENTS.md).
 - Review-only: whether a draft actually sounds like Miquel, and whether an edit flattened a

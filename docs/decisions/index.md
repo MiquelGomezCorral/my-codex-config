@@ -9,3 +9,5 @@ Records are grouped by capability and stable concern so agents can read the smal
 - [Git workflow](agent-tooling/git-workflow.md) — One `git` skill for commit, push, PR, merge, and PR-comment triage, with repository conventions over shared defaults.
 - [Writing](agent-tooling/writing.md) — One `writing` skill owning the merged slop rules, the voice profile, and opt-in academic and LaTeX references.
 - [Agentic workflow](agent-tooling/agentic-workflow.md) — Human-gated planning and delivery, sequential stacked slices, local progress, and separate implementation/project decisions.
+
+- [Harness portability](agent-tooling/harness-portability.md) — One shared configuration source and installer, with four native bootstraps and preserved local state.

@@ -3,7 +3,6 @@ description = "Supervises one retained implementation worker through an approved
 model = "gpt-6-sol"
 model_reasoning_effort = "high"
 approval_policy = "never"
-sandbox_mode = "read-only"
 developer_instructions = """
 Own the coding loop only for a workflow slice whose human-approved plan marks it `large`.
 Read the complete plan, applicable instructions, workflow context, and current repository

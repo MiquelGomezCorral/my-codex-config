@@ -66,7 +66,7 @@ judging overlap is the user's decision.
 Install location:
 
 - **Repo-local by default**: `.agents/skills/<name>/` inside the repository being worked on.
-- **The shared library** (`agent-home/skills/`, installed at `~/.agents/skills`) only when
+- **The shared library** (`config/skills/`, installed at `~/.agents/skills`) only when
   the user says the skill should apply in every repository. That is the catalog's job.
 
 Clone or copy, but do not install into an active location, execute, or trust a candidate

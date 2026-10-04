@@ -1,0 +1,64 @@
+# Harness portability
+
+## Intent
+
+Keep one secret-free configuration home for Codex, Claude, Pi and Antigravity.
+Make normal setup simple: each client bootstrap calls one shared installer, then
+links shared assets and renders only the native files that differ.
+
+## Current decisions
+
+- config/skills, config/agents and config/commands own shared skills, roles and
+  command intent. The old agent-home/ and codex/ source roots are removed.
+- config/AGENTS.md owns global policy including security rules. The root AGENTS.md
+  remains repository instructions; native policy filenames are delivery adapters.
+- config/mcp.json owns CodeGraph, SearXNG and BTCA definitions. Braintrust, Vidext
+  Operator, Headroom and Sequential Thinking are retired managed integrations.
+- bootstrap_common.sh checks actual installed shared dependencies, external
+  portable skills and SearXNG before installing missing items. Four dedicated
+  bootstrap_<harness>.sh commands call it; none dispatches other client setup.
+- Native extensions/plugins remain their client's responsibility and skip
+  already installed compatible packages. No profiles or duplicate inventories.
+- Shared portable assets use symlinks. Native format rendering and safe merging
+  preserve mutable settings/MCP/auth state and unrelated user configuration.
+- Full tool access is available; focused role/task instructions govern authority.
+  Native main agents keep their normal prompts. Skills load when needed.
+- Installation uses normal client folders. Existing custom roots continue to work
+  without becoming user-facing configuration modes.
+- Fresh independent harness sessions validate actual discovery and bounded
+  read-only MCP execution after the normal bootstraps run.
+
+## Protected invariants
+
+- Shared facts have one source owner; native adapters do not duplicate policy.
+- Already installed compatible shared dependencies are not reinstalled.
+- Retired managed MCP entries cannot return through extra-entry preservation.
+- Authentication, sessions, caches and private memories remain outside the repo.
+- Preserve unrelated settings, skills, agents, MCPs and existing local policy.
+- No harness CLI/Docker installation, credential migration, unrelated container
+  replacement or automatic project indexing.
+- Runtime identities and remote/local folder names remain unchanged.
+- A generated file or agent-reported guess is not proof of runtime discovery.
+- Native tool access never grants edit/Git/publish/nesting authority by itself.
+
+## Rationale and tradeoffs
+
+One config directory removes misleading Codex ownership of shared assets.
+One common installer avoids repeated dependency setup; separate bootstraps keep
+native formats clear. Mutable native files still need safe merging rather than
+whole-directory symlinks. Full tools simplify setup while read-only tasks remain
+instruction constraints.
+
+## Enforcement
+
+- Four dedicated bootstraps, bootstrap_common.sh and native helpers under config/bin.
+- Existing bootstrap and configuration checks cover generated outputs, reruns,
+  retired MCP entries and unrelated-state preservation.
+- Review-only: fresh Codex/Claude/Pi/AGY sessions establish actual discovery and MCP
+  access; static checks cannot prove those runtime behaviors.
+
+## History
+
+- 2026-10-03: User approved the consolidated config layout, merged security policy,
+  one repeat-safe common installer, normal four-bootstrap runs and a fresh
+  four-harness validation swarm.

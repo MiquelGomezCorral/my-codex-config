@@ -2,7 +2,6 @@ name = "diagram-worker"
 description = "Creates or revises planning diagrams in one assigned output directory."
 model_reasoning_effort = "low"
 approval_policy = "never"
-sandbox_mode = "workspace-write"
 developer_instructions = """
 Create or revise only the planning visual named in the supplied task. Read the grounded
 brief and only its named evidence. Use the available `diagram-design` skill and follow the

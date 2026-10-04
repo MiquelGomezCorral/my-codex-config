@@ -8,6 +8,14 @@ codex:
   high:
     - gpt-6-sol
 
+claude:
+  low:
+    - claude-haiku-4-5-20251001
+  medium:
+    - claude-sonnet-5-5
+  high:
+    - claude-opus-5-5
+
 pi:
   low:
     - opencode-go/mimo-v2.6-flash

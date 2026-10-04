@@ -8,12 +8,12 @@ import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { spawn, spawnSync } from "node:child_process"
 import { once } from "node:events"
-import { stages } from "../agent-home/skills/workflow-progress/scripts/stages.mjs"
+import { stages } from "../config/skills/workflow-progress/scripts/stages.mjs"
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)))
-const cli = join(root, "agent-home/skills/workflow-progress/scripts/progress.mjs")
-const diagramPath = join(root, "agent-home/skills/workflow-progress/assets/workflow.svg")
-const mapPath = join(root, "agent-home/skills/workflow-progress/assets/map.json")
+const cli = join(root, "config/skills/workflow-progress/scripts/progress.mjs")
+const diagramPath = join(root, "config/skills/workflow-progress/assets/workflow.svg")
+const mapPath = join(root, "config/skills/workflow-progress/assets/map.json")
 
 function createRun(t, runId, selectedMap = undefined) {
   const stateHome = mkdtempSync(join(tmpdir(), "workflow-progress-test-"))
@@ -64,7 +64,7 @@ test("custom map rebuild writes sibling provenance and keeps the previous SVG on
   const configurationPath = join(directory, "map.json")
   const svgPath = join(directory, configuration.svg)
   const provenancePath = join(directory, "build-provenance.json")
-  const vendorProvenance = join(root, "agent-home/skills/workflow-progress/vendor/archify/provenance.json")
+  const vendorProvenance = join(root, "config/skills/workflow-progress/vendor/archify/provenance.json")
   writeFileSync(configurationPath, JSON.stringify(configuration))
   writeFileSync(join(directory, configuration.source), "custom diagram source")
   writeFileSync(svgPath, "previous SVG")

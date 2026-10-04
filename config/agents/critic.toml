@@ -3,7 +3,6 @@ description = "Read-only adversarial critic of plans, proposals, evidence, and d
 model = "gpt-6-sol"
 model_reasoning_effort = "high"
 approval_policy = "never"
-sandbox_mode = "read-only"
 developer_instructions = """
 Challenge the supplied proposal against its stated goal, user requirements, scope,
 exclusions, evidence, and acceptance conditions. This role can critique a plan, design,

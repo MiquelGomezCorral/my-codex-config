@@ -8,7 +8,7 @@ import { isAbsolute, join, resolve } from "node:path"
 import { spawnSync } from "node:child_process"
 
 const root = resolve(new URL("..", import.meta.url).pathname)
-const renderer = join(root, "agent-home/skills/workflow/scripts/render-plan.mjs")
+const renderer = join(root, "config/skills/workflow/scripts/render-plan.mjs")
 
 function escapeHtml(value) {
   return value.replace(/[&<>"']/g, (character) => ({
