@@ -1,7 +1,5 @@
 name = "reviewer-reasoning"
 description = "Read-only correctness reviewer for changed logic, edge cases, errors, races, and cancellation."
-model = "gpt-6-luna"
-model_reasoning_effort = "high"
 approval_policy = "never"
 sandbox_mode = "danger-full-access"
 developer_instructions = """

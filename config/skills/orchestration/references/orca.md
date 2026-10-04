@@ -1,11 +1,11 @@
 # Orca adapter
 
-Under Orca, review defaults are `flash` Pi/`low`; direct Pi/`medium`; `swarm` Pi/`medium`
-coordinator plus justified Pi specialists; `swarm-smart` and `full` add a Pi/`high`
-verifier; `full` uses Codex/`high` for live validation. A critic (or plan-critique route)
-prefers Pi only when its cataloged high-tier route meets the required different-family
-condition. Explicit user or approved-plan routes take precedence. `super-agent` resolves
-every model from the catalog.
+Under Orca, role selection precedes lifecycle mechanics: `super-agent` resolves the
+stage's catalog role entry and pins its harness, exact model, and thinking before this
+adapter runs any launch command. Review modes and presets choose the review shape only;
+they never set a harness, model, or thinking default. Explicit user or approved-plan
+routes take precedence, and a critic still needs a different-family candidate from the
+`reviewer` role.
 
 Resolve one executable for the active session, then load its version-matched guide before
 using Orca commands. The guide owns exact arguments and lifecycle behavior; this adapter
@@ -29,21 +29,22 @@ through its documented `worker_done` route with both task and dispatch identity.
 Orca Pi launch recipe when the wrapper cannot express Pi's model pin:
 
 ```text
-orca terminal create --worktree active --title <worker> --command "pi --model <catalog_model>" --json
+orca terminal create --worktree active --title <worker> --command "pi --model <catalog_model> --thinking <catalog_thinking>" --json
 orca terminal wait --terminal <handle> --for tui-idle --timeout-ms 60000 --json
 orca orchestration worker-start --task <task_id> --worktree current --terminal <handle> --json
 ```
 
-For a bounded artifact worker, use its assigned directory and the selected Pi tier with
-`--thinking low`. Keep catalog IDs separate from user text. The task packet supplies role
+For a bounded artifact worker, use its assigned directory and the resolved catalog role's
+model and thinking. Keep catalog IDs separate from user text. The task packet supplies role
 instructions, scope, and tool bounds. Do not use `dispatch --inject`: it leaves a custom
 terminal unattached to the supervised worker lifecycle. Verify any reported effective
-model and report when the runtime provides none. An output directory is a task constraint,
-not a filesystem sandbox. Run only the exact lifecycle commands the task packet names.
+model and thinking, and report the unverified value when the runtime provides none. An
+output directory is a task constraint, not a filesystem sandbox.
+Run only the exact lifecycle commands the task packet names.
 The coordinator owns helper checks and exports.
 
 ```text
-orca terminal create --worktree active --title <worker> --command "cd <artifact_directory> && pi --model <catalog_model> --thinking low" --json
+orca terminal create --worktree active --title <worker> --command "cd <artifact_directory> && pi --model <catalog_model> --thinking <catalog_thinking>" --json
 orca terminal wait --terminal <handle> --for tui-idle --timeout-ms 60000 --json
 orca orchestration worker-start --task <task_id> --worktree current --terminal <handle> --json
 ```
@@ -51,6 +52,6 @@ orca orchestration worker-start --task <task_id> --worktree current --terminal <
 ## Retention and release
 
 Retain a worker only when the calling workflow requires it. Verify parent, harness, role,
-model, and directory before resuming; otherwise start fresh through the documented guide.
+model, thinking, and directory before resuming; otherwise start fresh through the documented guide.
 Release settled workers as the guide requires. Report lifecycle failures and effective-model
 gaps; do not fall through to an unmanaged CLI launch.

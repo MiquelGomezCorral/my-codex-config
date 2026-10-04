@@ -8,13 +8,16 @@ Procedures for worker launch, steering, recovery, and release. The policy itself
 - Launch, status, wait, message, cancellation, resume, and release follow the
   environment-provided lifecycle when one is present; otherwise use the harness's native
   operations.
-- Preserve the worker packet's scope, exclusions, permissions, directory, delegation
-  allowance, deliverable, and stop conditions across every route.
+- Preserve the worker packet's catalog role, harness, model, thinking, scope, exclusions,
+  permissions, directory, delegation allowance, deliverable, and stop conditions across
+  every route.
+- Verify the effective model and thinking when the runtime reports them, and report an
+  unavailable pinning option or unverified effort instead of discarding it.
 - Tell each worker to load `super-agent` before any authorized nested delegation, and to
   follow the environment's dispatch preamble when one is provided.
 - Use identity checks before resuming: an exact retained session whose parent, harness,
-  role, model, and directory still match. Otherwise launch a fresh worker and report the
-  ownership mismatch.
+  role, model, thinking, and directory still match. Otherwise launch a fresh worker and
+  report the ownership mismatch.
 
 ## Retention
 
@@ -25,9 +28,9 @@ Procedures for worker launch, steering, recovery, and release. The policy itself
 ## Recovery
 
 - When a launch fails specifically because its quota or rate limit is exhausted, replace
-  only that slot with the next compatible catalog entry available through the active
-  wrapper. Keep the same scope, lens, permissions, and evidence contract; never retry the
-  exhausted route.
+  only that slot with the next candidate in the role's ordered candidate list through the
+  active wrapper. Keep the same scope, lens, permissions, and evidence contract; never
+  retry the exhausted route and never escape to a generic tier or harness default.
 - If the active wrapper, or a required guide, capability, or runtime, is unavailable, report
   the exact blocker while native current-harness routing remains valid.
 - Never silently reinterpret an unsupported role or model as quota exhaustion. Report

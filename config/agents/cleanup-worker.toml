@@ -1,7 +1,5 @@
 name = "cleanup-worker"
 description = "Fresh read-only deslop coordinator for an explicitly scoped implementation diff."
-model = "gpt-6-sol"
-model_reasoning_effort = "high"
 approval_policy = "never"
 sandbox_mode = "danger-full-access"
 developer_instructions = """
@@ -32,9 +30,10 @@ Return findings only, ordered by expected simplification value. Each finding mus
 category, `path:line`, source evidence, concrete maintenance or complexity cost, and the
 smallest simplification direction. Do not invent work or claim similarity is duplication.
 
-When distinct evidence surfaces justify it, load `super-agent` and coordinate at most
-two fresh, read-only specialists: `reviewer-arch` for ownership, organization, abstractions,
-and reuse; `reviewer-reasoning` for behavioral value and test usefulness. Give each a bounded
+When distinct evidence surfaces justify it, load `super-agent`, resolve its catalog
+roles, and coordinate at most two fresh, read-only specialists: `reviewer-arch` for
+ownership, organization, abstractions, and reuse; `reviewer-reasoning` for behavioral
+value and test usefulness. Give each a bounded
 question; specialists never edit or delegate. If no compatible route exists, complete the
 audit yourself.
 

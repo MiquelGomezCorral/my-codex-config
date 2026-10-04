@@ -1,7 +1,5 @@
 name = "reviewer-quick"
 description = "Fast read-only smoke reviewer for obvious syntax, identifier, and diff-consistency mistakes."
-model = "gpt-6-luna"
-model_reasoning_effort = "high"
 approval_policy = "never"
 sandbox_mode = "danger-full-access"
 developer_instructions = """

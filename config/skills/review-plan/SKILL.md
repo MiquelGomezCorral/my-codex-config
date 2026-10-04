@@ -18,17 +18,15 @@ When an approved workflow context is supplied, preserve its slice order, scope, 
 and exact bounded authorizations. Plan review does not itself authorize implementation,
 live testing, or Git actions; report missing or conflicting approval requirements.
 
-Load `super-agent` without restarting planning. Route one fresh `critic` role at the
-`high` tier through a cataloged model family different from the planner's effective model.
-Use the runtime-reported planner model when available, otherwise its configured model.
-Pass the planner's effective model and family to `super-agent` so it can enforce the
-family difference when selecting the exact critic model.
-Follow the selected adapter's documented harness preference when one exists; otherwise, use
-another available cataloged high-tier route when needed. Preserve an
+Load `super-agent` without restarting planning. Route one fresh `critic` role through the
+catalog `reviewer` role entry, filtered to a model family different from the planner's
+effective model. Use the runtime-reported planner model when available, otherwise its
+configured model. Pass the planner's effective model and family to `super-agent` so it can
+enforce the family difference when selecting the exact critic model. Preserve an
 explicit human harness or model choice; if it prevents a different-family route, report the
-limitation instead of substituting. `super-agent` selects the exact model from
-`super-agent/references/model-catalog.yaml`. Give it the main agent's complete planning
-context: the user's request and corrections, every decision and answered question, unresolved questions,
+limitation instead of substituting. `super-agent` reads
+`super-agent/references/model-catalog.yaml` and pins the exact harness, model, and thinking
+for the launch. Give it the main agent's complete planning context: the user's request and corrections, every decision and answered question, unresolved questions,
 alternatives considered and why they were rejected, repository evidence, applicable
 instructions, the separate approved `Decision records` section, and the full proposed and
 approved plan. Do not assume it inherits the

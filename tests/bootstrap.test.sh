@@ -360,8 +360,8 @@ role = (root / "agents/coder.md").read_text(encoding="utf-8")
 assert "systemPromptMode: append" in role
 assert "inheritGlobalContext: true" in role and "inheritSkills: true" in role
 assert "async: true" in role and "tools:" not in role
-assert "thinking: max" in role
-assert "thinking: low" in (root / "agents/diagram-worker.md").read_text(encoding="utf-8")
+assert "thinking:" not in role
+assert "thinking:" not in (root / "agents/diagram-worker.md").read_text(encoding="utf-8")
 prompt = (root / "prompts/review.md").read_text(encoding="utf-8")
 assert "$@" in prompt and "review" in prompt, prompt
 assert (root / "skills/writing").is_symlink()

@@ -1,13 +1,13 @@
 ---
 name: super-agent
-description: Own delegation for any agent that launches, resumes, or nests workers — resolve the environment's lifecycle, select the harness, role, and cataloged model, grant nesting budgets, and preserve permissions, read-only limits, and the reporting contract.
+description: Own delegation for any agent that launches, resumes, or nests workers — resolve the environment's lifecycle, select the catalog role's harness, model, and thinking, grant nesting budgets, and preserve permissions, read-only limits, and the reporting contract.
 ---
 
 # Super Agent
 
 This skill owns delegation policy for every agent that launches, resumes, or nests a
-worker: whether to delegate, which harness and role run the work, which cataloged model is
-used, how much nesting is allowed, and what the caller reports. It does not own the
+worker: whether to delegate, which harness, role, catalog model, and thinking run the work,
+how much nesting is allowed, and what the caller reports. It does not own the
 environment's tooling; calling workflows own task shape and acceptance. Do not restate
 this policy elsewhere; point to it.
 
@@ -45,8 +45,9 @@ Resolve the environment's own lifecycle before choosing anything else:
 Delegate only when independent scopes or perspectives are useful. Prefer one worker for a
 small task, a dependency chain, one slow external operation, or repeated mutation of the
 same state. Never delegate to satisfy a roster.
-Prefer in-session tools. Reuse native agents or swarms only when model pinning, target
-scope, nesting budget, one-writer ownership, and observable lifecycle all hold. Launch a
+Prefer in-session tools. Reuse native agents or swarms only when model and thinking
+pinning, target scope, nesting budget, one-writer ownership, and observable lifecycle all
+hold. Launch a
 separate native session only through the active wrapper; do not bypass it with unmanaged
 CLI execution.
 
@@ -55,31 +56,73 @@ CLI execution.
 Decision order:
 
 1. The active wrapper, then the current harness.
-2. Explicit user harness, role, model, ratio, or exclusion intent stays exact.
+2. Explicit user harness, role, model, thinking, ratio, or exclusion intent stays exact.
 3. Restrictions declared by the current harness's own skills filter candidates before
    generic preference; they never license substituting another provider or harness for a
    restricted capability.
-4. The catalog.
+4. The catalog role for the stage.
+
+### Catalog roles
+
+`references/model-catalog.yaml` owns harness, exact model, and thinking for every
+automatic launch. A stage maps to exactly one role:
+
+| Stage | Catalog role |
+| --- | --- |
+| Human root, planning, or intake | `super_agent` |
+| Delegated coordinator, coding supervisor, or review coordinator while nesting | `sub_orchestrator` |
+| Implementation, Git, or artifact writer | `coder` |
+| Independent plan critic, direct review, verifier, cleanup auditor, or live validator | `reviewer` |
+| Supporting read-only investigation or review-swarm specialist | `swarms` |
+
+A cleanup or review worker uses `sub_orchestrator` only while it coordinates assigned
+workers under a matching nesting grant; its own work keeps the role above.
+
+Every automatic launch rereads the mapped role entry and resolves its harness, exact model
+or ordered candidate list, and thinking, then pins every option the launcher supports. Role
+settings win over generic tiers, invoking-skill and wrapper model preferences, inherited
+defaults, and any role-file model or effort metadata. An explicit current-user harness,
+model, or thinking override wins over the role entry.
+
+The `low`, `medium`, `high`, and `local` tier records are only for a launch the user or
+approved plan explicitly routed by tier or harness. Ordered candidates are fallback order,
+never random distribution, and an exhausted role candidate list is a blocker with no
+automatic escape to a tier or harness default. Unavailability or capability filtering may
+drop a candidate but never silently changes the role harness or thinking. The
+different-family critic requirement filters `reviewer` candidates only.
+
+The root `super_agent` entry governs new root launches. Reading the catalog cannot switch
+the harness of an existing main conversation; report a configured-versus-observed mismatch
+once instead of spawning a replacement or authenticating.
 
 Catalog rules:
 
-- Read `references/model-catalog.yaml` for every delegation. It is the only owner of cheap
+- Read `references/model-catalog.yaml` for every delegation. It is the only owner of
   worker model identifiers; never copy those identifiers into skills, tests, agents, or
   documentation.
-- Tiers are exactly `low`, `medium`, `high`, and `local`. List order is preference order,
-  and the identifiers are a closed allowlist for automatic selection. Only a model the user
-  named may run outside that allowlist.
-- Prefer the cheapest adequate tier and an adequate local route first. `max_local_concurrency`
-  is shared across the whole tree. Count a cataloged local orchestrator against it, and
-  serialize or take an adequate online route while the slot is occupied.
-- If the preferred entry is unavailable, try only compatible remaining entries in list order
-  from the catalog. Never let a wrapper or harness choose an uncataloged default model; when
-  compatible entries are exhausted, report the blocker.
-- `$code` and `$cleanup` keep their configured orchestrator-strength workers.
-- Keep at least `ceil(N / 2)` workers on the current harness only when no roster or
-  harness preference was supplied by the user or invoking skill.
+- Tiers are exactly `low`, `medium`, `high`, and `local`, and their identifiers are a
+  closed allowlist. The role candidate list is the automatic-selection allowlist; only a
+  model the user named may run outside it.
+- When the user explicitly routes by tier, prefer the cheapest adequate tier and an
+  adequate local route first. `max_local_concurrency` is shared across the whole tree.
+  Count a cataloged local orchestrator against it, and serialize or take an adequate
+  online route while the slot is occupied.
+- Try only compatible remaining entries in list order from the role entry when the
+  preferred candidate is unavailable.
+- Never let a wrapper or harness choose an uncataloged default model; report the blocker
+  when compatible entries are exhausted.
+- Keep at least `ceil(N / 2)` workers on the current harness only when no catalog role,
+  roster, or harness preference fixes that slot's harness.
 - Select each harness's real configured role by its description; never translate a role name
   across harnesses. Use a general agent only when that harness exposes no role catalog.
+
+## Dispatch contract
+
+Every automatic launch packet names `Catalog role`, `Harness`, `Model`, and `Thinking`,
+plus the task's native agent role, scope, exclusions, deliverable, evidence, stop
+conditions, and nesting authority. Verify the effective model and thinking whenever the
+runtime reports them; report an unverified effort or unavailable pinning option instead of
+silently discarding it.
 
 ## Invariants
 
@@ -92,16 +135,17 @@ Catalog rules:
   shared infrastructure without explicit authorization for that exact action.
 - Pass model identifiers and prompts as separate arguments; never evaluate a catalog value
   as shell code.
-- Pin the selected model through the launcher's explicit model option. When the runtime
-  reports an effective model, verify it matches; stop a mismatched worker and do not use its
-  output.
-- Resume only an exact retained session whose parent, harness, role, model, and directory
-  still match. Otherwise launch fresh and report the ownership mismatch.
+- Pin the selected model and thinking through the launcher's explicit options. When the runtime
+  reports an effective model or thinking, verify it matches; stop a mismatched worker and do not
+  use its output. Report an unavailable pinning option or unverified effort instead of silently
+  dropping it.
+- Resume only an exact retained session whose parent, harness, role, model, thinking, and
+  directory still match. Otherwise launch fresh and report the ownership mismatch.
 
 ## Report
 
-Report the harness, role, tier, and exact effective model for every slot, plus every
-fallback, local serialization, missing coverage, and verification gap. Distinguish
+Report the catalog role, harness, exact model, thinking, and effective values for every
+slot, plus every fallback, local serialization, missing coverage, and verification gap. Distinguish
 unattempted work from failed work. Never create hidden fallback chains or queues.
 
 ## References
@@ -111,4 +155,4 @@ unattempted work from failed work. Never create hidden fallback chains or queues
 | `references/routing.md` | Selecting a harness or role, applying launch permissions, or crossing harnesses through a one-shot adapter. |
 | `references/lifecycle.md` | Launching, waiting on, messaging, resuming, recovering, or releasing a worker. |
 | `references/swarm.md` | Running, gating, or nesting multiple workers. |
-| `references/model-catalog.yaml` | Choosing the cheap worker model identifier for any slot. |
+| `references/model-catalog.yaml` | Resolving a stage's catalog role, harness, model, and thinking. |

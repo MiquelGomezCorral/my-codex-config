@@ -436,8 +436,8 @@ test("Codex TOML agents use native fields and preserve all twelve roles", () => 
   }
   for (const name of ["coding-supervisor", "live-validator", "critic"]) {
     const body = read(`config/agents/${name}.toml`)
-    match(body, /^model = "gpt-6-sol"$/m)
-    match(body, /^model_reasoning_effort = "high"$/m)
+    doesNotMatch(body, /^model\s*=/m)
+    doesNotMatch(body, /^model_reasoning_effort\s*=/m)
     doesNotMatch(body, /^sandbox_mode = "read-only"$/m)
   }
   const supervisor = read("config/agents/coding-supervisor.toml")
@@ -457,7 +457,7 @@ test("Codex TOML agents use native fields and preserve all twelve roles", () => 
   match(critic, /Do not change the goal/)
   const diagramWorker = read("config/agents/diagram-worker.toml")
   doesNotMatch(diagramWorker, /^model\s*=/m)
-  match(diagramWorker, /^model_reasoning_effort = "low"$/m)
+  doesNotMatch(diagramWorker, /^model_reasoning_effort\s*=/m)
   match(diagramWorker, /Write only the requested editable source and preview inside the assigned output directory/)
   match(diagramWorker, /task constraint, not a filesystem sandbox/i)
   match(diagramWorker, /Use Bash only for the exact dispatch commands\s+documented by the selected lifecycle/)
@@ -476,12 +476,12 @@ test("cheap model catalog is harness-first and keeps identifiers centralized", (
   const routing = read("config/skills/super-agent/SKILL.md")
   const routingReference = read("config/skills/super-agent/references/routing.md")
   const orcaAdapter = read("config/skills/orchestration/references/orca.md")
-  const modelIds = [...catalog.matchAll(/^\s+-\s+(\S+)$/gm)].map(([, id]) => id)
+  const modelIds = [...catalog.matchAll(/^\s+(?:-\s+|model:\s+)(\S+)$/gm)].map(([, id]) => id)
   const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
   const defaultSubagentModel = read("config/codex.toml").match(/^default_subagent_model = "([^"]+)"$/m)?.[1]
 
   match(catalog, /^max_local_concurrency:\s*1$/m)
-  match(catalog, /^codex:\n  low:\n    - \S+$/m)
+  match(catalog, /^codex:\n  low:\n    model: \S+\n    thinking: \S+$/m)
   strictEqual(defaultSubagentModel, "gpt-6-luna")
   ok(modelIds.includes(defaultSubagentModel), "Codex default subagent model must come from the catalog")
   for (const harness of ["pi", "agy"]) {
@@ -490,7 +490,7 @@ test("cheap model catalog is harness-first and keeps identifiers centralized", (
   }
   match(catalog, /^  local:\s*$/m)
   match(catalog, /^    medium:\s*$/m)
-  match(catalog, /^      -\s+\S+$/m)
+  match(catalog, /^      model:\n        - \S+$/m)
   doesNotMatch(catalog, /capability:|models:/)
   match(routing, /Read `references\/model-catalog\.yaml` for every delegation/)
   match(routing, /cheapest adequate tier/)
@@ -557,7 +557,7 @@ test("delegating skills require runtime-native capability-aware routing", () => 
   doesNotMatch(routing, /Codex owns all subagent orchestration/)
 
   match(swarm, /other available harnesses/)
-  match(orcaAdapter, /review defaults are `flash` Pi\/`low`/)
+  match(orcaAdapter, /role selection precedes lifecycle mechanics/)
   match(reviewOrchestration, /Preserve an explicit AGY\/Pi roster exactly/)
   match(reviewOrchestration, /For `flash`, route directly to one `reviewer-quick` through `super-agent`/)
   match(read("config/skills/review/references/presets/full.md"), /Codex `live-validator`/)
@@ -573,7 +573,7 @@ test("delegating skills require runtime-native capability-aware routing", () => 
   match(JSON.stringify(swarmEvals), /local-search protection/)
   match(JSON.stringify(swarmEvals), /closed allowlist/)
   match(read("config/agents/review-worker.toml"), /available harnesses/)
-  match(read("config/agents/review-worker.toml"), /pin an exact model from the cheap-model\s+catalog/)
+  match(read("config/agents/review-worker.toml"), /resolve the exact model and thinking from the\s+catalog `swarms` role/)
 
   for (const path of [
     "config/skills/super-agent/SKILL.md",
@@ -768,9 +768,8 @@ test("agentic workflow keeps stage contracts, approvals, and scenario definition
   for (const preset of ["flash", "swarm", "swarm-smart", "full"]) {
     match(reviewOrchestration, new RegExp(`--preset[^\\n]*${preset}`))
   }
-  match(read("config/skills/review/references/presets/swarm-smart.md"), /Pi\/`high`.*catalog-selected model/s)
-  match(orcaAdapter, /`flash` Pi\/`low`/)
-  match(orcaAdapter, /`full` uses Codex\/`high` for live validation/)
+  match(read("config/skills/review/references/presets/swarm-smart.md"), /resolves the catalog role entry.*pin the resolved harness, model, and thinking/s)
+  match(orcaAdapter, /Review modes and presets choose the review shape only;\s+they never set a harness, model, or thinking default/)
   match(codingLoop, /\$review --preset/)
   match(codingLoop, /reviewer reads the full plan/)
   match(workflow, /coordinator advances routine stages/)

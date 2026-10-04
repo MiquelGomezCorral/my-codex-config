@@ -64,8 +64,12 @@ Goal: observable outcome
 Scope: owned files or question
 Exclusions: adjacent work and non-goals
 Context: relevant decisions and paths
+Catalog role: super_agent | sub_orchestrator | coder | reviewer | swarms
+Harness: the role entry's harness, or an explicit user override
+Model: the resolved exact model
+Thinking: the resolved thinking level
+Agent role: the harness's native role for this task
 Allowed actions: read-only or isolated edits
-Harness/model/lifecycle: requested wrapper- or current-harness route and catalog-only fallback
 Deliverable: exact result shape
 Evidence: required file:line, URL, command, or test
 Stop: completion and blocker conditions
@@ -73,7 +77,9 @@ Stop: completion and blocker conditions
 
 Tell workers what not to touch, whether they may edit, whether other workers are
 concurrent, and whether they may spawn descendants. Do not ask a worker to "handle"
-a broad area without an output contract.
+a broad area without an output contract. Verify the effective model and thinking when the
+runtime reports them; report an unavailable pinning option or unverified effort instead of
+discarding it.
 
 ## Nested Swarms
 

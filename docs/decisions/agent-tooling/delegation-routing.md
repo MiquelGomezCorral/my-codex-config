@@ -2,11 +2,11 @@
 
 ## Intent
 
-Delegating workflows choose inexpensive worker models from one frequently editable catalog while preserving the orchestration lifecycle provided by the runtime in which they are running. Delegation policy itself lives in one skill, and environment-provided orchestration is resolved generically without naming a vendor.
+Workflows resolve each role's harness, model, and thinking from one frequently editable catalog while preserving the runtime's orchestration lifecycle. Delegation policy lives in one skill; runtime mechanics stay in its adapters.
 
 ## Current decisions
 
-- `config/skills/super-agent/references/model-catalog.yaml` is the single owner of cheap worker model identifiers, grouped by harness and the `low`, `medium`, `high`, and `local` vocabulary.
+- `config/skills/super-agent/references/model-catalog.yaml` owns workflow model defaults. Its `super_agent`, `sub_orchestrator`, `coder`, `reviewer`, and `swarms` entries each specify a harness, model or ordered candidate list, and thinking level. Harness tiers remain available for explicit harness/tier overrides.
 - `super-agent` is the single owner of delegation policy and class grants: whether to delegate, which harness, role, and cataloged model run the work, how much nesting is allowed, and what the caller reports. The former routing, swarm, and unused coordinator skills no longer own any part of that policy.
 - A proven active wrapper owns worker lifecycle and exposes the harnesses available through it; the policy names no wrapper product. Without a wrapper, automatic delegation stays on the current harness and uses its native subagent tooling.
 - The generic `orchestration` skill selects the active lifecycle adapter. Orca executable
@@ -17,10 +17,11 @@ Delegating workflows choose inexpensive worker models from one frequently editab
   available only when explicitly selected; it is neither an automatic fallback nor a
   retained supervised session.
 - Outside a wrapper, another harness is eligible only when the user names it explicitly, using its documented one-shot direct adapter.
-- Automatic selection prefers an adequate local route with a free slot, then the lowest adequate online tier in catalog order. Automatic worker selection and fallback are limited to compatible catalog entries; exhausted coverage is a blocker.
+- Every dispatch rereads the applicable role entry. Role settings override generic tier preferences, wrapper defaults, and agent-file model metadata; explicit user instructions remain authoritative. Candidate order defines fallback, and exhausted compatible candidates in that role are a blocker.
 - Local routes are grouped under their capability tier, and at most one local model process may run at a time. The current orchestrator consumes that slot when it uses a cataloged local model.
-- `$code` and `$cleanup` retain their orchestrator-strength model policies instead of using the cheap worker catalog.
-- Review presets may declare a Pi-first reviewer preference through `super-agent`; exact user harness rosters override it. `super-agent` still selects the cheapest adequate cataloged model. Live end-to-end validation stays on the current Codex harness unless the user changes that route.
+- Coding, reviews, cleanup, and delegated coordination use the stage-to-role mapping in `super-agent`. Agent files own behavior and authority, without independent model or effort defaults.
+- Presets keep their review shape and capability requirements, while catalog roles choose models. A required capability that cannot run on the configured route is reported; it does not authorize silent harness substitution.
+- `super_agent` specifies new root launches. Reading the catalog cannot switch the harness of an existing conversation; report configured versus observed mismatches without automatically replacing the main agent.
 
 ## Protected invariants
 
@@ -31,15 +32,15 @@ Delegating workflows choose inexpensive worker models from one frequently editab
 - Automatic routing never crosses to another harness outside a wrapper.
 - Explicit preset requests stay within that preset, and explicit harness/model requests remain exact.
 - Catalog identifiers are secret-free and have one authoritative owner.
-- An automatically selected worker is launched with an explicit catalog model. A reported effective-model mismatch is stopped and its output is not used.
+- An automatically selected worker is launched with an explicit catalog model and thinking level. Report unavailable pinning or verification; stop a reported effective-setting mismatch and do not use its output.
 - Local-model concurrency never exceeds `max_local_concurrency`; excess work uses adequate online routes or waits for the local slot.
 - Route choice, fallback, serialization, and missing coverage remain visible to the caller.
 - Applicable provider-specific records, including harness-declared capability restrictions, filter candidate routes before generic preference rules.
-- A calling review skill's documented harness preference takes precedence over the generic current-harness majority default; explicit user harness choices remain exact.
+- Catalog role settings take precedence over calling-skill model preferences and the generic current-harness majority default; explicit user harness choices remain exact.
 
 ## Rationale and tradeoffs
 
-Cheap models change often, so keeping their identifiers in one small catalog avoids repeated skill edits. Runtime-owned orchestration preserves lifecycle and role behavior, while explicit-only direct adapters prevent silent cross-harness launches. A single local slot trades throughput for predictable memory use and avoids OOM failures. One delegation skill removes rules that three overlapping skills each restated, and deferring lifecycle mechanics to the environment keeps the policy correct when the environment changes.
+Role defaults change often. Keeping their harness, model, and thinking in one catalog avoids editing each agent and stage. Runtime-owned orchestration preserves lifecycle; explicit-only direct adapters prevent silent cross-harness launches. One local slot keeps memory use predictable. Instructions require catalog resolution, while live runtime evidence is needed to prove the selected settings actually ran.
 
 ## Enforcement
 
@@ -49,6 +50,7 @@ Cheap models change often, so keeping their identifiers in one small catalog avo
 
 ## History
 
+- 2026-10-04: Made role entries mandatory for workflow routing, including coding and cleanup, with explicit model and thinking pins. Removed competing per-agent defaults while preserving runtime lifecycle, user overrides, and capability restrictions.
 - 2026-10-04: Approved one replaceable wrapper adapter and conditional native stage
   execution, preserving explicit routing and lifecycle authority.
 - 2026-09-28: Allowed the review skill to express its Pi-first routing preference while keeping model identifiers in the catalog and explicit user rosters authoritative.

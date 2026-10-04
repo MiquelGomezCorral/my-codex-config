@@ -172,8 +172,8 @@ beside the private plan so relative links work and no new plan artifact enters G
 Lavish displays the HTML and does not itself produce SVG. Only make diagrams that
 clarify a real decision or flow. Follow `diagrams.md` for the brief, presentation, artifact,
 and validation contract. The deterministic renderer never delegates. A useful custom
-diagram may use `super-agent`: route an artifact-only worker through Pi at `medium` tier and
-`low` thinking, resolving the exact model from the catalog at dispatch. Give it the chosen
+diagram may use `super-agent`: resolve the catalog `coder` role for an artifact-only
+worker and pin its harness, exact model, and thinking at dispatch. Give it the chosen
 project style or pass diagram-design's `Minimal dark` template explicitly. Do not run
 `lavish-axi poll` unless the user asks for an
 interactive feedback session. Rendering or Lavish failure is non-blocking: report it and

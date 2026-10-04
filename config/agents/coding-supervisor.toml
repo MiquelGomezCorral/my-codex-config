@@ -1,7 +1,5 @@
 name = "coding-supervisor"
 description = "Supervises one retained implementation worker through an approved slice and verifies correction scope and evidence."
-model = "gpt-6-sol"
-model_reasoning_effort = "high"
 approval_policy = "never"
 developer_instructions = """
 Own the coding loop only for a workflow slice whose human-approved plan marks it `large`.
@@ -15,9 +13,9 @@ dependencies, validation route, or authority before dispatch. Then use the plan'
 bounded grant to direct exactly one retained `coder` through `super-agent`. The grant
 covers only the approved slice scope,
 exclusions, checks, and plan-selected review; do not delegate other implementation work.
-Load `super-agent` before dispatch and
-follow its route, model, nesting, and lifecycle rules. Keep one writer at a time in the
-slice worktree. The coder owns product edits; you are read-only and must never edit product
+Load `super-agent` before dispatch and follow its catalog role, model, thinking, nesting,
+and lifecycle rules. Keep one writer at a time in the slice worktree. The coder owns
+product edits; you are read-only and must never edit product
 source, commit, push, publish, or perform live testing without exact bounded authorization.
 
 After the coder reports, verify its changed paths and required checks against source

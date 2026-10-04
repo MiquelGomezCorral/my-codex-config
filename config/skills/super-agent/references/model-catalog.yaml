@@ -1,39 +1,93 @@
 max_local_concurrency: 1
 
+# =======================================================================
+#                               HARNESS
+# =======================================================================
 codex:
   low:
-    - gpt-6-luna
+    model: gpt-6-luna
+    thinking: medium
   medium:
-    - gpt-6-luna
+    model: gpt-6-luna
+    thinking: xhigh
   high:
-    - gpt-6-sol
+    model: gpt-6.1-sol
+    thinking: xhigh
 
 claude:
   low:
-    - claude-haiku-4-5-20251001
+    model: claude-sonnet-5-5
+    thinking: medium
   medium:
-    - claude-sonnet-5-5
+    model: claude-sonnet-5-5
+    thinking: xhigh
   high:
-    - claude-opus-5-5
+    model: claude-opus-5-5
+    thinking: xhigh
 
 pi:
   low:
-    - opencode-go/mimo-v2.6-flash
+    model: opencode-go/deepseek-v4.1-flash
+    thinking: high
   medium:
-    - opencode-go/deepseek-v4.1-flash
+    model:
+      - opencode-go/glm-5.3-flash
+      - opencode-go/deepseek-v4.1-flash
+    thinking: high
   high:
-    - opencode-go/glm-5.3-flash
+    model:
+      - opencode-go/glm-5.3-flash
+      - opencode-go/deepseek-v4.1-flash
+    thinking: max
   local:
     medium:
-      - local-llama/Qwen3.8-27B-GSQ-RCO-IQ2_S
+      model: local-llama/Qwen3.8-27B-GSQ-RCO-IQ2_S
+      thinking: medium
     low:
-      - bonsai-local/Ternary-Bonsai-2-27B-PQ2_0.gguf
-      - local-llama/Qwen3.8-27B-GSQ-RCO-IQ2_XS
+      model:
+        - bonsai-local/Ternary-Bonsai-2-27B-PQ2_0.gguf
+        - local-llama/Qwen3.8-27B-GSQ-RCO-IQ2_XS
+      thinking: medium
 
 agy:
   low:
-    - gemini-3.8-flash-low
+    model: gemini-3.8-flash-low
+    thinking: low
   medium:
-    - gemini-3.8-flash-medium
+    model: gemini-3.8-flash-medium
+    thinking: medium
   high:
-    - gemini-3.1-pro-high
+    model: gemini-3.8-flash-high
+    thinking: xhigh
+
+# =======================================================================
+#                               ROLES
+# =======================================================================
+super_agent:
+  harness: claude
+  model: claude-opus-5-5
+  thinking: xhigh
+
+sub_orchestrator:
+  harness: claude
+  model: claude-opus-5-5
+  thinking: high
+
+coder:
+  harness: codex
+  model: gpt-6-luna
+  thinking: xhigh
+
+reviewer:
+  harness: pi
+  model:
+    - opencode-go/deepseek-v4.1-flash
+    - opencode-go/glm-5.3-flash
+  thinking: max
+
+swarms:
+  harness: pi
+  model:
+    - opencode-go/deepseek-v4.1-flash
+    - opencode-go/glm-5.3-flash
+  thinking: max

@@ -4,8 +4,9 @@ Run the existing adaptive swarm, then route its report and the same head, base, 
 complete approved plan and amendments in workflow context, scope, and exclusions to one
 fresh configured review coordinator for independent verification and
 synthesis. Mark the primary review `Review mode: swarm` with its normalized `Swarm models`;
-mark the verifier `Review mode: direct` and omit `Swarm models`. Use the default Pi/`high`
-route and catalog-selected model from the review skill, or an approved explicit route. The verifier
+mark the verifier `Review mode: direct` and omit `Swarm models`. Route it through
+`super-agent`, which resolves the catalog role entry and any approved explicit route, then
+pin the resolved harness, model, and thinking. The verifier
 loads `review-findings`, checks every retained
 claim against source evidence, classifies scope, and returns only verified findings with
 the `references/code-review.md` output

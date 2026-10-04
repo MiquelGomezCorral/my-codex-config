@@ -19,10 +19,9 @@ Assign review lenses before choosing harnesses. Route each lens to a suitable co
 reviewer in that harness; never reuse a Codex role name as an external role. A compatible
 model override and normalized harness intent have already been parsed by `$review`; pass
 them unchanged to routing.
-Use the invoking review skill's default tier for each lens unless the user or approved
-plan requested a compatible route. Use its selected catalog tier for the coordinator,
-count a cataloged local
-coordinator against `max_local_concurrency`, and report every tier, fallback, and local
+Route every lens and the coordinator through `super-agent`'s catalog role entries unless
+the user or approved plan supplied a compatible explicit route. Count a cataloged local
+coordinator against `max_local_concurrency`, and report every fallback and local
 serialization in the final roster.
 
 ## Adaptive selection
@@ -37,8 +36,8 @@ independent adversarial pass over the highest-risk selected lens.
 
 When Codex is selected, map these lenses to `reviewer-quick`, `reviewer-reasoning`,
 `reviewer-arch`, and `reviewer-e2e`. For another harness, select its actual configured
-reviewer whose description best matches the lens. When no roster or harness preference was
-supplied by either user or invoking skill, allocate at least half of the specialists,
+reviewer whose description best matches the lens. When no catalog role, roster, or harness
+preference fixes a slot's harness, allocate at least half of the specialists,
 rounded up, to the current harness and
 use other available harnesses for the remainder. Preserve any explicit or review-preset
 preference, including an exact AGY/Pi roster.
@@ -62,7 +61,9 @@ Workflow context: slice, stage, local progress path, scope, exclusions, and name
 Decision records: applicable record paths and protected constraints
 Exclusions: unrelated files, pre-existing defects, fixes, publication, and delegation
 Allowed actions: read-only inspection and bounded repository-defined verification
-Harness/model/lifecycle: selected route, fresh task, and catalog-only fallback
+Catalog role: the role the coordinator routed through `super-agent`
+Harness/model/thinking: the resolved harness, exact model, and thinking level
+Lifecycle: fresh task through the active wrapper or current-harness equivalent
 Lens: the specialist's assigned review dimension
 Deliverable: findings only against the reviewed change, with path:line, scope, source evidence, and confidence
 Stop: return after the assigned lens is covered or state the concrete blocker

@@ -51,9 +51,9 @@ On later calls, reuse that path and do not rewrite the original plan with correc
 briefs. Approved record changes travel through the existing correction brief; do not add an
 unconditional reassessment to every correction turn.
 
-Pass explicit harness, agent, model, and exclusion intent to `super-agent`. Otherwise
-prefer the active harness and its configured implementation role. In Codex that role is
-`coder`. A retained worker is harness-, role-, model-, and directory-locked; report a
+Pass explicit harness, agent, model, thinking, and exclusion intent to `super-agent`.
+Otherwise it resolves the catalog `coder` role and the harness's matching native agent. A
+retained worker is harness-, role-, model-, thinking-, and directory-locked; report a
 conflict instead of changing its identity.
 
 Launch or resume exactly one first-tier worker through `super-agent`. Standalone `$code`

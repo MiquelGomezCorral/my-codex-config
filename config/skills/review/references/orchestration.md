@@ -23,13 +23,13 @@ When `--preset` is present, load its matching [flash](presets/flash.md),
 [swarm](presets/swarm.md), [swarm-smart](presets/swarm-smart.md),
 or [full](presets/full.md) reference. Ask once if the value is missing,
 unknown, or conflicts with an explicit mode. Without a preset, preserve the existing review
-mode and stopping behavior, then apply the default harness preference below. Presets never
+mode and stopping behavior, then apply the normalized harness intent below. Presets never
 enable OCR or Slopo; `--ocr` remains an independent, explicit choice.
 
-The active wrapper's adapter guide owns default harness routing and launch mechanics.
-Keep any explicit user roster, harness, or model choice. `super-agent` selects exact
-models from its catalog; harnesses and tiers are preferences, not model identifiers.
-Report a missing compatible route rather than silently lowering the tier.
+The active wrapper's adapter guide owns launch mechanics; role selection precedes it.
+Keep any explicit user roster, harness, or model choice. Otherwise `super-agent` resolves
+the catalog role and pins its harness, exact model, and thinking. Report a missing
+compatible route rather than silently substituting a harness or lowering effort.
 
 Native findings-only routes and their limits are in
 [`workflow/references/native-capabilities.md`](../../workflow/references/native-capabilities.md).
@@ -45,10 +45,11 @@ vendor review instructions into this orchestration guide.
    "do not run a parallel review" remains direct mode.
 3. Infer harness, agent, model, ratio, and exclusion intent from explicit flags or plain
    language. Treat one model associated with swarm intent as a request for every compatible
-   reviewer. Otherwise use configured roles from the selected harnesses. Under an active
-   Orca wrapper, prefer Pi reviewers by default; outside Orca, follow the active wrapper or
-   current-harness route. Preserve an explicit AGY/Pi roster exactly, without adding or
-   substituting reviewers. Route full-preset live validation through Codex.
+   reviewer. Otherwise use configured roles from the selected harnesses. Resolve the
+   default harness, model, and thinking from the catalog role; outside Orca, follow the
+   current-harness route when the role leaves a slot open.
+   Preserve an explicit AGY/Pi roster exactly, without adding or substituting reviewers.
+   Route full-preset live validation through Codex.
 4. Remove tokens consumed as preset, coordinator, swarm, harness, or roster intent. Preserve
    all other text as review context.
 
@@ -71,12 +72,12 @@ instructions. Omit the preset marker for ordinary `$review`.
 - OCR enabled: `OCR mode: enabled` when `--ocr` was supplied.
 - OCR disabled: `OCR mode: disabled` otherwise.
 
-Include `Harness routing: <normalized explicit request or default above>`, including
-agent, ratio, and exclusion intent. The Pi default under Orca is an invoking-skill
-preference, so the current-harness majority rule applies only outside that preference.
-An explicit AGY/Pi roster remains exact. Include `Worker tier: <requested or default tier
-above>` in the coordinator packet. The coordinator applies the catalog's harness-first
-selection, local concurrency limit, and catalog-only fallback to each specialist.
+Include `Harness routing: <normalized explicit request, or catalog role when none>`,
+including agent, ratio, and exclusion intent. An explicit AGY/Pi roster remains exact.
+Include `Worker tier: <requested tier>` only when the user explicitly requested one.
+The coordinator routes each specialist through `super-agent`, which reads the catalog role
+entry, applies the local concurrency limit, and falls back only through that role's
+candidate list.
 
 In approved workflow context, require the exact complete approved plan and amendments;
 each reviewer reads them in full and checks the current slice's intended result and
@@ -118,10 +119,9 @@ only after the authorization check in its preset reference.
   named a compatible model
 
 For the separate `swarm-smart`/`full` verifier, dispatch a fresh configured review
-coordinator through `super-agent` on the default Pi/`high` route, or the approved explicit
-route. Resolve the exact model from the catalog, preserve the primary coordinator's
-independently selected model, and verify the verifier's effective model when the runtime
-exposes it.
+coordinator through `super-agent`, or the approved explicit route. It resolves the catalog
+role entry, preserves the primary coordinator's independently selected model, and verifies
+the verifier's effective model and thinking when the runtime exposes them.
 
 Wait for the required workers, return findings and verdict, and stop. Do not invoke coder,
 fixers, accept findings automatically, or publish anything.

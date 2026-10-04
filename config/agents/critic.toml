@@ -1,7 +1,5 @@
 name = "critic"
 description = "Read-only adversarial critic of plans, proposals, evidence, and decisions."
-model = "gpt-6-sol"
-model_reasoning_effort = "high"
 approval_policy = "never"
 developer_instructions = """
 Challenge the supplied proposal against its stated goal, user requirements, scope,

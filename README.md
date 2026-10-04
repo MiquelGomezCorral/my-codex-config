@@ -164,12 +164,11 @@ change, while intent conflicts require user resolution.
 Delegating skills load `super-agent`. A proven active wrapper such as Orca owns the
 worker lifecycle and exposes eligible harnesses; without a wrapper, delegation stays on
 the current harness and uses its native worker tools. Generic mixed swarms keep at least
-half their workers, rounded up, on the current harness when no harness preference was
-supplied. The review skill prefers Pi reviewers under Orca, preserves explicit AGY/Pi
-rosters, and keeps live end-to-end validation on Codex. The active adapter owns default
-harness routes. Outside a wrapper, another harness
-requires an explicit documented one-shot adapter; quota substitutions and missing coverage
-remain visible.
+half their workers, rounded up, on the current harness when no catalog role, harness
+preference, or roster fixes a slot. Explicit AGY/Pi rosters stay exact, review presets keep
+their shapes, and live end-to-end validation stays on its bounded route. The active adapter
+owns launch mechanics only. Outside a wrapper, another harness
+requires an explicit documented one-shot adapter; missing coverage remains visible.
 
 Workflow stages use harness-native planning, coding, and findings-only review routes where
 available. The compact route and limitation matrix is
@@ -177,18 +176,19 @@ available. The compact route and limitation matrix is
 generic; Orca executable resolution, guide loading, and launch mechanics live in its
 [adapter](config/skills/orchestration/references/orca.md).
 
-Cheap worker choices live only in
-`config/skills/super-agent/references/model-catalog.yaml`, organized by harness
-and the `low`, `medium`, `high`, and `local` tiers. `super-agent` selects models from the
-catalog, preferring the cheapest adequate local or online choice for the requested route;
-automatic selection and fallback use only compatible catalog entries. Exhausted catalog
-choices are reported as blockers instead of using a harness default. `$code` and `$cleanup`
-intentionally retain their configured orchestrator-strength models. Pi's Orca route pins
-the selected model in a custom terminal and attaches the task through the supervised
-worker lifecycle described by the adapter. Explicit cross-harness one-shot adapters are
-documented by `super-agent`;
-they pass catalog values as arguments and never evaluate them as shell code. Pi search
-remains on its local SearXNG MCP tools.
+Central routing lives only in
+`config/skills/super-agent/references/model-catalog.yaml`: edit a role once to change the
+harness, exact model or ordered candidate list, and thinking used for every automatic
+launch. List order is fallback order, never random distribution, and role settings win over
+generic tiers, invoking-skill or wrapper preferences, and inherited defaults. The generic
+`low`, `medium`, `high`, and `local` tiers remain only for an explicit tier or harness
+override against the stage-to-role mapping in `super-agent`. An exhausted role candidate
+list is a blocker instead of a harness default, and the root `super_agent` entry governs
+new root launches without switching an existing main conversation. Pi's Orca route pins the
+resolved model and thinking in a custom terminal and attaches the task through the
+supervised worker lifecycle described by the adapter. Explicit cross-harness one-shot
+adapters are documented by `super-agent`; they pass catalog values as arguments and never
+evaluate them as shell code. Pi search remains on its local SearXNG MCP tools.
 
 The `orchestration`, `orca-cli`, and `computer-use` skills are version-matched discovery
 stubs that fetch their guide from the installed binary; their content is intentionally not

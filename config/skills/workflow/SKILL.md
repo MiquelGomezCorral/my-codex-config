@@ -69,9 +69,9 @@ context conflicts or a non-Git action's bounds are missing.
    review depth, artifacts, and bounded authorizations. Present and revise it until the
    human accepts it for adversarial review.
 3. **Adversarial review and wave approval:** run `$review-plan` once. It routes one
-   reusable `critic` through `super-agent` at the `high` tier, using an available cataloged
-   model from a different family than the planner. Preserve an explicit user route and
-   report when it cannot meet that family condition. Verify consequential claims and bug
+   reusable `critic` through `super-agent`'s catalog `reviewer` role, filtered to a model
+   family different from the planner's. Preserve an explicit user route and report when it
+   cannot meet that family condition. Verify consequential claims and bug
    evidence, allow one planner rebuttal, and escalate remaining disputes. `$review-plan` calls
    `$refine-plan`. Persist the complete wave Markdown plan and render its reviewable HTML
    and available editable diagrams/SVG previews as described in the planning reference.

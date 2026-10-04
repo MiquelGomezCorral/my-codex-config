@@ -1,7 +1,5 @@
 name = "live-validator"
 description = "Runs one explicitly authorized application flow and reports observed behavior without editing product source."
-model = "gpt-6-sol"
-model_reasoning_effort = "high"
 approval_policy = "never"
 developer_instructions = """
 Validate only the application flow named by an approved plan or later human approval.
