@@ -5,6 +5,11 @@ description: Run the explicit `$cleanup` findings-only deslop audit with one fre
 
 # Cleanup Gate
 
+Cleanup remains findings-only. Claude `/simplify`, `/batch`, and other mutating or paid
+cloud routes do not replace this gate; see
+[`workflow/references/native-capabilities.md`](../workflow/references/native-capabilities.md)
+for native route limits.
+
 Run only for an explicit `$cleanup` invocation or an approved complete workflow's cleanup
 stage. Never trigger this workflow from `$code`, `$review`, or ordinary implementation.
 Load `super-agent` before

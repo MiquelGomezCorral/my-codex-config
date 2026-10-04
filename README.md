@@ -166,9 +166,16 @@ worker lifecycle and exposes eligible harnesses; without a wrapper, delegation s
 the current harness and uses its native worker tools. Generic mixed swarms keep at least
 half their workers, rounded up, on the current harness when no harness preference was
 supplied. The review skill prefers Pi reviewers under Orca, preserves explicit AGY/Pi
-rosters, and keeps live end-to-end validation on Codex. Outside a wrapper, another harness
+rosters, and keeps live end-to-end validation on Codex. The active adapter owns default
+harness routes. Outside a wrapper, another harness
 requires an explicit documented one-shot adapter; quota substitutions and missing coverage
 remain visible.
+
+Workflow stages use harness-native planning, coding, and findings-only review routes where
+available. The compact route and limitation matrix is
+[here](config/skills/workflow/references/native-capabilities.md). Wrapper discovery stays
+generic; Orca executable resolution, guide loading, and launch mechanics live in its
+[adapter](config/skills/orchestration/references/orca.md).
 
 Cheap worker choices live only in
 `config/skills/super-agent/references/model-catalog.yaml`, organized by harness
@@ -178,7 +185,8 @@ automatic selection and fallback use only compatible catalog entries. Exhausted 
 choices are reported as blockers instead of using a harness default. `$code` and `$cleanup`
 intentionally retain their configured orchestrator-strength models. Pi's Orca route pins
 the selected model in a custom terminal and attaches the task through the supervised
-worker lifecycle. Explicit cross-harness one-shot adapters are documented by `super-agent`;
+worker lifecycle described by the adapter. Explicit cross-harness one-shot adapters are
+documented by `super-agent`;
 they pass catalog values as arguments and never evaluate them as shell code. Pi search
 remains on its local SearXNG MCP tools.
 

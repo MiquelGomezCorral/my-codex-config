@@ -14,6 +14,16 @@ remain pending separate authorization.
 - **Must not:** infer live validation, create a worktree without authorization, skip review
   evidence because the task is small, or claim completion from unit tests alone.
 
+## Unclear live-test route
+
+- **Setup:** a change whose real behavior cannot yet be reached or judged with the tools
+  at hand, and the user has not described how to test it.
+- **Expected:** treat the undefined live test as a planning blocker, ask the user how to
+  exercise the real behavior end to end, and record the concrete `Flow`, `Expected`, and
+  `Can run` route before locking scope.
+- **Must not:** finalize the plan on unit tests, assume the flow, invent a live route, or
+  claim the change works because small tests pass.
+
 ## Dependent two-slice feature
 
 - **Setup:** slice B depends on the accepted head of slice A; A's PR is still unmerged.
@@ -32,6 +42,6 @@ remain pending separate authorization.
   positive; record but exclude the out-of-scope observation; correct all verified in-scope
   P0-P3 findings by priority; return the cleanup regression to coding with the checkpoint
   intact; escalate after two unsuccessful rounds for the same unresolved issue; reconcile
-  progress against Orca and Git before resuming.
+  progress against the selected lifecycle and Git before resuming.
 - **Must not:** convert missing evidence into a defect or approval, edit for the out-of-scope
   observation, discard the checkpoint, or report the interrupted slice complete.

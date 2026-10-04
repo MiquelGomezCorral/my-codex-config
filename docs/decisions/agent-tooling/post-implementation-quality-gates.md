@@ -7,6 +7,10 @@ Post-implementation quality gates expose unnecessary production and test complex
 ## Current decisions
 
 - `$cleanup` is explicit, read-only, and findings-only.
+- Code review may use a supported native findings-only route through the workflow's
+  capability reference. Shared review instructions own project constraints, severity,
+  findings format, and assessment; vendor review internals remain vendor-owned. Posting,
+  fixes, paid/cloud reviews, and broader targets require their own explicit authority.
 - An explicitly approved complete workflow may invoke that findings-only audit and route
   verified in-scope simplifications to the implementation worker; the auditor never edits
   or automatically accepts findings. Standalone cleanup retains its stopping behavior.
@@ -52,6 +56,8 @@ Separating diagnosis from correction lets the user choose which simplifications 
 
 ## History
 
+- 2026-10-04: Approved native findings-only code-review forwarding while preserving
+  project review contracts, explicit side-effect bounds, and separate cleanup authority.
 - 2026-09-28: Made the `code-quality` standard mandatory for code work and split the review
   standard out of `review` into `references/code-review.md`, with `review` reduced to a
   router over its references; the Python reference moved into `code-quality/references/`

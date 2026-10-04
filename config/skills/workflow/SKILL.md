@@ -57,8 +57,13 @@ context conflicts or a non-Git action's bounds are missing.
 
 1. **First draft:** follow the planning reference and its first-draft phase: establish
    the problem, current and desired behavior, scope, exclusions, evidence, and validation.
+   Use a callable native planning mode where available; otherwise use a scoped planning
+   prompt, as routed in [native capabilities](references/native-capabilities.md).
    Get an independent code-blind proposal before sharing the preferred solution. Grill
-   the human on material decisions after researching discoverable facts.
+   the human on material decisions after researching discoverable facts. Validation means
+   a defined live test of the real behavior, not unit tests; unit tests only cover small
+   things, algorithms, and model or shape assertions. Define how to live test every change
+   on the plan, and ask the user whenever that route is not fully clear.
 2. **Improvement:** incorporate feedback, resolve choices, and add useful diagrams or
    mockups. Build a complete candidate wave with proposed slices, dependencies, checks,
    review depth, artifacts, and bounded authorizations. Present and revise it until the
@@ -89,7 +94,9 @@ context conflicts or a non-Git action's bounds are missing.
    executable validation method with samples and available tools. Check the planned
    non-live test route before coding; preflight a live tool only within approved bounds.
    Stop if required evidence or a usable validation route is missing.
-5. **Coding loop:** send a small plan directly to one retained coder. For a large plan, use
+5. **Coding loop:** send a small plan directly to one retained coder. The writer uses the
+   harness's normal native coding capability, as routed in
+   [native capabilities](references/native-capabilities.md). For a large plan, use
    a read-only `coding-supervisor` with a bounded grant to direct one retained coder and
    coordinate the selected review within the approved slice. The small-slice coordinator
    or large-slice supervisor invokes `$review --preset <approved preset>` with the complete
@@ -148,7 +155,7 @@ evidence is blocked/unverified, never an invented defect or approval. Deeper rev
 do not enable OCR or Slopo; those remain explicit opt-ins.
 
 Keep script-maintained JSON run state and its generated HTML under `${XDG_STATE_HOME:-$HOME/.local/state}`.
-Reconcile them against Orca, Git, and hosting-service state; they are not proof of completion.
+Reconcile them against the selected lifecycle, Git, and hosting-service state; they are not proof of completion.
 Do not store raw logs, handles, credentials, or sessions there. Preserve checkpoints and
 unrelated changes during recovery. No implicit reset, rebase, squash, amendment, force-push,
 or branch deletion; destructive restoration needs explicit approval.

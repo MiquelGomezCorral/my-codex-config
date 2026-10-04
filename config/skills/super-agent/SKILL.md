@@ -35,6 +35,8 @@ Resolve the environment's own lifecycle before choosing anything else:
   reimplement, or guess those operations.
 - When a managed runtime is identified without an installed guide, use its documented help
   or discovery path.
+- For Orca, load the version-matched adapter guide in
+  `config/skills/orchestration/references/orca.md` before lifecycle commands.
 - Otherwise use the current harness's native subagent tooling.
 - Cross to another harness only through an explicitly requested documented one-shot adapter.
 
@@ -43,6 +45,10 @@ Resolve the environment's own lifecycle before choosing anything else:
 Delegate only when independent scopes or perspectives are useful. Prefer one worker for a
 small task, a dependency chain, one slow external operation, or repeated mutation of the
 same state. Never delegate to satisfy a roster.
+Prefer in-session tools. Reuse native agents or swarms only when model pinning, target
+scope, nesting budget, one-writer ownership, and observable lifecycle all hold. Launch a
+separate native session only through the active wrapper; do not bypass it with unmanaged
+CLI execution.
 
 ## Select the route
 

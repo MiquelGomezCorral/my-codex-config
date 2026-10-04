@@ -84,6 +84,8 @@ retained-session mechanism when one is present; without a wrapper, use the curre
 harness's native worker lifecycle. Reuse only an exact session whose parent, harness,
 role, model, and directory still match. Otherwise start a fresh suitable worker and
 report the mismatch.
+The retained writer uses the harness's normal native coding capability. Stage routes and
+their limits are in `workflow/references/native-capabilities.md`.
 Apply the routing policy's visible quota substitution without changing the plan or brief.
 
 Do not implement product changes yourself. Wait for the worker and use its report as

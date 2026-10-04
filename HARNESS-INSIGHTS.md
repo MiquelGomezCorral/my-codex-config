@@ -144,10 +144,10 @@ context files, not our skills or a direct native-versus-custom comparison.
 
 | Harness | Reuse candidate | Boundary |
 | --- | --- | --- |
-| Claude Code | Plan mode, normal coding, bundled `/code-review` | `/simplify` applies cleanup fixes; `/batch` creates worktrees and publishes changes |
-| Codex | Native `/plan`, `/review`, `codex review`, normal coding | Native review targets and custom instructions have CLI constraints |
-| Antigravity | Native `/plan` and normal coding | A visual diff review is not evidence of an equivalent automated review engine |
-| Pi | Default coding plus selected extensions | Core intentionally omits plan mode and subagents; upstream examples are optional |
+| Claude Code | Plan permission mode, normal coding, Skill(`code-review`) | Auth required; `/simplify`, `/batch`, and cloud `ultra` are not findings-only routes |
+| Codex | Scoped planning prompt, normal `codex exec`, target-based `codex review` | Target flags conflict with custom prompts; scope isolation must be assessed explicitly |
+| Antigravity | `agy --print --mode plan`, scoped `agy --print` coding/review | No bundled review engine; visual diff and paid teamwork are not findings-only review |
+| Pi | Scoped plan prompt, normal coding, scoped agent review through pi-subagents | No core plan or review engine; review needs pinned model and active wrapper; search stays local |
 
 Sources: [Claude commands](https://code.claude.com/docs/en/commands),
 [Codex commands](https://learn.chatgpt.com/docs/developer-commands?surface=cli),
@@ -157,6 +157,13 @@ Official plugins, bundled skills, runtime modes, and model training are differen
 things. There is no portable instruction that inherits all their implementations.
 
 ### Consequences for this repository
+
+The compact stage route matrix, including inputs, results, side effects, prerequisites, and
+unsupported operations, now lives in
+[native-capabilities.md](config/skills/workflow/references/native-capabilities.md).
+Orchestration discovery is wrapper-neutral; Orca executable selection, guide loading, and
+launch recipes live in [orca.md](config/skills/orchestration/references/orca.md).
+`super-agent` remains the sole owner of model, delegation, nesting, and worker policy.
 
 - **Keep the coordination contract.** `workflow/SKILL.md:62` owns human gates;
   `code/SKILL.md:59` owns one retained writer;
@@ -180,10 +187,8 @@ things. There is no portable instruction that inherits all their implementations
   [Name precedence](https://code.claude.com/docs/en/skills).
 
 Vendor tuning is a useful baseline, not proof that every native feature is better
-for every task. Representative comparisons would be needed before claiming an
-improvement. Preserve the approved wrapper lifecycle and validate native invocation
-compatibility before replacing any stage. No skill or bootstrap changes are approved
-by this research note.
+for every task. Preserve the approved wrapper lifecycle and report unsupported operations
+or runtime gaps rather than inventing equivalent behavior.
 
 ### Focused readiness follow-up
 

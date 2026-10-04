@@ -2,6 +2,8 @@
 
 Use the approved plan and current slice context. The plan owns implementation decisions;
 attach later approved amendments instead of silently changing its goal.
+The retained writer uses the harness's normal native coding capability; see
+[native capabilities](native-capabilities.md) for the stage route.
 
 1. Read the complete approved plan and amendments, then refine the slice against the
    current repository. Confirm the goal, observed current behavior and sources, scope,

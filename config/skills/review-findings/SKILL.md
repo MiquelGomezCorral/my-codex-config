@@ -13,5 +13,8 @@ decision; deduplicate related findings and propose only the smallest verified in
 correction. Keep unavailable evidence blocked/unverified. Do not edit, commit, push, or
 publish.
 
+If route details are needed, use
+[`workflow/references/native-capabilities.md`](../workflow/references/native-capabilities.md).
+
 In an approved workflow, assess only the supplied slice and accepted finding report. The
 workflow parent owns correction approval and routing; context alone grants no write access.

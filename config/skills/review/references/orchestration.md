@@ -26,16 +26,15 @@ unknown, or conflicts with an explicit mode. Without a preset, preserve the exis
 mode and stopping behavior, then apply the default harness preference below. Presets never
 enable OCR or Slopo; `--ocr` remains an independent, explicit choice.
 
-Default worker routes under Orca, unless the user or approved plan names a compatible
-route: `flash` uses Pi/`low`; ordinary direct review uses Pi/`medium`; `swarm` uses a
-Pi/`medium` coordinator with Pi quick/`low`, reasoning/`medium`, architecture/`medium`,
-and integration/`medium` specialists when those lenses are justified; `swarm-smart`
-and `full` add a separate Pi/`high` verifier. `full` uses a Codex/`high` live validator.
-Outside Orca, use the current harness at the same tier where available. `super-agent`
-selects every exact worker model from its catalog at dispatch; these tiers and harnesses
-are preferences, not model identifiers. Report a missing compatible route rather than
-silently lowering the tier. An explicit user roster, harness, or model choice takes
-precedence.
+The active wrapper's adapter guide owns default harness routing and launch mechanics.
+Keep any explicit user roster, harness, or model choice. `super-agent` selects exact
+models from its catalog; harnesses and tiers are preferences, not model identifiers.
+Report a missing compatible route rather than silently lowering the tier.
+
+Native findings-only routes and their limits are in
+[`workflow/references/native-capabilities.md`](../../workflow/references/native-capabilities.md).
+Apply the shared standard to project constraints and finding assessment; do not copy
+vendor review instructions into this orchestration guide.
 
 1. Infer coordinator-model intent from a coordinator-like or model-like token and its
    nearby model value. Accept clear variants such as `--cordinator`, `--coordinator`,

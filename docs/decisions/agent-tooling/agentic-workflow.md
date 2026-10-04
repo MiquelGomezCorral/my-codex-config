@@ -11,6 +11,10 @@ slices with inspectable verification and explicit human authority across project
   owns material decisions and approval gates. Existing skills own their stage procedures;
   super-agent remains the sole delegation-policy owner and the active wrapper owns worker
   lifecycle.
+- Supported native planning, coding, and code-review capabilities may execute a stage.
+  One workflow capability reference records callable routes and their limits. Custom
+  independent plan critique and project review requirements remain; native execution
+  preserves scope, approvals, one writer, evidence, memory ownership, and result gates.
 - `/commands/workflow` and `$workflow` are the single complete-flow entry point. Progress
   starts at intake. Planning ends in an evidence-backed persisted wave Markdown plan with
   reviewable HTML and any useful editable diagrams/SVG previews. The human sees and
@@ -159,6 +163,8 @@ diagram comprehension remains Review-only.
 
 ## History
 
+- 2026-10-04: Approved native stage reuse beneath the existing workflow gates, with
+  capability limits recorded once and vendor prompts left with their harnesses.
 - 2026-10-02: Automatic map updates keep native details hidden and emphasize complete
   subflows, including review alternatives; manual details and execution-status authority
   remain unchanged.

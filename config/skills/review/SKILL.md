@@ -6,6 +6,12 @@ description: Own review — the shared review standard (workflow, findings, P0-P
 # Review Gate
 
 This skill owns the shared review standard and `$review` orchestration.
+Native findings-only routes are defined in
+[`workflow/references/native-capabilities.md`](../workflow/references/native-capabilities.md):
+Claude uses Skill(`code-review`), Codex uses a native target review plus explicit scope
+assessment, and Pi/AGY use a scoped read-only native agent where no bundled engine exists.
+Keep this skill's standard limited to project constraints, finding shape, and assessment;
+do not reproduce vendor review internals.
 
 ## Read the standard first
 

@@ -34,53 +34,18 @@ directories, nesting grants, and any no-edit, no-commit, or no-deployment bounda
 those limits in the task packet and report gaps. All tools remain available; do not add
 launch tool allowlists or describe these workers as OS-sandboxed.
 
-## Pi through Orca
-
-The supervised Orca worker launcher does not expose Pi's catalog model pin. Create the Pi
-terminal with the selected catalog ID, wait until it is ready, then attach the Task with
-`worker-start --terminal`. This keeps the Orca Dispatch lifecycle supervised while pinning
-the model in Pi's own command:
-
-```text
-orca terminal create --worktree active --title <worker> --command "pi --model <catalog_model>" --json
-orca terminal wait --terminal <handle> --for tui-idle --timeout-ms 60000 --json
-orca orchestration worker-start --task <task_id> --worktree current --terminal <handle> --json
-```
-
-Use only a catalog model ID, never user text, in the terminal command. The task packet
-supplies the role instructions and tool-use bounds. Do not use `dispatch --inject` here; it
-leaves a custom terminal unsupervised. Compare any runtime-reported effective model with
-the catalog ID. If the runtime exposes no effective model, report the gap instead of
-claiming verification.
-
-For a bounded artifact worker, select the `medium` Pi tier and `low` thinking from the
-catalog, then create the terminal in its assigned artifact directory:
-
-```text
-orca terminal create --worktree active --title <worker> --command "cd <artifact_directory> && pi --model <catalog_model> --thinking low" --json
-orca terminal wait --terminal <handle> --for tui-idle --timeout-ms 60000 --json
-orca orchestration worker-start --task <task_id> --worktree current --terminal <handle> --json
-```
-
-The task packet must supply the `diagram-worker` contract, grounded brief, relevant evidence,
-and exact output directory. That directory is a task constraint, not a filesystem sandbox.
-Use Bash only for the exact Orca Dispatch lifecycle commands named in the injected task
-packet, such as its heartbeat, check, and worker_done calls.
-The coordinator owns helper checks and exports.
-Verify returned files stay in the assigned directory, compare their claims with the full plan,
-and report unavailable or failing helpers, or an unavailable or mismatched route without
-using its output.
-
 ## Explicit one-shot adapters
 
 Direct cross-harness execution is an explicit escape hatch, not automatic fallback. The
-verified argument vector (argv) templates for Codex, Pi, AGY, and OpenCode are:
+verified argument vector (argv) templates for Codex, Pi, AGY, OpenCode, and the
+user-selected Claude one-shot route are:
 
 ```text
 ["codex", "exec", "--model", catalog_model, prompt]
 ["pi", "--model", catalog_model, "--print", "--", prompt]
 ["agy", "--model", catalog_model, "--print", prompt]
 ["opencode", "run", "--model", catalog_model, prompt]
+["claude", "--model", catalog_model, "--print", "--dangerously-skip-permissions", "--no-session-persistence", prompt]
 ```
 
 Pass `prompt` and `catalog_model` as separate arguments. Never concatenate catalog values into shell code;

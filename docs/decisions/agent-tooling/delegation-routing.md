@@ -9,6 +9,13 @@ Delegating workflows choose inexpensive worker models from one frequently editab
 - `config/skills/super-agent/references/model-catalog.yaml` is the single owner of cheap worker model identifiers, grouped by harness and the `low`, `medium`, `high`, and `local` vocabulary.
 - `super-agent` is the single owner of delegation policy and class grants: whether to delegate, which harness, role, and cataloged model run the work, how much nesting is allowed, and what the caller reports. The former routing, swarm, and unused coordinator skills no longer own any part of that policy.
 - A proven active wrapper owns worker lifecycle and exposes the harnesses available through it; the policy names no wrapper product. Without a wrapper, automatic delegation stays on the current harness and uses its native subagent tooling.
+- The generic `orchestration` skill selects the active lifecycle adapter. Orca executable
+  resolution and runtime-guide discovery belong only to its adapter reference; stages
+  load that reference through the generic entry rather than copying wrapper mechanics.
+- Supported native stages and agent teams may run within the same scope, model, nesting,
+  one-writer, and observable-lifecycle bounds. Claude's documented one-shot adapter is
+  available only when explicitly selected; it is neither an automatic fallback nor a
+  retained supervised session.
 - Outside a wrapper, another harness is eligible only when the user names it explicitly, using its documented one-shot direct adapter.
 - Automatic selection prefers an adequate local route with a free slot, then the lowest adequate online tier in catalog order. Automatic worker selection and fallback are limited to compatible catalog entries; exhausted coverage is a blocker.
 - Local routes are grouped under their capability tier, and at most one local model process may run at a time. The current orchestrator consumes that slot when it uses a cataloged local model.
@@ -42,6 +49,8 @@ Cheap models change often, so keeping their identifiers in one small catalog avo
 
 ## History
 
+- 2026-10-04: Approved one replaceable wrapper adapter and conditional native stage
+  execution, preserving explicit routing and lifecycle authority.
 - 2026-09-28: Allowed the review skill to express its Pi-first routing preference while keeping model identifiers in the catalog and explicit user rosters authoritative.
 - 2026-09-25: Merged the former routing, swarm, and coordinator skills into `super-agent`; moved procedures and the model catalog into its references, made class grants relative, and removed vendor mechanics from the delegation policy.
 - 2026-09-18: Closed automatic worker selection over catalog identifiers; removed native-default fallback and required effective-model verification when the runtime exposes it.

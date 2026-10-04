@@ -15,6 +15,7 @@ models_cache.json
 *.bak
 *.log
 node_modules/
+__pycache__/
 .codegraph/
 .codex/
 config/plugins/*/.git/

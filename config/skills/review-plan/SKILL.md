@@ -9,6 +9,11 @@ Plan approved. Now review the complete approved plan established in the current 
 complete approved plan is present, report the blocker and stop; do not create or infer
 one. Treat the invocation input only as optional review context.
 
+Use a supported native planning mode when callable, such as AGY `--mode plan` or Claude
+plan permission mode; otherwise use a scoped planning prompt. The critic is a separate
+custom, read-only review from a different model family, receives full evidence, and gets
+one rebuttal. See [native capabilities](../workflow/references/native-capabilities.md).
+
 When an approved workflow context is supplied, preserve its slice order, scope, exclusions,
 and exact bounded authorizations. Plan review does not itself authorize implementation,
 live testing, or Git actions; report missing or conflicting approval requirements.
@@ -18,8 +23,8 @@ Load `super-agent` without restarting planning. Route one fresh `critic` role at
 Use the runtime-reported planner model when available, otherwise its configured model.
 Pass the planner's effective model and family to `super-agent` so it can enforce the
 family difference when selecting the exact critic model.
-Under Orca, prefer Pi only when its cataloged high-tier route meets this condition; without
-an explicit route, use another available cataloged high-tier route when needed. Preserve an
+Follow the selected adapter's documented harness preference when one exists; otherwise, use
+another available cataloged high-tier route when needed. Preserve an
 explicit human harness or model choice; if it prevents a different-family route, report the
 limitation instead of substituting. `super-agent` selects the exact model from
 `super-agent/references/model-catalog.yaml`. Give it the main agent's complete planning

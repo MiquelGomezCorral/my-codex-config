@@ -1,5 +1,10 @@
 # Adversarial review
 
+For native planning routes and their limits, use
+[native capabilities](native-capabilities.md). Plan critique remains a separate custom,
+read-only independent review: choose a different model family, pass the full evidence and
+plan, and allow one rebuttal. Do not substitute native code review for plan critique.
+
 Run `$review-plan` once for this phase; it routes one independent, read-only `critic`
 through `super-agent` at the `high` tier to challenge necessity, feasibility, scope,
 assumptions, evidence, and acceptance conditions. Prefer an available cataloged critic from

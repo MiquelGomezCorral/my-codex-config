@@ -5,13 +5,16 @@ description: Use this skill for any task that needs web search, current informat
 
 # Web Search
 
-Use Codex's native web search when running in Codex. When running in Pi, use the configured
-local SearXNG MCP tools (`searxng_web_search` and `web_url_read`) instead. Prefer
-official and primary sources in either harness.
+Use the active harness's installed native search tool when available: Claude Code's
+`WebSearch`, AGY's Google Search tool, or Codex `web_search`/`web.run`. In Pi, use the
+configured local SearXNG MCP tools (`searxng_web_search` and `web_url_read`). Prefer
+official and primary sources.
 
 ## Tool Choice
 
 - In Codex, use the native `web_search` or `web.run` tool exposed by the current version.
+- In Claude Code, use the installed `WebSearch` tool; do not route through shell or add a backend.
+- In AGY, use its installed Google Search tool; report when unavailable instead of substituting paid teamwork.
 - In Pi, use `searxng_web_search`, then `web_url_read` for a result URL.
 - Search first, then open the most relevant result pages before drawing conclusions.
 
