@@ -13,3 +13,7 @@
   the recovery sequence.
 - `Forbidden runtime file found in repository`: remove the runtime artifact and keep it
   in the user home rather than the repository.
+- `spawn mcp-searxng ENOENT` from a Pi MCP connect, or any Pi MCP server that cannot be
+  found although `pi install` succeeded: Pi spawns MCP servers with its own `PATH`, which
+  does not include the extension bin directory. Re-run `bootstrap_pi.sh`, which writes the
+  resolved `$PI_AGENT_ROOT/npm/node_modules/.bin/...` command instead of a bare name.

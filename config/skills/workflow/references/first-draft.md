@@ -13,12 +13,5 @@ Offer a diagram with the first candidate when it clarifies a real flow, boundary
 or decision. Follow [the diagram guide](diagrams.md); keep the task in prose when a visual
 adds no useful information.
 
-Validation means the real thing, not a unit test. Establish early how the changed behavior
-will be exercised live end to end: the flow, what to observe, how to judge it, and which
-current tool can run it or that it is user-only. Unit tests only cover small things,
-algorithms, and model or shape assertions; they never stand in for the live test. If the
-live route is not fully clear, ask the user instead of guessing. An undefined live test is
-a stop condition for locking scope.
-
 Use `goalcraft` when a durable observable completion contract will help. Do not implement
 or write project memory during discovery.

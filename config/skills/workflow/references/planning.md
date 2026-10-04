@@ -76,25 +76,6 @@ checkpoint is the scope-lock package rather than a duplicate ledger summary.
    for other current external facts. Research a concrete open decision; do not browse a
    generic tutorial merely because the technology is unfamiliar.
 
-## Define the Live Test
-
-Unit tests are not enough. They only cover small things, algorithms, and model or shape
-assertions; they never prove the real change works. Every plan must define how the actual
-changed behavior gets exercised live, end to end, with the real app, tool, service, data,
-or artifact.
-
-- State the live test as exactly `Flow`, `Expected`, and `Can run`, naming the current
-  tool that can run it, or marking it user-only.
-- Prefer the closest realistic path a real user or caller takes. Do not substitute a unit
-  test, mocked harness, or shape assertion for the live route, and do not treat passing
-  small tests as evidence that the live behavior works.
-- Record any approved live-action bounds the run needs. Live execution still requires
-  that bounded authorization before it happens.
-- If the route is not fully clear — how to reach the changed behavior, what to observe,
-  and how to judge it — ask the user. Do not guess, invent a route, or assume the answer.
-- Treat an undefined live test as a planning blocker: do not lock scope or finalize the
-  wave until the route is defined and understood.
-
 ## Control Scope
 
 Keep non-blocking adjacent findings in the conversational drift list. Interrupt only
@@ -113,8 +94,7 @@ When no material branch remains unresolved, present one proportional approval pa
 - Decisions, rationale, consequences, and accepted risks.
 - Decision-record assessment, protected invariants, and the exact proposed record/index changes.
 - Affected components and end-to-end flow when material.
-- Implementation outline, readiness check, and the concrete live-test route (`Flow`,
-  `Expected`, `Can run`) required by the live-test rule above.
+- Implementation outline, readiness check, and pending live validation.
 - Candidate wave map: proposed PR-sized slices, dependencies, scope/exclusions,
   per-slice validation, review depth, artifacts, and exact action bounds or none.
 - Exact private agent-memory updates for the main agent, or state that no project
@@ -140,10 +120,7 @@ Include only applicable sections from:
 - Exact files or symbols, implementation steps, and relevant failures.
 - A separate `Decision records` section preserving the approved assessment, protected constraints,
   and exact record/index changes; these remain main-orchestrator-owned execution inputs.
-- Minimum non-live readiness check and the concrete live `Flow`, `Expected`, and
-  `Can run` that names a real tool or user-only runner and satisfies the live-test rule.
-  Never finalize a plan whose live route is unanswered, assumed, or only covered by unit
-  tests.
+- Minimum non-live readiness check and pending live `Flow`, `Expected`, and `Can run`.
 - `Main-agent memory updates` with exact paths and facts; these are not coder tasks.
 - The slice map: one PR per slice, dependencies, order, owners, approved scope and
   exclusions, per-slice coding size, checks, samples, tool availability, review preset,

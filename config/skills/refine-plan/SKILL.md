@@ -53,12 +53,6 @@ Define one representative live test using exactly `Flow`, `Expected`, and `Can r
 Name the current tool that can run it, or mark it user-only. Mark the flow pending user
 approval; neither the planner nor executor may run it automatically.
 
-Unit tests are not enough: they only cover small things, algorithms, and model or shape
-assertions, so they never replace the live test. If the live route is not fully clear —
-how to reach the changed behavior, what to observe, and how to judge it — ask the user one
-focused question and stop without finalizing. Never guess a route, and never finalize a
-plan whose only validation is unit tests.
-
 ## Main-agent memory updates
 Preserve the exact approved memory updates or the explicit statement that none are
 needed. Challenge them when incorrect, but never silently drop them; they are not coder
