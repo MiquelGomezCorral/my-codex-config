@@ -22,7 +22,7 @@ const usage = `usage:
   node progress.mjs list-steps
   node progress.mjs update --run <id> [status flags] [metadata flags] [--map <configuration.json>] [--map-info <run-info.json>]
   node progress.mjs render --run <id> [--output <html-file>]
-  node progress.mjs serve --run <id> [--port <port>]
+  node progress.mjs serve --run <id> [--port <port 3100-3199>]
   node progress.mjs rebuild-map --map <configuration.json> --drawio <executable>
   node progress.mjs inspect-map --map <configuration.json> --output <inspection.html>
 
@@ -657,12 +657,17 @@ function render(options) {
   if (mapWarning) console.error(`warning: native map could not be built: ${mapWarning}`)
 }
 
+const artifactPorts = { first: 3100, last: 3199 }
+
 function serve(options) {
   validateOptions(options, new Set(["--run", "--port"]))
   const runId = requireRunId(one(options, "--run"))
-  const state = loadState(runId)
-  const port = Number(one(options, "--port", "4173"))
-  if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error("--port must be an integer from 0 to 65535")
+  loadState(runId)
+  const firstPort = Number(one(options, "--port", String(artifactPorts.first)))
+  if (!Number.isInteger(firstPort) || firstPort < artifactPorts.first || firstPort > artifactPorts.last) {
+    throw new Error(`--port must be an integer from ${artifactPorts.first} to ${artifactPorts.last}`)
+  }
+  let port = firstPort
   const server = createServer((request, response) => {
     if (request.method !== "GET") {
       response.writeHead(405, { "content-type": "text/plain; charset=utf-8", allow: "GET" }).end("Method not allowed")
@@ -697,12 +702,24 @@ function serve(options) {
     }
   })
   server.on("error", (error) => {
-    console.error(`serve failed: ${error.message}`)
+    if (error.code === "EADDRINUSE" && port < artifactPorts.last) {
+      port += 1
+      server.listen(port, "0.0.0.0")
+      return
+    }
+    if (error.code === "EADDRINUSE") {
+      console.error(`serve failed: no free port from ${firstPort} to ${artifactPorts.last}`)
+    } else {
+      console.error(`serve failed: ${error.message}`)
+    }
     process.exitCode = 1
   })
-  server.listen(port, "127.0.0.1", () => {
-    console.log(`http://127.0.0.1:${server.address().port}/`)
+  server.on("listening", () => {
+    const chosenPort = server.address().port
+    console.log(`http://127.0.0.1:${chosenPort}/`)
+    console.log(`bound 0.0.0.0:${chosenPort}; remote clients use this machine's observed host/IP with the same port`)
   })
+  server.listen(port, "0.0.0.0")
 }
 
 function main() {

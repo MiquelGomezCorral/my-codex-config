@@ -161,13 +161,12 @@ risks, questions, expected outcomes, useful artifacts, and approval boundary. Re
 Then open the resulting HTML with `npx -y lavish-axi <artifact.html>`. Capture the actual review
 URL returned by the viewer and include it as a descriptive Markdown link when presenting
 the plan, before asking for approval. Do not substitute the HTML path or guess the URL.
-For a direct browser link, serve only the artifact directory with the standard-library
-server: `python3 -m http.server <port> --bind 127.0.0.1 --directory <artifact-directory>`.
-Choose the port using the global artifact-sharing rule; retry the next port only after an
-address-in-use error and leave existing processes alone. Share the actual direct URL and
-any Lavish viewer URL as separate links. If neither is available, report that and link to
-the local artifact using the chat's clickable file-link format. Keep the Markdown file
-authoritative.
+For a direct browser link, serve only the artifact directory with the shared standard-library
+helper: `python3 <workflow-skill>/scripts/serve-artifact.py --directory <artifact-directory>`.
+It follows the global artifact-sharing rule and prints the local URL and chosen port.
+Share the actual direct URL and any Lavish viewer URL as separate links. If neither is
+available, report that and link to the local artifact using the chat's clickable file-link
+format. Keep the Markdown file authoritative.
 Keep the new HTML and any plan-specific editable diagrams/SVG previews
 beside the private plan so relative links work and no new plan artifact enters Git.
 Lavish displays the HTML and does not itself produce SVG. Only make diagrams that

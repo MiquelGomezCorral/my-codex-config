@@ -19,12 +19,16 @@ not weaken security or explicit user constraints.
   URL returned by the viewer or artifact tool over a filesystem path. If no browser URL
   is available, say so and provide a clickable local-file link as the fallback. Never
   invent a URL or publish a private artifact merely to obtain one.
-- When serving an agent-shared review artifact over HTTP, bind a local server to
-  `127.0.0.1` and serve only the artifact directory. Try port `3002` first; if binding
-  reports that it is occupied, leave that process alone and try `3003`, then continue
-  upward one port at a time. Stop on other bind errors. Report the actual URL with the
-  selected port. This applies to plans, mockups, diagrams, reports, and other agent-shared
-  artifacts; application development and deployment ports are independent and must not change.
+- When an agent-started server exposes an agent-shared artifact, progress page, or app
+  preview over HTTP, bind `0.0.0.0` and serve only the intended artifact directory, never
+  the repository, common Git, or private memory tree. Use ports `3100`-`3199`: start at
+  the first free port, retry only on `EADDRINUSE`, leave existing processes alone, and fail
+  when the range is full or another bind error occurs. Serve static artifacts with
+  `scripts/serve-artifact.py` from the installed workflow skill; `workflow-progress` keeps
+  its own `serve` command. Report the actual reachable host/IP URL and selected port, not
+  `0.0.0.0`, using the machine's observed address. This covers plans, mockups, diagrams,
+  reports, and other agent-shared artifacts. Explicitly required project or user app ports
+  stay valid.
 
 ## Authority and scope
 

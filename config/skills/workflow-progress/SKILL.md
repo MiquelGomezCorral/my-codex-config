@@ -23,7 +23,7 @@ node <workflow-progress-skill>/scripts/progress.mjs update --run <run-id> \
   --slice-context "Slice 1: workflow progress page" --next "Verify review findings" \
   --note "Implementation is ready for review."
 node <workflow-progress-skill>/scripts/progress.mjs render --run <run-id>
-node <workflow-progress-skill>/scripts/progress.mjs serve --run <run-id> --port 4173
+node <workflow-progress-skill>/scripts/progress.mjs serve --run <run-id>
 node <workflow-progress-skill>/scripts/demo.mjs --run workflow-demo-local --interval-ms 3000
 ```
 
@@ -65,10 +65,12 @@ The CLI rejects unknown step IDs, conflicting statuses, unsupported fields, and 
 records before it writes. Notes keep the latest five distinct versions.
 
 Run `render` to create a progress snapshot and a sibling `workflow-map.html` native viewer.
-`serve` binds only to `127.0.0.1`, prints its URL, and refreshes progress every two seconds
-while preserving scroll position, expanded sections, and the loaded native map. A snapshot
-and its sibling map open offline. The pages escape run content, sandbox the map without
-same-origin access, and load no remote resources.
+`serve` binds `0.0.0.0` on the first free port from `3100` to `3199` (override the start
+with `--port`), prints its loopback URL and the chosen port, and refreshes progress every
+two seconds while preserving scroll position, expanded sections, and the loaded native map.
+Remote clients use this machine's observed host/IP with the same port. A snapshot and its
+sibling map open offline. The pages escape run content, sandbox the map without same-origin
+access, and load no remote resources.
 
 Do not edit `assets/workflow.svg`; it is derived from `assets/agent-workflow.drawio`. Rebuild
 and inspect after changing the source, then reconcile stable IDs and bindings before using

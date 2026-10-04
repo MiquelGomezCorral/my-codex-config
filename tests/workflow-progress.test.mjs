@@ -115,7 +115,7 @@ test("served progress refreshes retain the native map frame and export an unchan
   ])
   strictEqual(result.status, 0, result.stderr)
 
-  const server = spawn(process.execPath, [cli, "serve", "--run", "diagram-refresh", "--port", "0"], {
+  const server = spawn(process.execPath, [cli, "serve", "--run", "diagram-refresh"], {
     cwd: root, env: run.env, stdio: ["ignore", "pipe", "pipe"],
   })
   t.after(async () => {
