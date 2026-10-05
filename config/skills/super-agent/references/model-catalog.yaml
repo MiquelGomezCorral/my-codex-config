@@ -74,9 +74,14 @@ sub_orchestrator:
   thinking: high
 
 coder:
-  harness: codex
-  model: gpt-6-luna
+  harness: claude
+  model: claude-sonnet-5-5
   thinking: xhigh
+
+critic:
+  harness: codex
+  model: gpt-6.1-sol
+  thinking: high
 
 reviewer:
   harness: pi
