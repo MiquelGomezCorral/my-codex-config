@@ -55,6 +55,9 @@ notebooks/
 `app/` is both the source folder and editable package. Preserve this package discovery:
 
 ```toml
+# ======================================================================================
+#                                       PROJECT
+# ======================================================================================
 [project]
 name = "app"
 version = "0.1.0"
@@ -86,7 +89,7 @@ package, and absolute imports across packages. Subpackages need `__init__.py`. D
 modify `sys.path` or depend on the working directory.
 
 Keep configuration standalone and expose one `Configurations` instance as `CONFIG`.
-Use `os.path.join` for repository paths and keep user-adjustable paths and parameters
+Use `Path` for repository paths and keep user-adjustable paths and parameters
 in that project-owned configuration.
 
 ## Workflow
@@ -109,7 +112,7 @@ Given the current setup, all python files that use this env will import from the
 - All files within a package that import from another package must do so with `from src.package_name import ...`
 - Scripts folder are considered packages and must have an `__init__.py` file. They can only be imported from main.py or from other scripts. They cannot be imported from src or any other package.
 - config.py must never import from any other package. It is the only file that can be imported from anywhere without restrictions. We can define other files at src/config and import them from config.py, but those cannot import from any other package. This is to avoid circular imports and to have a single source of truth for configuration.
-- Notebooks need no weird os.path hacks since this setup works for them as well.
+- Notebooks need no weird sys.path hacks since this setup works for them as well.
 - Add the `python -m ipykernel install --user --name=venv --display-name "Python (venv)"` to make the env work for notebooks.
 
 ### __init__.py file
@@ -271,7 +274,7 @@ When writing code, use and add space between lines of code. Group them on chucks
 
 - Let de code breathe. 
 - Use the comments of the last sections to help you group the code in a logical way.
-- Sometimes more that one blank line is needed to separate different parts of the code without a separator.
+- Inside a function the formatter keeps at most one blank line. For a bigger break, use one blank line plus a short `# == Step ==` comment.
 - Spaces can be used as separators.
 
 ## Spaghetti code and overcomplication
@@ -314,6 +317,153 @@ The idea is that we don't write almost any test. Too many tests will make the co
    
 ```
 - ...
+
+## Checks
+
+Every project carries its own checks: the lint block in `pyproject.toml` plus
+`.pre-commit-config.yaml`. If a project has neither, say so instead of adding them unasked.
+`code-quality` owns when to run them and how to handle failures; this section owns the
+Python commands.
+
+- Fix mode (the agent that edits): `pre-commit run --files <changed files>`
+- Read-only mode (cleanup and review): `ruff check --no-fix --no-cache <changed files>`,
+  `ruff format --check --no-cache <changed files>`, and `lint-imports --no-cache`
+
+Run `pre-commit install` once per clone so commits run the same checks.
+
+### Approved skips
+
+Only after the user approves the skip, use the narrowest one and write the reason:
+
+- One line, or a whole function from its `def` line: `# noqa: PLR0913  approved: <reason>`
+- A block: `# ruff: disable[CODE]` ... `# ruff: enable[CODE]`
+- A file: `# ruff: noqa: CODE` at the top
+- import-linter and the local pygrep hooks cannot be skipped inline: use the contract's
+  `ignore_imports` or the hook's `exclude`.
+
+`RUF100` flags a `noqa` that no longer matches an error.
+
+### pyproject.toml
+
+Append after the project block. Adjust the import-linter contracts to the project's
+packages: `config` imports no other project package, and `src` never imports `scripts`.
+
+```toml
+# ======================================================================================
+#                                    LINT AND CHECKS
+# ======================================================================================
+[tool.ruff]
+line-length = 100
+src = ["app"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W", "F", "I", "N", "UP", "B", "C4", "SIM", "RET", "PIE", "PTH",
+    "TID", "S", "D", "C90", "PLR091", "ARG", "NPY", "T10", "RUF",
+]
+ignore = ["E501", "D100", "D104", "D105", "D107", "S311"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"tests/**" = ["S101", "D"]
+"*.ipynb" = ["D", "E402"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pylint]
+max-args = 5
+
+[tool.ruff.lint.pep8-naming]
+ignore-names = ["CONFIG"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "parents"
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"sys.path".msg = "No sys.path hacks; the editable install resolves imports."
+
+[tool.importlinter]
+root_packages = ["src", "scripts"]
+
+[[tool.importlinter.contracts]]
+name = "src never imports scripts"
+type = "forbidden"
+source_modules = ["src"]
+forbidden_modules = ["scripts"]
+
+[[tool.importlinter.contracts]]
+name = "config imports no project package"
+type = "forbidden"
+source_modules = ["src.config"]
+forbidden_modules = ["src.data", "src.models", "src.utils", "scripts"]
+```
+
+### .pre-commit-config.yaml
+
+The read-only mode and `import-linter` run from the project environment, so
+`requirements.txt` lists `pre-commit`, `ruff`, and `import-linter`.
+
+```yaml
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+        args: [--maxkb=1024]
+      - id: check-json
+      - id: check-toml
+      - id: check-yaml
+      - id: check-merge-conflict
+      - id: check-shebang-scripts-are-executable
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+      - id: trailing-whitespace
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.10
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.9.1
+    hooks:
+      - id: nbstripout
+
+  - repo: local
+    hooks:
+      - id: no-env-file
+        name: never commit .env (use example.env)
+        language: fail
+        entry: ".env must not be committed"
+        files: '(^|/)\.env$'
+      - id: init-only-imports
+        name: __init__.py holds imports only
+        language: pygrep
+        entry: '^(__all__|def |async def |class |if |try:|for |while )'
+        files: '(^|/)__init__\.py$'
+      - id: no-optional-imports
+        name: import libraries directly, no ImportError fallback
+        language: pygrep
+        entry: 'except \(?(ImportError|ModuleNotFoundError)'
+        types: [python]
+      - id: import-linter
+        name: import boundaries
+        language: system
+        entry: lint-imports
+        pass_filenames: false
+        types: [python]
+```
 
 ## Others
 - There is no need for functions to return 'int' as if on a c++ or OS script that return '0' or '1'... that is totally none-sense on python
@@ -401,6 +551,7 @@ def functions(CONFIG: Configuration):
 ```
 
 - Do use CONFIG instead of prop-drilling parameters. This will make the code more readable and maintainable + centralized.
+- Settings (paths, hyperparameters, flags, model names) come from CONFIG; arguments carry data (tensors, frames, batches). Pass CONFIG down, never pieces of it. `max-args = 5` caps parameter lists; review catches the rest.
 - When defining for and experiment or notebook new parameters that wont be used anywhere else on the project, and thus are 'local parameters', we can preserve the CONFIG class and add those parameters to it this way: With inheritance. Create a new class that inherits from CONFIG and add the new parameters to it. Then instantiate the new class and use it in the notebook or experiment. This way we can keep the CONFIG class clean and organized, and we can also use the new parameters in the notebook or experiment without affecting the rest of the project.
 
 ## Config

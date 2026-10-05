@@ -22,6 +22,26 @@ universal rules apply first; the language reference narrows them for that langua
 
 - [Python](references/python.md)
 
+## Language checks
+
+The repository's own required checks (its pre-commit, lint, type-check, test, or CI
+commands) always apply and must pass. The language reference's checks add to them when the
+project has them configured. The agent that edits code runs both before reporting the work
+done:
+
+1. Run the repository's checks and the reference's fix mode on the task-owned files, fix
+   the code, and run again.
+2. Fix the code, never the rules. Without the user's approval, add no suppression comment,
+   lint configuration change, excluded path, or skipped hook.
+3. A new failure after a fix is progress; keep going. When the same rule still fails on the
+   same code after three fix attempts, stop and report the rule, `path:line`, the attempts,
+   and why it resists. The user decides whether to skip it.
+4. An approved skip uses the narrowest suppression the reference names, with the reason in
+   the comment.
+
+Read-only stages run the same checks without modifying files (the reference's read-only
+mode and the repository's non-mutating checks) and report failures as findings.
+
 ## Choose a solution in this order
 
 Stop at the first option that fully solves the verified problem:

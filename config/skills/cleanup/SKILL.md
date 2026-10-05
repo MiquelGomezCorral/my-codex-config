@@ -54,8 +54,10 @@ shell input or user arguments.
 When present, pass the exact workflow context and current slice scope in a separate field;
 it does not expand the worker's read-only audit or Slopo opt-in.
 
-The coordinator audits production and tests and may delegate at most two fresh,
-read-only specialists only when distinct evidence surfaces justify it:
+The coordinator audits production and tests and runs the read-only checks
+`code-quality` requires, reporting each failure as a finding.
+It may delegate at most two fresh, read-only specialists only when distinct evidence
+surfaces justify it:
 `reviewer-arch` for ownership, organization, abstractions, and reuse; and
 `reviewer-reasoning` for behavioral value and test usefulness. Specialists receive
 bounded questions, never edit or delegate, and return evidence. If routing is unavailable,

@@ -16,6 +16,11 @@ Post-implementation quality gates expose unnecessary production and test complex
   or automatically accepts findings. Standalone cleanup retains its stopping behavior.
 - It assesses task-owned production and test changes against the `code-quality` standard,
   its language references for the touched files, and Ponytail principles.
+- The repository's own required checks always gate code work. The `code-quality` language
+  checks add to them when the project configures them. The editing agent runs both, fixes
+  the code, and reruns; the same rule failing on the same code after three attempts goes to
+  the user, who alone approves a narrow inline skip. Cleanup runs the non-mutating form of
+  the same checks and reports failures as findings.
 - One cleanup coordinator may delegate at most two justified, bounded read-only investigations through `super-agent`.
 - Slopo runs only through `$cleanup --slopo`; OCR runs only through `$review --ocr`.
 - When `$cleanup --slopo` finds no `slopo.conf.yaml`, it may create Slopo's template once,
@@ -47,6 +52,8 @@ Separating diagnosis from correction lets the user choose which simplifications 
 
 ## Enforcement
 
+- Check procedure: [code-quality skill](../../../config/skills/code-quality/SKILL.md), with
+  Python commands in its [Python reference](../../../config/skills/code-quality/references/python.md).
 - Cleanup instructions: [cleanup skill](../../../config/skills/cleanup/SKILL.md) and [cleanup worker](../../../config/agents/cleanup-worker.toml).
 - Review instructions: [review skill](../../../config/skills/review/SKILL.md),
   [OpenCode Go helper](../../../config/skills/review/scripts/ocr-opencode-go), and
@@ -56,6 +63,9 @@ Separating diagnosis from correction lets the user choose which simplifications 
 
 ## History
 
+- 2026-10-05: Made repository checks plus configured `code-quality` language checks a gate
+  for code work: fix-and-rerun in the editing agent, read-only findings in cleanup, and
+  user-approved skips after three identical failures.
 - 2026-10-04: Approved native findings-only code-review forwarding while preserving
   project review contracts, explicit side-effect bounds, and separate cleanup authority.
 - 2026-09-28: Made the `code-quality` standard mandatory for code work and split the review

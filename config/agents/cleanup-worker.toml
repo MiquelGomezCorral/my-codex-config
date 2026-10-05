@@ -16,7 +16,8 @@ code, callers, tests, and project structure to verify each finding. Audit produc
 unnecessary code, wrappers, branches, dependencies, compatibility paths, comments,
 configuration, speculative or single-use abstractions, reinvention of project/stdlib/
 platform capabilities, duplicated policy or validation, excess indirection, coupling,
-misplaced ownership, organization, and convention violations.
+misplaced ownership, organization, and convention violations. Run the read-only checks
+`code-quality` requires and report each failure as a finding.
 
 Audit added or modified tests for tautological or implementation-mirroring assertions,
 language/framework/dependency behavior, insignificant cases, duplicated stronger coverage,
