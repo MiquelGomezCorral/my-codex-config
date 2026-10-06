@@ -32,7 +32,9 @@ done:
 1. Run the repository's checks and the reference's fix mode on the task-owned files, fix
    the code, and run again.
 2. Fix the code, never the rules. Without the user's approval, add no suppression comment,
-   lint configuration change, excluded path, or skipped hook.
+   lint configuration change, excluded path, or skipped hook. A fix must keep behavior; when
+   only a behavior change silences a rule, or mocked tests cannot prove the change, stop and
+   ask.
 3. A new failure after a fix is progress; keep going. When the same rule still fails on the
    same code after three fix attempts, stop and report the rule, `path:line`, the attempts,
    and why it resists. The user decides whether to skip it.

@@ -113,6 +113,10 @@ Given the current setup, all python files that use this env will import from the
 - Scripts folder are considered packages and must have an `__init__.py` file. They can only be imported from main.py or from other scripts. They cannot be imported from src or any other package.
 - config.py must never import from any other package. It is the only file that can be imported from anywhere without restrictions. We can define other files at src/config and import them from config.py, but those cannot import from any other package. This is to avoid circular imports and to have a single source of truth for configuration.
 - Notebooks need no weird sys.path hacks since this setup works for them as well.
+- All imports go at the top of the file. Never import inside a function, method, or class, and never use
+  `importlib.import_module` or `__import__` to dodge that. Needing a lazy import means the package
+  structure is wrong (a circular import, or a light module importing a heavy one): fix the dependency
+  direction by moving the shared code down or splitting the module. Only the user can approve an exception.
 - Add the `python -m ipykernel install --user --name=venv --display-name "Python (venv)"` to make the env work for notebooks.
 
 ### __init__.py file
@@ -268,6 +272,28 @@ To separate sections of code. This is to make the code more readable and to have
 - Do not use it in every single section, only when necessary. 
 - Try to group or even combine sections. If hierarchy is clear, you can use different levels of separators. For example, if you have a section that is a subsection of another section, you can use a shorter separator for the subsection.
 
+## Docstrings
+
+Most functions need no docstring: a clear name and type hints say enough. Add one only when
+the purpose, inputs, or output are not obvious from the signature, such as public entry
+points, non-trivial algorithms, or functions with constraints the caller must know. When
+you write one, use this shape (Google style, which the lint config checks):
+
+```python
+def select_actions(observations: np.ndarray, temperature: float) -> np.ndarray:
+    """Sample one action per environment from the policy.
+
+    Optional extra lines: constraints, side effects, or why it works this way.
+
+    Args:
+        observations (np.ndarray): Batch of observations, shape (n_envs, obs_dim).
+        temperature (float): Softmax temperature; higher means more exploration.
+
+    Returns:
+        np.ndarray: Chosen action index per environment, shape (n_envs,).
+    """
+```
+
 ## Smart spaces
 
 When writing code, use and add space between lines of code. Group them on chucks of at most 5-10 lines of code. This is to make the code more readable and to have a clear separation of different parts of the code.
@@ -326,10 +352,23 @@ Every project carries its own checks: the lint block in `pyproject.toml` plus
 Python commands.
 
 - Fix mode (the agent that edits): `pre-commit run --files <changed files>`
-- Read-only mode (cleanup and review): `ruff check --no-fix --no-cache <changed files>`,
-  `ruff format --check --no-cache <changed files>`, and `lint-imports --no-cache`
+- Read-only mode (cleanup and review): `ruff check --no-fix --no-cache --output-format concise
+  <changed files>`, `ruff format --check --no-cache <changed files>`, and
+  `lint-imports --no-cache`
 
 Run `pre-commit install` once per clone so commits run the same checks.
+
+Adding checks to an existing repository is its own task: add the config, exclude vendored
+code and submodules in `extend-exclude`, run `pre-commit run --all-files` once, and commit
+that before other work so later diffs stay readable. Then run the repository's tests: the
+`F401` fix deletes imports kept only for their side effects (such as environment
+registration); list those in `[tool.ruff.lint.pyflakes] allowed-unused-imports`. The
+`gitleaks` hook scans staged files only, so scan history once with `gitleaks git .`.
+Report the errors left for manual fixing to the user instead of fixing them inside an
+unrelated task.
+
+`lint-imports` always checks the whole repository. A broken contract outside the task's
+files is pre-existing: report it, do not fix it inside that task.
 
 ### Approved skips
 
@@ -355,18 +394,20 @@ packages: `config` imports no other project package, and `src` never imports `sc
 [tool.ruff]
 line-length = 100
 src = ["app"]
+extend-exclude = [".agents", "*.md"]
 
 [tool.ruff.lint]
 select = [
     "E", "W", "F", "I", "N", "UP", "B", "C4", "SIM", "RET", "PIE", "PTH",
-    "TID", "S", "D", "C90", "PLR091", "ARG", "NPY", "T10", "RUF",
+    "TID", "S", "D", "C90", "PLR0913", "PLC0415", "ARG", "NPY", "T10", "RUF",
 ]
-ignore = ["E501", "D100", "D104", "D105", "D107", "S311"]
+ignore = ["E501", "D1", "S101", "S311"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
-"tests/**" = ["S101", "D"]
-"*.ipynb" = ["D", "E402"]
+"**/tests/**" = ["D", "ARG", "S"]
+"**/test_*.py" = ["D", "ARG", "S"]
+"*.ipynb" = ["D", "E402", "F811"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
@@ -378,13 +419,14 @@ max-complexity = 10
 max-args = 5
 
 [tool.ruff.lint.pep8-naming]
-ignore-names = ["CONFIG"]
+extend-ignore-names = ["*CONFIG", "visit_*"]
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "parents"
 
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
 "sys.path".msg = "No sys.path hacks; the editable install resolves imports."
+"importlib.import_module".msg = "No dynamic imports; import at the top of the file."
 
 [tool.importlinter]
 root_packages = ["src", "scripts"]
@@ -408,6 +450,8 @@ The read-only mode and `import-linter` run from the project environment, so
 `requirements.txt` lists `pre-commit`, `ruff`, and `import-linter`.
 
 ```yaml
+exclude: ^\.agents/
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -422,23 +466,19 @@ repos:
       - id: end-of-file-fixer
       - id: mixed-line-ending
       - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.16.10
     hooks:
       - id: ruff-check
-        args: [--fix]
+        args: [--fix, --output-format=concise]
       - id: ruff-format
 
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.30.1
     hooks:
       - id: gitleaks
-
-  - repo: https://github.com/kynan/nbstripout
-    rev: 0.9.1
-    hooks:
-      - id: nbstripout
 
   - repo: local
     hooks:
@@ -452,6 +492,11 @@ repos:
         language: pygrep
         entry: '^(__all__|def |async def |class |if |try:|for |while )'
         files: '(^|/)__init__\.py$'
+      - id: no-dynamic-imports
+        name: no __import__, import at the top of the file
+        language: pygrep
+        entry: '__import__\('
+        types: [python]
       - id: no-optional-imports
         name: import libraries directly, no ImportError fallback
         language: pygrep
