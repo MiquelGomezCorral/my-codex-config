@@ -78,10 +78,16 @@ coder:
   model: claude-sonnet-5-5
   thinking: xhigh
 
-critic:
-  harness: codex
-  model: gpt-6.1-sol
-  thinking: high
+adversarial:
+  harness: 
+    - codex
+    - claude
+  model: 
+    - gpt-6.1-sol
+    - claude-fable-5.1
+  thinking: 
+   - xhigh
+   - xhigh
 
 reviewer:
   harness: pi
