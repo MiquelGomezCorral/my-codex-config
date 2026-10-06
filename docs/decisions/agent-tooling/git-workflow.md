@@ -12,10 +12,24 @@ triage have one owner per fact without losing the repository's own rules.
   `merge`, and `review-pr-comments`. The seven former commit, commit-grouping, shipping,
   merge, rebase, PR-preparation, and PR-comment skills were replaced by this one skill.
 - Repository rules resolve first, in order: repository `AGENTS.md` / `CLAUDE.md`, a
-  conventions document such as `CONTRIBUTING.md` or `docs/conventions/`, existing history,
-  then tooling configuration (commitlint, husky/pre-commit, PR templates, branch
-  protection). Where the repository defines a rule, it wins over the skill's defaults, and
-  the followed source is stated.
+  repository skill that owns commits, pushes, or PRs (such as `commit-push-pr`), the PR
+  template, a conventions document such as `CONTRIBUTING.md` or `docs/conventions/`,
+  existing history, then tooling configuration (commitlint, husky/pre-commit, branch
+  protection). The earlier source wins a conflict, so the PR template's sections beat a
+  conventions document's. Where the repository defines a rule, it wins over the skill's
+  defaults; where it is silent, the shared skill fills the gap. The followed sources are
+  stated.
+- The Git worker finds the PR template itself and uses its sections exactly, with no extra
+  sections; the shared `Summary`/`Verification`/`Risks` fallback and reviewer-guidance
+  sections apply only when no template exists. It returns the template path and repository
+  shipping skill as memory candidates for private `workflow.md`, and later packets pass them.
+- PR titles and commit subjects state the outcome and the feature area a teammate
+  recognizes, taken from the plan's goal, never the code mechanism or a plan slice label.
+- Without a supplied plan path, the Git worker may search private `agent-memory/plans/`, and
+  only that directory, for the plan behind its changes. Several candidates: it asks its
+  parent agent. None: it continues, keeps a new PR in draft, leaves an existing PR's state
+  alone, and must ask the parent for the plan or goal so the title and body can be
+  refreshed. The worker never asks the human; the parent decides whether to.
 - The references stay self-contained on purpose: a repository without this skill still gets
   complete working defaults, and repositories may restate this information freely. Pull
   requests remain the escalation of a commit rather than separate entry points.
@@ -85,6 +99,10 @@ resolution it required is gone with it.
 
 ## History
 
+- 2026-10-06: Added the repository shipping skill and PR template to the resolution order,
+  an outcome-first PR title rule, template discovery with memory hand-back, and Git-worker
+  plan lookup in private `plans/`, after agent PRs used mechanism titles and the shared
+  fallback sections instead of the repository template.
 - 2026-09-28: Assigned all five Git actions to one `git-worker`, accepted named plan
   authority without repeated Git permission prompts, and changed merge direction to
   synchronize the protected base into the feature branch.

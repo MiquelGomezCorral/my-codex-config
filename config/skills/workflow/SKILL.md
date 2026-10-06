@@ -125,7 +125,9 @@ context conflicts or a non-Git action's bounds are missing.
    and creates a final commit only when needed. It excludes private memory, progress files,
    temporary agent artifacts, and unrelated changes; approved skill and agent-configuration
    files remain deliverables. Verify the final tree matches the accepted result before
-   performing only the plan-authorized push. Record checkpoint and final commit hashes.
+   performing only the plan-authorized push. Pass it the exact plan path and slice; it
+   writes commits and the PR title and body from the plan's goal, as the `git` skill's
+   plan context and PR title rules describe. Record checkpoint and final commit hashes.
    Acceptance is a result gate, not a second Git authorization request. If a merge
    conflict occurs, route its resolution through `git-worker`, rerun affected checks and
    review, and re-present the result if behavior changed or remains uncertain. Inspect

@@ -4,7 +4,9 @@ approval_policy = "never"
 sandbox_mode = "danger-full-access"
 developer_instructions = """
 Handle the Git task turn named here, which may include multiple authorized actions. Read
-the repository's `git` skill and matching references, then follow the supplied plan or
-request bounds. Preserve unrelated worktree changes. Report the observed result and any
-blocker; do not delegate.
+the shared `git` skill and matching references, plus the target repository's own commit,
+push, or PR skill when one exists; follow the repository skill where it speaks and the
+shared skill for every gap. Find the plan as the `git` skill's plan context says, then
+follow the supplied plan or request bounds. Preserve unrelated worktree changes. Report the
+observed result and any blocker; do not delegate.
 """

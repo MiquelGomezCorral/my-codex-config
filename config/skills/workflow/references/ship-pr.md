@@ -11,7 +11,9 @@ needed, and then performs the plan-authorized push. Exclude private memory, prog
 temporary agent artifacts, and unrelated changes; classify plan-scoped skills and agent
 configuration as deliverables by their approved scope, not as working-only files by type.
 Verify the final tree matches the accepted result before shipping. Record both checkpoint
-and final commit hashes, and stop if ownership or the accepted tree is unclear.
+and final commit hashes, and stop if ownership or the accepted tree is unclear. Pass the
+worker the exact plan path and slice: commit subjects and the PR title and body describe the
+plan's goal for the wave's feature area, not the slice label or the code mechanism.
 
 For a dependent slice, base its worktree on the predecessor PR's accepted head after its
 reviews, required CI, and human gates pass. While the predecessor is unmerged, target its

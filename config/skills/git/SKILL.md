@@ -13,13 +13,16 @@ Resolve the repository's own git conventions before applying any default in this
 this order:
 
 1. Repository `AGENTS.md` / `CLAUDE.md` instructions.
-2. A conventions document (`CONTRIBUTING.md`, `docs/conventions/`, `docs/`).
-3. Existing history (`git log --oneline -20` and the style of recent commits).
-4. Tooling configuration (commitlint, husky/pre-commit, PR templates, branch protection).
+2. A repository skill that owns commits, pushes, or PRs, under `.agents/skills/`,
+   `.claude/skills/`, or a path its `AGENTS.md` names (for example `commit-push-pr`).
+3. The PR template; `references/pr.md` lists where to find it.
+4. A conventions document (`CONTRIBUTING.md`, `docs/conventions/`, `docs/`).
+5. Existing history (`git log --oneline -20` and the style of recent commits).
+6. Tooling configuration (commitlint, husky/pre-commit, branch protection).
 
-Where the repository defines a rule, follow it even when it contradicts this skill's
-defaults, and state which source was followed. When the repository is silent, use the
-reference defaults.
+Use both the repository rules and this skill. Where the repository defines a rule, follow
+it even when it contradicts this skill's defaults; where it is silent, fill the gap with
+the reference defaults. State which sources were followed.
 
 Other repositories carry their own rules. Whenever work touches another repository —
 mirroring its history, committing, pushing, merging, or opening a pull request — that
@@ -56,13 +59,33 @@ include the resolved `coder` role, harness, model, and thinking in the packet an
 missing `coder` role coverage as a blocker. The worker prompt carries the current user
 request, every user option, any
 `--ignore <path-or-glob>` value unchanged, and `Plan path: <exact path>` when a persisted
-plan is available or `Plan path: unavailable` otherwise.
+plan is available or `Plan path: unavailable` otherwise. Also pass the repository Git
+conventions already in private memory, such as the PR template path or template index and
+the repository's shipping skill, or `Git conventions: none recorded`.
 
 Preserve the existing explicit `--no-delegation` override for commits. Otherwise, do not
 run `merge` or `review-pr-comments` inline.
 
 When workflow context is present, pass its exact plan path, slice, scope, exclusions, and
 named Git authorization bounds to the worker. Do not synthesize or widen authorization.
+
+## Plan context
+
+Commits and PRs describe what the work achieves, and the plan holds that goal. Without a
+supplied plan path, the worker searches the private `agent-memory/plans/` directory under
+`git rev-parse --path-format=absolute --git-common-dir` for the plan matching the branch,
+slice, changed paths, and recent dates. It reads only plans there, no other private notes.
+
+The worker never asks the human. It asks its parent agent, through the wrapper's ask route
+when one exists or otherwise as a `Question:` field before `Memory candidates:` in its
+report. The parent answers from its own context, or asks the human when only the human can
+decide, and persists any useful answer.
+
+- One clear match: use it and report its path.
+- Several candidates: stop and ask the parent which plan applies.
+- No plan: continue the Git work, but ask the parent for the plan or goal. Keep a PR this
+  turn creates in draft; leave an existing PR's draft or ready state unchanged. The parent
+  has the worker refresh the PR title and body from the answer.
 
 ## Route
 
@@ -76,6 +99,8 @@ named Git authorization bounds to the worker. Do not synthesize or widen authori
 
 ## Report
 
-Report the branch, staged scope, commit hash and title, push result, PR action, and URL.
-Report `Not provided` instead of inventing a claim. If no changes exist, report that and
-stop.
+Report the branch, staged scope, commit hash and title, push result, PR action, URL, plan
+path used, and PR template used. Report `Not provided` instead of inventing a claim. If no
+changes exist, report that and stop. Return newly found repository Git conventions, such
+as the PR template path and shipping skill, as `Memory candidates:` for `workflow.md`
+(`Commit And PR`).

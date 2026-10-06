@@ -47,7 +47,8 @@ Types:
 | `test` | Add or modify tests |
 | `chore` | Maintenance, config, build tasks |
 
-Use a lowercase, imperative description. Do not add scopes, breaking-change markers, or
+Use a lowercase, imperative description of what the change achieves, taken from the plan's
+goal, not the mechanism. Do not add scopes, breaking-change markers, or
 other Conventional-Commit decorations beyond the type. A repository convention overrides
 this format.
 

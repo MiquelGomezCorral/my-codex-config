@@ -195,7 +195,11 @@ test("git skill owns five actions that resolve repository rules first", () => {
   match(skill, /accepted human-approved plan authorizes only its named Git actions/)
   match(skill, /not a second Git authorization request/)
   doesNotMatch(skill, /merge` and `review-pr-comments` always run inline/)
-  match(gitWorker, /Read\s+the repository's `git` skill and matching references/)
+  match(gitWorker, /Read\s+the shared `git` skill and matching references/)
+  match(gitWorker, /repository's own commit,\s+push, or PR skill/)
+  match(skill, /^## Plan context$/m)
+  match(pr, /^## Title$/m)
+  match(pr, /pull_request_template\.md/)
   doesNotMatch(gitWorker, /--no-ff|force-push|pre-commit|--no-delegation/)
   for (const reference of ["commit", "push", "pr", "merge", "review-pr-comments"]) {
     match(skill, new RegExp(`references/${reference}\\.md`))

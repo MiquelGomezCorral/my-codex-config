@@ -5,10 +5,23 @@
 1. Inspect `git status`, diff/stat, recent commits, branch/upstream, and any existing PR.
 2. Review repository instructions and checks. Stop if the worktree contains secrets,
    unclear unrelated changes, or failed required verification.
-3. Create a draft pull request, or refresh the existing one.
-4. Follow the project template; otherwise use `Summary`, `Verification`, and `Risks`.
-5. Ground every claim in the diff, commits, conversation, and supplied launch context, and
-   write `Not provided` rather than inventing product claims.
+3. Read the plan from the `SKILL.md` plan-context rules: it gives the goal and the feature
+   area that the title and body describe.
+4. Find the PR template: a path supplied in the packet or named by the repository shipping
+   skill, then `pull_request_template.md` in any letter case under `.github/`, the
+   repository root, or `docs/`, then the `.github/PULL_REQUEST_TEMPLATE/` directory. Verify
+   a supplied path still exists. Use the template's sections exactly, in order, with no
+   extra sections. Only when no template exists, use `Summary`, `Verification`, and `Risks`.
+   When a template directory holds several templates, use the template index the packet
+   supplies; otherwise read each template and build one: a line per file with what it is
+   for, when to use it, and any useful insight. Pick the template that matches the plan's
+   change, ask the parent when none clearly fits, and return the index as a memory
+   candidate for `workflow.md` so later packets carry it.
+5. Create a draft pull request, or refresh the existing one without changing its draft or
+   ready state.
+6. Take the goal and user-facing outcome from the plan and request; ground every factual
+   claim in the diff, commits, and verification. Write `Not provided` rather than inventing
+   product claims.
 
 For a sequential slice, target the accepted predecessor PR branch while it remains
 unmerged, so the new PR exposes only the child slice. Verify the PR diff contains only the
@@ -18,7 +31,29 @@ revalidate affected evidence. In a workflow, the accepted plan must name PR crea
 update and its target/bounds; after result acceptance, do not ask for that same
 authorization again.
 
+## Title
+
+Use the repository title format when one exists. The subject says what changes and for
+whom, named by the feature a teammate would recognize, never by the mechanism that
+delivers it. A reader who sees only the title knows the product area and the outcome.
+
+- Lead with the feature area when the type and scope name only a package or directory.
+- Take the outcome from the plan's goal, not from code identifiers or plan slice labels.
+- Keep it under about 70 characters; the body carries the details.
+
+| Mechanism title | Outcome title |
+| --- | --- |
+| `Connect inside chat` | `Connect integrations inside chat` |
+| `recover failed connections` | `Recover failed integration connections` |
+| `One-time file reminder` | `One-time integration reminder` |
+| `queue chat attachments while answering` | `Improve queued chat attachments UI while answering` |
+| `preserve durable implementation decisions` | `Preserve implementation decisions for agents` |
+| `keep courses quiz-bound with stable unit references` | `Remove fake people, limit course checks to quizzes` |
+
 ## Reviewer guidance
+
+Add these as sections only when the repository has no template. With a template, put the
+points that apply inside its sections and add nothing else.
 
 - Add a TL;DR that matches the actual diff.
 - Separate core files from generated or mechanical files.
