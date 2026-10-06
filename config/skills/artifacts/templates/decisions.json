@@ -1,0 +1,36 @@
+{
+  "eyebrow": "Decisions needed",
+  "title": "Search rollout choices",
+  "subtitle": "Pick an option for each question, then press Copy my decisions and paste the result back.",
+  "sections": [
+    {
+      "id": "context",
+      "title": "Context",
+      "blocks": [
+        { "type": "callout", "tone": "info", "title": "Why now", "text": "The new index is ready; these choices decide how it reaches users." }
+      ]
+    },
+    {
+      "id": "decisions",
+      "title": "Decisions",
+      "intro": "The recommended option is preselected. Your picks are saved in this browser.",
+      "blocks": [
+        { "type": "decisions", "items": [
+          {
+            "id": "D1",
+            "question": "How should the rollout start?",
+            "context": "A flag lets us turn it off without a deploy.",
+            "options": ["Behind a flag for 10% of users", "Everyone at once", "Internal users only"],
+            "recommended": "Behind a flag for 10% of users"
+          },
+          {
+            "id": "D2",
+            "question": "Keep the old search endpoint?",
+            "options": ["Keep for two weeks", "Remove now"],
+            "recommended": "Keep for two weeks"
+          }
+        ] }
+      ]
+    }
+  ]
+}

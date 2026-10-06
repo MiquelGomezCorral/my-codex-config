@@ -1,0 +1,77 @@
+{
+  "layout": "slides",
+  "eyebrow": "Weekly · 2026-10-06",
+  "title": "Team sync",
+  "subtitle": "Use the arrow keys or space to move between slides.",
+  "sections": [
+    {
+      "title": "Where we are",
+      "blocks": [
+        {
+          "type": "stats",
+          "items": [
+            {
+              "value": "92%",
+              "label": "Queries answered under 200 ms",
+              "tone": "ok"
+            },
+            {
+              "value": "3",
+              "label": "Open bugs",
+              "tone": "warn"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "What changed",
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            "New index replaces the nightly rebuild",
+            "Results update within one minute"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "When a task becomes a skill",
+      "layout": "split",
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            "Done more than three times: write it down",
+            "Useful across projects: make it a skill",
+            "Otherwise: keep a project note"
+          ]
+        },
+        {
+          "type": "figure",
+          "src": "flowchart.svg",
+          "caption": "Repeated, reusable work becomes a skill; one-offs stay manual."
+        }
+      ]
+    },
+    {
+      "title": "Next",
+      "blocks": [
+        {
+          "type": "steps",
+          "items": [
+            {
+              "title": "This week",
+              "text": "10% rollout"
+            },
+            {
+              "title": "Next week",
+              "text": "Everyone"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
