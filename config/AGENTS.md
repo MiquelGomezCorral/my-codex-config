@@ -36,8 +36,20 @@ not weaken security or explicit user constraints.
 - Planning, research, audit, and review stay read-only until implementation is authorized.
 - For repository work, only the human-facing agent loads `agents-memory` and reads
 relevant existing repository context and private notes under the Git common directory;
-delegated agents receive needed task context and return suggested memory updates to
-that agent. Delegates do not load the skill or browse private memory.
+delegated agents receive needed task context and end each report with `Memory candidates:`,
+listing findings that meet the bar below, or `none`. Delegates do not load the skill or
+browse private memory; only the Git worker may search `agent-memory/plans/` for the plan
+behind its changes.
+- Persist hard-won project knowledge in that shared `agent-memory/` without asking, even
+during read-only work. A finding qualifies when it took real research or debugging, cannot
+be seen in the code, docs, or Git history, and lets a future agent skip that work: the cause
+and fix of a slow or broken thing, external knowledge we had to search for, deploy or
+release steps that worked, environment gotchas. Skip one-off task state and what the
+repository already records. Every 5-10 turns, and first after a context compaction, check
+the recent discussion for unsaved findings. When the value or the exact fact is unclear,
+ask the user. Before debugging, deploying, or searching the web, check `known-errors.md`
+and `workflow.md`. Project knowledge goes to `agent-memory/` even when the harness has
+its own memory; harness memory may keep a copy, never the only one.
 - Assess applicable shared decision records after planning and before implementation. A task
 that skips planning does not acquire a mandatory assessment solely from this rule. The main
 agent owns this assessment: it creates or updates records when product or architecture
@@ -46,10 +58,13 @@ invariants to implementation and review. Use the repository-scoped `decision-rec
 when present; otherwise use the shared portable skill. Load the selected file explicitly
 rather than merging same-name skill bodies, and keep repository-specific requirements
 applicable.
-- Explore an unfamiliar repository with CodeGraph when it is available, and prefer it to a  
-broad manual search. If the project has no `.codegraph/` index, initialize it with the
-`codegraph-setup` skill first. The index is per working directory, so every worktree needs
-its own.
+- Map code with CodeGraph first when it is available. Before locating symbols, callers, or
+flows you have not read this session, call `codegraph_context`, loading the tool first if it
+is deferred. Plans, memory, and earlier file lists do not make code familiar; they go stale.
+Skip it only for files the task names exactly or non-code files the index lacks. The index
+is per working directory: check every worktree you will read, query siblings with
+`projectPath`, and run the `codegraph-setup` skill where `.codegraph/` is missing. Map code
+yourself instead of delegating the lookup to a file-reading worker.
 - Ground current external library, SDK, or framework behavior with `btca` before trusting
 memory, but only for a registered resource and only where being wrong is expensive. It is
 not a first step in every task, and it cannot answer questions about this repository.
@@ -116,6 +131,8 @@ convention, or completeness.
 ## Completion
 
 - Report observed results, including verification, diff inspection, blockers, and gaps.
+- For repository work, end the final report with `Memory: <file> - <what was saved>` or
+  `Memory: none`.
 - Independently review non-trivial changes, fix blocking findings, and re-check them once.
 - Do not commit, push, publish, or modify shared state unless explicitly requested.
 
