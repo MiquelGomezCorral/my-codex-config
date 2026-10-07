@@ -4,7 +4,7 @@
     {
       "id": 1,
       "prompt": "The active wrapper offers Claude, Codex, and Pi. The user explicitly requests a five-slot plan: one delegated coordinator on Claude, two implementation workers on Codex, and two independent review specialists on Pi. Return each catalog role, harness, model, and thinking; do not execute.",
-      "expected_output": "Keeps the explicit 1/2/2 harness roster because each slot has a compatible catalog role: sub_orchestrator on Claude, coder on Codex, and reviewer on Pi. Reports each exact catalog pin without launching.",
+      "expected_output": "Keeps the explicit 1/2/2 harness roster because each slot has a compatible catalog role: sub_orchestrator on Claude, coder on Codex, and reviewer-fast on Pi. Reports each exact catalog pin without launching.",
       "expectations": [
         "Preserves only explicit harness assignments compatible with each catalog role",
         "Maps each task to its catalog role instead of translating role names across harnesses",
@@ -25,8 +25,8 @@
     },
     {
       "id": 3,
-      "prompt": "A wrapper-managed read-only review has three reviewer slots and two swarms slots on Pi. The first reviewer candidate fails at launch with an explicit quota-exhausted error. Another candidate remains in the reviewer role's catalog list, while OpenCode offers a native default. Explain the recovery, roster, and result if the remaining reviewer candidate also fails.",
-      "expected_output": "Replaces only the failed reviewer slot with the next compatible reviewer candidate in catalog order, preserving its role, harness, thinking, and review packet. Rejects the OpenCode default because it is outside the role list and reports a blocker if reviewer candidates are exhausted.",
+      "prompt": "A wrapper-managed read-only review has three reviewer-fast slots and two swarms slots on Pi. The first reviewer-fast candidate fails at launch with an explicit quota-exhausted error. Another candidate remains in the reviewer-fast role's catalog list, while OpenCode offers a native default. Explain the recovery, roster, and result if the remaining reviewer-fast candidate also fails.",
+      "expected_output": "Replaces only the failed reviewer-fast slot with the next compatible reviewer-fast candidate in catalog order, preserving its role, harness, thinking, and review packet. Rejects the OpenCode default because it is outside the role list and reports a blocker if reviewer-fast candidates are exhausted.",
       "expectations": [
         "Does not retry the quota-exhausted candidate",
         "Replaces only the failed slot",
@@ -51,10 +51,10 @@
     {
       "id": 5,
       "prompt": "Run a read-only review with quick and reasoning specialists, coordinated by a delegated worker that will nest them. The user explicitly requests the medium tier for both specialists and leaves their harness unspecified. Explain the roles, harnesses, pins, concurrency, fallback, and lifecycle without launching.",
-      "expected_output": "Uses sub_orchestrator for the nested coordinator with that role's catalog harness, model, and thinking. Uses reviewer for both specialists on the role's catalog harness and honors their explicit medium-tier route in catalog order; reports exact pins, local concurrency, fallback, and wrapper lifecycle.",
+      "expected_output": "Uses sub_orchestrator for the nested coordinator with that role's catalog harness, model, and thinking. Uses reviewer-fast for both specialists on the role's catalog harness and honors their explicit medium-tier route in catalog order; reports exact pins, local concurrency, fallback, and wrapper lifecycle.",
       "expectations": [
         "Assigns the nested coordinator the catalog sub_orchestrator role",
-        "Assigns direct review specialists the catalog reviewer role",
+        "Assigns direct review specialists the catalog reviewer-fast role",
         "Keeps the coordinator's role pins separate from the specialists' explicit tier route",
         "Preserves read-only permissions and the requested review roles",
         "Reports local serialization or same-role fallback only when applicable",
@@ -99,8 +99,8 @@
     },
     {
       "id": 9,
-      "prompt": "A reviewer-role model fails to load. The wrapper offers a native default and another uncataloged model, plus one compatible remaining candidate in the reviewer role list. Explain recovery, pin verification, and what happens if that candidate also fails.",
-      "expected_output": "Tries only the next compatible reviewer candidate in catalog order, rejects both uncataloged choices, verifies effective model and thinking when reported, and blocks if the role list is exhausted.",
+      "prompt": "A reviewer-fast role model fails to load. The wrapper offers a native default and another uncataloged model, plus one compatible remaining candidate in the reviewer-fast role list. Explain recovery, pin verification, and what happens if that candidate also fails.",
+      "expected_output": "Tries only the next compatible reviewer-fast candidate in catalog order, rejects both uncataloged choices, verifies effective model and thinking when reported, and blocks if the role list is exhausted.",
       "expectations": [
         "Treats the role candidate list as the closed automatic-selection allowlist",
         "Tries only a compatible remaining candidate from the same role in list order",

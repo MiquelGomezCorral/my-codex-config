@@ -70,13 +70,33 @@ automatic launch. A stage maps to exactly one role:
 | Stage | Catalog role |
 | --- | --- |
 | Human root, planning, or intake | `super_agent` |
-| Delegated coordinator, coding supervisor, or review coordinator while nesting | `sub_orchestrator` |
+| Delegated coordinator, coding supervisor, cleanup coordinator, or review coordinator while nesting | `sub_orchestrator` |
 | Implementation, Git, or artifact writer | `coder` |
-| Independent plan critic, direct review, verifier, cleanup auditor, or live validator | `reviewer` |
-| Supporting read-only investigation or review-swarm specialist | `swarms` |
+| Adversarial plan critic | `adversarial` |
+| Strong reviewer in a review swarm or cleanup audit, or cleanup closure check | `reviewer-high` |
+| Direct review, verifier, or live validator | `reviewer-fast` |
+| Supporting read-only investigation, review-swarm or cleanup-swarm specialist | `swarms` |
 
 A cleanup or review worker uses `sub_orchestrator` only while it coordinates assigned
 workers under a matching nesting grant; its own work keeps the role above.
+
+A role entry written as a list holds slots. Each slot has its own harness, model or
+ordered candidates, and thinking, and each launched slot is a separate worker; slots
+are not fallbacks for each other. The fan-out a stage requires (both critics, strong
+reviewers, the cleanup swarm) is justified by that stage.
+
+Launch only slots that can run. When a provider or route is unavailable, skip its slot,
+continue with the others, and tell the user the stage ran with reduced coverage; the stage
+can still pass. Only a role with no runnable slot is a blocker. Slot counts:
+
+- `adversarial`: launch every runnable slot. Prefer at least one critic from a model
+  family other than the planner's. When none is available, the stage still passes; tell
+  the user it ran without a different-family critic.
+- `reviewer-high`: launch the first runnable slot by default, and two when the change
+  touches security, data, public contracts, or migrations, or is large or spans several
+  modules. A cleanup closure check launches one.
+- `swarms`: a lens whose route cannot run is reported as missing coverage; a cleanup
+  coordinator may cover that lens itself and lists it in its roster.
 
 Every automatic launch rereads the mapped role entry and resolves its harness, exact model
 or ordered candidate list, and thinking, then pins every option the launcher supports. Role
@@ -88,8 +108,7 @@ The `low`, `medium`, `high`, and `local` tier records are only for a launch the 
 approved plan explicitly routed by tier or harness. Ordered candidates are fallback order,
 never random distribution, and an exhausted role candidate list is a blocker with no
 automatic escape to a tier or harness default. Unavailability or capability filtering may
-drop a candidate but never silently changes the role harness or thinking. The
-different-family critic requirement filters `reviewer` candidates only.
+drop a candidate but never silently changes the role harness or thinking.
 
 The root `super_agent` entry governs new root launches. Reading the catalog cannot switch
 the harness of an existing main conversation; report a configured-versus-observed mismatch

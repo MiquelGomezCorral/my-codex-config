@@ -71,30 +71,37 @@ super_agent:
 sub_orchestrator:
   harness: claude
   model: claude-opus-5-5
-  thinking: high
+  thinking: xhigh
 
 coder:
   harness: claude
-  model: claude-sonnet-5-5
+  model: claude-opus-5-5
   thinking: xhigh
 
 adversarial:
-  harness: 
-    - codex
-    - claude
-  model: 
-    - gpt-6.1-sol
-    - claude-fable-5.1
-  thinking: 
-   - xhigh
-   - xhigh
+  - harness: codex
+    model: gpt-6.1-sol
+    thinking: xhigh
+  - harness: claude
+    model: claude-fable-5-1
+    thinking: xhigh
 
-reviewer:
+reviewer-fast:
   harness: pi
   model:
     - opencode-go/deepseek-v4.1-flash
     - opencode-go/glm-5.3-flash
   thinking: max
+
+reviewer-high:
+  - harness: codex
+    model: gpt-6.1-sol
+    thinking: xhigh
+  - harness: claude
+    model:
+      - claude-opus-5-5
+      - claude-fable-5-1
+    thinking: xhigh
 
 swarms:
   harness: pi

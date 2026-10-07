@@ -32,7 +32,17 @@ or module structure. Add integration only when the change touches public contrac
 APIs, schemas, migrations, configuration, environment contracts, workers, external
 integrations, security or data boundaries, roles, locales, or side effects. Keep the set
 between two and four specialists by default. When the user requests five, add an
-independent adversarial pass over the highest-risk selected lens.
+independent adversarial pass over the highest-risk selected lens. Lens specialists use the
+catalog `swarms` role.
+
+Every swarm also launches one or two strong reviewers from the catalog `reviewer-high`
+role; `super-agent` owns how many. They are not lens specialists: each reviews the complete
+change on its own against the goal and plan, covering correctness, design, and whether the
+change is simpler than it needs to be. They run concurrently with the lens specialists,
+receive the same packet with `Lens: complete change`, and their findings go through the
+same synthesis. When a strong reviewer cannot run, the review continues and its report
+tells the user about the reduced coverage. An explicit user roster wins: do not add strong
+reviewers to it, and report the skipped strong review as missing coverage.
 
 When Codex is selected, map these lenses to `reviewer-quick`, `reviewer-reasoning`,
 `reviewer-arch`, and `reviewer-e2e`. For another harness, select its actual configured
@@ -43,8 +53,8 @@ use other available harnesses for the remainder. Preserve any explicit or review
 preference, including an exact AGY/Pi roster.
 
 The coordinator itself performs complete-diff inspection and does not outsource the
-selection decision. It uses the smallest justified set and reports missing coverage when
-a justified specialist cannot run.
+selection decision. It uses the smallest justified lens set, adds the strong reviewers
+unless an explicit roster applies, and reports missing coverage when a justified specialist cannot run.
 Before dispatch, it discovers applicable decision records and includes their exact paths and
 protected constraints in the shared specialist packet.
 

@@ -4,8 +4,8 @@ Under Orca, role selection precedes lifecycle mechanics: `super-agent` resolves 
 stage's catalog role entry and pins its harness, exact model, and thinking before this
 adapter runs any launch command. Review modes and presets choose the review shape only;
 they never set a harness, model, or thinking default. Explicit user or approved-plan
-routes take precedence, and a critic still needs a different-family candidate from the
-`reviewer` role.
+routes take precedence, and the adversarial stage follows `super-agent`'s family
+preference for the `adversarial` role.
 
 Resolve one executable for the active session, then load its version-matched guide before
 using Orca commands. The guide owns exact arguments and lifecycle behavior; this adapter

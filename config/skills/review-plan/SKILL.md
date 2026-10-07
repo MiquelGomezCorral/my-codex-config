@@ -10,40 +10,42 @@ complete approved plan is present, report the blocker and stop; do not create or
 one. Treat the invocation input only as optional review context.
 
 Use a supported native planning mode when callable, such as AGY `--mode plan` or Claude
-plan permission mode; otherwise use a scoped planning prompt. The critic is a separate
-custom, read-only review from a different model family, receives full evidence, and gets
-one rebuttal. See [native capabilities](../workflow/references/native-capabilities.md).
+plan permission mode; otherwise use a scoped planning prompt. The two critics are separate
+custom, read-only reviews, preferably one from a family other than the planner's; they
+receive full evidence and get one shared rebuttal. See [native capabilities](../workflow/references/native-capabilities.md).
 
 When an approved workflow context is supplied, preserve its slice order, scope, exclusions,
 and exact bounded authorizations. Plan review does not itself authorize implementation,
 live testing, or Git actions; report missing or conflicting approval requirements.
 
-Load `super-agent` without restarting planning. Route one fresh `critic` role through the
-catalog `reviewer` role entry, filtered to a model family different from the planner's
-effective model. Use the runtime-reported planner model when available, otherwise its
-configured model. Pass the planner's effective model and family to `super-agent` so it can
-enforce the family difference when selecting the exact critic model. Preserve an
-explicit human harness or model choice; if it prevents a different-family route, report the
-limitation instead of substituting. `super-agent` reads
+Load `super-agent` without restarting planning. Route two fresh `critic` workers
+concurrently, one per slot of the catalog `adversarial` role entry. Pass the planner's
+effective model and family to `super-agent`, using the runtime-reported model when
+available, otherwise its configured model; `super-agent` owns the family preference and
+what happens when a provider is unavailable. Preserve an explicit human harness or model
+choice. `super-agent` reads
 `super-agent/references/model-catalog.yaml` and pins the exact harness, model, and thinking
-for the launch. Give it the main agent's complete planning context: the user's request and corrections, every decision and answered question, unresolved questions,
+for each launch. Give each critic the same complete planning context from the main agent: the user's request and corrections, every decision and answered question, unresolved questions,
 alternatives considered and why they were rejected, repository evidence, applicable
 instructions, the separate approved `Decision records` section, and the full proposed and
 approved plan. Do not assume it inherits the
 conversation; explicitly include this context in its task when inheritance is unavailable.
 
-The subagent acts as an independent critic: challenge the plan using the checks below
-and return concrete flaws, supporting evidence, suggested revisions, and questions
-that need user input, or explicitly report no findings. Its review is read-only;
-it must not implement or finalize the plan. The main agent may rebut the critique once.
-It assesses findings against source evidence, resolves them or asks the user, and returns the
-finalized plan. Do not launch a second critic for the same adversarial phase.
+Each critic works independently and does not see the other's report: it challenges the plan
+using the checks below and returns concrete flaws, supporting evidence, suggested
+revisions, and questions that need user input, or explicitly reports no findings. Its
+review is read-only; it must not implement or finalize the plan. Wait for both critics,
+merge and deduplicate their findings, and rebut the merged critique once. The main agent
+assesses findings against source evidence, resolves them or asks the user, and returns the
+finalized plan. Launch no third critic and no second round for the same adversarial phase.
+If a critic cannot run, or no critic differs in family from the planner, finalize with
+the critiques you have and tell the user which coverage was missing.
 
 Assume requirements were clarified before this command, often through `grill-me`, but
 never manufacture a missing answer. If a remaining ambiguity would change behavior,
 scope, or risk, ask the user one focused question and stop without finalizing the plan.
 
-Have the critic reassess whether the plan is the simplest correct way to meet the
+Have each critic reassess whether the plan is the simplest correct way to meet the
 user's requirements:
 
 - Verify important assumptions against the repository.

@@ -21,7 +21,8 @@ Post-implementation quality gates expose unnecessary production and test complex
   the code, and reruns; the same rule failing on the same code after three attempts goes to
   the user, who alone approves a narrow inline skip. Cleanup runs the non-mutating form of
   the same checks and reports failures as findings.
-- One cleanup coordinator may delegate at most two justified, bounded read-only investigations through `super-agent`.
+- One cleanup coordinator always runs a read-only swarm through `super-agent`: at least two `swarms` lens specialists (dead and speculative code, duplication and reinvention, indirection and structure, test value) and one or two `reviewer-high` simplest-design reviewers, at most six descendants, none of which delegate.
+- A production element with no demonstrated need is a finding. In workflow context every finding is accepted or rejected with a concrete reason, and one `reviewer-high` closure check confirms that accepted simplifications were fully applied.
 - Slopo runs only through `$cleanup --slopo`; OCR runs only through `$review --ocr`.
 - When `$cleanup --slopo` finds no `slopo.conf.yaml`, it may create Slopo's template once,
   report that mutation, and stop Slopo analysis if required configuration remains incomplete.
@@ -63,6 +64,7 @@ Separating diagnosis from correction lets the user choose which simplifications 
 
 ## History
 
+- 2026-10-07: Replaced the optional two-helper cleanup audit with an always-on swarm plus simplest-design reviewers, a no-demonstrated-need finding rule, recorded accept/reject outcomes, and a closure check, because single-agent cleanup left overengineering in place.
 - 2026-10-05: Made repository checks plus configured `code-quality` language checks a gate
   for code work: fix-and-rerun in the editing agent, read-only findings in cleanup, and
   user-approved skips after three identical failures.

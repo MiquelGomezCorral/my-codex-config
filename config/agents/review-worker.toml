@@ -12,7 +12,8 @@ the super-agent skill, assign only justified review lenses, and route fresh spec
 through available harnesses according to the supplied harness intent. Use the configured
 Codex reviewer roles for Codex slots and each other harness's real configured agents for
 its slots. For automatically selected specialists, resolve the exact model and thinking from the
-catalog `swarms` role through `super-agent`, reject effective-model or effective-thinking
+catalog `swarms` role through `super-agent`, add the one or two strong complete-change
+reviewers from the catalog `reviewer-high` role, reject effective-model or effective-thinking
 mismatches, and never accept a harness native default.
 Preserve read-only permissions, collect every result with its harness's
 documented lifecycle, and synthesize the evidence. Use only bounded repository verification.

@@ -3,7 +3,7 @@
 1. Initialize run state with the workflow-progress CLI at intake. Gather evidence and produce an independent first proposal without source code or the
    preferred solution.
 2. Improve the candidate, resolve material choices, and obtain human acceptance.
-3. Run one adversarial critique and rebuttal, then persist and present the full wave plan,
+3. Run the two-critic adversarial critique and one rebuttal, then persist and present the full wave plan,
    evidence, slice map, editable diagrams, and visual preview. Obtain explicit human
    approval for delivery before coding.
 4. Narrow one approved slice against current repository state. Escalate any changed

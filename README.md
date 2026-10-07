@@ -179,7 +179,8 @@ generic; Orca executable resolution, guide loading, and launch mechanics live in
 Central routing lives only in
 `config/skills/super-agent/references/model-catalog.yaml`: edit a role once to change the
 harness, exact model or ordered candidate list, and thinking used for every automatic
-launch. List order is fallback order, never random distribution, and role settings win over
+launch. A model list is fallback order, never random distribution; a role written as a list
+of slots launches separate workers, as `super-agent` describes. Role settings win over
 generic tiers, invoking-skill or wrapper preferences, and inherited defaults. The generic
 `low`, `medium`, `high`, and `local` tiers remain only for an explicit tier or harness
 override against the stage-to-role mapping in `super-agent`. An exhausted role candidate

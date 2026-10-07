@@ -68,10 +68,10 @@ context conflicts or a non-Git action's bounds are missing.
    mockups. Build a complete candidate wave with proposed slices, dependencies, checks,
    review depth, artifacts, and bounded authorizations. Present and revise it until the
    human accepts it for adversarial review.
-3. **Adversarial review and wave approval:** run `$review-plan` once. It routes one
-   reusable `critic` through `super-agent`'s catalog `reviewer` role, filtered to a model
-   family different from the planner's. Preserve an explicit user route and report when it
-   cannot meet that family condition. Verify consequential claims and bug
+3. **Adversarial review and wave approval:** run `$review-plan` once. It routes two
+   concurrent `critic` workers through `super-agent`'s catalog `adversarial` role, which
+   owns the family preference and what happens when a provider is unavailable. Preserve an
+   explicit user route. Verify consequential claims and bug
    evidence, allow one planner rebuttal, and escalate remaining disputes. `$review-plan` calls
    `$refine-plan`. Persist the complete wave Markdown plan and render its reviewable HTML
    and available editable diagrams/SVG previews as described in the planning reference.
@@ -113,9 +113,9 @@ context conflicts or a non-Git action's bounds are missing.
    checkpoint hash. Compare the complete task-owned changes from base through the current
    tree, including the checkpoint and later staged, unstaged, or untracked worktree changes.
    Skip cleanup only when that complete comparison is empty; a clean post-checkpoint status
-   alone is not enough. Verify each finding before routing an in-scope simplification back
-   through the coding loop. A correction must pass affected checks and review before
-   presentation.
+   alone is not enough. Verify each finding, apply or reject it with a concrete reason, and
+   route in-scope simplifications back through the coding loop. A correction must pass
+   affected checks, review, and the cleanup closure check before presentation.
 7. **Present to human:** show the actual result, planned evidence, checks, known gaps, and
    artifacts after cleanup corrections pass their affected gates. Route feedback through
    the coding loop. After acceptance, the human-facing coordinator applies exact approved

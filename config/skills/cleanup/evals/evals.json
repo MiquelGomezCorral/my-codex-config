@@ -4,7 +4,7 @@
     {
       "id": 1,
       "prompt": "Run $cleanup for a task-owned diff that adds a one-use wrapper around an existing standard-library operation, a redundant configuration branch, and no meaningful regression. Audit the production change without editing the worktree.",
-      "expected_output": "Evidence-backed production findings ordered by simplification value, each with a category, path:line, source evidence, maintenance cost, and smallest simplification direction; no edits or correction brief.",
+      "expected_output": "Evidence-backed production findings ordered by simplification value, each with a category, path:line, source evidence, maintenance cost, smallest simplification direction, and confidence; no edits or correction brief.",
       "expectations": [
         "Reports the one-use wrapper or redundant branch only when the source confirms its cost",
         "Keeps findings scoped to task-owned hunks and cites source locations",
@@ -20,7 +20,7 @@
         "Audits production and tests rather than production alone",
         "Does not recommend deleting tests that protect a trust boundary, data-loss risk, regression, or important failure",
         "Identifies duplicated policy or validation only with evidence from both implementations",
-        "Includes the required category, path:line, evidence, cost, and smallest direction for each finding"
+        "Includes the required category, path:line, evidence, cost, smallest direction, and confidence for each finding"
       ]
     },
     {

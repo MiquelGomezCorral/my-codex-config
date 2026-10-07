@@ -37,7 +37,7 @@ launching a worker.
 Include these fields in every worker packet:
 
 ```text
-Catalog role: super_agent | sub_orchestrator | coder | reviewer | swarms
+Catalog role: super_agent | sub_orchestrator | coder | adversarial | reviewer-high | reviewer-fast | swarms
 Harness: the role entry's harness, or an explicit user override
 Model: the resolved exact model
 Thinking: the resolved thinking level

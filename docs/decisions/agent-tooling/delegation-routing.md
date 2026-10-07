@@ -6,7 +6,7 @@ Workflows resolve each role's harness, model, and thinking from one frequently e
 
 ## Current decisions
 
-- `config/skills/super-agent/references/model-catalog.yaml` owns workflow model defaults. Its `super_agent`, `sub_orchestrator`, `coder`, `reviewer`, and `swarms` entries each specify a harness, model or ordered candidate list, and thinking level. Harness tiers remain available for explicit harness/tier overrides.
+- `config/skills/super-agent/references/model-catalog.yaml` owns workflow model defaults. Its `super_agent`, `sub_orchestrator`, `coder`, `adversarial`, `reviewer-high`, `reviewer-fast`, and `swarms` entries each specify a harness, model or ordered candidate list, and thinking level. A role written as a list holds independent slots, each its own worker; `super-agent` owns how many slots a stage launches. Harness tiers remain available for explicit harness/tier overrides.
 - `super-agent` is the single owner of delegation policy and class grants: whether to delegate, which harness, role, and cataloged model run the work, how much nesting is allowed, and what the caller reports. The former routing, swarm, and unused coordinator skills no longer own any part of that policy.
 - A proven active wrapper owns worker lifecycle and exposes the harnesses available through it; the policy names no wrapper product. Without a wrapper, automatic delegation stays on the current harness and uses its native subagent tooling.
 - The generic `orchestration` skill selects the active lifecycle adapter. Orca executable
@@ -17,8 +17,10 @@ Workflows resolve each role's harness, model, and thinking from one frequently e
   available only when explicitly selected; it is neither an automatic fallback nor a
   retained supervised session.
 - Outside a wrapper, another harness is eligible only when the user names it explicitly, using its documented one-shot direct adapter.
-- Every dispatch rereads the applicable role entry. Role settings override generic tier preferences, wrapper defaults, and agent-file model metadata; explicit user instructions remain authoritative. Candidate order defines fallback, and exhausted compatible candidates in that role are a blocker.
+- Every dispatch rereads the applicable role entry. Role settings override generic tier preferences, wrapper defaults, and agent-file model metadata; explicit user instructions remain authoritative. Within one entry or slot, candidate order defines fallback. Slots are not fallbacks for each other: an unavailable provider skips its slot, the stage continues with the rest, and the user is told about the reduced coverage. Only a role with no runnable slot is a blocker.
 - Local routes are grouped under their capability tier, and at most one local model process may run at a time. The current orchestrator consumes that slot when it uses a cataloged local model.
+- Plan critique runs both `adversarial` slots. A critic from a family other than the planner's is preferred, not required: without one the stage still passes and the user is told.
+- Review swarms and cleanup audits add one or two `reviewer-high` workers; `super-agent` sets the count by risk and size. An explicit user roster stays exact and gets no added strong reviewers.
 - Coding, reviews, cleanup, and delegated coordination use the stage-to-role mapping in `super-agent`. Agent files own behavior and authority, without independent model or effort defaults.
 - Presets keep their review shape and capability requirements, while catalog roles choose models. A required capability that cannot run on the configured route is reported; it does not authorize silent harness substitution.
 - `super_agent` specifies new root launches. Reading the catalog cannot switch the harness of an existing conversation; report configured versus observed mismatches without automatically replacing the main agent.
@@ -50,6 +52,7 @@ Role defaults change often. Keeping their harness, model, and thinking in one ca
 
 ## History
 
+- 2026-10-07: Split the reviewer role into `reviewer-fast` and `reviewer-high`, added the two-slot `adversarial` role, and defined list-valued roles as independent slots. A missing provider or a missing different-family critic reduces coverage and is reported, but never blocks the stage.
 - 2026-10-04: Made role entries mandatory for workflow routing, including coding and cleanup, with explicit model and thinking pins. Removed competing per-agent defaults while preserving runtime lifecycle, user overrides, and capability restrictions.
 - 2026-10-04: Approved one replaceable wrapper adapter and conditional native stage
   execution, preserving explicit routing and lifecycle authority.

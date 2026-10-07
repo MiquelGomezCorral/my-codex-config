@@ -46,7 +46,8 @@ $cleanup [--slopo] [goal or persisted-plan context]
 
 Launch exactly one fresh `cleanup-worker` through `super-agent` with the plan or
 goal, task-owned paths and exclusions, the complete status snapshot, and the workflow
-comparison basis when supplied. The packet must
+comparison basis when supplied. Grant it delegation for the cleanup swarm: maximum depth
+one, at most six read-only descendants, none of which may delegate. The packet must
 contain exactly one marker: `Slopo mode: enabled` when `$cleanup --slopo` was supplied,
 otherwise `Slopo mode: disabled`. Consume the flag in the parent; never forward it as
 shell input or user arguments.
@@ -55,13 +56,10 @@ When present, pass the exact workflow context and current slice scope in a separ
 it does not expand the worker's read-only audit or Slopo opt-in.
 
 The coordinator audits production and tests and runs the read-only checks
-`code-quality` requires, reporting each failure as a finding.
-It may delegate at most two fresh, read-only specialists only when distinct evidence
-surfaces justify it:
-`reviewer-arch` for ownership, organization, abstractions, and reuse; and
-`reviewer-reasoning` for behavioral value and test usefulness. Specialists receive
-bounded questions, never edit or delegate, and return evidence. If routing is unavailable,
-the coordinator completes the audit itself.
+`code-quality` requires, reporting each failure as a finding. It always runs the cleanup
+swarm that the `cleanup-worker` role defines: `swarms` lens specialists, using reviewers
+such as `reviewer-arch` and `reviewer-reasoning`, plus `reviewer-high` simplest-design
+reviewers. Its return ends with the roster of launched and self-covered lenses.
 
 ## Optional Slopo evidence
 
@@ -88,12 +86,14 @@ or commit other Slopo state; never edit the generated template automatically.
 ## Return
 
 Return findings only, ordered by expected simplification value. Each finding includes a
-category, `path:line`, source evidence, concrete maintenance or complexity cost, and the
-smallest simplification direction. Audit tests for low-value or implementation-mirroring
-assertions, dependency behavior, duplicated coverage, excessive fixtures or mocks, and
-unapproved behavior; preserve acceptance behavior, regressions, trust boundaries,
-security, data-loss protections, important failures, and critical deterministic contracts.
-When uncertain, do not recommend deletion.
+category, `path:line`, source evidence, concrete maintenance or complexity cost, the
+smallest simplification direction, and confidence. A production element with no
+demonstrated need is a finding even when it looks harmless. Audit tests for low-value or
+implementation-mirroring assertions, dependency behavior, duplicated coverage, excessive
+fixtures or mocks, and unapproved behavior; preserve acceptance behavior, regressions,
+trust boundaries, security, data-loss protections, important failures, and critical
+deterministic contracts. When uncertain whether a test or protection matters, do not
+recommend its deletion.
 Do not produce edits, a correction brief, automatic acceptance, or invented work. Return
 `Lean already. No cleanup findings.` when appropriate.
 
