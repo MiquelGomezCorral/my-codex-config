@@ -1,6 +1,6 @@
 ---
 name: agents-memory
-description: Human-facing main agent only. Read and maintain private project working memory shared by Git worktrees; initialize it with `/init`. Delegated agents report memory suggestions to their parent instead of using this skill.
+description: Human-facing main agent only. Read and maintain private project working memory shared by Git worktrees; the `project-init` skill initializes it. Delegated agents report memory suggestions to their parent instead of using this skill.
 ---
 
 # Agents Memory
@@ -19,7 +19,7 @@ directory shared by linked worktrees:
 $(git rev-parse --path-format=absolute --git-common-dir)/agent-memory/
   architecture.md  conventions.md  decisions.md  glossary.md
   workflow.md      known-errors.md  requirements.md
-  plans/
+  plans/  artifacts/
 ```
 
 Resolve the directory from the current worktree each time; do not assume `.git` is a
@@ -30,7 +30,7 @@ never silently put new private notes in a tracked path.
 
 ## Use When
 
-- The user runs `/init` or asks to initialize project memory.
+- `project-init` runs, or the user asks to initialize project memory.
 - Starting repository work as the human-facing agent: read relevant existing project
   context and any private notes already present.
 - The user asks to set up, inspect, or update private agent memory.
@@ -50,11 +50,12 @@ worktree.
 
 1. Inspect the current project, including existing `AGENTS.md`, `.agents/`, and decision
    records. Preserve all existing tracked files and their history.
-2. On `/init`, or the first private memory write, create `agent-memory/` in the resolved
+2. On `project-init`, or the first private memory write, create `agent-memory/` in the resolved
    Git common directory. Create only needed topical files from `templates/`; create
-   `plans/` when persisting a plan.
-3. Create `AGENTS.md` from `templates/AGENTS.md` only when the project has no agent
-   instructions and the user requested initialization. Never replace an existing one.
+   `plans/` when persisting a plan and `artifacts/<name>/` when keeping a page or other
+   artifact.
+3. `project-init` owns creating `AGENTS.md` from `templates/AGENTS.md`, including when
+   `CLAUDE.md` or another harness file exists. Never replace an existing `AGENTS.md`.
 4. Replace placeholders with observed facts. Do not invent conventions, decisions, or
    commands. Summarize created files and missing information.
 

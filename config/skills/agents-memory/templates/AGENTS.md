@@ -1,6 +1,8 @@
 # Project Agent Rules
 
-This file routes the human-facing agent to project context and private working memory.
+This is the instruction file for every agent, whatever its harness. Files such as
+`CLAUDE.md` or `GEMINI.md` may add rules; follow them and this file. When they conflict,
+ask the user and record the answer here.
 
 ## Project context
 
@@ -12,7 +14,7 @@ context from that agent and end each report with `Memory candidates:` or `none`.
 
 Resolve `git rev-parse --path-format=absolute --git-common-dir` and look under its
 `agent-memory/` directory for relevant notes and new plans. All linked worktrees of this
-clone share that directory. Create it on `/init` or the first memory write; do
+clone share that directory. Create it on the `init` command or the first memory write; do
 not copy it into the worktree or commit it. Product decisions stay in `docs/decisions/`.
 
 ## Load Rules
@@ -26,4 +28,20 @@ not copy it into the worktree or commit it. Product decisions stay in `docs/deci
 
 - Stack: {{STACK}}
 - Package manager: {{PACKAGE_MANAGER}}
-- Main commands: {{MAIN_COMMANDS}}
+
+## Commands
+
+{{CHECK_AND_RUN_COMMANDS}}
+
+## Git
+
+- Default branch: {{DEFAULT_BRANCH}}
+- Commit messages: {{COMMIT_STYLE}}
+- Worktrees: {{WORKTREE_MODEL}}
+
+## Repository skills
+
+Load these from `.agents/skills/` when the task matches, even if your harness does not list
+them:
+
+{{REPO_SKILLS}}
