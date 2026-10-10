@@ -27,13 +27,17 @@ result), so this filter does not apply there.
 
 | Template | Use for |
 | --- | --- |
-| `templates/report.json` | Results of tests, audits, or reviews: counts, main findings, live evidence, click-to-open items, next steps |
-| `templates/results.json` | Experiment, benchmark, or training results over several runs: pass/fail grid per phase, all-runs table, plots, GIFs, phase notes. Findings and audits go in `report.json` |
-| `templates/decisions.json` | Questions the user must answer: options, a recommendation, saved picks, "Copy my decisions" |
-| `templates/comparison.json` | Two to four approaches side by side, with criteria and a recommendation |
-| `templates/explainer.json` | How a system or concept works: TL;DR, flow, collapsible steps, FAQ, glossary |
+| `templates/report.json` | Findings from tests, audits, or reviews, with live evidence |
+| `templates/results.json` | Experiment, benchmark, or training results: run grid, plots, GIFs |
+| `templates/decisions.json` | Questions the user must answer, with saved picks and "Copy my decisions" |
+| `templates/comparison.json` | Two to four approaches side by side, with a recommendation |
+| `templates/explainer.json` | How a system or concept works: TL;DR, flow, FAQ, glossary |
 | `templates/slides.json` | A short deck; arrow keys or space move between sections |
 | `templates/plan-review.json` | A plan review brief; render it with `scripts/render-plan.mjs` ([plan page](references/plan-page.md)) |
+
+Before you fill a template, read its entry in [references/templates.md](references/templates.md):
+when to pick it over the others, the blocks that fit each part, a minimal example, and the
+usual mistakes.
 
 Templates are starting shapes, not limits. Any section can use any block, so a report can
 end with a decisions block, and an explainer can include a comparison.
@@ -47,8 +51,9 @@ end with a decisions block, and an explainer can include a comparison.
    need; never leave example text or empty sections.
 3. Render it from this skill's directory:
    `python3 scripts/fill.py <dir>/data.json <dir>/index.html`
-4. Serve `<dir>` with the shared artifact server named in the global rules and give the
-   user the reachable URL. To change the page, edit `data.json` and run step 3 again.
+4. Serve `<dir>`: `python3 "$HOME/.agents/skills/workflow/scripts/serve-artifact.py" --directory <dir>`.
+   It picks a free port in 3100-3199; give the user the URL with the machine's host IP and
+   that port. To change the page, edit `data.json` and run step 3 again.
 
 ## Revising a page
 
@@ -93,7 +98,7 @@ is one of `ok`, `bad`, `warn`, `info`, or `muted`.
 | `table` | `columns`, `rows` (arrays of cells; a cell is a string, or `{ text, tone }` for a status chip), `select` (adds a tick box per row; rows start ticked) |
 | `matrix` | `columns` (strings, or `name` plus `note`), `groups` (`title`, `rows` of `label`, `note`, and `cells`, one list of chips per column, where a single chip or a string also works; a chip is `text`, `tone`, and `title` for hover text), `legend`. Chips stack one per line |
 | `steps` | `items` (`title`, `text`, optional `icon`) drawn as a left-to-right flow |
-| `details` | `items` (`title`, `text`, optional `blocks`, `open`, `icon`, `preview` shown while closed) as collapsible rows |
+| `details` | `items` (`title`, `text`, optional `blocks`, `open`, `icon`, `preview`, a short line under the title) as collapsible rows |
 | `inset` | `blocks` drawn inside a neutral inset |
 | `findings` | `items` (`id`, `title`, `status`, `fields` of `label`/`text`, `quotes` of `text`/`source`, `open`) |
 | `compare` | `options` (`name`, `summary`, `pros`, `cons`), `criteria` (`name`, `values` per option), `recommended` |
@@ -136,7 +141,8 @@ then point `src` at it:
 
 Give every figure a caption that states its takeaway. A diagram explains; it is not evidence
 that the behavior it shows exists. Open the page and check that labels fit and nothing is
-clipped at desktop and phone widths.
+clipped at desktop and phone widths; for the phone view run
+`google-chrome --headless=new --window-size=390,844 --screenshot=<file> <url>`.
 
 ## Live evidence
 
@@ -150,12 +156,8 @@ node scripts/capture.mjs <url> --video <file.webm> [--seconds <n>]
 
 `--seconds` defaults to 5. Chrome sends a video frame only when the page repaints, so a still
 page gives one frame for the whole length; record pages that animate or load. Save the files
-next to the page and point a `figure` at them.
-
-The result page, `templates/report.json`, has a "Live evidence" section. It holds one
-`findings` row per live test with `Ran on` (the commit, or the snapshot name when nothing is
-committed), `Evidence`, and a status. A test with no evidence takes the red `no-evidence`
-status and stays in the list.
+next to the page and point a `figure` at them. `templates/report.json` has a "Live evidence"
+section for them; see its entry in the [template guide](references/templates.md#reportjson).
 
 ## Changing the engine
 
