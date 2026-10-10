@@ -52,15 +52,17 @@
     {
       "id": "decisions",
       "title": "Decisions",
-      "intro": "One per \"needs decision\" result. Picks are saved in this browser.",
+      "intro": "One per \"needs decision\" result. The recommended option is preselected. Picks are saved in this browser.",
       "blocks": [
         { "type": "decisions", "items": [
           {
             "id": "D1",
+            "title": "<Plain name of the choice>",
+            "description": "<What is decided and why it matters, in plain words: scenario ids and what happened.>",
             "question": "<What should the agent do when ...?>",
-            "context": "<Scenario ids and what happened.>",
             "options": ["<Option A>", "<Option B>"],
-            "recommended": "<Option A>"
+            "recommended": "<Option A>",
+            "why": "<Why this option is recommended, in plain words.>"
           }
         ] }
       ]

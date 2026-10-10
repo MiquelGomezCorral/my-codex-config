@@ -24,6 +24,8 @@ use any block.
 
 - **Replace every example value.** Delete the blocks and sections you do not use; never
   leave example text or an empty section.
+- **Lead with plain words.** The plain-first rule at the top of SKILL.md applies to every
+  page; each entry below says where its two layers go.
 - **Put an `id` on sections, findings, and decisions.** Ids keep section links and change
   marks stable when a title changes. Without one, a renamed title reads as one removed item
   plus one added.
@@ -56,6 +58,8 @@ of a workflow.
 **Blocks**
 - **One finding is one `findings` row.** What we did, what we expected, and what happened
   go in its fields; verbatim text goes in its quotes. Rows open on click.
+- **Plain first** (rule in SKILL.md): a finding's title says in plain words what happened;
+  the mechanics go in its fields and quotes.
 - **Counts come from `stats` with `auto: true`.** Do not type totals.
 - **Live evidence is one `findings` row per live test.** `Ran on` is the commit, or the
   snapshot name when nothing is committed; `Evidence` names the screenshot or video, captured
@@ -77,7 +81,7 @@ of a workflow.
           "items": [
             {
               "id": "F1",
-              "title": "Expired session loops between `/login` and `/home`",
+              "title": "Expired session redirect loop",
               "status": "bad",
               "fields": [
                 { "label": "Expected", "text": "One redirect to `/login`." },
@@ -130,6 +134,8 @@ as runs finish.
 - **Phase notes:** `details`, one row per section of your notes.
 
 **Blocks**
+- **Plain first** (rule in SKILL.md): "Where we are" and the callout lead in plain words;
+  the grid, table, and plots follow.
 - **Settings by method is a `matrix`.** Rows are settings, grouped by round or setting
   family; columns are methods; each cell holds one chip per run, stacked one per line. Hover
   text on a chip carries the detail that does not fit in it.
@@ -240,7 +246,9 @@ the user presses **Copy my decisions** and pastes the text back to you.
 - **Decisions:** a `decisions` block, with the recommended option preselected.
 
 **Blocks**
-- **One question is one `decisions` item** (fields in SKILL.md).
+- **Plain first** (rule in SKILL.md): each decision has a title and a description before
+  its question; mechanics go in `technical`, after the options.
+- **One decision is one `decisions` item** (fields in SKILL.md).
 - **Rows to keep or drop go in a `table` with `select: true`.** Use it for a cleanup list.
   The copy bar appears at the end of any section that holds either block.
 
@@ -248,21 +256,25 @@ the user presses **Copy my decisions** and pastes the text back to you.
 {
   "eyebrow": "Decisions needed",
   "title": "Search rollout choices",
-  "subtitle": "Pick an option for each question, then press Copy my decisions and paste the result back.",
+  "subtitle": "Pick an option for each decision, then press Copy my decisions and paste the result back.",
   "sections": [
     {
       "id": "decisions",
       "title": "Decisions",
+      "intro": "The recommended option is preselected. Your picks are saved in this browser.",
       "blocks": [
         {
           "type": "decisions",
           "items": [
             {
               "id": "D1",
+              "title": "Who sees the new search first",
+              "description": "The new index is ready. This decides how many people get it on day one, and how fast we can switch it off if results look wrong.",
               "question": "How should the rollout start?",
-              "context": "A flag lets us turn it off without a deploy.",
               "options": ["Behind a flag for 10% of users", "Everyone at once"],
-              "recommended": "Behind a flag for 10% of users"
+              "recommended": "Behind a flag for 10% of users",
+              "why": "A small group is enough to show problems early, and the flag turns the new search off in seconds.",
+              "technical": "The flag `search_v2` is read on every request and buckets users by id, so the same people keep seeing the new search."
             }
           ]
         }
@@ -279,8 +291,12 @@ the user presses **Copy my decisions** and pastes the text back to you.
   preselects nothing.
 - **Write each option as the full answer.** The copied text carries the option's words, not
   a number.
-- **Keep your own opinion in `recommended`, not in the context.** Leave a question open
-  when you have no recommendation.
+- **Put the reason for your recommendation in `why`.** The page preselects the recommended
+  option and shows `why` as "Why recommended"; it does not repeat the option's name. Leave
+  `recommended` and `why` out when you have no recommendation.
+- **A title names the choice in a few plain words.** The description says what is decided
+  and why it matters; do not repeat it in the question. Older items with only `question`
+  and `context` still render, but write new ones with a title and description.
 - **Renaming the page `title` or moving the file drops saved picks.** The browser keeps
   them under the page address and title.
 - **You only see the picks the user pastes back.** Do not read the page as an answer.
@@ -296,6 +312,8 @@ recommendation, but you do not need saved picks.
 - **Recommendation:** a `callout` with `tone: "ok"`.
 
 **Blocks**
+- **Plain first** (rule in SKILL.md): an option's summary says in plain words what it is;
+  the pros, cons, and criteria carry the detail.
 - **Each approach is one option card.** Keep pros and cons short.
 - **`criteria` is the table under the cards**, one row per thing you compare.
 - **A recommendation is `recommended` plus a callout** that gives the deciding reason.
@@ -372,6 +390,8 @@ For how a system or concept works, written for someone who was not there when it
 - **Glossary:** a `table` of term and meaning.
 
 **Blocks**
+- **Plain first** (rule in SKILL.md): the TL;DR is the plain layer; the `details` rows hold
+  the mechanics.
 - **Three to six steps in a line are `steps`.** Each has a short title and one line.
 - **Depth goes in `details`.** The title is the reader's question; a `preview` is a short
   line under the title, open or closed.
@@ -441,6 +461,8 @@ slides; the URL hash holds the slide number.
   `split` section, and a closing `steps` block.
 
 **Blocks**
+- **Plain first** (rule in SKILL.md): a slide shows a plain title and one idea; the
+  technical layer lives in the report or explainer behind the deck.
 - **One idea per slide.** A section is one slide, so keep it to one or two blocks.
 - **A diagram slide is a `split` section:** the list on the left, the `figure` on the
   right.
@@ -499,7 +521,8 @@ node scripts/render-plan.mjs --input plan.md --review review.json --output plan.
 ```
 
 Start from `templates/plan-review.json`. The fields, the writing rules for the brief, and
-the icon list are in [plan-page.md](plan-page.md); do not repeat them here.
+the icon list are in [plan-page.md](plan-page.md); do not repeat them here. Its entries'
+`description` and `technical` are the two layers of the plain-first rule in SKILL.md.
 
 **Pitfalls**
 - **Do not pass the brief to `fill.py`.** It has no `sections`, so the page shows only the title.

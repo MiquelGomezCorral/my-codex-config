@@ -90,10 +90,12 @@ blockquote cite{display:block;font-size:12px;font-style:normal}
 .cmp .card.rec{border:2px solid var(--acc)}
 .cmp ul{margin:4px 0;padding-left:18px}.cmp .pro::marker{content:"+ "}.cmp .con::marker{content:"− "}
 .decision{padding:12px 0;border-bottom:1px solid var(--line)}.decision:last-of-type{border-bottom:0}
-.decision .q{font-weight:600}.decision .ctx{color:var(--muted);font-size:14px}
+.decision .dh{font-weight:600;font-size:16px}.decision .q{font-weight:600;margin:6px 0 2px}.decision .ctx{color:var(--muted);font-size:14px}
+.decision .desc p:first-child{margin-top:4px}
 .opts{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0;font-size:14px}
 .opts label{display:flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:4px 10px;cursor:pointer;background:var(--card)}
-.rec-note{font-size:13px;color:var(--acc)}
+.opts .tag{color:var(--muted);font-size:12px}
+.rec-note{font-size:14px}.rec-note b{color:var(--acc)}
 textarea{width:100%;min-height:38px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);padding:6px 8px;font:inherit;font-size:14px}
 button{font:inherit;font-size:14px;border:1px solid var(--acc);color:var(--acc);background:var(--card);border-radius:8px;padding:6px 14px;cursor:pointer}
 button.ok,button.bad{border-color:var(--tone);color:var(--tone)}
@@ -285,8 +287,16 @@ const renderers = {
     const state = loadState(storageKey);
     return (b.items || []).map((d) => {
       const picked = state[d.id]?.choice ?? d.recommended;
-      const options = (d.options || []).map((o) => `<label><input type="radio" name="dec-${escapeHtml(d.id)}" value="${escapeHtml(o)}"${o === picked ? " checked" : ""}>${inline(o)}</label>`).join("");
-      return `<div class="decision" data-id="${escapeHtml(d.id)}"><div class="q">${escapeHtml(d.id)}. ${inline(d.question)}</div>${d.context ? `<div class="ctx">${inline(d.context)}</div>` : ""}<div class="opts">${options}</div>${d.recommended ? `<div class="rec-note">Recommended: ${inline(d.recommended)}</div>` : ""}<textarea placeholder="Note (optional)">${escapeHtml(state[d.id]?.note || "")}</textarea></div>`;
+      const options = (d.options || []).map((o) => `<label><input type="radio" name="dec-${escapeHtml(d.id)}" value="${escapeHtml(o)}"${o === picked ? " checked" : ""}>${inline(o)}${o === d.recommended ? '<small class="tag">recommended</small>' : ""}</label>`).join("");
+      // An item with a title leads with it and a plain description, then asks the question; an older
+      // item leads with the question. The recommended option is already ticked, so only `why` is shown.
+      const heading = inline(d.title || d.question);
+      const description = d.description ? `<div class="desc">${paragraphs(d.description)}</div>` : "";
+      const question = d.title && d.question ? `<div class="q">${inline(d.question)}</div>` : "";
+      const context = d.context ? `<div class="ctx">${inline(d.context)}</div>` : "";
+      const why = d.why ? `<div class="rec-note"><b>Why recommended:</b> ${inline(d.why)}</div>` : "";
+      const technical = d.technical ? `<div class="inset">${paragraphs(d.technical)}</div>` : "";
+      return `<div class="decision" data-id="${escapeHtml(d.id)}"><div class="dh">${escapeHtml(d.id)}. ${heading}</div>${description}${question}${context}<div class="opts">${options}</div>${why}${technical}<textarea placeholder="Note (optional)">${escapeHtml(state[d.id]?.note || "")}</textarea></div>`;
     }).join("");
   },
   code: (b) => `<pre><code>${escapeHtml(b.text)}</code></pre>`,
@@ -321,7 +331,7 @@ const ITEM_DOM = {
   steps: { field: "items", items: ":scope .step", badge: "b" },
   details: { field: "items", items: ":scope > details", badge: "summary > .t" },
   findings: { field: "items", items: ":scope > details", badge: "summary > .t" },
-  decisions: { field: "items", items: ":scope > .decision", badge: ".q" },
+  decisions: { field: "items", items: ":scope > .decision", badge: ".dh" },
   compare: { field: "options", items: ":scope > .cmp > .card", badge: "h3" },
   table: { field: "rows", items: ":scope tbody tr", badge: "td:not(:has(input))" },
   matrix: { field: "groups", items: ":scope tbody tr:not(.group)", badge: "th" },

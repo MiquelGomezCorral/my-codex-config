@@ -2,16 +2,20 @@
 """Serve one artifact directory over HTTP on the shared artifact port range.
 
 Usage: python3 serve-artifact.py --directory <artifact-directory> [--port 3100]
+
+Prints the local URL, then the LAN URL when the machine has a route out, then a bind note.
 """
 
 import argparse
 import errno
 import functools
 import os
+import socket
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 FIRST_PORT = 3100
 LAST_PORT = 3199
+ROUTE_PROBE = ("8.8.8.8", 80)
 
 
 class ArtifactDirectoryHandler(SimpleHTTPRequestHandler):
@@ -49,6 +53,20 @@ def parse_arguments():
     return os.path.realpath(args.directory), args.port
 
 
+def lan_address():
+    """Return the address of the interface used for outbound traffic, or None without a route.
+
+    A UDP socket "connects" to a public address only to let the kernel pick the route;
+    no packet is sent.
+    """
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
+        try:
+            probe.connect(ROUTE_PROBE)
+        except OSError:
+            return None
+        return probe.getsockname()[0]
+
+
 def serve(directory, first_port):
     handler = functools.partial(ArtifactDirectoryHandler, directory=directory)
     for port in range(first_port, LAST_PORT + 1):
@@ -62,9 +80,13 @@ def serve(directory, first_port):
     else:
         raise SystemExit(f"serve failed: ports {first_port}-{LAST_PORT} are all in use")
 
-    print(f"http://127.0.0.1:{server.server_address[1]}/", flush=True)
+    bound_port = server.server_address[1]
+    print(f"http://127.0.0.1:{bound_port}/", flush=True)
+    address = lan_address()
+    if address:
+        print(f"http://{address}:{bound_port}/", flush=True)
     print(
-        f"bound 0.0.0.0:{server.server_address[1]}; remote clients use this machine's "
+        f"bound 0.0.0.0:{bound_port}; remote clients use this machine's "
         "observed host/IP with the same port",
         flush=True,
     )

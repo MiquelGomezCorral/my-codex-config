@@ -9,6 +9,14 @@ One page engine, `page.html`, draws every artifact from a JSON block at the top 
 file. Pick a template, fill its JSON, and run `fill.py`. Never write or edit the CSS or
 JavaScript for a single artifact.
 
+## Plain first, then technical
+
+Everything a page shows the user leads with a plain title and an easy description, in words
+a newcomer follows. When the layout allows, a more technical but still understandable layer
+follows it: a card's `inset`, a decision's `technical`, a finding's fields, an `inset`
+block, a plan page's `technical`. Never open with mechanics or terms the reader must
+already know.
+
 ## When a page earns its place
 
 The human-facing agent filters what reaches the user and in what form. Workers return
@@ -51,9 +59,12 @@ end with a decisions block, and an explainer can include a comparison.
    need; never leave example text or empty sections.
 3. Render it from this skill's directory:
    `python3 scripts/fill.py <dir>/data.json <dir>/index.html`
-4. Serve `<dir>`: `python3 "$HOME/.agents/skills/workflow/scripts/serve-artifact.py" --directory <dir>`.
-   It picks a free port in 3100-3199; give the user the URL with the machine's host IP and
-   that port. To change the page, edit `data.json` and run step 3 again.
+4. Serve `<dir>` detached, so the server outlives the shell that started it:
+   `setsid python3 "$HOME/.agents/skills/workflow/scripts/serve-artifact.py" --directory <dir> > <dir>/.serve.log 2>&1 < /dev/null &`
+   (or the harness's background task). It picks a free port in 3100-3199 and prints the LAN
+   URL, `http://<ip>:<port>/`. Wait until `<dir>/.serve.log` has its lines (the first can take
+   a few seconds), read the LAN URL from it, and give it to the user. To change the page,
+   edit `data.json` and run step 3 again.
 
 ## Revising a page
 
@@ -102,7 +113,7 @@ is one of `ok`, `bad`, `warn`, `info`, or `muted`.
 | `inset` | `blocks` drawn inside a neutral inset |
 | `findings` | `items` (`id`, `title`, `status`, `fields` of `label`/`text`, `quotes` of `text`/`source`, `open`) |
 | `compare` | `options` (`name`, `summary`, `pros`, `cons`), `criteria` (`name`, `values` per option), `recommended` |
-| `decisions` | `items` (`id`, `question`, `context`, `options`, `recommended`) |
+| `decisions` | `items` (`id`, `title`, `description`, `question`, `options`, `recommended`, `why`, optional `technical` in an inset; older items with `context` still render) |
 | `code` | `text` |
 | `figure` | `src` (a file next to the page: image, `.html`, or `.mp4`/`.webm` video), `caption`, `alt`, `source` (editable file or URL), `height` for HTML |
 | `gallery` | `items` (`src`, `caption`, `alt`: images, GIFs, videos; each opens full size), `width` (thumbnail px, default 320), `pixelated` (crisp upscaled pixel art) |

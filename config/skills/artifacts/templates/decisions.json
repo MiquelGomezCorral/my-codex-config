@@ -1,7 +1,7 @@
 {
   "eyebrow": "Decisions needed",
   "title": "Search rollout choices",
-  "subtitle": "Pick an option for each question, then press Copy my decisions and paste the result back.",
+  "subtitle": "Pick an option for each decision, then press Copy my decisions and paste the result back.",
   "sections": [
     {
       "id": "context",
@@ -18,16 +18,22 @@
         { "type": "decisions", "items": [
           {
             "id": "D1",
+            "title": "Who sees the new search first",
+            "description": "This decides how many people get the new search on day one, and how fast we can switch it off if results look wrong.",
             "question": "How should the rollout start?",
-            "context": "A flag lets us turn it off without a deploy.",
             "options": ["Behind a flag for 10% of users", "Everyone at once", "Internal users only"],
-            "recommended": "Behind a flag for 10% of users"
+            "recommended": "Behind a flag for 10% of users",
+            "why": "A small group is enough to show problems early, and the flag turns the new search off in seconds without a deploy.",
+            "technical": "The flag `search_v2` is read on every request and assigns a user to a bucket by user id, so the same people keep seeing the new search between visits."
           },
           {
             "id": "D2",
+            "title": "What happens to the old search",
+            "description": "Some clients still call the old search address. Removing it frees us from maintaining two searches but breaks any client that has not moved yet.",
             "question": "Keep the old search endpoint?",
             "options": ["Keep for two weeks", "Remove now"],
-            "recommended": "Keep for two weeks"
+            "recommended": "Keep for two weeks",
+            "why": "Two weeks gives the slowest client teams time to switch, and keeping it costs almost nothing."
           }
         ] }
       ]
