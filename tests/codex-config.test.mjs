@@ -213,7 +213,10 @@ test("git skill owns five actions that resolve repository rules first", () => {
   match(merge, /git merge --no-ff <base-branch>/)
   match(merge, /git merge-base --is-ancestor <base-branch> <feature-branch>/)
   doesNotMatch(merge, /git checkout <base-branch>/)
-  match(pr, /Verify the PR diff contains only the\s+child slice/)
+  match(pr, /^## Own commits only$/m)
+  match(pr, /git log --oneline <remote>\/<target>\.\.HEAD/)
+  match(pr, /--force-with-lease=<branch>:<pushed-sha>/)
+  match(pr, /never `git rebase --skip`/)
   match(pr, /accepted plan must name PR creation or\s+update and its target\/bounds/)
 })
 
@@ -226,9 +229,9 @@ test("workflow renders its native wave plan and can commission useful planning d
   const lavish = read("config/skills/lavish/SKILL.md")
 
   match(planning, /Markdown file\s+authoritative/i)
-  match(planning, /node "\$HOME\/\.agents\/skills\/workflow\/scripts\/render-plan\.mjs"/)
+  match(planning, /node "\$HOME\/\.agents\/skills\/artifacts\/scripts\/render-plan\.mjs"/)
   match(planning, /--review <review\.json>/)
-  match(planning, /plan-review-template\.md/)
+  match(planning, /references\/plan-page\.md/)
   match(planning, /deterministic renderer never delegates/i)
   match(firstDraft, /diagram guide/)
   match(improvement, /revise affected diagrams with feedback/)

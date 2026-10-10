@@ -21,8 +21,32 @@
     p { margin-bottom: 8px; }
     .refresh-error { min-height: 22px; color: #f0a6a6; text-align: right; }
     .panel { border: 1px solid #303238; border-radius: 12px; background: #17181b; padding: 18px; }
-    .activity { margin-bottom: 18px; }
-    .activity-grid { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 18px; margin-top: 18px; }
+    .attention, .slices, .activity { margin-bottom: 18px; }
+    .attention { border-color: #6b5a33; background: #1c1a14; }
+    .attention-list { margin: 0; padding: 0; list-style: none; }
+    .attention-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: 7px 0; border-top: 1px solid #2f2b22; }
+    .attention-row .stage-chip { margin: 0; }
+    .attention-text { flex: 1 1 16rem; overflow-wrap: anywhere; }
+    .attention-row[data-kind="blocker"] .attention-text { color: #f0a6a6; }
+    .attention-meta { font-size: 12px; }
+    .table-wrap { overflow-x: auto; }
+    .slice-table { width: 100%; border-collapse: collapse; }
+    .slice-table th, .slice-table td { padding: 8px 10px; border-top: 1px solid #282a2e; text-align: left; vertical-align: top; overflow-wrap: break-word; }
+    /* Chips and step labels never break inside; long slice text gets a fixed share instead of squeezing them. */
+    .slice-table thead th:first-child { width: 26%; }
+    .slice-table td:nth-child(3) { white-space: nowrap; }
+    .slice-table .stage-chip { white-space: nowrap; }
+    .slice-table thead th { border-top: 0; color: #a7a9ad; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+    .slice-table tbody th { font-weight: 600; }
+    .stage-chip { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; margin: 0 6px 4px 0; padding: 1px 8px; border: 1px solid var(--chip-color); border-radius: 10px; color: var(--chip-color); font-size: 12px; font-weight: 600; line-height: 1.4; }
+    .stage-chip svg { display: block; flex: 0 0 auto; width: 14px; height: 14px; }
+    .stage-title .stage-chip { margin: 0; }
+    .chip-warning { color: #f0a6a6; }
+    .tab-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .tab-list button { min-height: 32px; border: 1px solid #444750; border-radius: 6px; padding: 0 12px; background: #17181b; color: inherit; cursor: pointer; font: inherit; }
+    .tab-list button[aria-selected="true"] { border-color: #9ec5ff; background: #222a36; color: #fff; }
+    .tab-list button:focus-visible { outline: 2px solid #9ec5ff; outline-offset: 2px; }
+    .activity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; }
     .field-label { margin-bottom: 4px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
     .field-value { margin-bottom: 0; overflow-wrap: anywhere; }
     .last-update { margin-top: 16px; margin-bottom: 0; font-size: 12px; }
@@ -30,8 +54,7 @@
     .stage-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .stage { border: 1px solid #303238; border-radius: 10px; background: #17181b; padding: 14px; }
     .stage-title { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-weight: 600; }
-    .stage-icon svg, .status-symbol svg { display: block; width: 16px; height: 16px; }
-    .stage-icon { color: #9aa4b2; }
+    .status-symbol svg { display: block; width: 16px; height: 16px; }
     .step-list, .plain-list { margin: 0; padding: 0; list-style: none; }
     .step-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 0; border-top: 1px solid #282a2e; }
     .step-name { overflow-wrap: anywhere; }
@@ -90,12 +113,37 @@
       const diagramWarning = document.querySelector("#diagram-warning")
       let frameLoaded = false
       let childReady = false
+      // A clicked tab stays selected across refreshes; until then the page follows the server's
+      // default, the most recently updated slice.
+      let chosenTab = null
 
-      const sendMapState = (content = document) => {
-        if (!frameLoaded || !childReady) return
-        const state = content.querySelector("#workflow-map-state")
-        if (state) mapFrame.contentWindow.postMessage({ type: "workflow-progress", ...JSON.parse(state.textContent) }, "*")
+      const readMapState = () => {
+        const state = document.querySelector("#workflow-map-state")
+        return state ? JSON.parse(state.textContent) : null
       }
+      const selectedTab = (state) => (chosenTab && Object.hasOwn(state.tabs, chosenTab) ? chosenTab : state.defaultTab)
+      const showTab = (tab) => {
+        for (const button of document.querySelectorAll("#progress-content [data-tab]")) {
+          button.setAttribute("aria-selected", String(button.dataset.tab === tab))
+        }
+        for (const panel of document.querySelectorAll("#progress-content [data-tab-panel]")) {
+          panel.hidden = panel.dataset.tabPanel !== tab
+        }
+      }
+      const sendMapState = (refocus = false) => {
+        const state = readMapState()
+        if (!frameLoaded || !childReady || !state) return
+        mapFrame.contentWindow.postMessage({ type: "workflow-progress", ...state.tabs[selectedTab(state)] }, "*")
+        if (refocus) mapFrame.contentWindow.postMessage({ type: "workflow-return-current" }, "*")
+      }
+
+      document.addEventListener("click", (event) => {
+        const button = event.target.closest("#progress-content [data-tab]")
+        if (!button) return
+        chosenTab = button.dataset.tab
+        showTab(chosenTab)
+        sendMapState(true)
+      })
 
       mapFrame.addEventListener("load", () => {
         frameLoaded = true
@@ -128,14 +176,21 @@
           const current = document.querySelector("#progress-content")
           if (!replacement || !current) throw new Error("progress content is missing")
           const openPanels = new Set([...current.querySelectorAll("details[open][data-panel]")].map((panel) => panel.dataset.panel))
+          const focusedTab = current.contains(document.activeElement) ? document.activeElement.dataset.tab : undefined
           const x = window.scrollX
           const y = window.scrollY
           current.replaceWith(document.importNode(replacement, true))
           for (const panel of document.querySelectorAll("#progress-content details[data-panel]")) {
             if (openPanels.has(panel.dataset.panel)) panel.open = true
           }
+          const state = readMapState()
+          if (state) showTab(selectedTab(state))
+          if (focusedTab !== undefined) {
+            [...document.querySelectorAll("#progress-content [data-tab]")]
+              .find((button) => button.dataset.tab === focusedTab)?.focus({ preventScroll: true })
+          }
           window.scrollTo(x, y)
-          sendMapState(document)
+          sendMapState()
           refreshError.textContent = ""
         } catch (error) {
           refreshError.textContent = `Refresh failed: ${error.message}`

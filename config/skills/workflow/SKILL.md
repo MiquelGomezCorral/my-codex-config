@@ -24,7 +24,13 @@ Present every artifact the human must review as a descriptive clickable link in 
 same message, including plans, diagrams, mockups, reports, and validation evidence.
 For browser previews, return the viewer's actual URL as described in the planning
 reference; a bare path is not a review link. Apply this at every human gate.
-Use the [plan-review icon catalog](references/plan-review-template.md#icons) when selecting
+Each gate has a required page: the discovery page after the first draft, the plan page at
+wave approval, and the result page ([present to human](references/present-to-human.md)).
+When you ask for a decision, set `--set human-decision=<what to decide> <page URL>` and
+clear it with `--set human-decision=None` after the answer. A revised page is rendered over
+the same output path, so it marks what changed since the user last saw it. A required page
+that fails to render is fixed or reported as a blocker, never skipped.
+Use the [plan-review icon catalog](../artifacts/references/plan-page.md#icons) when selecting
 icons for review JSON.
 
 ## Authority and context
@@ -59,29 +65,41 @@ context conflicts or a non-Git action's bounds are missing.
    the problem, current and desired behavior, scope, exclusions, evidence, and validation.
    Use a callable native planning mode where available; otherwise use a scoped planning
    prompt, as routed in [native capabilities](references/native-capabilities.md).
-   Get an independent code-blind proposal before sharing the preferred solution. Grill
-   the human on material decisions after researching discoverable facts. Validation means
-   a defined live test of the real behavior, not unit tests; unit tests only cover small
-   things, algorithms, and model or shape assertions. Define how to live test every change
-   on the plan, and ask the user whenever that route is not fully clear.
+   Run the planning reference's three mandatory steps in order, in brief mode too:
+   1. `grill-me`, then investigation that always includes the code-blind proposal, written
+      by a worker through `super-agent`.
+   2. "How and who live validates it?" until flow, expected result, and runner are confirmed.
+   3. The slice-gate question after the human accepts the candidate, before `$review-plan`.
+
+   Initialize progress at intake. Mark `first-draft.grill-me`, `first-draft.investigate`,
+   `first-draft.independent-proposal`, `first-draft.live-validation`, and
+   `challenge-approve.slice-gates` done as each ends. Validation means a defined live test
+   of the real behavior; unit tests never replace it. Define how to live test every change
+   on the plan. Show the discovery page (gate 1) and revise it from the feedback.
 2. **Improvement:** incorporate feedback, resolve choices, and add useful diagrams or
    mockups. Build a complete candidate wave with proposed slices, dependencies, checks,
    review depth, artifacts, and bounded authorizations. Present and revise it until the
    human accepts it for adversarial review.
-3. **Adversarial review and wave approval:** run `$review-plan` once. It routes two
-   concurrent `critic` workers through `super-agent`'s catalog `adversarial` role, which
-   owns the family preference and what happens when a provider is unavailable. Preserve an
-   explicit user route. Verify consequential claims and bug
-   evidence, allow one planner rebuttal, and escalate remaining disputes. `$review-plan` calls
-   `$refine-plan`. Persist the complete wave Markdown plan and render its reviewable HTML
+3. **Adversarial review and wave approval:** once the human accepts the candidate, run the
+   planning reference's third mandatory step (the slice-gate question), then run
+   `$review-plan` once. It routes two concurrent `critic` workers through `super-agent`'s
+   catalog `adversarial` role, which owns the family preference and what happens when a
+   provider is unavailable. Preserve an explicit user route. Verify consequential claims and
+   bug evidence, allow one planner rebuttal, and escalate remaining disputes. `$review-plan`
+   calls `$refine-plan`. Persist the complete wave Markdown plan and render its reviewable HTML
    and available editable diagrams/SVG previews as described in the planning reference.
-   Show all wave evidence, slices, artifacts, and authorizations to the human. Ask whether
-   to start delivery; do not dispatch coding before explicit wave approval.
+   Show all wave evidence, slices, artifacts, and authorizations to the human on the plan
+   page (gate 2), and give the progress page link, which stays served during delivery. Ask
+   whether to start delivery; do not dispatch coding before explicit wave approval. That approval
+   also covers each slice's live test set, or the recorded opt-out (`refine-plan`
+   *Live validation*), and fixes the wave's `Slice gates` mode.
 4. **Slice preparation:** refine and narrow each approved slice against current repository
    state before dispatch. The root does this for `small`; a read-only `coding-supervisor`
    can do it for `large` under a bounded grant. Refinement may change technical steps
    within the approved outcome and scope; report amendments. Escalate changed behavior,
-   scope, dependencies, validation method, or authority to the human. Record its
+   scope, dependencies, validation method, or authority to the human, except that the
+   coordinator may adjust live tests within their approved bounds and report each change;
+   widening a test's environment or side-effect bounds still needs approval. Record its
    result, owner, coding size, checks, samples, tools, review preset, artifacts, and exact
    slice base revision before coding. The
    human-approved plan records `small` or `large`, with any human override. The wave
@@ -93,6 +111,9 @@ context conflicts or a non-Git action's bounds are missing.
    result, scope and exclusions, implementation decisions, acceptance evidence, and an
    executable validation method with samples and available tools. Check the planned
    non-live test route before coding; preflight a live tool only within approved bounds.
+   Then run each new live test once on the slice base: it must fail or show the old
+   behavior. Redefine a test that passes there within its bounds and report it; if the
+   behavior already exists, ask the human.
    Stop if required evidence or a usable validation route is missing.
 5. **Coding loop:** send a small plan directly to one retained coder. The writer uses the
    harness's normal native coding capability, as routed in
@@ -104,7 +125,9 @@ context conflicts or a non-Git action's bounds are missing.
    basis includes changes from the recorded slice base through the inspected head plus
    every task-owned staged, unstaged, and untracked change. Pass the base, head, and
    task-owned paths to the reviewer, who reports the inspected revisions. Standalone
-   `$review` keeps staged-first selection.
+   `$review` keeps staged-first selection. Each round runs the code review and the slice's
+   live tests together, gathers insights, and plans fixes, as the
+   [coding loop](references/coding-loop.md) describes.
    Verify findings before correction; correct every verified in-scope P0-P3 finding, using
    priority to order work. Escalate after two unsuccessful rounds for the same unresolved
    problem.
@@ -115,11 +138,21 @@ context conflicts or a non-Git action's bounds are missing.
    Skip cleanup only when that complete comparison is empty; a clean post-checkpoint status
    alone is not enough. Verify each finding, apply or reject it with a concrete reason, and
    route in-scope simplifications back through the coding loop. A correction must pass
-   affected checks, review, and the cleanup closure check before presentation.
-7. **Present to human:** show the actual result, planned evidence, checks, known gaps, and
-   artifacts after cleanup corrections pass their affected gates. Route feedback through
-   the coding loop. After acceptance, the human-facing coordinator applies exact approved
+   affected checks, review, the full slice live test set on the final head, and the
+   cleanup closure check before presentation, or before the slice's local commit in a
+   `final-only` wave.
+7. **Present to human:** show the result page (gate 3) with the actual result, live evidence,
+   checks, known gaps, and artifacts after cleanup corrections pass their affected gates.
+   Route feedback through the coding loop. After acceptance, the human-facing coordinator applies exact approved
    updates to private agent memory once. Do not ship before human acceptance.
+   In a `final-only` wave, skip this per-slice presentation. After cleanup passes, the Git
+   worker makes the slice's local commit on the wave's branch, as the plan names it: not
+   shipping, no push or PR. Record its hash as `slice.final-commit-hash`. In one update, mark the slice's
+   `human-validation.*`, `ship-monitor.conflicts`, and `ship-monitor.ci-feedback` steps
+   `skipped` and `ship-monitor.commit-push-pr` done, with the note "final-only, commit
+   only". The next slice starts on the same branch. Reviews, live tests, and cleanup still
+   run for every slice. A red check, a blocking finding, or missing evidence stops the chain
+   and goes to blockers.
 8. **Ship and monitor:** after acceptance, the Git worker inspects remaining changes
    against the approved scope and accepted result, stages explicit task-owned deliverables,
    and creates a final commit only when needed. It excludes private memory, progress files,
@@ -131,22 +164,39 @@ context conflicts or a non-Git action's bounds are missing.
    Acceptance is a result gate, not a second Git authorization request. If a merge
    conflict occurs, route its resolution through `git-worker`, rerun affected checks and
    review, and re-present the result if behavior changed or remains uncertain. Inspect
-   required CI and review feedback; never infer an unnamed action.
-9. **Close the wave:** record completed and unfinished slices, next decisions, deferred
-   findings, and lessons in local progress state.
+   required CI and review feedback; never infer an unnamed action. In a `final-only` wave
+   this stage runs once, after final acceptance in stage 9: push only if the plan names
+   it, and open a PR only when the user asks.
+9. **Close the wave:** after the last slice, rerun every slice's live test set on the
+   final head. Fix a failure inside the owning slice's scope when it fits the last slice's
+   grant, routed through stages 5-8; otherwise use a bounded correction slice the human
+   approves. Then rerun the whole wave set. Ask the human about unclear results; close only
+   when the set passes. Record completed and unfinished slices, next decisions, deferred
+   findings, and lessons in local progress state. In a `final-only` wave, the passing set
+   opens the final gate: present one result page with a section per slice and route
+   feedback as [present to human](references/present-to-human.md) describes, then ship
+   through stage 8.
 
 Keep slices sequential by default. Ask before independent parallelism. Give each slice one
 worktree; use separate sessions in that worktree with one writer at a time. Start the next
 slice from the previous PR's accepted head only after its required reviews, checks, and
-human gates pass. An unmerged parent is valid; target its branch and verify that the child
-PR contains only its own slice. Stop if ancestry or a squash merge makes that check untrue.
-After a parent merge, reconcile the target and revalidate affected evidence. Retain workers
-only within their assigned loop and explicitly settle, retain, or release them through the
-active wrapper.
+human gates pass. An unmerged parent is valid; target its branch. Every PR holds only its
+own commits, as the `git` skill's `Own commits only` rule says. After a parent merge,
+retarget the child, drop the parent's commits that way, and revalidate affected evidence.
+Retain workers only within their assigned loop and explicitly settle, retain, or release
+them through the active wrapper.
+
+A `final-only` wave instead keeps one worktree and one branch for all its slices (the
+plan's branch), and each slice starts from the previous slice's local commit. The human
+may switch the mode mid-wave; record the switch with `--append approved-amendment=...` and
+`--set slice-gates=...`. A switch changes only whether the remaining slices get their
+human gate: completed slices keep their state, and the shipping layout chosen at approval
+stays.
 
 Use [workflow-progress](../workflow-progress/SKILL.md) at intake and each transition to
 record completed gates, evidence, current activity, and next action. Reconcile its state
 with the plan and real worker state after interruption; it never supplies missing approval.
+Record what the user must act on while work continues as attention items, following that skill's attention rule.
 
 ## Evidence and recovery
 

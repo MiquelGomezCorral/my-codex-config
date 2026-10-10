@@ -53,6 +53,8 @@ user's requirements:
 - Confirm the proposed files, symbols, utilities, and commands exist.
 - Ensure the implementation can reach live validation with only the minimum useful
   non-live readiness check.
+- In a complete workflow, confirm the plan records what `refine-plan` requires. Report a
+  missing or vague record as a flaw.
 
 Use the findings to reconsider any problematic part of the plan without silently
 overriding user decisions. Resolve material unanswered choices with the user.

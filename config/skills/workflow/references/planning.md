@@ -2,7 +2,7 @@
 
 Turn a freeform idea or referenced brief into a scope-locked wave plan. Do not implement,
 edit product files, or persist project memory during discovery. Initialize run state with
-the [workflow-progress skill](../workflow-progress/SKILL.md) at intake, before a plan path exists.
+the [workflow-progress skill](../../workflow-progress/SKILL.md) at intake, before a plan path exists.
 
 Load `first-draft.md`, `improvement-loop.md`, and `adversarial.md` as their phases begin.
 Read `diagrams.md` when proposing, commissioning, revising, or checking a diagram.
@@ -24,9 +24,28 @@ implementation, live actions, or changes to decision records.
   escalate. If the user declines, record the unresolved decision or accepted risk
   instead of guessing.
 
-Full planning still omits irrelevant questions. Brief planning may abbreviate or skip
-non-material phases, but both modes require relevant code inspection, a clear goal and
-scope, and explicit approval before delivery begins.
+Full planning still omits irrelevant questions. Brief planning still requires relevant
+code inspection, a clear goal and scope, and explicit approval before delivery begins. It
+never skips explicit wave approval or lowers the review preset (`full` by default), and an
+answer to the depth question is never an approval.
+
+## Run the Mandatory Steps
+
+Every wave runs these three steps in this order, in brief and full mode alike; brief mode
+may shorten everything else, never these. Mark each step done when it ends.
+
+Every question in these steps ends with a user answer. An answer the user already gave in
+the request counts: list it under `Confirmed` in the next ledger update so the user can
+correct it, and do not ask it again. Ask whatever is missing or vague.
+
+1. **Grill me + investigate** (`first-draft.grill-me`, `first-draft.investigate`,
+   `first-draft.independent-proposal`): run `grill-me` on the request before proposing
+   anything. Then investigate as the [first draft](first-draft.md) describes, always
+   including the independent proposal.
+2. **How and who live validates it?** (`first-draft.live-validation`): resolve the
+   [live-test questions](#define-the-live-test).
+3. **Thumbs up on each slice?** (`challenge-approve.slice-gates`): resolve the
+   [slice-gate question](#ask-about-slice-gates).
 
 ## Track Decisions In Conversation
 
@@ -60,10 +79,11 @@ checkpoint is the scope-lock package rather than a duplicate ledger summary.
    what data and state it owns, what can be reused, and the smallest real gap. Keep this assessment
    read-only; do not create an index or record speculatively. Use `codegraph_context` first for
    feature or architecture context.
-3. Load `grill-me` when material user judgments remain and use its decision-tree
+3. Return to `grill-me` whenever material user judgments remain and use its decision-tree
    method. Ask the highest-leverage question by default, or up to three related
    questions. Research facts available from code, tests, history, logs, or
-   documentation instead of asking the user.
+   documentation instead of asking the user, and send anything else unclear to a worker
+   through `super-agent` rather than guessing.
 4. Define the minimum coherent change and only the affected boundaries. Prefer the
    existing pattern and simplest in-scope design. Adjacent cleanup requires explicit
    inclusion unless simplification is itself the requested outcome.
@@ -78,20 +98,26 @@ checkpoint is the scope-lock package rather than a duplicate ledger summary.
 
 ## Define the Live Test
 
-Unit tests are not enough. They only cover small things, algorithms, and model or shape
-assertions; they never prove the real change works. Every plan must define how the actual
-changed behavior gets exercised live, end to end, with the real app, tool, service, data,
-or artifact.
+Unit tests never replace the live test. Every plan must define how the actual changed
+behavior gets exercised live, end to end, with the real app, tool, service, data, or
+artifact.
 
-- State the live test as exactly `Flow`, `Expected`, and `Can run`, naming the current
-  tool that can run it, or marking it user-only.
+- During the first draft, ask "How and who live validates it?": whether this wave gets
+  live tests (the default is yes), the route, and who runs each test. Record a
+  "no" in the plan. It removes every live-test step: the base run, the live round and its
+  progress steps, the final rerun, the wave regression, and the undefined-test blocker.
+  Review still runs the code review, and the result presentation states the waived
+  evidence. An opted-in test that cannot run stays blocked/unverified; it is never waived.
+  A slice with live tests uses the `full` review preset.
+- Write a live test set per slice with the fields `refine-plan` lists under *Live
+  validation*. Each slice's set covers only that slice's behavior; regressions wait for
+  the wave regression.
 - Prefer the closest realistic path a real user or caller takes. Do not substitute a unit
   test, mocked harness, or shape assertion for the live route, and do not treat passing
   small tests as evidence that the live behavior works.
-- Record any approved live-action bounds the run needs. Live execution still requires
-  that bounded authorization before it happens.
-- If the route is not fully clear — how to reach the changed behavior, what to observe,
-  and how to judge it — ask the user. Do not guess, invent a route, or assume the answer.
+- The route is clear only when it settles how to reach the changed behavior, what to
+  observe, how to judge it, and who runs it. Otherwise investigate, re-ask with a concrete
+  proposal, and get it confirmed. Do not guess, invent a route, or assume the answer.
 - Treat an undefined live test as a planning blocker: do not lock scope or finalize the
   wave until the route is defined and understood.
 
@@ -113,10 +139,11 @@ When no material branch remains unresolved, present one proportional approval pa
 - Decisions, rationale, consequences, and accepted risks.
 - Decision-record assessment, protected invariants, and the exact proposed record/index changes.
 - Affected components and end-to-end flow when material.
-- Implementation outline, readiness check, and the concrete live-test route (`Flow`,
-  `Expected`, `Can run`) required by the live-test rule above.
+- Implementation outline, readiness check, and the per-slice live test set required by
+  the live-test rule above.
 - Candidate wave map: proposed PR-sized slices, dependencies, scope/exclusions,
-  per-slice validation, review depth, artifacts, and exact action bounds or none.
+  per-slice validation, review preset (`full` by default), artifacts, and exact action
+  bounds or none.
 - Exact private agent-memory updates for the main agent, or state that no project
   memory should change.
 
@@ -124,11 +151,29 @@ Wait for explicit approval. If the user changes scope, resume the relevant phase
 update only the changed ledger items. If the user rejects the package without revising
 scope, write nothing and report that planning stopped without an approved plan.
 
+## Ask About Slice Gates
+
+After the human accepts the candidate and before `$review-plan`, so it and its
+`$refine-plan` handoff already have the answer, ask whenever the wave has two or more
+slices: "Do we wait for your thumbs up on each slice, or only at the end?" A one-slice wave
+is not asked: record `each-slice`, since its only gate is the result gate. Either way,
+record the mode as the plan's `Slice gates` field (`refine-plan` *Workflow and
+authorizations*) and in progress with `--set slice-gates=<mode>`:
+
+- `each-slice` (default): the human validates each slice's result before it ships, and
+  each slice gets its own PR.
+- `final-only`: slices run back to back on one branch, each ending with a local commit, and
+  the human validates every slice at one final gate before any push (workflow stages 7-9).
+
+Recommend `final-only` when the slices stack and each depends on the one before. The
+answer belongs to this run only: it lives in this wave's plan. Never save it as a
+preference in private agent memory (`agent-memory/decisions.md`).
+
 ## Finalize the wave
 
-After the human accepts the candidate, run the one adversarial `$review-plan` pass and
-resolve its findings. Use `$refine-plan` to produce a self-contained final wave plan.
-Keep it proportional: a clear small task needs a compact plan, while cross-boundary work
+After the human accepts the candidate and the slice-gate step is done, run the one
+adversarial `$review-plan` pass and resolve its findings. Use `$refine-plan` to produce a
+self-contained final wave plan. Keep it proportional: a clear small task needs a compact plan, while cross-boundary work
 needs the detail required to remove implementation decisions.
 Include only applicable sections from:
 
@@ -140,12 +185,12 @@ Include only applicable sections from:
 - Exact files or symbols, implementation steps, and relevant failures.
 - A separate `Decision records` section preserving the approved assessment, protected constraints,
   and exact record/index changes; these remain main-orchestrator-owned execution inputs.
-- Minimum non-live readiness check and the concrete live `Flow`, `Expected`, and
-  `Can run` that names a real tool or user-only runner and satisfies the live-test rule.
-  Never finalize a plan whose live route is unanswered, assumed, or only covered by unit
-  tests.
+- Minimum non-live readiness check and the per-slice live test set that satisfies the
+  live-test rule. Never finalize a plan whose live route is unanswered, assumed, or only
+  covered by unit tests.
 - `Main-agent memory updates` with exact paths and facts; these are not coder tasks.
-- The slice map: one PR per slice, dependencies, order, owners, approved scope and
+- The slice map, following the approved shipping layout (`each-slice`: one PR per slice;
+  `final-only`: workflow stages 7-9), with dependencies, order, owners, approved scope and
   exclusions, per-slice coding size, checks, samples, tool availability, review preset,
   artifacts, human gates, and exact bounded Git/live authorizations or none.
 
@@ -153,11 +198,13 @@ Do not turn unanswered choices into assumptions. Resolve the Git common director
 `agents-memory` and persist each new native plan under its `agent-memory/plans/` directory;
 preserve exact existing plan paths when continuing older work. List supporting evidence
 and artifacts. Keep implementation choices and durable project decisions distinct.
-For human review, fill a concise brief from
-`plan-review-template.md`; read that reference only when producing the brief. Keep the
+For human review, fill a concise brief from the artifacts skill's
+`references/plan-page.md`; read that reference only when producing the brief. Keep the
 full Markdown plan complete and authoritative, then check that the brief preserves its
 risks, questions, expected outcomes, useful artifacts, and approval boundary. Render both:
-`node "$HOME/.agents/skills/workflow/scripts/render-plan.mjs" --input <plan.md> --review <review.json> --output <artifact.html>`.
+`node "$HOME/.agents/skills/artifacts/scripts/render-plan.mjs" --input <plan.md> --review <review.json> --output <artifact.html>`.
+This plan page is the gate 2 page. `--keep-baseline` keeps the old baseline for a re-render
+before the user sees it.
 Then open the resulting HTML with `npx -y lavish-axi <artifact.html>`. Capture the actual review
 URL returned by the viewer and include it as a descriptive Markdown link when presenting
 the plan, before asking for approval. Do not substitute the HTML path or guess the URL.
@@ -176,10 +223,11 @@ diagram may use `super-agent`: resolve the catalog `coder` role for an artifact-
 worker and pin its harness, exact model, and thinking at dispatch. Give it the chosen
 project style or pass diagram-design's `Minimal dark` template explicitly. Do not run
 `lavish-axi poll` unless the user asks for an
-interactive feedback session. Rendering or Lavish failure is non-blocking: report it and
-always present the native plan and available artifacts.
+interactive feedback session. For optional extras (the Lavish viewer, extra diagrams),
+rendering or Lavish failure is non-blocking: report it and always present the native plan
+and available artifacts.
 
 Show the human the complete wave, evidence, slice map, and artifact links before asking
-whether to start delivery. The planning acceptance and adversarial resolution do not
-substitute for this wave approval. Record the approval reference and exact bounds in the
+whether to start delivery. Give the progress page link too and keep it served during delivery.
+The planning acceptance and adversarial resolution do not substitute for this wave approval. Record the approval reference and exact bounds in the
 progress file, then advance to slice preparation in the same `$workflow` run.

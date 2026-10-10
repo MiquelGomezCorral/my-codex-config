@@ -12,17 +12,21 @@
   "sections": []
 }
 </script>
+<!-- Icon catalog from ../icons.json; fill.py copies it in. -->
+<script type="application/json" id="icons">
+{}
+</script>
 <style>
-:root{--bg:#f7f7f5;--card:#fff;--ink:#1d1d1f;--muted:#6b6b70;--line:#e3e3e0;--acc:#2f5bd3;
+:root{color-scheme:light;--bg:#f7f7f5;--card:#fff;--ink:#1d1d1f;--muted:#6b6b70;--line:#e3e3e0;--acc:#2f5bd3;
 --ok:#1f7a4d;--okbg:#e6f4ec;--bad:#b3261e;--badbg:#fbe9e7;--warn:#8a5a00;--warnbg:#fff4dc;
---info:#2f5bd3;--infobg:#e8eefc;--muted-tone:#5b5b66;--mutedbg:#ececf0}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141416;--card:#1d1d21;
+--info:#2f5bd3;--infobg:#e8eefc;--muted-tone:#5b5b66;--mutedbg:#ececf0;--code:#1f5f99}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#141416;--card:#1d1d21;
 --ink:#ececf0;--muted:#a0a0aa;--line:#2e2e34;--acc:#8fb0ff;--ok:#5fd394;--okbg:#16301f;
 --bad:#ff8a80;--badbg:#3a1a18;--warn:#ffcc66;--warnbg:#3a2e12;--info:#8fb0ff;--infobg:#1c2640;
---muted-tone:#b9b9c4;--mutedbg:#2a2a30}}
-:root[data-theme="dark"]{--bg:#141416;--card:#1d1d21;--ink:#ececf0;--muted:#a0a0aa;--line:#2e2e34;
+--muted-tone:#b9b9c4;--mutedbg:#2a2a30;--code:#9fcced}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#141416;--card:#1d1d21;--ink:#ececf0;--muted:#a0a0aa;--line:#2e2e34;
 --acc:#8fb0ff;--ok:#5fd394;--okbg:#16301f;--bad:#ff8a80;--badbg:#3a1a18;--warn:#ffcc66;
---warnbg:#3a2e12;--info:#8fb0ff;--infobg:#1c2640;--muted-tone:#b9b9c4;--mutedbg:#2a2a30}
+--warnbg:#3a2e12;--info:#8fb0ff;--infobg:#1c2640;--muted-tone:#b9b9c4;--mutedbg:#2a2a30;--code:#9fcced}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 main{max-width:1060px;margin:0 auto;padding:24px 16px 80px}
@@ -35,14 +39,22 @@ h3{font-size:16px;margin:20px 0 8px}
 nav{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px}
 nav a{text-decoration:none;font-size:14px;border:1px solid var(--line);padding:3px 10px;border-radius:999px;background:var(--card)}
 p{margin:8px 0}
-code{font:13px ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--mutedbg);padding:0 4px;border-radius:4px}
+code{font:inherit;color:var(--code);overflow-wrap:anywhere}
+u{text-decoration:underline dotted;text-underline-offset:.14em}
+pre code{font:13px ui-monospace,SFMono-Regular,Menlo,monospace;color:inherit}
 pre{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;overflow:auto}
-pre code{background:none;padding:0}
+pre,textarea,.scroll{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--muted) 45%,transparent) transparent}
+pre::-webkit-scrollbar,textarea::-webkit-scrollbar,.scroll::-webkit-scrollbar{width:8px;height:8px}
+pre::-webkit-scrollbar-thumb,textarea::-webkit-scrollbar-thumb,.scroll::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--muted) 45%,transparent);border-radius:999px}
+pre::-webkit-scrollbar-track,textarea::-webkit-scrollbar-track,.scroll::-webkit-scrollbar-track{background:transparent}
 .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:10px 0}
 .stats{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
 .stat b{display:block;font-size:24px}.stat span{color:var(--muted);font-size:13px}
 .card h3{font-size:15px;margin:0 0 6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.icon{display:inline-flex;color:var(--acc);flex:none}.icon svg{width:18px;height:18px}
+.inset{background:var(--mutedbg);border-left:2px solid var(--line);border-radius:0 6px 6px 0;margin:8px 0;padding:6px 10px}
+.inset>:first-child{margin-top:0}.inset>:last-child{margin-bottom:0}
 .callout{border-left:4px solid var(--tone,var(--info));background:var(--tonebg,var(--infobg));border-radius:8px;padding:10px 14px;margin:10px 0}
 .callout b{display:block}
 .pill{display:inline-block;font-size:12px;font-weight:600;padding:1px 8px;border-radius:999px;white-space:nowrap;color:var(--tone);background:var(--tonebg)}
@@ -54,11 +66,16 @@ table{width:100%;border-collapse:collapse;font-size:14px}
 .scroll{overflow-x:auto;margin:10px 0}
 th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 th{color:var(--muted);font-weight:600}
+table.pick tbody tr{cursor:pointer}
+table.pick input{accent-color:var(--acc)}
+table.pick td:first-child,table.pick th:first-child{width:28px}
+table.pick tr:has(input:not(:checked)) td:not(:first-child){opacity:.45;text-decoration:line-through}
 details{background:var(--card);border:1px solid var(--line);border-radius:10px;margin:8px 0}
 summary{cursor:pointer;padding:10px 14px;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
 summary::-webkit-details-marker{display:none}
 summary::before{content:"▸";color:var(--muted)}details[open]>summary::before{content:"▾"}
-summary .id{font-weight:700}summary .t{flex:1;min-width:180px}
+summary .id{font-weight:700}summary .t{flex:1;min-width:180px}summary .icon{align-self:center}
+summary .preview{flex-basis:100%;color:var(--muted);font-size:14px;padding-left:20px}
 .body{padding:0 14px 12px}
 dl{margin:0;display:grid;grid-template-columns:150px 1fr;gap:4px 12px}
 dt{color:var(--muted);font-size:13px}dd{margin:0}
@@ -67,7 +84,7 @@ blockquote{margin:6px 0;padding:4px 10px;border-left:3px solid var(--line);color
 blockquote cite{display:block;font-size:12px;font-style:normal}
 .steps{display:flex;flex-wrap:wrap;align-items:stretch;gap:6px;margin:10px 0}
 .step{flex:1;min-width:150px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
-.step b{display:block}.step span{color:var(--muted);font-size:14px}
+.step b{display:block}.step span{color:var(--muted);font-size:14px}.step .icon{display:flex;margin-bottom:4px}
 .arrow{align-self:center;color:var(--muted)}
 .cmp{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:10px 0}
 .cmp .card.rec{border:2px solid var(--acc)}
@@ -79,8 +96,12 @@ blockquote cite{display:block;font-size:12px;font-style:normal}
 .rec-note{font-size:13px;color:var(--acc)}
 textarea{width:100%;min-height:38px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);padding:6px 8px;font:inherit;font-size:14px}
 button{font:inherit;font-size:14px;border:1px solid var(--acc);color:var(--acc);background:var(--card);border-radius:8px;padding:6px 14px;cursor:pointer}
+button.ok,button.bad{border-color:var(--tone);color:var(--tone)}
+.copy-bar{margin:14px 0}
+.copy-text{white-space:pre-wrap;overflow-wrap:anywhere;margin-top:8px}
+.copy-text.ok,.copy-text.bad{border-color:var(--tone)}
 figure{margin:10px 0}
-figure img,figure iframe{display:block;max-width:100%;border-radius:8px;border:1px solid var(--line);background:var(--card)}
+figure img,figure iframe,figure video{display:block;max-width:100%;border-radius:8px;border:1px solid var(--line);background:var(--card)}
 figure iframe{width:100%}
 figcaption{color:var(--muted);font-size:13px;margin-top:4px}
 figcaption a{margin-left:8px;font-size:12px}
@@ -92,7 +113,20 @@ body.slides .slide.on{display:block}
 body.slides .slide h2{font-size:30px;border:0;margin-top:0}
 body.slides header.slide.on{display:flex;flex-direction:column;justify-content:center}
 body.slides h1{font-size:44px}
-.deck-bar{position:fixed;bottom:12px;right:16px;display:flex;gap:8px;align-items:center;color:var(--muted);font-size:13px}
+.toolbar{position:fixed;bottom:12px;right:16px;display:flex;gap:8px;align-items:center;color:var(--muted);font-size:13px}
+.toolbar button{min-width:36px}
+.eyebrow .pill{text-transform:none}
+.pill.change{margin-left:8px;text-transform:capitalize}
+.changes .pill{text-transform:capitalize}
+details.changes{border:0;border-left:4px solid var(--tone)}.changes summary{padding:0;font-weight:700}.changes ul{margin:6px 0;padding-left:20px}.changes li{margin:2px 0}
+.toggle-changes{display:block;margin-top:8px;cursor:pointer}
+[data-change]:not(section,tr){outline:2px solid color-mix(in srgb,var(--acc) 55%,transparent);outline-offset:2px;border-radius:8px}
+.block[data-change]{padding:8px 12px;margin:10px 0}
+tr[data-change]>td{background:color-mix(in srgb,var(--acc) 10%,transparent)}
+tr[data-change]>td:first-child{box-shadow:inset 3px 0 var(--acc)}
+body.only-changes section:not([data-change]):not(:has([data-change])),
+body.only-changes section:not([data-change="added"]) .block:not([data-change]):not(:has([data-change])),
+body.only-changes [data-item]:not([data-change]){display:none}
 </style>
 </head>
 <body>
@@ -100,6 +134,7 @@ body.slides h1{font-size:44px}
 <script>
 "use strict";
 const data = JSON.parse(document.getElementById("data").textContent);
+const ICONS = JSON.parse(document.getElementById("icons").textContent);
 const TONES = ["ok", "bad", "warn", "info", "muted"];
 const DEFAULT_STATUSES = {
   ok: { label: "As expected", tone: "ok" },
@@ -109,6 +144,8 @@ const DEFAULT_STATUSES = {
 };
 const statuses = data.statuses || DEFAULT_STATUSES;
 const storageKey = "artifact:" + location.pathname + ":" + (data.title || "");
+const pickedRowsKey = storageKey + ":rows";
+const themeKey = "artifact:theme";
 
 function escapeHtml(text) {
   return String(text ?? "").replace(/[&<>"']/g, (c) => ({
@@ -116,17 +153,35 @@ function escapeHtml(text) {
   })[c]);
 }
 
-// Inline Markdown subset: `code`, **bold**, *em*, [text](url), blank-line paragraphs.
+// Inline Markdown subset: `code`, **bold**, *em*, <u>underline</u>, [text](url), blank-line paragraphs.
+// Code spans become placeholders first, so `*` or `[` inside them stays literal while links and
+// underlines may still wrap them. URLs may hold one level of parentheses.
 function inline(text) {
-  return escapeHtml(text)
-    .replace(/`([^`]+)`/g, "<code>$1</code>")
+  const codes = [];
+  return escapeHtml(String(text ?? "").replace(/\u0000/g, ""))
+    .replace(/`([^`]+)`/g, (_, code) => `\u0000${codes.push(code) - 1}\u0000`)
+    .replace(/&lt;u&gt;(.+?)&lt;\/u&gt;/g, "<u>$1</u>")
     .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
     .replace(/\*([^*]+)\*/g, "<em>$1</em>")
-    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+|[^):\s]+)\)/g, '<a href="$2">$1</a>');
+    .replace(/\[([^\]]+)\]\((https?:\/\/(?:[^()\s]|\([^()\s]*\))+|(?:[^():\s]|\([^():\s]*\))+)\)/g, '<a href="$2">$1</a>')
+    .replace(/\u0000(\d+)\u0000/g, (_, n) => `<code>${codes[n]}</code>`);
 }
 
 function paragraphs(text) {
   return String(text ?? "").split(/\n\s*\n/).map((p) => `<p>${inline(p).replace(/\n/g, "<br>")}</p>`).join("");
+}
+
+// Unknown names draw nothing, so a typo never breaks the page.
+function icon(name) {
+  const svg = ICONS[name]?.svg;
+  return svg ? `<span class="icon" aria-hidden="true">${svg}</span>` : "";
+}
+
+// List items are strings, or { text, items, ordered } for a nested list.
+function listHtml(items, ordered) {
+  const tag = ordered ? "ol" : "ul";
+  const item = (i) => typeof i === "string" ? inline(i) : inline(i.text) + (i.items?.length ? listHtml(i.items, i.ordered) : "");
+  return `<${tag}>${(items || []).map((i) => `<li>${item(i)}</li>`).join("")}</${tag}>`;
 }
 
 function tone(name) {
@@ -138,12 +193,12 @@ function pill(statusKey) {
   return `<span class="pill ${tone(status.tone)}">${escapeHtml(status.label)}</span>`;
 }
 
-function loadState() {
-  try { return JSON.parse(localStorage.getItem(storageKey)) || {}; } catch { return {}; }
+function loadState(key) {
+  try { return JSON.parse(localStorage.getItem(key)) || {}; } catch { return {}; }
 }
 
-function saveState(state) {
-  try { localStorage.setItem(storageKey, JSON.stringify(state)); } catch { /* storage blocked */ }
+function saveState(key, state) {
+  try { localStorage.setItem(key, JSON.stringify(state)); } catch { /* storage blocked */ }
 }
 
 function allBlocks(type) {
@@ -153,10 +208,7 @@ function allBlocks(type) {
 const renderers = {
   text: (b) => paragraphs(b.text),
   callout: (b) => `<div class="callout ${tone(b.tone || "info")}">${b.title ? `<b>${inline(b.title)}</b>` : ""}${paragraphs(b.text)}</div>`,
-  list: (b) => {
-    const tag = b.ordered ? "ol" : "ul";
-    return `<${tag}>${(b.items || []).map((i) => `<li>${inline(i)}</li>`).join("")}</${tag}>`;
-  },
+  list: (b) => listHtml(b.items, b.ordered),
   stats: (b) => {
     const items = [...(b.items || [])];
     if (b.auto) {
@@ -169,10 +221,22 @@ const renderers = {
     }
     return `<div class="grid stats">${items.map((i) => `<div class="card stat ${tone(i.tone)}"><b>${escapeHtml(i.value)}</b><span>${inline(i.label)}</span></div>`).join("")}</div>`;
   },
-  cards: (b) => `<div class="grid">${(b.items || []).map((i) => `<div class="card"><h3>${inline(i.title)}${i.status ? pill(i.status) : ""}</h3>${paragraphs(i.text)}</div>`).join("")}</div>`,
-  table: (b) => `<div class="scroll"><table><thead><tr>${(b.columns || []).map((c) => `<th>${inline(c)}</th>`).join("")}</tr></thead><tbody>${(b.rows || []).map((r) => `<tr>${r.map((c) => `<td>${inline(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`,
-  steps: (b) => `<div class="steps">${(b.items || []).map((i) => `<div class="step"><b>${inline(i.title)}</b><span>${inline(i.text)}</span></div>`).join('<span class="arrow">→</span>')}</div>`,
-  details: (b) => (b.items || []).map((i) => `<details${i.open ? " open" : ""}><summary><span class="t">${inline(i.title)}</span></summary><div class="body">${paragraphs(i.text)}${(i.blocks || []).map(renderBlock).join("")}</div></details>`).join(""),
+  cards: (b) => `<div class="grid">${(b.items || []).map((i) => `<div class="card"><h3>${icon(i.icon)}${inline(i.title)}${i.status ? pill(i.status) : ""}</h3>${paragraphs(i.text)}${i.inset ? `<div class="inset">${paragraphs(i.inset)}</div>` : ""}</div>`).join("")}</div>`,
+  table: (b) => {
+    const head = (b.columns || []).map((c) => `<th>${inline(c)}</th>`).join("");
+    const cells = (r) => r.map((c) => `<td>${inline(c)}</td>`).join("");
+    if (!b.select) return `<div class="scroll"><table><thead><tr>${head}</tr></thead><tbody>${(b.rows || []).map((r) => `<tr>${cells(r)}</tr>`).join("")}</tbody></table></div>`;
+    // Rows start ticked; the user unticks what to skip. Picks are keyed by heading and every cell.
+    const picked = loadState(pickedRowsKey);
+    const rows = (b.rows || []).map((r) => {
+      const key = (b.heading || "") + "|" + r.join(" | ");
+      return `<tr data-key="${escapeHtml(key)}"><td><input type="checkbox"${picked[key] ?? true ? " checked" : ""}></td>${cells(r)}</tr>`;
+    }).join("");
+    return `<div class="scroll"><table class="pick" data-group="${escapeHtml(b.heading || "")}"><thead><tr><th></th>${head}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  },
+  steps: (b) => `<div class="steps">${(b.items || []).map((i) => `<div class="step">${icon(i.icon)}<b>${inline(i.title)}</b><span>${inline(i.text)}</span></div>`).join('<span class="arrow">→</span>')}</div>`,
+  details: (b) => (b.items || []).map((i) => `<details${i.open ? " open" : ""}><summary>${icon(i.icon)}<span class="t">${inline(i.title)}</span>${i.preview ? `<span class="preview">${inline(i.preview)}</span>` : ""}</summary><div class="body">${i.text ? paragraphs(i.text) : ""}${(i.blocks || []).map(renderBlock).join("")}</div></details>`).join(""),
+  inset: (b) => `<div class="inset">${(b.blocks || []).map(renderBlock).join("")}</div>`,
   findings: (b) => (b.items || []).map((i) => {
     const fields = (i.fields || []).map((f) => `<dt>${inline(f.label)}</dt><dd>${paragraphs(f.text)}</dd>`).join("");
     const quotes = (i.quotes || []).map((q) => `<blockquote>${inline(q.text)}${q.source ? `<cite>${inline(q.source)}</cite>` : ""}</blockquote>`).join("");
@@ -184,20 +248,21 @@ const renderers = {
     return `<div class="cmp">${cards}</div>${criteria}`;
   },
   decisions: (b) => {
-    const state = loadState();
+    const state = loadState(storageKey);
     return (b.items || []).map((d) => {
       const picked = state[d.id]?.choice ?? d.recommended;
       const options = (d.options || []).map((o) => `<label><input type="radio" name="dec-${escapeHtml(d.id)}" value="${escapeHtml(o)}"${o === picked ? " checked" : ""}>${inline(o)}</label>`).join("");
       return `<div class="decision" data-id="${escapeHtml(d.id)}"><div class="q">${escapeHtml(d.id)}. ${inline(d.question)}</div>${d.context ? `<div class="ctx">${inline(d.context)}</div>` : ""}<div class="opts">${options}</div>${d.recommended ? `<div class="rec-note">Recommended: ${inline(d.recommended)}</div>` : ""}<textarea placeholder="Note (optional)">${escapeHtml(state[d.id]?.note || "")}</textarea></div>`;
-    }).join("") + '<p><button type="button" data-copy-decisions>Copy my decisions</button> <span class="copy-status sub"></span></p>';
+    }).join("");
   },
   code: (b) => `<pre><code>${escapeHtml(b.text)}</code></pre>`,
   figure: (b) => {
     const src = escapeHtml(b.src);
+    const label = escapeHtml(b.alt || b.caption || "");
+    let media = `<img src="${src}" alt="${label}">`;
+    if (/\.(mp4|webm)$/i.test(b.src || "")) media = `<video src="${src}" aria-label="${label}" controls preload="metadata"></video>`;
     // HTML diagrams and mockups run in a sandbox without access to this page or its storage.
-    const media = /\.html?$/i.test(b.src || "")
-      ? `<iframe src="${src}" title="${escapeHtml(b.alt || b.caption || "")}" style="height:${Number(b.height) || 420}px" loading="lazy" sandbox="allow-scripts"></iframe>`
-      : `<img src="${src}" alt="${escapeHtml(b.alt || b.caption || "")}">`;
+    if (/\.html?$/i.test(b.src || "")) media = `<iframe src="${src}" title="${label}" style="height:${Number(b.height) || 420}px" loading="lazy" sandbox="allow-scripts"></iframe>`;
     const links = `<a href="${src}" target="_blank" rel="noopener">Open full size</a>${b.source ? `<a href="${escapeHtml(b.source)}" target="_blank" rel="noopener">Editable source</a>` : ""}`;
     return `<figure>${media}<figcaption>${inline(b.caption || "")}${links}</figcaption></figure>`;
   },
@@ -211,55 +276,272 @@ function renderBlock(block) {
   return heading + (render ? render(block) : `<div class="callout bad"><b>Unknown block type: ${escapeHtml(block.type)}</b></div>`);
 }
 
+// fill.py embeds the version the user last saw as data.previous. The page compares the two and
+// marks what is added or changed. Sections match by id, else title; blocks by position in their
+// section; items by id, else title or name, else their own text.
+const ITEM_DOM = {
+  list: { field: "items", items: ":scope > :is(ul, ol) > li" },
+  cards: { field: "items", items: ":scope > .grid > .card", badge: "h3" },
+  steps: { field: "items", items: ":scope .step", badge: "b" },
+  details: { field: "items", items: ":scope > details", badge: "summary > .t" },
+  findings: { field: "items", items: ":scope > details", badge: "summary > .t" },
+  decisions: { field: "items", items: ":scope > .decision", badge: ".q" },
+  compare: { field: "options", items: ":scope > .cmp > .card", badge: "h3" },
+  table: { field: "rows", items: ":scope tbody tr", badge: "td:not(:has(input))" },
+};
+const KIND_TONE = { added: "ok", changed: "warn", removed: "bad" };
+
+function same(a, b) {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+function itemKey(item) {
+  if (typeof item === "string") return item;
+  if (Array.isArray(item)) return item.join(" | ");
+  return String(item.id ?? item.title ?? item.name ?? item.text ?? JSON.stringify(item));
+}
+
+function itemLabel(item) {
+  const label = typeof item === "object" && !Array.isArray(item)
+    ? [item.id, item.title ?? item.name ?? item.question].filter(Boolean).join(" ") || item.text || "item"
+    : itemKey(item);
+  return label.length > 80 ? label.slice(0, 77) + "..." : label;
+}
+
+// Marks each current item "added", "changed", or null; removed items come back whole. `reordered`
+// is true when the items present in both versions changed their relative order.
+function diffItems(before, after) {
+  const old = new Map((before || []).map((item) => [itemKey(item), item]));
+  const kept = new Set();
+  const marks = (after || []).map((item) => {
+    const key = itemKey(item);
+    kept.add(key);
+    if (!old.has(key)) return "added";
+    return same(old.get(key), item) ? null : "changed";
+  });
+  const removed = [...old].filter(([key]) => !kept.has(key)).map(([, item]) => item);
+  const reordered = !same([...old.keys()].filter((key) => kept.has(key)), [...kept].filter((key) => old.has(key)));
+  return { marks, removed, reordered };
+}
+
+// Added and changed items carry their own marks. The block is marked "changed" when its other
+// fields changed or its items were reordered (`own`), or when items were only removed, so a
+// removal still leaves a mark.
+function diffBlock(before, after) {
+  if (!before) return { mark: "added", own: false, marks: [], removed: [] };
+  if (same(before, after)) return null;
+  const field = ITEM_DOM[after.type]?.field;
+  if (!field || before.type !== after.type) return { mark: "changed", own: true, marks: [], removed: [] };
+  const { marks, removed, reordered } = diffItems(before[field], after[field]);
+  const own = reordered || !same({ ...before, [field]: 0 }, { ...after, [field]: 0 });
+  return { mark: own || !marks.some(Boolean) ? "changed" : null, own, marks, removed };
+}
+
+function diffSection(before, after, note) {
+  const blocks = (after.blocks || []).map((block, i) => {
+    const diff = diffBlock(before.blocks?.[i], block);
+    if (!diff) return null;
+    const heading = block.heading || `${block.type} block ${i + 1}`;
+    if (diff.mark === "added") note("added", after.title, heading);
+    else if (diff.own) note("changed", after.title, heading);
+    const items = block[ITEM_DOM[block.type]?.field] || [];
+    diff.marks.forEach((mark, n) => mark && note(mark, after.title, itemLabel(items[n])));
+    diff.removed.forEach((item) => note("removed", after.title, itemLabel(item)));
+    return diff;
+  });
+  const dropped = (before.blocks || []).slice(blocks.length);
+  dropped.forEach((block, n) => note("removed", after.title, block.heading || `${block.type} block ${blocks.length + n + 1}`));
+  const ownFields = (s) => ({ ...s, blocks: 0 });
+  const fieldsChanged = !same(ownFields(before), ownFields(after));
+  if (fieldsChanged) note("changed", after.title, "heading or intro");
+  return { mark: fieldsChanged || dropped.length ? "changed" : null, blocks };
+}
+
+function diffArtifact(before, after) {
+  const entries = [];
+  const note = (kind, where, label) => entries.push({ kind, text: label ? `${where} › ${label}` : where });
+  const headerFields = ["title", "subtitle", "eyebrow"];
+  if (!same(headerFields.map((k) => before[k]), headerFields.map((k) => after[k]))) note("changed", "Header");
+  const old = new Map((before.sections || []).map((s) => [s.id || s.title, s]));
+  const sections = new Map();
+  for (const section of after.sections || []) {
+    const key = section.id || section.title;
+    const prior = old.get(key);
+    old.delete(key);
+    if (prior) sections.set(section, diffSection(prior, section, note));
+    else {
+      sections.set(section, { mark: "added", blocks: [] });
+      note("added", section.title);
+    }
+  }
+  for (const gone of old.values()) note("removed", gone.title);
+  return { sections, entries };
+}
+
+const changes = data.previous ? diffArtifact(data.previous, data) : null;
+
+function badge(mark) {
+  return `<span class="pill change ${KIND_TONE[mark]}">${mark}</span>`;
+}
+
+// Every block sits in a wrapper so "Show only changes" can hide the ones that did not change.
+// Items get identity marks whenever items were added, changed, or removed, so the unchanged
+// ones can hide even when the only item change is a removal.
+function renderChangedBlock(block, diff) {
+  const itemsChanged = diff?.marks.some(Boolean) || diff?.removed.length;
+  const attrs = `data-type="${escapeHtml(block.type)}"${diff?.mark ? ` data-change="${diff.mark}"` : ""}${itemsChanged ? ` data-marks="${diff.marks.map((m) => m || "").join(",")}"` : ""}`;
+  return `<div class="block" ${attrs}>${diff?.mark ? badge(diff.mark) : ""}${renderBlock(block)}</div>`;
+}
+
+// Items are marked after rendering, so the renderers stay unaware of versions.
+function markChangedItems() {
+  for (const wrapper of document.querySelectorAll(".block[data-marks]")) {
+    const spec = ITEM_DOM[wrapper.dataset.type];
+    const marks = wrapper.dataset.marks.split(",");
+    wrapper.querySelectorAll(spec.items).forEach((element, n) => {
+      element.dataset.item = "";
+      if (!marks[n]) return;
+      element.dataset.change = marks[n];
+      if (element.matches("details")) element.open = true;
+      (spec.badge ? element.querySelector(spec.badge) : element)?.insertAdjacentHTML("beforeend", badge(marks[n]));
+    });
+  }
+}
+
+function renderChanges() {
+  if (!changes) return "";
+  const since = "v" + (data.version - 1);
+  if (!changes.entries.length) return `<div class="callout muted"><b>No changes since ${since}</b></div>`;
+  const counts = Object.keys(KIND_TONE)
+    .map((kind) => [kind, changes.entries.filter((e) => e.kind === kind).length])
+    .filter(([, count]) => count)
+    .map(([kind, count]) => `${count} ${kind}`).join(" · ");
+  const rows = changes.entries.map((e) => `<li><span class="pill ${KIND_TONE[e.kind]}">${e.kind}</span> ${inline(e.text)}</li>`).join("");
+  const toggle = data.layout === "slides" ? "" : '<label class="toggle-changes"><input type="checkbox" data-only-changes> Show only changes</label>';
+  return `<details class="callout info changes" open><summary>Changed since ${since}: ${counts}</summary><ul>${rows}</ul>${toggle}</details>`;
+}
+
 function renderSection(section, index) {
   const id = section.id || "s" + (index + 1);
-  const blocks = section.blocks || [];
-  // "split" puts figures on the right and every other block on the left.
+  const diff = changes?.sections.get(section);
+  const blocks = (section.blocks || []).map((block, i) => ({ type: block.type, side: block.side, html: renderChangedBlock(block, diff?.blocks[i]) }));
+  // "split" puts figures and blocks marked `side` on the right and every other block on the left.
+  const right = (b) => b.type === "figure" || b.side;
   const body = section.layout === "split"
-    ? `<div class="split"><div>${blocks.filter((b) => b.type !== "figure").map(renderBlock).join("")}</div><div>${blocks.filter((b) => b.type === "figure").map(renderBlock).join("")}</div></div>`
-    : blocks.map(renderBlock).join("");
-  return `<section id="${escapeHtml(id)}" class="slide"><h2>${inline(section.title)}</h2>${section.intro ? `<p class="intro">${inline(section.intro)}</p>` : ""}${body}</section>`;
+    ? `<div class="split"><div>${blocks.filter((b) => !right(b)).map((b) => b.html).join("")}</div><div>${blocks.filter(right).map((b) => b.html).join("")}</div></div>`
+    : blocks.map((b) => b.html).join("");
+  return `<section id="${escapeHtml(id)}" class="slide"${diff?.mark ? ` data-change="${diff.mark}"` : ""}><h2>${inline(section.title)}${diff?.mark ? badge(diff.mark) : ""}</h2>${section.intro ? `<p class="intro">${inline(section.intro)}</p>` : ""}${body}</section>`;
 }
 
 function renderHeader() {
-  const eyebrow = data.eyebrow ? `<div class="eyebrow">${inline(data.eyebrow)}</div>` : "";
+  const version = data.version > 1 ? `<span class="pill muted">v${data.version}</span>` : "";
+  const eyebrow = data.eyebrow || version ? `<div class="eyebrow">${inline(data.eyebrow || "")} ${version}</div>` : "";
   const nav = data.layout === "slides" || (data.sections || []).length < 3 ? "" :
     `<nav>${data.sections.map((s, i) => `<a href="#${escapeHtml(s.id || "s" + (i + 1))}">${inline(s.title)}</a>`).join("")}</nav>`;
-  return `<header class="slide">${eyebrow}<h1>${inline(data.title)}</h1>${data.subtitle ? `<p class="sub">${inline(data.subtitle)}</p>` : ""}${nav}</header>`;
+  return `<header class="slide">${eyebrow}<h1>${inline(data.title)}</h1>${data.subtitle ? `<p class="sub">${inline(data.subtitle)}</p>` : ""}${nav}${renderChanges()}</header>`;
 }
 
+// Saves every decision and ticked row, and returns them as the text the user pastes back.
 function collectDecisions() {
-  const state = {};
+  const decisions = {};
   const lines = [];
   for (const row of document.querySelectorAll(".decision")) {
     const choice = row.querySelector("input:checked")?.value || "";
     const note = row.querySelector("textarea").value.trim();
-    state[row.dataset.id] = { choice, note };
+    decisions[row.dataset.id] = { choice, note };
     lines.push(`${row.dataset.id}: ${choice || "(no choice)"}${note ? ` - ${note}` : ""}`);
   }
-  saveState(state);
+  saveState(storageKey, decisions);
+  const pickedRows = {};
+  for (const table of document.querySelectorAll("table.pick")) {
+    const group = table.dataset.group || table.closest("section").querySelector("h2").textContent;
+    lines.push("", group + ":");
+    for (const row of table.tBodies[0].rows) {
+      const ticked = row.querySelector("input").checked;
+      pickedRows[row.dataset.key] = ticked;
+      const label = [...row.cells].slice(1).map((c) => c.textContent).join(" | ");
+      lines.push(`[${ticked ? "x" : " "}] ${label}`);
+    }
+  }
+  saveState(pickedRowsKey, pickedRows);
   return lines.join("\n");
 }
 
+// navigator.clipboard exists only on HTTPS and localhost; a page opened by LAN IP needs execCommand.
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; } catch { /* fall back below */ }
+  const area = document.createElement("textarea");
+  area.value = text;
+  area.style.cssText = "position:fixed;opacity:0";
+  const focused = document.activeElement;
+  document.body.append(area);
+  area.select();
+  try { return document.execCommand("copy"); } catch { return false; } finally {
+    area.remove();
+    focused?.focus({ preventScroll: true });
+  }
+}
+
+function showCopyResult(bar, text, copied) {
+  const toneClass = copied ? "ok" : "bad";
+  const status = bar.querySelector(".copy-status");
+  const output = bar.querySelector(".copy-text");
+  bar.querySelector("button").className = toneClass;
+  status.className = "copy-status pill " + toneClass;
+  status.textContent = copied ? "Copied" : "Not copied: select the text below and copy it";
+  status.hidden = false;
+  output.className = "copy-text " + toneClass;
+  output.textContent = text;
+  output.hidden = false;
+}
+
 function wireDecisions() {
-  document.addEventListener("change", (e) => { if (e.target.closest(".decision")) collectDecisions(); });
-  document.addEventListener("input", (e) => { if (e.target.closest(".decision")) collectDecisions(); });
+  const isPick = (target) => target.closest(".decision, table.pick");
+  document.addEventListener("change", (e) => { if (isPick(e.target)) collectDecisions(); });
+  document.addEventListener("input", (e) => { if (isPick(e.target)) collectDecisions(); });
   document.addEventListener("click", async (e) => {
+    const row = e.target.closest("table.pick tbody tr");
+    // Dragging to select text in a row must not flip its tick.
+    if (row && !e.target.closest("input, a") && !getSelection().toString()) {
+      row.querySelector("input").click();
+      return;
+    }
     if (!e.target.matches("[data-copy-decisions]")) return;
     const text = `Decisions for "${data.title}":\n` + collectDecisions();
-    const status = e.target.parentElement.querySelector(".copy-status");
-    try { await navigator.clipboard.writeText(text); status.textContent = "Copied."; }
-    catch { status.textContent = "Copy blocked; select the text below."; e.target.parentElement.insertAdjacentHTML("beforeend", `<pre>${escapeHtml(text)}</pre>`); }
+    showCopyResult(e.target.closest(".copy-bar"), text, await copyText(text));
   });
 }
 
-function wireSlides() {
+// The saved choice applies to every artifact; without one the page follows the system theme.
+function wireTheme(bar) {
+  const root = document.documentElement;
+  const systemDark = matchMedia("(prefers-color-scheme: dark)");
+  try {
+    const saved = localStorage.getItem(themeKey);
+    if (saved) root.dataset.theme = saved;
+  } catch { /* storage blocked */ }
+  const isDark = () => (root.dataset.theme || (systemDark.matches ? "dark" : "light")) === "dark";
+  const button = document.createElement("button");
+  button.type = "button";
+  const showTarget = () => {
+    button.textContent = isDark() ? "\u2600\uFE0E" : "\u263E";
+    button.title = `Switch to ${isDark() ? "light" : "dark"} mode`;
+    button.setAttribute("aria-label", button.title);
+  };
+  button.addEventListener("click", () => {
+    root.dataset.theme = isDark() ? "light" : "dark";
+    try { localStorage.setItem(themeKey, root.dataset.theme); } catch { /* storage blocked */ }
+    showTarget();
+  });
+  systemDark.addEventListener("change", showTarget);
+  showTarget();
+  bar.append(button);
+}
+
+function wireSlides(bar) {
   document.body.classList.add("slides");
   const slides = [...document.querySelectorAll(".slide")];
-  const bar = document.createElement("div");
-  bar.className = "deck-bar";
-  bar.innerHTML = '<button type="button" data-step="-1">‹</button><span></span><button type="button" data-step="1">›</button>';
-  document.body.append(bar);
+  bar.insertAdjacentHTML("afterbegin", '<button type="button" data-step="-1">‹</button><span></span><button type="button" data-step="1">›</button>');
   let current = Math.min(Number(location.hash.slice(1)) || 0, slides.length - 1);
   const show = (index) => {
     current = Math.max(0, Math.min(index, slides.length - 1));
@@ -278,8 +560,21 @@ function wireSlides() {
 
 document.title = data.title || "Artifact";
 document.getElementById("root").innerHTML = renderHeader() + (data.sections || []).map(renderSection).join("");
+markChangedItems();
+document.addEventListener("change", (e) => {
+  if (e.target.matches("[data-only-changes]")) document.body.classList.toggle("only-changes", e.target.checked);
+});
+// Any section holding picks, even inside collapsible rows, ends with the copy bar.
+for (const section of document.querySelectorAll("section")) {
+  if (!section.querySelector(".decision, table.pick")) continue;
+  section.insertAdjacentHTML("beforeend", '<div class="copy-bar"><button type="button" data-copy-decisions>Copy my decisions</button> <span class="copy-status" hidden></span><pre class="copy-text" hidden></pre></div>');
+}
+const toolbar = document.createElement("div");
+toolbar.className = "toolbar";
+document.body.append(toolbar);
+wireTheme(toolbar);
 wireDecisions();
-if (data.layout === "slides") wireSlides();
+if (data.layout === "slides") wireSlides(toolbar);
 </script>
 </body>
 </html>

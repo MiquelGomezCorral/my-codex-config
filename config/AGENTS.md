@@ -21,7 +21,8 @@ not weaken security or explicit user constraints.
   invent a URL or publish a private artifact merely to obtain one.
 - When an agent-started server exposes an agent-shared artifact, progress page, or app
   preview over HTTP, bind `0.0.0.0` and serve only the intended artifact directory, never
-  the repository, common Git, or private memory tree. Use ports `3100`-`3199`: start at
+  the repository, common Git, or whole private memory tree; serving one
+  `agent-memory/artifacts/<name>/` directory is fine. Use ports `3100`-`3199`: start at
   the first free port, retry only on `EADDRINUSE`, leave existing processes alone, and fail
   when the range is full or another bind error occurs. Serve static artifacts with
   `scripts/serve-artifact.py` from the installed workflow skill; `workflow-progress` keeps
@@ -32,6 +33,9 @@ not weaken security or explicit user constraints.
 
 ## Authority and scope
 
+- Every agent, whatever its harness, reads and follows the repository's `AGENTS.md`
+together with this policy, even when its harness has its own instruction file such as
+`CLAUDE.md` or `GEMINI.md`; read that file as well.
 - Questions are read-only; imperatives authorize only the stated implementation scope.
 - Planning, research, audit, and review stay read-only until implementation is authorized.
 - For repository work, only the human-facing agent loads `agents-memory` and reads
@@ -50,6 +54,17 @@ the recent discussion for unsaved findings. When the value or the exact fact is 
 ask the user. Before debugging, deploying, or searching the web, check `known-errors.md`
 and `workflow.md`. Project knowledge goes to `agent-memory/` even when the harness has
 its own memory; harness memory may keep a copy, never the only one.
+- Never keep plans, slices, handoffs, worker instructions and reports, artifacts, review
+output, or anything a later turn or agent may read again in an operating-system temporary
+location (`/tmp`, `$TMPDIR`, or a harness scratchpad under them); a reboot or cleanup deletes
+it. Put that work only under `agent-memory/` in the Git common directory, not in another
+home folder such as `~/.local/state`: plans in `plans/` with their handoffs and worker
+reports beside them, pages and other artifacts in `artifacts/<name>/`. Throwaway files
+that nothing reads after the current step stay in temporary locations, so junk never
+lands in a persistent folder. Outside a Git repository, ask the user where to keep it.
+- When something you need seems lost, try one quick recovery before reporting it gone:
+harness session logs record the files agents wrote, and `git reflog` and `git stash list`
+keep Git work. Some things are gone for good; do not dig further.
 - Assess applicable shared decision records after planning and before implementation. A task
 that skips planning does not acquire a mandatory assessment solely from this rule. The main
 agent owns this assessment: it creates or updates records when product or architecture
@@ -123,10 +138,15 @@ deduplicate shared knowledge, while allowing similar code with independent reaso
 
 Reproduce before fixing and verify behavior with fresh, targeted evidence. Run only the
 quick checks justified by the change; live validation of a running system waits for approval.
-Prefer live validation of the real flow whenever possible. Unit tests are secondary evidence
-and usually insufficient alone; add them only when the real flow cannot reliably cover changed
-behavior, a reproduced regression, or a critical deterministic contract, never for coverage,
-convention, or completeness.
+Prefer live validation of the real flow whenever possible. A bare "test" from the user means a
+live test of the real app, tool, or flow, never unit tests alone; "testing a model" keeps its
+evaluation meaning. Define the live test before code (flow, samples, expected result), make the
+thing runnable first, then test it live from broad checks on simple mock data to precise ones
+on real data. Test as a user would: talk to an agent or chatbot through `agent-tests-agent`,
+and run non-deterministic behavior 3 times, where mixed results count as unclear. Write almost
+no unit tests: add one only for a small algorithm, a critical deterministic contract, or a
+reproduced regression the live flow cannot cover, never for coverage, convention, or
+completeness.
 
 ## Completion
 

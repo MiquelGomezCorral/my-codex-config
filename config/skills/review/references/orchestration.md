@@ -22,9 +22,11 @@ interpretation is materially more likely. Do not silently rewrite an explicit mo
 When `--preset` is present, load its matching [flash](presets/flash.md),
 [swarm](presets/swarm.md), [swarm-smart](presets/swarm-smart.md),
 or [full](presets/full.md) reference. Ask once if the value is missing,
-unknown, or conflicts with an explicit mode. Without a preset, preserve the existing review
-mode and stopping behavior, then apply the normalized harness intent below. Presets never
-enable OCR or Slopo; `--ocr` remains an independent, explicit choice.
+unknown, or conflicts with an explicit mode. Without a preset or an explicit review mode,
+use the `full` preset, including for a bare `$review`; outside an approved wave, its live round reports
+blocked/unverified unless bounded authorization exists. With an explicit mode and no preset,
+preserve that mode and its stopping behavior. Then apply the normalized harness intent
+below. Presets never enable OCR or Slopo; `--ocr` remains an independent, explicit choice.
 
 The active wrapper's adapter guide owns launch mechanics; role selection precedes it.
 Keep any explicit user roster, harness, or model choice. Otherwise `super-agent` resolves
@@ -62,8 +64,8 @@ reviewer` means swarm mode, that coordinator model when supported, and the reque
 harness balance. Harness names identify preferences, not invented commands or roles.
 
 Build the worker prompt with exactly one review mode marker and exactly one OCR marker.
-When a preset was selected, include `Review preset: <preset>` and the matching reference's
-instructions. Omit the preset marker for ordinary `$review`.
+When a preset applies, include `Review preset: <preset>` and the matching reference's
+instructions. Omit the preset marker only for an explicit mode without a preset.
 
 - Swarm: `Review mode: swarm`, followed by `Swarm models: default` or
   `Swarm models: <normalized ordered list>`.
@@ -90,7 +92,7 @@ worktree changes they inspected. Outside workflow context, retain staged-first s
 and include the exact persisted plan path established by `$code` when present. The packet
 must preserve the normalized OCR marker.
 When supplied, also pass the exact workflow context, current slice scope, exclusions, and
-authorization bounds; the context cannot enable live testing or publication.
+authorization bounds; the context alone cannot enable live testing or publication.
 
 Before launch, the coordinating or direct review agent loads the selected `decision-records`
 skill, discovers applicable records, and compares the reviewed behavior with their protected
@@ -107,8 +109,9 @@ For `flash`, route directly to one `reviewer-quick` through `super-agent`; do no
 coordinator. For ordinary direct and swarm review, use the selected harness's configured
 review coordinator through `super-agent`. For `swarm-smart` and `full`, route the primary
 report to the separate fresh verifier specified in the preset reference; the parent routes
-reports and does not review or edit them. For `full`, route `live-validator` through Codex
-only after the authorization check in its preset reference.
+reports and does not review or edit them. For `full`, the parent also starts, resets, and
+stops the app for the live round as its preset reference defines, and routes
+`live-validator` through Codex only after that reference's authorization check.
 
 - `agent`: `reviewer-quick` for `flash`, otherwise the selected harness's best matching
   configured review coordinator

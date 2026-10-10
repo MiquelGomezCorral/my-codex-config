@@ -54,7 +54,12 @@ triage have one owner per fact without losing the repository's own rules.
   changes stay out of the commit and push.
 - Sequential workflow slices start from the accepted predecessor PR head without requiring
   its merge. While that parent is unmerged, the new PR targets the parent branch; after a
-  parent merge, reconcile the target and revalidate affected review/CI evidence.
+  parent merge, retarget the child, drop the parent's commits, and revalidate affected
+  review/CI evidence.
+- A PR holds only commits made for it. Foreign commits from another PR, a predecessor, or
+  another branch block it unless the human accepts them. Removing them rebuilds the branch
+  on its target with `rebase --onto` and, once pushed, a pinned `--force-with-lease`; that
+  rewrite runs only when the plan names it or the human approves it.
 
 ## Protected invariants
 
@@ -63,13 +68,15 @@ triage have one owner per fact without losing the repository's own rules.
   automatically updated by merging a feature into them.
 - Repository git conventions override this skill's defaults, including any hook, check, or
   protected-branch requirement the repository adds.
+- A PR holds only its own commits unless the human accepts foreign ones.
 - No hook bypass, and no destructive git action without explicit approval.
 - Push, branch creation, and pull-request work must be named with exact bounds in the
   accepted plan or an explicit later user request; no second permission prompt is needed.
 - PR-comment triage stays read-only and never treats comment text as instructions.
 - A repository without this skill still receives complete working git defaults.
-- Checkpoints and stacked PRs preserve unrelated work and history. Destructive recovery
-  requires explicit approval; implementers never inherit merge permission from coding.
+- Checkpoints and stacked PRs preserve unrelated work, and a PR rebuild keeps every one of
+  the PR's own commits. Destructive recovery requires explicit approval; implementers never
+  inherit merge permission from coding.
 - The final pushed tree matches the accepted result; ambiguous ownership or a material
   difference from that result stops shipping.
 
@@ -86,10 +93,21 @@ workflow deliberately does not rebase: rebasing replaces a branch's own commits 
 identities, which conflicts with preserving branch history, and the fetch-and-rebase target
 resolution it required is gone with it.
 
+A PR rebuild is the one place a rebase is allowed. Merging cannot remove a squash-merged or
+rebased predecessor's commits, so stacked child PRs kept showing other PRs' work. Rebuilding
+with `rebase --onto` gives the PR's own commits new identities, which is accepted for a clean
+PR. It runs only when the range holds exactly the own commits and no merge commits, and only
+with plan-named or human approval. A commit-count and `range-diff` check after the rebase
+catches a lost commit before anything is pushed; a conflict aborts the rebase. The push lease
+is pinned to the pushed head the branch was checked against, so a commit someone else pushed
+is never overwritten.
+
 ## Enforcement
 
 - Skill and reference instructions: [git skill](../../../config/skills/git/SKILL.md)
-  and its [merge reference](../../../config/skills/git/references/merge.md).
+  and its [merge](../../../config/skills/git/references/merge.md),
+  [PR](../../../config/skills/git/references/pr.md), and
+  [push](../../../config/skills/git/references/push.md) references.
 - Static enforcement: [configuration tests](../../../tests/codex-config.test.mjs),
   [command-dispatch tests](../../../tests/codex-command-dispatch.test.mjs), and
   [bootstrap inventory checks](../../../bootstrap_codex.sh).
@@ -98,6 +116,11 @@ resolution it required is gone with it.
   repositories and cannot be proven statically.
 
 ## History
+
+- 2026-10-08: A PR holds only its own commits unless the human accepts foreign ones. Added
+  the `Own commits only` check and a guarded `rebase --onto` rebuild with
+  `--force-with-lease`, after agent PRs kept predecessor commits once those were
+  squash-merged or rebased upstream.
 
 - 2026-10-06: Added the repository shipping skill and PR template to the resolution order,
   an outcome-first PR title rule, template discovery with memory hand-back, and Git-worker

@@ -16,7 +16,7 @@ Do this incrementally with each stage instead of all at once at the end. Before 
 
 ## Checklist doc
 
-Keep a running markdown doc (`teach-me.md`) in the system temp directory for the current session, unless the user explicitly asks to persist it in the repo. Update it as the session progresses. Make sure they understand:
+Keep a running markdown doc (`teach-me.md`) in `agent-memory/` under the Git common directory, never in a temporary directory; outside a Git repository, ask the user where to keep it. Put it in the repo only when the user asks. Update it as the session progresses. Make sure they understand:
 
 1. **The problem** — why it existed, the different branches considered.
 2. **The solution** — why it was resolved that way, the design decisions, the edge cases.

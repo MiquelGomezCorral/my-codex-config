@@ -3,6 +3,7 @@
 ## Workflow
 
 1. Inspect `git status`, diff/stat, recent commits, branch/upstream, and any existing PR.
+   Run the `Own commits only` check against the PR target.
 2. Review repository instructions and checks. Stop if the worktree contains secrets,
    unclear unrelated changes, or failed required verification.
 3. Read the plan from the `SKILL.md` plan-context rules: it gives the goal and the feature
@@ -24,12 +25,85 @@
    product claims.
 
 For a sequential slice, target the accepted predecessor PR branch while it remains
-unmerged, so the new PR exposes only the child slice. Verify the PR diff contains only the
-child slice; stop if ancestry or a squash merge makes that untrue. A merge is not required
-before work on the child starts. After the predecessor merges, reconcile the target and
+unmerged, so the new PR exposes only the child slice. A merge is not required before work
+on the child starts. After the predecessor merges, retarget the child PR to the
+predecessor's target, remove the predecessor's commits as `Own commits only` says, and
 revalidate affected evidence. In a workflow, the accepted plan must name PR creation or
 update and its target/bounds; after result acceptance, do not ask for that same
 authorization again.
+
+## Own commits only
+
+A PR holds only the commits made for it. Commits from another PR, a predecessor slice,
+or another branch are foreign, even when they sit underneath because the branch started
+from them or because the predecessor was squash-merged or rebased upstream. A merge
+commit that syncs the PR's own target is allowed. Foreign commits block the PR unless the
+human explicitly accepted them for this PR.
+
+`<remote>` is the remote of the repository the PR merges into, taken from the PR or the
+plan and matched against `git remote -v`. Use `origin` only when it is that repository; in
+a fork it usually is not. `<push-remote>` is where the PR branch itself lives.
+
+Check before every push to a PR branch, PR creation, retarget, and refresh:
+
+```bash
+git fetch <remote> <target>
+git log --oneline <remote>/<target>..HEAD    # every commit must belong to this PR
+git diff <remote>/<target>...HEAD --stat     # only this PR's files
+```
+
+Match each listed commit to this PR's plan, slice, or request. When any commit is foreign,
+stop before pushing or opening the PR and rebuild the branch on the target with only its
+own commits.
+
+Find `<old-base>`: the newest foreign commit that every own commit descends from, usually
+the predecessor's head or the old target the branch started from. `git log` lists newest
+first, so do not take the last foreign line it prints. Rebuild only when both hold:
+
+```bash
+git log --oneline <old-base>..HEAD           # exactly this PR's own commits, nothing else
+git rev-list --merges <old-base>..HEAD       # empty: rebase would drop merge commits
+```
+
+Otherwise foreign and own commits interleave, or a merge sits in the range, and a rebase
+can silently drop own work or a conflict resolution. Stop and ask the parent, showing
+`git log --graph --oneline <remote>/<target>..HEAD`.
+
+When the branch was already pushed, someone else may have added commits to it. Fetch it and
+stop unless the local branch already contains every pushed commit:
+
+```bash
+git fetch <push-remote> <branch>
+git rev-parse <push-remote>/<branch>                      # note this hash as <pushed-sha>
+git merge-base --is-ancestor <push-remote>/<branch> HEAD  # must succeed
+```
+
+Note the old head (`git rev-parse HEAD`) and own count (`git rev-list --count
+<old-base>..HEAD`) as literal values in the report, not shell variables, then rebuild:
+
+```bash
+git rebase --onto <remote>/<target> <old-base>
+git rev-list --count <remote>/<target>..HEAD               # must equal the own count
+git range-diff <old-base>..<old-head> <remote>/<target>..HEAD   # every line must be `=`
+```
+
+`range-diff` exits 0 even when a commit is missing, so read every line: a `<`, `>`, or `!`
+means a commit was lost, added, or changed. On a rebase conflict or stop, run
+`git rebase --abort`; never `git rebase --skip`, which drops an own commit. When the count
+or `range-diff` fails after the rebase finished, do not push. Either way, report the old
+head hash and what failed, and ask the parent.
+
+Rerun the check and the affected repository checks afterwards. The rebuild rewrites
+history. A pushed branch then needs a lease pinned to the hash checked above, so a commit
+pushed after that check is never overwritten; never plain `--force`:
+
+```bash
+git push --force-with-lease=<branch>:<pushed-sha> <push-remote> <branch>
+```
+
+Run the rebuild only when the accepted plan names it or the human approves it. Otherwise
+ask the parent once, with the foreign commits, the exact commands, and the expected
+result.
 
 ## Title
 

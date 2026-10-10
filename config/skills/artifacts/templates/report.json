@@ -14,6 +14,10 @@
     "decide": {
       "label": "Needs decision",
       "tone": "warn"
+    },
+    "no-evidence": {
+      "label": "No evidence",
+      "tone": "bad"
     }
   },
   "sections": [
@@ -89,6 +93,58 @@
           "src": "loop.svg",
           "source": "loop.excalidraw",
           "caption": "F1: the guard sends an expired session to `/login`, which sends it straight back."
+        }
+      ]
+    },
+    {
+      "id": "evidence",
+      "title": "Live evidence",
+      "intro": "Each live test, what it produced, and the commit or snapshot it ran on. A test with no evidence stays red.",
+      "blocks": [
+        {
+          "type": "findings",
+          "items": [
+            {
+              "id": "L1",
+              "title": "Expired session sends the user to `/login` once",
+              "status": "ok",
+              "fields": [
+                {
+                  "label": "Ran on",
+                  "text": "Commit `a1b2c3d`, or the pre-slice snapshot name when nothing is committed"
+                },
+                {
+                  "label": "Evidence",
+                  "text": "Screenshot and video below, captured with `scripts/capture.mjs`"
+                }
+              ]
+            },
+            {
+              "id": "L2",
+              "title": "Lockout message names the retry time",
+              "status": "no-evidence",
+              "fields": [
+                {
+                  "label": "Ran on",
+                  "text": "Commit `a1b2c3d`"
+                },
+                {
+                  "label": "Evidence",
+                  "text": "None captured"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "figure",
+          "src": "expired-session.png",
+          "caption": "L1: the browser lands on `/login` after one redirect."
+        },
+        {
+          "type": "figure",
+          "src": "expired-session.webm",
+          "caption": "L1: reload `/home` with an expired cookie."
         }
       ]
     },

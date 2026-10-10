@@ -12,6 +12,21 @@ OpenCode configuration remains separately owned by `my-opencode-config`.
 
 ![Whole workflow](workflow-diagrams/Whole-Flow.png)
 
+### Agents and their jobs
+
+![Agent tree and step-by-step workflow](workflow-diagrams/Agent-Hierarchy.png)
+
+Who starts whom, each agent's catalog role and model, what it may write, and which
+workflow stage it owns. Edit or regenerate it from
+[`docs/diagrams/agent-hierarchy/`](docs/diagrams/agent-hierarchy/).
+
+### Workflow progress map
+
+![Workflow progress map](config/skills/workflow-progress/assets/workflow.svg)
+
+The map `workflow-progress` highlights during a run. It is exported from
+`agent-workflow.drawio` in the same folder; edit that file, not the SVG.
+
 <details>
 <summary>Stage diagrams and legend</summary>
 
@@ -146,9 +161,10 @@ focused TOML roles in `config/agents/` render to each harness's native role form
 `git-worker` by default; the `git` skill remains the sole owner of Git policy.
 
 `$workflow` renders a short human view from the complete Markdown plan and a small
-`review.json` brief. See the [brief field guide](config/skills/workflow/references/plan-review-template.md)
-and [compact example](config/skills/workflow/templates/review.example.json). Existing
-Markdown-only renderer calls still work.
+`review.json` brief, drawn by the artifacts page engine. See the
+[brief field guide](config/skills/artifacts/references/plan-page.md) and
+[compact example](config/skills/artifacts/templates/plan-review.json). Markdown-only
+renderer calls still work.
 
 Shared product decision records live in each repository's `docs/decisions/`. Only the
 human-facing agent uses `agents-memory`: it reads relevant existing repository context and
@@ -209,7 +225,7 @@ its owning skill and forwards the full invocation arguments.
 | `code` | `code` |
 | `commit` | `git` |
 | `index` | `codegraph-setup` |
-| `init` | `agents-memory` |
+| `init` | `project-init` |
 | `merge` | `git` |
 | `workflow` | `workflow` |
 | `refine-plan` | `refine-plan` |
@@ -241,7 +257,9 @@ From any repository, run `ocr-go review --preview` and then `ocr-go review`.
 The shared installer obtains only the skill folders for Ponytail, diagram-design, and
 Excalidraw from their public repositories, then links those skills into each harness.
 Sources are cached outside the repository under the XDG data directory. Native plugin
-hooks are not copied or translated.
+hooks are not copied or translated. The repository's `excalidraw-draw` skill renders with
+the official Excalidraw CLI, which bootstrap does not install: run
+`npm install -g @excalidraw/cli` (Node 22+) to enable it.
 
 ### Attribution
 
@@ -276,9 +294,9 @@ The `test-audit` skill adapts [OpenClaw's `test-audit`](https://github.com/openc
 edit shape, and campaign phases are kept. Its OpenClaw-specific skill names, Vitest scripts,
 and PR flow are replaced by this repository's own test commands and the `git` skill.
 
-The workflow renderer bundles selected [Lucide](https://github.com/lucide-icons/lucide)
-SVGs. Lucide's ISC notice and the MIT notice for Feather-derived icons are in
-`config/skills/workflow/licenses/lucide.LICENSE`.
+The artifacts skill bundles selected [Lucide](https://github.com/lucide-icons/lucide)
+SVGs in `config/skills/artifacts/icons.json`. Lucide's ISC notice and the MIT notice for
+Feather-derived icons are in `config/skills/artifacts/licenses/lucide.LICENSE`.
 
 The `skill-scout` skill replaces the former `find-skills` and `skillspector` skills, folding
 their marketplace discovery and static security scan into one find-vet-catalog flow. Its

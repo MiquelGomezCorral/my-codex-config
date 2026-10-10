@@ -17,8 +17,10 @@ plan's goal for the wave's feature area, not the slice label or the code mechani
 
 For a dependent slice, base its worktree on the predecessor PR's accepted head after its
 reviews, required CI, and human gates pass. While the predecessor is unmerged, target its
-branch so the child PR shows only the new slice. After the predecessor merges, reconcile
-the target and rerun affected checks and reviews. Do not rebase or rewrite history.
+branch so the child PR shows only the new slice. After the predecessor merges, retarget
+the child PR and drop the predecessor's commits through the `git` skill's `Own commits
+only` rule, then rerun affected checks and reviews. Rewrite history only as that rule
+allows. Name that cleanup in the plan for dependent slices so it needs no extra approval.
 
 Record PR, target, CI, review, and completion state in local progress. Resolve review
 feedback through the affected coding and validation gates; a change that alters the

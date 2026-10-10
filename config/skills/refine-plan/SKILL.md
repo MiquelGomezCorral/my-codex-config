@@ -16,6 +16,9 @@ repository evidence, the separate approved `Decision records` section, and the a
 remaining ambiguity would change behavior, scope, or risk, ask the user one focused
 question and stop without finalizing the plan.
 
+In a complete workflow, do not finalize without the *Context*, `Can run` (or the recorded
+live-test opt-out), and `Slice gates` records below. Name the missing one and stop.
+
 ## Planning mode
 Preserve the approved `brief` or `full` mode. Keep a brief plan proportional rather
 than expanding it to fill every optional section.
@@ -24,7 +27,9 @@ than expanding it to fill every optional section.
 One sentence describing the observable outcome.
 
 ## Context
-Current behavior, relevant evidence, and why the change is needed.
+Current behavior, relevant evidence, and why the change is needed. In a complete
+workflow, include the grill-me answers and what the investigation found: codebase mapping,
+research, and the code-blind proposal.
 
 ## Files touched
 Exact implementation paths only.
@@ -49,15 +54,30 @@ changed app, project, or artifact is ready to start for live validation. Do not 
 broad test suite or unrelated checks.
 
 ## Live validation
-Define one representative live test using exactly `Flow`, `Expected`, and `Can run`.
-Name the current tool that can run it, or mark it user-only. Mark the flow pending user
-approval; neither the planner nor executor may run it automatically.
+Define the live test set, one set per slice in a complete workflow, ordered from broad and
+simple (start the app, smoke, simple mock data) to precise (real data, edge cases). Give
+each test these fields:
 
-Unit tests are not enough: they only cover small things, algorithms, and model or shape
-assertions, so they never replace the live test. If the live route is not fully clear —
-how to reach the changed behavior, what to observe, and how to judge it — ask the user one
-focused question and stop without finalizing. Never guess a route, and never finalize a
-plan whose only validation is unit tests.
+- `Flow`: the steps a real user or caller takes.
+- `Samples`: the files and data it needs, prepared during planning and saved beside the plan.
+- `Where`: the environment it runs in.
+- `Can run`: who runs it (the agent with the current tool and commands, the user only, or
+  both).
+- `Expected`: the observable result that decides pass or fail.
+- `Reset`: how to stop the app and restore its data after a run.
+- `Bounds`: the side effects it may cause and what it must not touch.
+
+The approved wave authorizes, within each test's `Where` and `Bounds`, its base run, review
+rounds, final rerun, and wave regression. Without an approved wave, running it still needs
+the user's bounded authorization.
+
+Unit tests never replace the live test. If the live route is not clear by the planning
+reference's [definition](../workflow/references/planning.md#define-the-live-test), ask the
+user one focused question and stop without finalizing. Never guess a route, and never
+finalize a plan whose only validation is unit tests.
+
+If the user declined live tests, record that opt-out explicitly in place of the set; the
+live-test rules above then do not apply.
 
 ## Main-agent memory updates
 Preserve the exact approved memory updates or the explicit statement that none are
@@ -73,7 +93,10 @@ execution; coders receive them as constraints and report conflicts.
 Record slice order, dependencies, per-slice scope and exclusions, coding size, owners,
 checks, samples, tool availability, review preset, acceptance evidence, required
 artifacts with editable source and preview paths, human gates, and known starting
-revisions; for later slices state the accepted-predecessor-head rule instead. List
+revisions; for later slices state the accepted-predecessor-head rule instead. Record
+`Slice gates: each-slice` (the default) or `Slice gates: final-only` from the human's
+answer to the slice-gate question; for `final-only`, name the wave's one branch and state
+that each later slice starts from the previous slice's local commit. List
 each approved live or Git action separately with its target and bounds; state `none` when
 there is no authorization. Workflow context and progress state do not create permission.
 Omit this section for standalone plans.

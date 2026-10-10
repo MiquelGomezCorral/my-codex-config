@@ -5,7 +5,9 @@ checked out; never switch to the base and merge the feature into it. Merging pre
 branches' commits exactly as they are; this workflow never rebases.
 
 Base branch resolution: an explicit branch argument is the base branch; otherwise the base
-branch is local `main`. Do not fetch.
+branch is the local branch of the feature's PR target when the feature backs a PR, and local
+`main` when it does not. Merging any other base into a PR branch adds foreign commits. Do not
+fetch.
 
 If `git status --porcelain` reports staged, unstaged, or untracked changes, commit them
 through `commit.md` only when the accepted plan or direct request also names that commit.
@@ -60,6 +62,9 @@ git diff <base-branch>...<feature-branch> --stat    # inspect the feature-only c
 ```
 
 If the ancestry check fails or the base-only log is non-empty, stop and report it. Confirm
-the diff contains only the feature work; do not clean up or push.
+the diff contains only the feature work; do not clean up or push. A merge does not remove
+commits from a squash-merged or rebased predecessor. When `git log <base>..<feature>`
+still lists foreign commits, only report them; removing them is a separate, authorized PR
+action under `pr.md`'s `Own commits only` rule, never part of a merge turn.
 
 Do not push. Report the merge result, including the three verification outputs.

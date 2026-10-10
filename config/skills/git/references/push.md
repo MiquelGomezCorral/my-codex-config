@@ -21,8 +21,11 @@ around it.
   tree matches the presented result. Record the checkpoint and final commit hashes.
 - Review repository instructions and checks. Stop if the worktree contains secrets, unclear
   unrelated changes, or failed required verification.
+- When the branch backs a PR, run the `Own commits only` check in `pr.md` before pushing.
 - Push and set the upstream when required (`git push -u origin <branch>`). Never force-push
-  and never amend a commit that has already been pushed.
+  and never amend a commit that has already been pushed. The one exception is the
+  pinned `--force-with-lease` push after an approved `Own commits only` rebuild in `pr.md`;
+  never plain `--force`.
 - Run the smallest repository-defined checks that prove the staged change. For an explicit
   WIP checkpoint, run the cheapest check that supports the claim and respect documented
   non-interactive runner constraints.

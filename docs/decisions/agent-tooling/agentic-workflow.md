@@ -30,12 +30,25 @@ slices with inspectable verification and explicit human authority across project
   other proposals; reviewer harness and tier defaults resolve through the model catalog.
 - Each approved slice is narrowed against current repository state before coding.
   Technical steps may adapt within approved bounds; changed behavior, scope,
-  dependencies, validation, or authority returns to the human.
+  dependencies, validation, or authority returns to the human. The coordinator may adjust
+  the approved live test set within its environment and side-effect bounds and reports each
+  change; widening those bounds returns to the human.
 - Slices run sequentially. Independent slices require explicit approval before parallelism.
-  Each slice has one worktree with separate agent sessions and one writer at a time.
-- The next slice starts from the preceding accepted PR head only after its reviews, CI,
-  and human gates pass. An unmerged parent is a valid starting point.
+  In an `each-slice` wave each slice has one worktree with separate agent sessions and one
+  writer at a time, and the next slice starts from the preceding accepted PR head only after
+  its reviews, CI, and human gates pass; an unmerged parent is a valid starting point. A
+  `final-only` wave follows the shipping layout its plan approved (workflow stages 7-9).
+- Planning always runs three steps, in brief and full mode alike: a grill-me with investigation,
+  "how and who live validates it", and whether each slice needs the human's thumbs up. A wave
+  may choose `final-only`: the human accepts every slice at one final gate before any push. The
+  choice lives only in that wave's plan, never as a standing preference.
 - Live application testing and live tool preflight require explicit, bounded authorization.
+  A bare "test" from the user means a live test of the real thing. Planning asks whether
+  the wave wants live tests (default yes); an approved wave's live test set is the bounded
+  authorization for running it.
+- Review includes live testing by default (`full`). Each slice tests only its own behavior,
+  and a wave regression reruns every slice's set after the last slice. A wave without live
+  tests records the opt-out, and its review and presentation state the waived evidence.
 - A local checkpoint commit precedes cleanup. Cleanup audits stay read-only; an approved
   workflow may route verified in-scope simplifications to the implementation worker.
 - After the human accepts the result, the Git worker gathers remaining accepted task-owned
@@ -62,17 +75,22 @@ slices with inspectable verification and explicit human authority across project
 - A script-maintained progress record generates the local HTML status page. Routine
   workflow runs use it instead of the retained legacy Markdown template. The root updates
   it at dispatches, waits, results, corrections, gates, and resume. Updates preserve
-  untouched statuses and slice evidence; starting another slice resets delivery steps
-  explicitly. Current activity, main substeps, and the latest five living-note versions
+  untouched statuses and slice evidence. Each slice keeps its own delivery steps and
+  activity, so parallel slices show side by side; planning and close-wave steps are
+  wave-level. A summary table, per-slice tabs, and the latest five living-note versions
   make progress visible without changing approval or evidence requirements.
+  A "Needs your attention" panel at the top lists blockers, a pending human decision, and
+  non-blocking items the user must act on (logins, permissions, live-test setup, questions);
+  resolving an item never grants approval.
 - The progress view uses the shared icon catalog. Its editable diagram separates layout
   from run state and maps stable nodes to steps; one graph serves every slice. Diagram
   highlights are derived views, never edits to the shared source or proof of completion.
 - Brief tasks reduce effort and artifacts while preserving applicable authority,
   scope, evidence, and human-validation gates.
-- Human plan review uses a concise filled-in brief and a reusable workflow-owned HTML
-  renderer. The renderer owns layout, icons, tabs, and expandable detail; agents supply
-  content and useful artifacts. The complete Markdown specification remains authoritative.
+- Human plan review uses a concise filled-in brief drawn by the artifacts page engine, so
+  plan pages share the artifact palette, icons, versions, and change marks. The engine owns
+  layout, icons, and expandable detail; agents supply content and useful artifacts. The
+  complete Markdown specification remains authoritative.
 - Plan explanations prioritize understanding over maximum compression. State the purpose
   or consequence first, then show useful deeper explanation without another disclosure.
   Explain concrete behaviour, relevant scenarios, stopping conditions, cost, and tradeoffs
@@ -88,6 +106,8 @@ slices with inspectable verification and explicit human authority across project
   bounded artifact-only worker receives grounded facts, evidence, scope, and style; the
   coordinator verifies its output and presents accepted artifacts with the complete plan.
   Upstream diagram tooling owns drawing mechanics; workflow owns presentation guidance.
+  The repository's `excalidraw-draw` skill owns hand-written Excalidraw mechanics, and its
+  worker renders and reviews its own output before the coordinator verifies it.
 
 - The workflow map uses a pinned, unchanged native Archify viewer around a derived SVG
   exported from editable draw.io source. A thin adapter translates explicit active-step
@@ -103,10 +123,14 @@ slices with inspectable verification and explicit human authority across project
   commits, worktrees, publication, and live actions.
 - Parallelism, scope expansion, live actions, destructive recovery, and shipping never
   acquire authority solely from entering a stage.
-- Sequential slices inherit only a positively accepted predecessor revision; reviewers
-  report the inspected head and relevant base, and changed evidence is revalidated.
+- Sequential slices inherit only a positively accepted predecessor revision, except in a
+  `final-only` wave, where a slice inherits its predecessor's reviewed and live-tested local
+  commit and the human accepts all slices at the final gate; reviewers report the inspected
+  head and relevant base, and changed evidence is revalidated.
 - Checkpoint recovery preserves unrelated work and existing history; no implicit reset,
-  rebase, squash, amendment, force-push, or branch deletion is introduced.
+  rebase, squash, amendment, force-push, or branch deletion is introduced. Folding final-gate
+  feedback into an earlier slice's commit needs the human's approval each time and touches only
+  unpushed commits.
 - A checkpoint alone does not prove that cleanup corrections were committed or shipped;
   ambiguous ownership or a changed accepted result stops the final Git handoff.
 - Read-only reviewers and cleanup auditors never edit product source or become fixers.
@@ -118,8 +142,10 @@ slices with inspectable verification and explicit human authority across project
   Behaviour clarified in conversation must be reconciled with the authoritative plan before
   the brief presents it as a commitment.
 - Diagrams distinguish verified current behavior, proposals, alternatives, and unknowns.
-  They never replace the authoritative written plan or create approval. Optional artifact
-  failures remain visible and do not block a usable written planning outcome.
+  They never replace the authoritative written plan or create approval. Each human gate gets a
+  page (discovery, plan, result with live evidence); a revised page shows what changed since the
+  human last saw it. A required gate page that fails to render is fixed or reported as a blocker;
+  optional artifact failures remain visible and do not block a usable written planning outcome.
 - Artifact workers cannot edit product source, access unrelated private memory, operate
   Git, or delegate. Their writable output scope does not broaden reviewer permissions.
 - Raw logs, runtime handles, credentials, and sessions are not persisted in tracked source.
@@ -150,7 +176,8 @@ renderer tests. Agreement between the human brief and full specification remains
 Explanation quality and meaningful grouping remain Review-only: a reader should be able to
 predict relevant behaviour and find the supporting detail without opening every section.
 The `workflow-progress` CLI owns progress validation and rendering. Focused CLI tests
-cover state preservation, slice resets, notes, and invalid updates; browser refresh,
+cover state preservation, per-slice statuses, notes, and invalid updates; old-run
+migration and slice targeting are covered by the live progress walkthrough; browser refresh,
 view preservation, and offline presentation require a bounded local walkthrough.
 Diagram presentation and comprehension remain Review-only: compare the revised diagram
 with its grounded brief and full plan, including the actual embedded view.
@@ -163,6 +190,16 @@ diagram comprehension remains Review-only.
 
 ## History
 
+- 2026-10-10: Required a page at each human gate, with changes since the last version shown and live evidence at the result gate.
+- 2026-10-10: Made grill-me + investigation, live-validation, and slice-gate questions mandatory planning steps.
+- 2026-10-10: Added the per-wave `final-only` slice-gate option chosen at planning.
+- 2026-10-10: Moved plan review rendering onto the artifacts page engine; answers already in
+  the request settle mandatory planning questions once shown back to the user.
+- 2026-10-09: Added the "Needs your attention" panel to the progress page.
+- 2026-10-08: Gave each slice its own progress steps and activity, with a summary table and
+  per-slice tabs; close-wave became wave-level.
+- 2026-10-08: Made live acceptance tests part of the approved wave, review include live
+  testing by default with the `full` preset, and added the wave regression pass.
 - 2026-10-04: Approved native stage reuse beneath the existing workflow gates, with
   capability limits recorded once and vendor prompts left with their harnesses.
 - 2026-10-02: Automatic map updates keep native details hidden and emphasize complete
@@ -193,3 +230,6 @@ diagram comprehension remains Review-only.
   expandable full specifications, and unchanged human approval boundaries.
 - 2026-09-30: Approved optional diagrams during drafting and revision, artifact-only
   delegation, and explicit separation of current facts, proposals, and unknowns.
+- 2026-10-08: Added `excalidraw-draw` for clean and free-form Excalidraw drawings rendered
+  with the official CLI; its drawing worker may render and lint inside its output directory
+  to review its own work.

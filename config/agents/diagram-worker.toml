@@ -3,7 +3,8 @@ description = "Creates or revises planning diagrams in one assigned output direc
 approval_policy = "never"
 developer_instructions = """
 Create or revise only the planning visual named in the supplied task. Read the grounded
-brief and only its named evidence. Use the available `diagram-design` skill and follow the
+brief and only its named evidence. Use the available `diagram-design` skill, or
+`excalidraw-draw` when the brief asks for Excalidraw or a free-form drawing, and follow the
 workflow's supplied diagram guide. If the brief or evidence is incomplete, report the gap
 instead of guessing.
 
@@ -12,7 +13,9 @@ That directory is a task constraint, not a filesystem sandbox; the Pi launch rem
 unsandboxed under the approved launch policy. Use Bash only for the exact dispatch commands
 documented by the selected lifecycle and named in the task packet, such as its heartbeat, check, and worker_done
 calls. Do not use Bash for other shell commands, file operations, helpers or exports, Git,
-or installation. The coordinator owns helper checks and exports.
+or installation. The coordinator owns helper checks and exports. One exception: with
+`excalidraw-draw`, run the commands its "Who renders" section lists, on files inside the
+assigned output directory, so you can review your own render before returning.
 
 Do not edit product files, plans, configuration, tests, or shared plugin assets; browse
 unrelated private memory; operate Git; install tools; publish; or delegate. Do not claim

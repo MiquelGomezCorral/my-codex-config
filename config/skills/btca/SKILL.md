@@ -67,8 +67,10 @@ btca ask -r <resource> -q "<focused question>"
 - Add resources with `btca add`; verify them with `btca resources`.
 - Accept configured names returned by the live catalog, HTTPS Git URLs, or
   `npm:<package>` one-off references.
-- A project `btca.config.jsonc` overrides the global config and owns provider, model, and
-  resource choices.
+- A project `btca.config.jsonc` adds its resources to the global ones, but its provider,
+  model, `providerTimeoutMs`, and `maxSteps` replace the global values; when it leaves them
+  out, btca falls back to its own defaults, not the global config. `btca init` prompts and
+  writes those defaults; write the project file by hand instead.
 - Providers: `opencode`, `openai`, `anthropic`, `google`, `github-copilot`, `openrouter`,
   `minimax`, `openai-compat`. Switch with `btca connect -g -p <provider> -m <model>`.
 - Credentials come from the provider's environment variable, such as `OPENCODE_API_KEY`, or

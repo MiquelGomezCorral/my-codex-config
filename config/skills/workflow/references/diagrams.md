@@ -7,13 +7,15 @@ plan remains authoritative; a diagram never proves a behavior or grants approval
 ## Worker brief
 
 Before dispatch, apply the [super-agent route availability policy](../../super-agent/SKILL.md#select-the-route)
-to verify `diagram-design` is available on the selected route. If not, report the optional
+to verify the chosen drawing skill is available on the selected route: `diagram-design`,
+or `excalidraw-draw` for Excalidraw and free-form drawings. If not, report the optional
 artifact gap and continue with the written plan; do not install it or switch harnesses.
 
 Give the worker one concrete question to answer, the subject and scope,
 the audience, verified facts with their evidence, proposed changes, alternatives, unknowns,
 material dependencies and risks, and the output directory. Resolve style first: use the
-chosen project style, or pass `Minimal dark` explicitly when there is no project style.
+chosen project style, or pass one explicitly when there is none: `Minimal dark` for
+`diagram-design`, the house style for `excalidraw-draw`.
 Include only relevant evidence. The worker may create or revise assigned artifacts; it
 cannot edit product files, browse unrelated private memory, use Git, install tools, publish,
 or delegate.
@@ -44,14 +46,23 @@ reading with the full plan.
 ## Artifacts
 
 HTML is the default preview. Use SVG when requested or easier to embed, and keep the editable
-source supplied by the tool. Do not promise Excalidraw export. Attach accepted artifacts
-through the existing `title`, `caption`, `path`, `sourcePath`, and `placement` fields. Keep
-the takeaway and review question in the caption, and link the artifact beside the plan.
+source supplied by the tool. An `excalidraw-draw` drawing previews as its rendered PNG. Do not promise an Excalidraw export of a `diagram-design`
+drawing. Attach accepted artifacts through the existing `title`, `caption`, `path`,
+`sourcePath`, and `placement` fields. Keep the takeaway and review question in the caption,
+and link the artifact beside the plan.
+
+When `diagram-design` and the `excalidraw` skill templates cannot express the drawing, or
+it goes beyond diagrams (wireframes, slides, illustrations, maps), use
+[`excalidraw-draw`](../../excalidraw-draw/SKILL.md). It writes the `.excalidraw` scene,
+renders it with the official Excalidraw CLI, and has the drawing agent review the render.
+It owns the install check, the CLI docs link, and the commands an agent may run.
 
 Diagram creation is optional. If a worker or preview fails, report the missing artifact and
 give the explanation in text; do not present an unverified diagram as completed evidence.
 The coordinator owns any helper-script checks or exports, then verifies the resulting files
-and preview. Report unavailable or failing helpers; never imply the worker ran them.
+and preview. An `excalidraw-draw` worker is the exception: it renders and lints the files in
+its own output directory to review its work. Report unavailable or failing helpers; never
+imply the worker ran them.
 
 For the native workflow-progress map source, export, stable-ID bindings, and run metadata,
 follow the [map setup guide](../../workflow-progress/references/map-setup.md).

@@ -16,11 +16,11 @@ remain pending separate authorization.
 
 ## Unclear live-test route
 
-- **Setup:** a change whose real behavior cannot yet be reached or judged with the tools
-  at hand, and the user has not described how to test it.
+- **Setup:** the user opted in to live tests for a change whose real behavior cannot yet
+  be reached or judged with the tools at hand, and has not described how to test it.
 - **Expected:** treat the undefined live test as a planning blocker, ask the user how to
-  exercise the real behavior end to end, and record the concrete `Flow`, `Expected`, and
-  `Can run` route before locking scope.
+  exercise the real behavior end to end, and record the live test set (fields in
+  `refine-plan`) before locking scope.
 - **Must not:** finalize the plan on unit tests, assume the flow, invent a live route, or
   claim the change works because small tests pass.
 
@@ -32,6 +32,20 @@ remain pending separate authorization.
   verify B's PR contains only B's slice.
 - **Must not:** start B from A's working tree, require a merge before B, or run independent
   slices in parallel without asking.
+
+## Final-only stacked slices
+
+- **Setup:** slice B depends on slice A; at planning the human answered "only at the end",
+  and the plan authorizes local commits per slice and one push after final acceptance.
+- **Expected:** record `Slice gates: final-only` in the plan and progress; after A's
+  reviews, live tests, and cleanup pass, commit A locally without presenting it, mark A's
+  `human-validation.*` steps skipped, and start B on the same branch; after the wave
+  regression, present one result page with a section per slice; for each feedback item, ask
+  whether to fold the fix into the owning slice's commit or add a new commit on top, then
+  rerun the affected live tests and the regression; push once after acceptance.
+- **Must not:** present, push, or open a PR between slices; continue past a red check, a
+  blocking finding, or missing evidence; fold a fix into a pushed commit or without asking;
+  or save `final-only` as a preference in private agent memory.
 
 ## Interrupted slice with mixed findings
 

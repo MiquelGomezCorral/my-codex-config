@@ -224,12 +224,14 @@ test("updates preserve untouched data, allow parallel active steps, and reopen c
   strictEqual(result.status, 0, result.stderr)
   const state = run.readState()
   strictEqual(state.statuses["first-draft.investigate"], "done")
-  strictEqual(state.statuses["build-review.implement"], "upcoming")
-  strictEqual(state.statuses["cleanup.audit"], "active")
-  strictEqual(state.statuses["human-validation.await-feedback"], "upcoming")
-  strictEqual(state.activity.explanation, "Reviewing the implementation")
-  strictEqual(state.activity.sliceContext, "Slice 1: progress page")
-  strictEqual(state.activity.nextAction, "Check the rendered snapshot")
+  strictEqual(state.slices[0].statuses["build-review.implement"], "upcoming")
+  strictEqual(state.slices[0].statuses["cleanup.audit"], "active")
+  strictEqual(state.slices[0].statuses["human-validation.await-feedback"], "upcoming")
+  deepStrictEqual(state.slices[0].activity, {
+    explanation: "Reviewing the implementation",
+    sliceContext: "Slice 1: progress page",
+    nextAction: "Check the rendered snapshot",
+  })
   deepStrictEqual(state.slices[0].evidence, ["review-report.md"])
   deepStrictEqual(state.slices[0].approvals, [approval])
   deepStrictEqual(state.notes.map((note) => note.text), ["The review found one item to correct."])
@@ -260,32 +262,55 @@ test("invalid step IDs and conflicting assignments leave the saved record unchan
   strictEqual(readFileSync(run.path, "utf8"), initial)
 })
 
-test("blocker resolution removes only named entries and rejects unknown blockers without saving", (t) => {
+test("blocker and attention resolution removes only named entries in scope and rejects unknown items without saving", (t) => {
   const run = createRun(t, "blockers")
   let result = run.runCli([
-    "update", "--run", "blockers", "--new-slice", "slice-1",
+    "update", "--run", "blockers",
+    "--append", "attention=question: <b>Which port?</b>",
+    "--append", "attention=shared request",
+    "--new-slice", "slice-1",
+    "--append", "attention=shared request",
     "--append", "slice.blocker=resolved slice blocker",
     "--append", "slice.blocker=keep slice blocker",
     "--append", "evidence.unresolved-blocker=resolved run blocker",
     "--append", "evidence.unresolved-blocker=keep run blocker",
     "--append", "slice.evidence=review.md",
     "--append", "evidence.link=plan.md",
+    "--new-slice", "slice-2",
+    "--slice", "slice-1,slice-2", "--append", "attention=permission: shared",
+    "--slice", "slice-2,slice-1", "--append", "attention=permission: shared",
   ])
   strictEqual(result.status, 0, result.stderr)
+  const sharedCreatedAt = run.readState().attention.find((item) => item.text === "permission: shared").createdAt
 
   result = run.runCli([
     "update", "--run", "blockers",
     "--resolve-slice-blocker", "resolved slice blocker",
     "--resolve-unresolved-blocker", "resolved run blocker",
+    "--resolve-attention", "shared request",
     "--active", "build-review.review",
+    "--slice", "slice-1", "--resolve-attention", "permission: shared",
   ])
   strictEqual(result.status, 0, result.stderr)
   const state = run.readState()
   deepStrictEqual(state.slices[0].blockers, ["keep slice blocker"])
   deepStrictEqual(state.evidence.unresolvedBlockers, ["keep run blocker"])
+  deepStrictEqual(state.attention.map(({ text, sliceIds }) => ({ text, sliceIds })), [
+    { text: "question: <b>Which port?</b>", sliceIds: [] },
+    { text: "shared request", sliceIds: ["slice-1"] },
+    { text: "permission: shared", sliceIds: ["slice-2"] },
+  ])
+  strictEqual(state.attention.at(-1).createdAt, sharedCreatedAt)
   deepStrictEqual(state.slices[0].evidence, ["review.md"])
   deepStrictEqual(state.evidence.links, ["plan.md"])
-  strictEqual(state.statuses["build-review.review"], "active")
+  strictEqual(state.slices[0].statuses["build-review.review"], "active")
+
+  result = run.runCli(["render", "--run", "blockers"])
+  strictEqual(result.status, 0, result.stderr)
+  const page = readFileSync(result.stdout.trim(), "utf8")
+  match(page, /Needs your attention \(5\)/)
+  match(page, /&lt;b&gt;Which port\?&lt;\/b&gt;/)
+  doesNotMatch(page, /<b>Which port/)
 
   const beforeInvalid = readFileSync(run.path, "utf8")
   result = run.runCli([
@@ -295,15 +320,24 @@ test("blocker resolution removes only named entries and rejects unknown blockers
   notStrictEqual(result.status, 0)
   match(result.stderr, /blocker not found/)
   strictEqual(readFileSync(run.path, "utf8"), beforeInvalid)
+
+  result = run.runCli([
+    "update", "--run", "blockers", "--done", "build-review.implement",
+    "--slice", "slice-1", "--resolve-attention", "question: <b>Which port?</b>",
+  ])
+  notStrictEqual(result.status, 0)
+  match(result.stderr, /attention item not found in slice-1/)
+  strictEqual(readFileSync(run.path, "utf8"), beforeInvalid)
 })
 
-test("current stages come from active groups and show each group without order inference", (t) => {
+test("current stages show working wave stages without order inference", (t) => {
   const run = createRun(t, "current-stages")
   let result = run.runCli([
-    "update", "--run", "current-stages",
+    "update", "--run", "current-stages", "--new-slice", "slice-1",
+    "--active", "first-draft.draft",
+    "--waiting", "challenge-approve.critique",
+    "--blocked", "close-wave.regression",
     "--active", "build-review.review",
-    "--waiting", "cleanup.audit",
-    "--blocked", "human-validation.await-feedback",
     "--current", "Reviewing the implementation",
     "--set", "current-stage=Intake",
   ])
@@ -311,12 +345,12 @@ test("current stages come from active groups and show each group without order i
   result = run.runCli(["render", "--run", "current-stages"])
   strictEqual(result.status, 0, result.stderr)
   let html = readFileSync(result.stdout.trim(), "utf8")
-  match(html, /<p class="field-label">Current stages<\/p><p class="field-value">Build and review · Cleanup · Human validation<\/p>/)
+  match(html, /<p class="field-label">Current stages<\/p><p class="field-value">First draft · Challenge and approve · Close wave<\/p>/)
   match(html, /<span class="field-label">Recorded current stage<\/span><br>Intake/)
 
   result = run.runCli([
     "update", "--run", "current-stages",
-    "--done", "build-review.review", "--done", "cleanup.audit", "--done", "human-validation.await-feedback",
+    "--done", "first-draft.draft", "--done", "challenge-approve.critique", "--done", "close-wave.regression",
   ])
   strictEqual(result.status, 0, result.stderr)
   result = run.runCli(["render", "--run", "current-stages"])
@@ -325,7 +359,7 @@ test("current stages come from active groups and show each group without order i
   match(html, /<p class="field-label">Current stages<\/p><p class="field-value"><span class="empty">None active\.<\/span><\/p>/)
 })
 
-test("new slices archive evidence and reset delivery steps while notes keep five versions", (t) => {
+test("new slices start fresh delivery steps and keep earlier slices intact while notes keep five versions", (t) => {
   const run = createRun(t, "slices")
   const approval = {
     action: "Local review",
@@ -362,9 +396,9 @@ test("new slices archive evidence and reset delivery steps while notes keep five
   const state = run.readState()
   strictEqual(state.run.currentSliceId, "slice-2")
   strictEqual(state.statuses["first-draft.investigate"], "done")
-  strictEqual(state.statuses["prepare-slice.readiness"], "upcoming")
-  strictEqual(state.statuses["build-review.implement"], "upcoming")
-  strictEqual(state.statuses["cleanup.audit"], "upcoming")
+  strictEqual(state.slices[1].statuses["prepare-slice.readiness"], "upcoming")
+  strictEqual(state.slices[1].statuses["build-review.implement"], "upcoming")
+  strictEqual(state.slices[1].statuses["cleanup.audit"], "upcoming")
   deepStrictEqual(state.run.planningEvidenceAndArtifacts, ["plan.md"])
   deepStrictEqual(state.approvals, [approval])
   deepStrictEqual(state.slices[0].statuses["build-review.implement"], "done")
@@ -423,8 +457,10 @@ test("map info merges partial metadata, separates planning from slice data, and 
   const payload = html.match(/<script id="workflow-map-state" type="application\/json">([\s\S]*?)<\/script>/)
   strictEqual(payload?.length, 2)
   const renderedState = JSON.parse(payload[1])
-  strictEqual(renderedState.runInfo.nodes.c48.description, description)
-  strictEqual(renderedState.sliceInfo.steps["build-review.implement"].anchors[0], "c46")
+  strictEqual(renderedState.defaultTab, "slice:slice-1")
+  const sliceTab = renderedState.tabs["slice:slice-1"]
+  strictEqual(sliceTab.runInfo.nodes.c48.description, description)
+  strictEqual(sliceTab.sliceInfo.steps["build-review.implement"].anchors[0], "c46")
   doesNotMatch(html, /Implementation <script>alert/)
   strictEqual(existsSync(join(dirname(result.stdout.trim()), "workflow-map.html")), true)
 
@@ -443,7 +479,7 @@ test("invalid or unscoped delivery map info leaves saved state unchanged and leg
   writeFileSync(inputPath, JSON.stringify({ steps: { "build-review.implement": { anchors: ["c46"] } } }))
   let result = run.runCli(["update", "--run", "map-info-invalid", "--map-info", inputPath])
   notStrictEqual(result.status, 0)
-  match(result.stderr, /requires a current slice/)
+  match(result.stderr, /current slice/)
   strictEqual(readFileSync(run.path, "utf8"), before)
 
   writeFileSync(inputPath, JSON.stringify({ nodes: { unknown: { description: "invalid" } } }))

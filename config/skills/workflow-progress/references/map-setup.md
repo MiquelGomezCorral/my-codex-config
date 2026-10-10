@@ -122,10 +122,11 @@ start one with `--new-slice <slice-id>` if needed. Omitted fields keep their sav
 empty string clears optional text. The CLI rejects unknown fields, workflow steps, and node IDs
 outside the run's map snapshot before saving. It does not validate bindings against the SVG:
 `inspect-map` and the browser report missing source/rendered cells and unsupported connector
-terminals as compatibility warnings. Node metadata and planning-step metadata live at run
-level. Delivery-step metadata belongs to the current slice, is archived when a new slice starts,
-and does not carry forward. New runs do not inherit another run's metadata. Legacy runs without
-map fields use the installed default map.
+terminals as compatibility warnings. Node metadata and planning and Close wave step metadata
+live at run level. Delivery-step metadata belongs to the targeted slice (`--slice`, or the
+most recently updated slice), stays with it, and does not carry forward to new slices. New
+runs do not inherit another run's metadata. Legacy runs without map fields use the installed
+default map.
 
 `render` creates `progress.html` and a sibling `workflow-map.html`. `serve` exposes the map
 through the same loopback server and keeps its native frame loaded while progress refreshes.

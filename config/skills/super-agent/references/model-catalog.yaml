@@ -1,4 +1,5 @@
-max_local_concurrency: 1
+max_local_concurrency: 0 
+local_models: not-available
 
 # =======================================================================
 #                               HARNESS
@@ -26,6 +27,7 @@ claude:
     thinking: xhigh
 
 pi:
+  available: not-available
   low:
     model: opencode-go/deepseek-v4.1-flash
     thinking: high
@@ -71,11 +73,11 @@ super_agent:
 sub_orchestrator:
   harness: claude
   model: claude-opus-5-5
-  thinking: xhigh
+  thinking: high
 
 coder:
   harness: claude
-  model: claude-opus-5-5
+  model: claude-sonnet-5-5
   thinking: xhigh
 
 adversarial:

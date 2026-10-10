@@ -78,11 +78,23 @@
   "artifacts": [
     {
       "title": "Return flow",
-      "caption": "Short linear view of the proposed behavior.",
+      "caption": "How a saved destination travels through the existing return path.",
       "steps": [
-        { "title": "Read saved destination", "icon": "file-text" },
-        { "title": "Keep validation", "icon": "shield-check" },
-        { "title": "Return to caller", "icon": "workflow" }
+        {
+          "title": "Read saved destination",
+          "description": "The handler reads the destination saved with the request.",
+          "icon": "file-text"
+        },
+        {
+          "title": "Keep validation",
+          "description": "The existing validator checks it like any caller-provided value.",
+          "icon": "shield-check"
+        },
+        {
+          "title": "Return to caller",
+          "description": "Only a value that passed validation reaches the existing return route.",
+          "icon": "workflow"
+        }
       ]
     }
   ]

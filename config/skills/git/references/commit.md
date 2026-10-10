@@ -58,12 +58,42 @@ this format.
 - Never bypass hooks; fix the reported source or report the blocker.
 - Do not infer a push or PR from a commit. Those actions must also be named in the
   approved plan or direct request and remain subject to `push.md` and `pr.md`.
-- In an approved workflow, create a local cleanup checkpoint only when the plan names that
-  action and its scope. Record the hash; do not push it or treat it as permission for an
-  unlisted shipping action.
+- In an approved workflow, create a local cleanup checkpoint, or a `final-only` slice's
+  local commit, only when the plan names that action and its scope. Record the hash; do
+  not push it or treat it as permission for an unlisted shipping action.
 - For the final post-acceptance handoff, inspect every remaining staged, unstaged, and
   untracked change against the approved scope and presented result. Stage explicit
   task-owned deliverable paths; exclude private memory, progress files, temporary agent
   artifacts, and unrelated changes. A plan-scoped skill or agent-configuration file is a
   deliverable by scope, not a working-only artifact by filename. Create a final commit only
   when needed, record its hash, and stop if ownership or the accepted result is unclear.
+
+## Fold a fix into an earlier slice commit
+
+Use this only for final-gate feedback in a `final-only` wave, and only when the parent
+passes the human's choice to fold this item into the owning slice's commit. Without it, do
+not fold: stop and ask the parent. `<wave-base>` is the first slice's recorded base
+revision.
+
+1. Check that the rebase may rewrite the range: no commit in it is on a remote, and no
+   merge sits in it. Refresh every configured remote's branches and tags first; local
+   remote-tracking refs alone may be stale:
+
+   ```sh
+   git config --get-regexp '^remote\..*\.fetch$'  # each remote: +refs/heads/*:refs/remotes/<name>/*
+   git fetch --all --tags --prune                  # must succeed
+   git rev-list --count <wave-base>..HEAD
+   git rev-list --count <wave-base>..HEAD --not --remotes --tags
+   git rev-list --merges <wave-base>..HEAD         # empty: rebase would drop merge commits
+   ```
+
+   The second count ignores commits reachable from any remote-tracking branch or tag, local
+   tags included. Fold only when every remote fetches all its branches, the fetch succeeds,
+   both counts match, and the merge list is empty. Otherwise do not fold; report the failed
+   check so the parent can offer a new commit on top.
+2. Stage only the fix's paths, commit it with `git commit --fixup=<owning-sha>`, and
+   record the new `HEAD`.
+3. Fold it: `GIT_SEQUENCE_EDITOR=true git rebase -i --autosquash <wave-base>`. On a
+   conflict or stop, run `git rebase --abort`, never `git rebase --skip`, and report it.
+4. Verify `git diff --quiet <recorded-head> HEAD`: folding moves the fix into its owning
+   commit and never changes the final tree. Report the rewritten commit hashes.
