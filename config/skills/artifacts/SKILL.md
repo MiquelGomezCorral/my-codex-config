@@ -28,6 +28,7 @@ result), so this filter does not apply there.
 | Template | Use for |
 | --- | --- |
 | `templates/report.json` | Results of tests, audits, or reviews: counts, main findings, live evidence, click-to-open items, next steps |
+| `templates/results.json` | Experiment, benchmark, or training results over several runs: pass/fail grid per phase, all-runs table, plots, GIFs, phase notes. Findings and audits go in `report.json` |
 | `templates/decisions.json` | Questions the user must answer: options, a recommendation, saved picks, "Copy my decisions" |
 | `templates/comparison.json` | Two to four approaches side by side, with criteria and a recommendation |
 | `templates/explainer.json` | How a system or concept works: TL;DR, flow, collapsible steps, FAQ, glossary |
@@ -62,7 +63,8 @@ Pass `--keep-baseline` to fix a page before the user has seen it. The version an
 stay as they were, so the page still compares against what the user last saw.
 
 Sections match by `id`, else title; blocks by position inside their section; items by `id`,
-else title or name, else their own text. A removed item is listed by title only.
+else title or name, else their own text; gallery items by `src`, matrix rows by group title and
+label. A removed item is listed by title only.
 
 Write the text with the `writing` skill. Keep quotes verbatim and claims backed by what
 was actually observed.
@@ -70,7 +72,9 @@ was actually observed.
 ## Data shape
 
 Top level: `title`, optional `eyebrow` (small line above the title), `subtitle`,
-`layout` (`"slides"` for a deck), `statuses`, and `sections`. Each section has a `title`,
+`layout` (`"slides"` for a deck), `refresh` (seconds, 10 to 86400: the page reloads itself, for a
+page rewritten during a long run; a reload waits while the reader has opened a row, "Show only changes" is on, or a
+note field has focus), `statuses`, and `sections`. Each section has a `title`,
 an optional `id` for the navigation links and `intro`, a list of `blocks`, and optional
 `layout: "split"`, which puts its figures and any block with `side: true` on the right and
 the other blocks on the left. A split section in a deck is a diagram slide.
@@ -86,7 +90,8 @@ is one of `ok`, `bad`, `warn`, `info`, or `muted`.
 | `list` | `items` (strings, or `text` plus nested `items` and `ordered`), `ordered` |
 | `stats` | `items` (`value`, `label`, `tone`); `auto: true` adds counts of finding statuses |
 | `cards` | `items` (`title`, `text`, optional `status`, `icon`, and `inset`, a second explanation shown in a neutral inset) |
-| `table` | `columns`, `rows` (arrays of strings), `select` (adds a tick box per row; rows start ticked) |
+| `table` | `columns`, `rows` (arrays of cells; a cell is a string, or `{ text, tone }` for a status chip), `select` (adds a tick box per row; rows start ticked) |
+| `matrix` | `columns` (strings, or `name` plus `note`), `groups` (`title`, `rows` of `label`, `note`, and `cells`, one list of chips per column, where a single chip or a string also works; a chip is `text`, `tone`, and `title` for hover text), `legend`. Chips stack one per line |
 | `steps` | `items` (`title`, `text`, optional `icon`) drawn as a left-to-right flow |
 | `details` | `items` (`title`, `text`, optional `blocks`, `open`, `icon`, `preview` shown while closed) as collapsible rows |
 | `inset` | `blocks` drawn inside a neutral inset |
@@ -95,6 +100,7 @@ is one of `ok`, `bad`, `warn`, `info`, or `muted`.
 | `decisions` | `items` (`id`, `question`, `context`, `options`, `recommended`) |
 | `code` | `text` |
 | `figure` | `src` (a file next to the page: image, `.html`, or `.mp4`/`.webm` video), `caption`, `alt`, `source` (editable file or URL), `height` for HTML |
+| `gallery` | `items` (`src`, `caption`, `alt`: images, GIFs, videos; each opens full size), `width` (thumbnail px, default 320), `pixelated` (crisp upscaled pixel art) |
 | `html` | `html`, only for a hand-drawn SVG or markup no other block covers |
 
 An `icon` is a key of `icons.json`, the skill's Lucide catalog; an unknown name draws nothing.
@@ -123,6 +129,7 @@ then point `src` at it:
 | Architecture, flowchart, sequence, state, ER, timeline, or chart | `diagram-design` | its SVG export (`scripts/export_svg.py`); its HTML pages do not shrink to fit |
 | Whiteboard-style sketch the user may keep editing | `excalidraw` | the preview SVG; the `.excalidraw` file or web link as `source` |
 | Clean or free-form drawing no template covers: wireframe, slides, illustration, icon-rich visual | `excalidraw-draw` | its rendered PNG; the `.excalidraw` file as `source` |
+| Plot from Python (plotly, bokeh, altair) | its HTML export (self-contained when the library has that option) | the HTML file, with a `height`; a saved PNG goes in as an image |
 | UI mockup or clickable prototype | a small standalone HTML file | the HTML file, with a `height` |
 | A short linear flow | no file: use a `steps` block | - |
 | A tiny one-off drawing | inline SVG in an `html` block | - |

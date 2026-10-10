@@ -32,10 +32,11 @@
     .table-wrap { overflow-x: auto; }
     .slice-table { width: 100%; border-collapse: collapse; }
     .slice-table th, .slice-table td { padding: 8px 10px; border-top: 1px solid #282a2e; text-align: left; vertical-align: top; overflow-wrap: break-word; }
-    /* Chips and step labels never break inside; long slice text gets a fixed share instead of squeezing them. */
+    /* Chips and step labels never break inside, and several chips in one cell stack one per line;
+       long slice text gets a fixed share instead of squeezing them. */
     .slice-table thead th:first-child { width: 26%; }
     .slice-table td:nth-child(3) { white-space: nowrap; }
-    .slice-table .stage-chip { white-space: nowrap; }
+    .slice-table .stage-chip { display: flex; width: fit-content; white-space: nowrap; }
     .slice-table thead th { border-top: 0; color: #a7a9ad; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
     .slice-table tbody th { font-weight: 600; }
     .stage-chip { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; margin: 0 6px 4px 0; padding: 1px 8px; border: 1px solid var(--chip-color); border-radius: 10px; color: var(--chip-color); font-size: 12px; font-weight: 600; line-height: 1.4; }

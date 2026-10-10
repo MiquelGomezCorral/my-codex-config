@@ -105,6 +105,15 @@ figure img,figure iframe,figure video{display:block;max-width:100%;border-radius
 figure iframe{width:100%}
 figcaption{color:var(--muted);font-size:13px;margin-top:4px}
 figcaption a{margin-left:8px;font-size:12px}
+.legend{color:var(--muted);font-size:13px;margin:6px 0}
+.matrix tbody th{color:var(--ink);min-width:150px;max-width:260px}
+.matrix small{display:block;color:var(--muted);font-weight:400}
+.matrix .group th{background:var(--mutedbg);color:var(--ink)}
+.chips{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.gallery{display:flex;flex-wrap:wrap;gap:12px;margin:10px 0}
+.gallery figure{width:var(--w);max-width:100%;margin:0}
+.gallery img,.gallery video{width:100%;height:auto}
+.gallery.pixelated img{image-rendering:pixelated}
 .split{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:20px;align-items:start}
 @media (max-width:760px){.split{grid-template-columns:1fr}}
 body.slides main{max-width:none;padding:0}
@@ -122,11 +131,12 @@ details.changes{border:0;border-left:4px solid var(--tone)}.changes summary{padd
 .toggle-changes{display:block;margin-top:8px;cursor:pointer}
 [data-change]:not(section,tr){outline:2px solid color-mix(in srgb,var(--acc) 55%,transparent);outline-offset:2px;border-radius:8px}
 .block[data-change]{padding:8px 12px;margin:10px 0}
-tr[data-change]>td{background:color-mix(in srgb,var(--acc) 10%,transparent)}
-tr[data-change]>td:first-child{box-shadow:inset 3px 0 var(--acc)}
+tr[data-change]>:is(td,th){background:color-mix(in srgb,var(--acc) 10%,transparent)}
+tr[data-change]>:first-child{box-shadow:inset 3px 0 var(--acc)}
 body.only-changes section:not([data-change]):not(:has([data-change])),
 body.only-changes section:not([data-change="added"]) .block:not([data-change]):not(:has([data-change])),
-body.only-changes [data-item]:not([data-change]){display:none}
+body.only-changes [data-item]:not([data-change]),
+body.only-changes .matrix tbody:has([data-item]):not(:has([data-change])){display:none}
 </style>
 </head>
 <body>
@@ -188,6 +198,15 @@ function tone(name) {
   return TONES.includes(name) ? name : "muted";
 }
 
+// A table cell is a string, or { text, tone } for a status chip.
+function cellText(cell) {
+  return cell !== null && typeof cell === "object" ? cell.text : cell;
+}
+
+function cellHtml(cell) {
+  return cell !== null && typeof cell === "object" ? `<span class="pill ${tone(cell.tone)}">${inline(cell.text)}</span>` : inline(cell);
+}
+
 function pill(statusKey) {
   const status = statuses[statusKey] || { label: statusKey, tone: "muted" };
   return `<span class="pill ${tone(status.tone)}">${escapeHtml(status.label)}</span>`;
@@ -224,15 +243,30 @@ const renderers = {
   cards: (b) => `<div class="grid">${(b.items || []).map((i) => `<div class="card"><h3>${icon(i.icon)}${inline(i.title)}${i.status ? pill(i.status) : ""}</h3>${paragraphs(i.text)}${i.inset ? `<div class="inset">${paragraphs(i.inset)}</div>` : ""}</div>`).join("")}</div>`,
   table: (b) => {
     const head = (b.columns || []).map((c) => `<th>${inline(c)}</th>`).join("");
-    const cells = (r) => r.map((c) => `<td>${inline(c)}</td>`).join("");
+    const cells = (r) => r.map((c) => `<td>${cellHtml(c)}</td>`).join("");
     if (!b.select) return `<div class="scroll"><table><thead><tr>${head}</tr></thead><tbody>${(b.rows || []).map((r) => `<tr>${cells(r)}</tr>`).join("")}</tbody></table></div>`;
     // Rows start ticked; the user unticks what to skip. Picks are keyed by heading and every cell.
     const picked = loadState(pickedRowsKey);
     const rows = (b.rows || []).map((r) => {
-      const key = (b.heading || "") + "|" + r.join(" | ");
+      const key = (b.heading || "") + "|" + r.map(cellText).join(" | ");
       return `<tr data-key="${escapeHtml(key)}"><td><input type="checkbox"${picked[key] ?? true ? " checked" : ""}></td>${cells(r)}</tr>`;
     }).join("");
     return `<div class="scroll"><table class="pick" data-group="${escapeHtml(b.heading || "")}"><thead><tr><th></th>${head}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  },
+  // Rows sit in groups; every cell stacks its chips one per line, whatever the width.
+  matrix: (b) => {
+    const columns = (b.columns || []).map((c) => typeof c === "string" ? { name: c } : c);
+    const note = (text) => text ? `<small>${inline(text)}</small>` : "";
+    // A cell is a list of chips; a single chip or a string stands for a one-chip list, and blanks draw nothing.
+    const chip = (c) => {
+      const { text, tone: name, title } = typeof c === "object" && c ? c : { text: c };
+      return `<span class="pill ${tone(name)}"${title ? ` title="${escapeHtml(title)}"` : ""}>${inline(text)}</span>`;
+    };
+    const cell = (chips) => `<td><div class="chips">${[].concat(chips ?? []).filter(Boolean).map(chip).join("")}</div></td>`;
+    const row = (r) => `<tr><th scope="row">${inline(r.label)}${note(r.note)}</th>${columns.map((_, n) => cell(r.cells?.[n])).join("")}</tr>`;
+    const group = (g) => `<tbody>${g.title ? `<tr class="group"><th colspan="${columns.length + 1}">${inline(g.title)}</th></tr>` : ""}${(g.rows || []).map(row).join("")}</tbody>`;
+    const head = columns.map((c) => `<th>${inline(c.name)}${note(c.note)}</th>`).join("");
+    return `${b.legend ? `<p class="legend">${inline(b.legend)}</p>` : ""}<div class="scroll"><table class="matrix"><thead><tr><th></th>${head}</tr></thead>${(b.groups || []).map(group).join("")}</table></div>`;
   },
   steps: (b) => `<div class="steps">${(b.items || []).map((i) => `<div class="step">${icon(i.icon)}<b>${inline(i.title)}</b><span>${inline(i.text)}</span></div>`).join('<span class="arrow">→</span>')}</div>`,
   details: (b) => (b.items || []).map((i) => `<details${i.open ? " open" : ""}><summary>${icon(i.icon)}<span class="t">${inline(i.title)}</span>${i.preview ? `<span class="preview">${inline(i.preview)}</span>` : ""}</summary><div class="body">${i.text ? paragraphs(i.text) : ""}${(i.blocks || []).map(renderBlock).join("")}</div></details>`).join(""),
@@ -266,6 +300,7 @@ const renderers = {
     const links = `<a href="${src}" target="_blank" rel="noopener">Open full size</a>${b.source ? `<a href="${escapeHtml(b.source)}" target="_blank" rel="noopener">Editable source</a>` : ""}`;
     return `<figure>${media}<figcaption>${inline(b.caption || "")}${links}</figcaption></figure>`;
   },
+  gallery: (b) => `<div class="gallery${b.pixelated ? " pixelated" : ""}" style="--w:${Number(b.width) || 320}px">${(b.items || []).map((i) => renderers.figure(i)).join("")}</div>`,
   // Escape hatch for hand-drawn SVG or markup no block covers; content is trusted agent output.
   html: (b) => b.html || "",
 };
@@ -278,7 +313,8 @@ function renderBlock(block) {
 
 // fill.py embeds the version the user last saw as data.previous. The page compares the two and
 // marks what is added or changed. Sections match by id, else title; blocks by position in their
-// section; items by id, else title or name, else their own text.
+// section; items by id, else title or name, else their own text or src. Matrix rows are items
+// keyed by group title and label.
 const ITEM_DOM = {
   list: { field: "items", items: ":scope > :is(ul, ol) > li" },
   cards: { field: "items", items: ":scope > .grid > .card", badge: "h3" },
@@ -288,6 +324,8 @@ const ITEM_DOM = {
   decisions: { field: "items", items: ":scope > .decision", badge: ".q" },
   compare: { field: "options", items: ":scope > .cmp > .card", badge: "h3" },
   table: { field: "rows", items: ":scope tbody tr", badge: "td:not(:has(input))" },
+  matrix: { field: "groups", items: ":scope tbody tr:not(.group)", badge: "th" },
+  gallery: { field: "items", items: ":scope > .gallery > figure", badge: "figcaption" },
 };
 const KIND_TONE = { added: "ok", changed: "warn", removed: "bad" };
 
@@ -297,15 +335,21 @@ function same(a, b) {
 
 function itemKey(item) {
   if (typeof item === "string") return item;
-  if (Array.isArray(item)) return item.join(" | ");
-  return String(item.id ?? item.title ?? item.name ?? item.text ?? JSON.stringify(item));
+  if (Array.isArray(item)) return item.map(cellText).join(" | ");
+  return String(item.id ?? item.title ?? item.name ?? item.text ?? item.src ?? JSON.stringify(item));
 }
 
 function itemLabel(item) {
   const label = typeof item === "object" && !Array.isArray(item)
-    ? [item.id, item.title ?? item.name ?? item.question].filter(Boolean).join(" ") || item.text || "item"
+    ? [item.id, item.title ?? item.name ?? item.question].filter(Boolean).join(" ") || item.text || item.caption || item.src || "item"
     : itemKey(item);
   return label.length > 80 ? label.slice(0, 77) + "..." : label;
+}
+
+// The items a block is diffed by. Matrix rows are lifted out of their groups.
+function itemsOf(block) {
+  if (block.type !== "matrix") return block[ITEM_DOM[block.type]?.field] || [];
+  return (block.groups || []).flatMap((group) => (group.rows || []).map((row) => ({ ...row, id: [group.title, row.label].filter(Boolean).join(" › ") })));
 }
 
 // Marks each current item "added", "changed", or null; removed items come back whole. `reordered`
@@ -332,7 +376,7 @@ function diffBlock(before, after) {
   if (same(before, after)) return null;
   const field = ITEM_DOM[after.type]?.field;
   if (!field || before.type !== after.type) return { mark: "changed", own: true, marks: [], removed: [] };
-  const { marks, removed, reordered } = diffItems(before[field], after[field]);
+  const { marks, removed, reordered } = diffItems(itemsOf(before), itemsOf(after));
   const own = reordered || !same({ ...before, [field]: 0 }, { ...after, [field]: 0 });
   return { mark: own || !marks.some(Boolean) ? "changed" : null, own, marks, removed };
 }
@@ -344,7 +388,7 @@ function diffSection(before, after, note) {
     const heading = block.heading || `${block.type} block ${i + 1}`;
     if (diff.mark === "added") note("added", after.title, heading);
     else if (diff.own) note("changed", after.title, heading);
-    const items = block[ITEM_DOM[block.type]?.field] || [];
+    const items = itemsOf(block);
     diff.marks.forEach((mark, n) => mark && note(mark, after.title, itemLabel(items[n])));
     diff.removed.forEach((item) => note("removed", after.title, itemLabel(item)));
     return diff;
@@ -575,6 +619,17 @@ document.body.append(toolbar);
 wireTheme(toolbar);
 wireDecisions();
 if (data.layout === "slides") wireSlides(toolbar);
+// A page rewritten during a long run reloads itself, at most daily. A reload would close what the
+// reader opened, so a tick is skipped while a row they opened is open, "Show only changes" is on,
+// or a textarea has focus; the next tick tries again.
+const refreshSeconds = Number(data.refresh);
+if (Number.isFinite(refreshSeconds) && refreshSeconds >= 10) {
+  const openAtLoad = new Set(document.querySelectorAll("details[open]"));
+  const readerIsBusy = () => document.body.classList.contains("only-changes")
+    || document.activeElement?.matches("textarea")
+    || [...document.querySelectorAll("details[open]")].some((d) => !openAtLoad.has(d));
+  setInterval(() => { if (!readerIsBusy()) location.reload(); }, Math.min(refreshSeconds, 86400) * 1000);
+}
 </script>
 </body>
 </html>
