@@ -3,7 +3,7 @@
 
 Usage: python3 serve-artifact.py --directory <artifact-directory> [--port 3100]
 
-Prints the local URL, then the LAN URL when the machine has a route out, then a bind note.
+Prints the local URL, then the LAN URL when the machine has a route out, else a bind note.
 """
 
 import argparse
@@ -85,11 +85,12 @@ def serve(directory, first_port):
     address = lan_address()
     if address:
         print(f"http://{address}:{bound_port}/", flush=True)
-    print(
-        f"bound 0.0.0.0:{bound_port}; remote clients use this machine's "
-        "observed host/IP with the same port",
-        flush=True,
-    )
+    else:
+        print(
+            f"bound 0.0.0.0:{bound_port}; remote clients use this machine's "
+            "observed host/IP with the same port",
+            flush=True,
+        )
     try:
         server.serve_forever()
     except KeyboardInterrupt:

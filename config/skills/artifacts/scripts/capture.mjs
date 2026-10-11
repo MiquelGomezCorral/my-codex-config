@@ -8,8 +8,8 @@ import { tmpdir } from "node:os"
 import { delimiter, dirname, extname, join, resolve } from "node:path"
 import { parseArgs } from "node:util"
 
-const usage = "usage: node capture.mjs <url> --screenshot <file.png>\n"
-  + "       node capture.mjs <url> --video <file.webm> [--seconds <n>]"
+const usage = "usage: node capture.mjs <url> --screenshot <file.png> [--width <px>]\n"
+  + "       node capture.mjs <url> --video <file.webm> [--seconds <n>] [--width <px>]"
 const VIEWPORT = { width: 1280, height: 720 }
 const CHROME_NAMES = ["google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "chrome"]
 const TIMEOUT_MS = 30_000
@@ -139,12 +139,13 @@ async function connect(endpoint) {
   }
 }
 
-async function openPage(cdp, url) {
+// The emulated width is what the page lays out at; Chrome's --window-size cannot go below 500 px.
+async function openPage(cdp, url, width) {
   const { targetId } = await cdp.send("Target.createTarget", { url: "about:blank" })
   const { sessionId } = await cdp.send("Target.attachToTarget", { targetId, flatten: true })
   const send = (method, params) => cdp.send(method, params, sessionId)
   await send("Page.enable")
-  await send("Emulation.setDeviceMetricsOverride", { ...VIEWPORT, deviceScaleFactor: 1, mobile: false })
+  await send("Emulation.setDeviceMetricsOverride", { ...VIEWPORT, width, deviceScaleFactor: 1, mobile: false })
 
   const loaded = cdp.once("Page.loadEventFired")
   const { errorText } = await send("Page.navigate", { url })
@@ -199,7 +200,12 @@ function parseOptions(argv) {
   const { values, positionals } = parseArgs({
     args: argv,
     allowPositionals: true,
-    options: { screenshot: { type: "string" }, video: { type: "string" }, seconds: { type: "string", default: "5" } },
+    options: {
+      screenshot: { type: "string" },
+      video: { type: "string" },
+      seconds: { type: "string", default: "5" },
+      width: { type: "string", default: String(VIEWPORT.width) },
+    },
   })
   const [url] = positionals
   if (positionals.length !== 1 || !/^https?:\/\//i.test(url)) throw new Error(`need one http or https URL\n${usage}`)
@@ -210,11 +216,13 @@ function parseOptions(argv) {
   if (extname(output) !== extension) throw new Error(`output must end in ${extension}`)
   const seconds = Number(values.seconds)
   if (!(seconds > 0 && seconds <= MAX_SECONDS)) throw new Error(`--seconds must be between 0 and ${MAX_SECONDS}`)
-  return { url, output, video: Boolean(values.video), seconds }
+  const width = Number(values.width)
+  if (!Number.isInteger(width) || width < 1) throw new Error("--width must be a whole number of pixels")
+  return { url, output, video: Boolean(values.video), seconds, width }
 }
 
 async function main() {
-  const { url, output, video, seconds } = parseOptions(process.argv.slice(2))
+  const { url, output, video, seconds, width } = parseOptions(process.argv.slice(2))
   const chromePath = findChrome()
   mkdirSync(dirname(output), { recursive: true })
   const work = mkdtempSync(join(tmpdir(), "capture-"))
@@ -225,7 +233,7 @@ async function main() {
     chrome = launched.chrome
     const endpoint = await withTimeout(launched.endpoint, TIMEOUT_MS, "Chrome did not start in time")
     cdp = await connect(endpoint)
-    const send = await openPage(cdp, url)
+    const send = await openPage(cdp, url, width)
     if (video) {
       const framesDirectory = join(work, "frames")
       mkdirSync(framesDirectory)

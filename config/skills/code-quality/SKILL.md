@@ -21,6 +21,8 @@ Read `references/<language>.md` for the language of the file you are about to to
 universal rules apply first; the language reference narrows them for that language.
 
 - [Python](references/python.md)
+- [Python plots](references/python-plots.md): when the Python code draws a plot for a page,
+  notebook, or report
 
 ## Language checks
 

@@ -202,7 +202,7 @@ For human review, fill a concise brief from the artifacts skill's
 `references/plan-page.md`; read that reference only when producing the brief. Keep the
 full Markdown plan complete and authoritative, then check that the brief preserves its
 risks, questions, expected outcomes, useful artifacts, and approval boundary. Render both:
-`node "$HOME/.agents/skills/artifacts/scripts/render-plan.mjs" --input <plan.md> --review <review.json> --output <artifact.html>`.
+`node <artifacts-skill>/scripts/render-plan.mjs --input <plan.md> --review <review.json> --output <artifact.html>`.
 This plan page is the gate 2 page. `--keep-baseline` keeps the old baseline for a re-render
 before the user sees it.
 Then open the resulting HTML with `npx -y lavish-axi <artifact.html>`. Capture the actual review
@@ -210,7 +210,8 @@ URL returned by the viewer and include it as a descriptive Markdown link when pr
 the plan, before asking for approval. Do not substitute the HTML path or guess the URL.
 For a direct browser link, serve only the artifact directory with the shared standard-library
 helper: `python3 <workflow-skill>/scripts/serve-artifact.py --directory <artifact-directory>`.
-It follows the global artifact-sharing rule and prints the local URL and chosen port.
+It follows the global artifact-sharing rule and prints the local and LAN URLs with the chosen
+port, or a bind note when the machine has no LAN address.
 Share the actual direct URL and any Lavish viewer URL as separate links. If neither is
 available, report that and link to the local artifact using the chat's clickable file-link
 format. Keep the Markdown file authoritative.

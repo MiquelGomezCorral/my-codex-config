@@ -57,12 +57,13 @@
         { "type": "decisions", "items": [
           {
             "id": "D1",
-            "title": "<Plain name of the choice>",
-            "description": "<What is decided and why it matters, in plain words: scenario ids and what happened.>",
-            "question": "<What should the agent do when ...?>",
+            "title": "<Short question, e.g. Block the refund flow?>",
+            "description": "<What is decided and why it matters, in plain words.>",
+            "question": "<The same ask spelled out, e.g. Should the agent block the refund flow when ...?>",
             "options": ["<Option A>", "<Option B>"],
             "recommended": "<Option A>",
-            "why": "<Why this option is recommended, in plain words.>"
+            "why": "<Why this option is recommended, in plain words.>",
+            "technical": "<Scenario ids and mechanics, each named, e.g. scenario 3, refund over the limit (S3).>"
           }
         ] }
       ]

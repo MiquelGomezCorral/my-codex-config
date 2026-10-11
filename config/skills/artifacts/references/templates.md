@@ -3,7 +3,7 @@
 Read the entry for your template before you fill it. Field names live in the data-shape
 table in [SKILL.md](../SKILL.md); this guide says which template to pick, what it ships,
 which block fits which content, and where fills go wrong. Every snippet is a complete page
-that renders as written. Replace every value in it.
+that renders as written.
 
 ## Pick a template
 
@@ -22,8 +22,6 @@ use any block.
 
 ## Before you render, for every template
 
-- **Replace every example value.** Delete the blocks and sections you do not use; never
-  leave example text or an empty section.
 - **Lead with plain words.** The plain-first rule at the top of SKILL.md applies to every
   page; each entry below says where its two layers go.
 - **Put an `id` on sections, findings, and decisions.** Ids keep section links and change
@@ -31,21 +29,32 @@ use any block.
   plus one added.
 - **Add new blocks at the end of a section.** Blocks match by position, so one inserted in
   the middle marks every block after it as changed.
-- **Keep table rows distinct.** A row has no `id`: its key is all its cell text. Copied
-  picks list every cell, and a row whose cell changes shows as one removed row plus one added.
-- **Write a caption that states the takeaway.** "Recall by method" says what the figure is;
-  "The tuned ranker passes the 90% line by 20k steps" says what to see.
+- **Keep table rows distinct.** A row has no `id`: its key is all its cell text, so a row
+  whose cell changes shows as one removed row plus one added.
 - **Save media next to the page.** `src` and gallery `src` are paths relative to the
   `index.html`. Copy files in first, then render.
 - **Open the page.** Check it at desktop and phone width: labels fit, nothing is clipped,
-  no "Unknown block type" box. For the phone view run
-  `google-chrome --headless=new --window-size=390,844 --screenshot=<file> <url>`; a taller
-  window shows more of the page.
+  no "Unknown block type" box. For the phone view use `--width 390`, as
+  [SKILL.md](../SKILL.md#live-evidence) sets out.
+
+## Icons, never emoji
+
+For a run: `circle-check` with tone `ok` passed, `circle-x` with `bad` failed, `loader-circle`
+with `info` running, `circle-dashed` with `muted` not started.
+
+To add a Lucide icon the catalog lacks:
+
+1. Fetch `https://unpkg.com/lucide-static@0.460.0/icons/<name>.svg`. Use that version for every
+   icon so the strokes match.
+2. Keep every shape inside its `<svg>`; drop the license comment and the `class` attribute, and
+   put the shapes in this wrapper, on one line:
+   `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">...</svg>`.
+3. Add `"<name>": { "label": "<what it means>", "svg": "<that line>" }` to `icons.json`. That
+   file is shared by every page and plan page, so name the icon you added in your report.
+4. Render a page that uses it and look at it: a chip draws it at 14 px.
 
 ## report.json
-
-For findings someone must read and judge: a test run, an audit, a review, the result gate
-of a workflow.
 
 **Ships**
 - **Summary:** `stats` with `auto: true`, then a `list` of the main points.
@@ -121,10 +130,6 @@ of a workflow.
 
 ## results.json
 
-For experiment, benchmark, or training results over several runs, where the reader scans a
-grid of pass and fail and then opens plots or GIFs. It is the page type a long run rewrites
-as runs finish.
-
 **Ships**
 - **Header:** `eyebrow` with the update time, `subtitle` with the setup in one sentence.
 - **Where we are:** `stats` with the run counts, a `list` of one bullet per phase, and a
@@ -141,11 +146,17 @@ as runs finish.
   text on a chip carries the detail that does not fit in it.
 - **A baseline from an earlier phase or another method is one more column.** Add it to the
   matrix or the table and label it with where it comes from.
-- **One line per run is a `table`.** A status cell draws a chip. Use `ok` for pass, `bad`
-  for fail, `info` for still running.
-- **A plot is a `figure`:** a PNG, or an HTML export from plotly, bokeh, or altair with a
-  `height`.
-- **GIFs and videos are a `gallery`.** Set `pixelated` only for upscaled pixel art.
+- **Run status is an icon chip** (see [Icons, never emoji](#icons-never-emoji)): the `icon`
+  and `tone` say pass, fail, or running, and the text holds the score and the seed. The
+  `legend` is a list of the same chips, each with its meaning as its text.
+- **One line per run is a `table`.** Its status cell is the same chip.
+- **A plot is a `figure`.** The plot row in [SKILL.md](../SKILL.md#diagrams-and-illustrations)
+  says how to make it and what goes in `src`.
+- **GIFs and videos are a `gallery`.** With several methods or experiments, use `groups`, one
+  per method: each gets a title, a divider line, and its own wrapping row, so runs of
+  different methods never mix. Plots of several experiments can use the same groups: give
+  each item an `.html` `src` and a `height`, and the block a `width` near 520. Set `pixelated`
+  only for upscaled pixel art.
 - **A page rewritten during a long run sets `refresh`.** Drop it once the runs are done.
 
 ```json
@@ -162,7 +173,11 @@ as runs finish.
         {
           "type": "matrix",
           "heading": "Summary",
-          "legend": "✓ passed · ✗ failed · ⏳ running. One chip per seed; hover for the first passing step.",
+          "legend": [
+            { "icon": "circle-check", "text": "passed", "tone": "ok" },
+            { "icon": "circle-x", "text": "failed", "tone": "bad" },
+            { "icon": "loader-circle", "text": "running, % done", "tone": "info" }
+          ],
           "columns": [{ "name": "Baseline", "note": "BM25 only" }, "Tuned ranker"],
           "groups": [
             {
@@ -172,10 +187,10 @@ as runs finish.
                   "label": "c1",
                   "note": "50k steps",
                   "cells": [
-                    [{ "text": "✗ 62% s1", "tone": "bad", "title": "never reached 90%; 11 min" }],
+                    [{ "icon": "circle-x", "text": "62% s1", "tone": "bad", "title": "never reached 90%; 11 min" }],
                     [
-                      { "text": "✓ 95% s1", "tone": "ok", "title": "first passed at 20k steps; 14 min" },
-                      { "text": "⏳ 40% s2", "tone": "info", "title": "training, last check 71%" }
+                      { "icon": "circle-check", "text": "95% s1", "tone": "ok", "title": "first passed at 20k steps; 14 min" },
+                      { "icon": "loader-circle", "text": "40% s2", "tone": "info", "title": "training, last check 71%" }
                     ]
                   ]
                 }
@@ -188,26 +203,24 @@ as runs finish.
           "heading": "All runs",
           "columns": ["Method", "Setting", "Seed", "Status", "Final score"],
           "rows": [
-            ["Baseline", "round 1 · c1", "1", { "text": "✗ fail", "tone": "bad" }, "62%"],
-            ["Tuned ranker", "round 1 · c1", "1", { "text": "✓ pass", "tone": "ok" }, "95%"]
+            ["Baseline", "round 1 · c1", "1", { "icon": "circle-x", "text": "fail", "tone": "bad" }, "62%"],
+            ["Tuned ranker", "round 1 · c1", "1", { "icon": "circle-check", "text": "pass", "tone": "ok" }, "95%"]
           ]
         },
         {
           "type": "figure",
-          "src": "recall.png",
-          "caption": "The tuned ranker passes the 90% line by 20k steps; the baseline never gets there."
-        },
-        {
-          "type": "figure",
-          "src": "latency.html",
-          "height": 380,
-          "caption": "Query latency, from a plotly export: the tuned ranker costs about 4x the baseline."
+          "src": "recall.html",
+          "height": 420,
+          "caption": "The tuned ranker passes the 90% line by 20k steps; the baseline never gets there. Plotly export, 2026-10-10 14:20."
         },
         {
           "type": "gallery",
           "heading": "Example queries",
           "width": 320,
-          "items": [{ "src": "gifs/q1-tuned.gif", "caption": "Tuned ranker, query 1: rank 1 of 10" }]
+          "groups": [
+            { "title": "Baseline", "items": [{ "src": "gifs/q1-baseline.gif", "caption": "Query 1: rank 7 of 10" }] },
+            { "title": "Tuned ranker", "items": [{ "src": "gifs/q1-tuned.gif", "caption": "Query 1: rank 1 of 10" }] }
+          ]
         }
       ]
     }
@@ -221,36 +234,24 @@ as runs finish.
 - **Put the seed in the chip text.** A cell with several runs must say which is which.
   Say what the chip means in the `legend`.
 - **Keep row labels stable between renders.** A matrix row is identified by its group title
-  and label, so a renamed row reads as removed plus added. A table row is identified by all
-  its cells, so a run whose progress changes shows as one removed row plus one added;
-  progress that keeps changing reads better in a matrix chip.
+  and label, so a renamed row reads as removed plus added. Progress that keeps changing
+  reads better in a matrix chip than in a table row.
 - **Rewrite with `--keep-baseline` during a run.** Each rewrite then still compares with
   what the user last saw. Render without it when you present the page: that render becomes
   the new baseline.
 - **Derive every number from the run files with a script, and keep the script.** Write
   down how each number is computed; never retype results.
-- **Say when a plot was made.** A plot from a notebook shows the runs finished at that time,
-  so put the time in the caption. A phase without a plot gets no `figure`.
 - **Show the run counts, not just pass counts.** Runs still training are not failures.
-- **Plot images keep their own background.** A white export shows as a light card in dark
-  mode. Save with `savefig(transparent=True)` and mid-gray text and axes; default black text
-  vanishes on the dark card.
 
 ## decisions.json
-
-For questions only the user can answer. The page saves the picks in the user's browser, and
-the user presses **Copy my decisions** and pastes the text back to you.
 
 **Ships**
 - **Context:** a `callout` that says why the answer is needed now.
 - **Decisions:** a `decisions` block, with the recommended option preselected.
 
 **Blocks**
-- **Plain first** (rule in SKILL.md): each decision has a title and a description before
-  its question; mechanics go in `technical`, after the options.
-- **One decision is one `decisions` item** (fields in SKILL.md).
-- **Rows to keep or drop go in a `table` with `select: true`.** Use it for a cleanup list.
-  The copy bar appears at the end of any section that holds either block.
+- **Plain first** (rule in SKILL.md): keep ids, flags, and commands out of the description;
+  they go in `technical`.
 
 ```json
 {
@@ -268,13 +269,13 @@ the user presses **Copy my decisions** and pastes the text back to you.
           "items": [
             {
               "id": "D1",
-              "title": "Who sees the new search first",
-              "description": "The new index is ready. This decides how many people get it on day one, and how fast we can switch it off if results look wrong.",
+              "title": "Who sees the new search first?",
+              "description": "The new index is ready. This decides how many people get the new search on day one, and how fast we can switch it off if results look wrong.",
               "question": "How should the rollout start?",
               "options": ["Behind a flag for 10% of users", "Everyone at once"],
               "recommended": "Behind a flag for 10% of users",
-              "why": "A small group is enough to show problems early, and the flag turns the new search off in seconds.",
-              "technical": "The flag `search_v2` is read on every request and buckets users by id, so the same people keep seeing the new search."
+              "why": "A small group is enough to show problems early, and the flag turns the new search off in seconds without a deploy.",
+              "technical": "The flag `search_v2` is read on every request and assigns a user to a bucket by user id, so the same people keep seeing the new search between visits."
             }
           ]
         }
@@ -291,20 +292,16 @@ the user presses **Copy my decisions** and pastes the text back to you.
   preselects nothing.
 - **Write each option as the full answer.** The copied text carries the option's words, not
   a number.
-- **Put the reason for your recommendation in `why`.** The page preselects the recommended
-  option and shows `why` as "Why recommended"; it does not repeat the option's name. Leave
-  `recommended` and `why` out when you have no recommendation.
-- **A title names the choice in a few plain words.** The description says what is decided
-  and why it matters; do not repeat it in the question. Older items with only `question`
-  and `context` still render, but write new ones with a title and description.
+- **Put the reason for your recommendation in `why`.** Do not repeat the option's name.
+  Leave `recommended` and `why` out when you have no recommendation.
+- **The title is a short question; the `question` is the same ask, spelled out.** "Push the
+  three commits?" is the title, "Push `consolidate-agent-skills` to origin?" the question.
+  The description says what is decided and why it matters, so do not repeat it in the
+  question.
 - **Renaming the page `title` or moving the file drops saved picks.** The browser keeps
   them under the page address and title.
-- **You only see the picks the user pastes back.** Do not read the page as an answer.
 
 ## comparison.json
-
-For a choice between two to four approaches, where the reader needs the trade-offs and your
-recommendation, but you do not need saved picks.
 
 **Ships**
 - **Options:** a `compare` block with a card per option and a criteria table.
@@ -379,8 +376,6 @@ recommendation, but you do not need saved picks.
 
 ## explainer.json
 
-For how a system or concept works, written for someone who was not there when it was built.
-
 **Ships**
 - **In short:** a `callout` with the answer in one or two sentences.
 - **The flow:** a `steps` block, then `details` rows for the questions each step raises.
@@ -393,9 +388,7 @@ For how a system or concept works, written for someone who was not there when it
 - **Plain first** (rule in SKILL.md): the TL;DR is the plain layer; the `details` rows hold
   the mechanics.
 - **Three to six steps in a line are `steps`.** Each has a short title and one line.
-- **Depth goes in `details`.** The title is the reader's question; a `preview` is a short
-  line under the title, open or closed.
-- **Side by side is `layout: "split"`.** Figures and blocks with `side: true` go right.
+- **Depth goes in `details`.** The title is the reader's question.
 - **Branching flows and architecture are figures** made with `diagram-design`, not `steps`.
 
 ```json
@@ -452,8 +445,7 @@ For how a system or concept works, written for someone who was not there when it
 
 ## slides.json
 
-For a short deck presented or read one screen at a time. Arrow keys or space move between
-slides; the URL hash holds the slide number.
+The URL hash holds the slide number, so a link can open a given slide.
 
 **Ships**
 - **A title slide** from `title`, `eyebrow`, and `subtitle`.
@@ -513,19 +505,9 @@ slides; the URL hash holds the slide number.
 
 ## plan-review.json
 
-For a complete Markdown plan that the user must review before approving. It is not page
-data: it is a review brief that `scripts/render-plan.mjs` merges with the plan.
-
-```
-node scripts/render-plan.mjs --input plan.md --review review.json --output plan.html
-```
-
-Start from `templates/plan-review.json`. The fields, the writing rules for the brief, and
-the icon list are in [plan-page.md](plan-page.md); do not repeat them here. Its entries'
-`description` and `technical` are the two layers of the plain-first rule in SKILL.md.
+Not page data: a review brief that `render-plan.mjs` merges with the plan. The command, the
+fields, and the writing rules are in [plan-page.md](plan-page.md); start from
+`templates/plan-review.json`.
 
 **Pitfalls**
 - **Do not pass the brief to `fill.py`.** It has no `sections`, so the page shows only the title.
-- **The brief does not replace the plan.** Compare it with the full plan before you show
-  the page.
-- **Render a revision to the same output path** so the page marks what changed.

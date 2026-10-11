@@ -229,7 +229,8 @@ test("workflow renders its native wave plan and can commission useful planning d
   const lavish = read("config/skills/lavish/SKILL.md")
 
   match(planning, /Markdown file\s+authoritative/i)
-  match(planning, /node "\$HOME\/\.agents\/skills\/artifacts\/scripts\/render-plan\.mjs"/)
+  match(planning, /scripts\/render-plan\.mjs/)
+  doesNotMatch(planning, /\$HOME\/\.agents\/skills/)
   match(planning, /--review <review\.json>/)
   match(planning, /references\/plan-page\.md/)
   match(planning, /deterministic renderer never delegates/i)

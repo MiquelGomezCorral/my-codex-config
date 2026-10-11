@@ -3,9 +3,10 @@
 Use this small file for the human-facing view of a complete Markdown plan. The brief
 does not replace the plan, summarize it automatically, or change its approval boundary.
 
-Start from [the example](../templates/plan-review.json) and render it beside the plan:
+Start from [the example](../templates/plan-review.json) and render it beside the plan. Run
+this from this skill's directory, with full paths for the plan, brief, and output:
 
-`node "$HOME/.agents/skills/artifacts/scripts/render-plan.mjs" --input plan.md --review review.json --output plan.html`
+`node scripts/render-plan.mjs --input <plan.md> --review <review.json> --output <plan.html>`
 
 The renderer turns the plan and brief into artifact data and draws it with this skill's
 page engine, so the plan page has the same look, icons, versions, and change marks as

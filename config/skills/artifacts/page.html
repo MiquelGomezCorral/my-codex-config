@@ -53,6 +53,7 @@ pre::-webkit-scrollbar-track,textarea::-webkit-scrollbar-track,.scroll::-webkit-
 .stat b{display:block;font-size:24px}.stat span{color:var(--muted);font-size:13px}
 .card h3{font-size:15px;margin:0 0 6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .icon{display:inline-flex;color:var(--acc);flex:none}.icon svg{width:18px;height:18px}
+.pill .icon{color:inherit;margin-right:4px;vertical-align:-3px}.pill .icon svg{width:14px;height:14px}
 .inset{background:var(--mutedbg);border-left:2px solid var(--line);border-radius:0 6px 6px 0;margin:8px 0;padding:6px 10px}
 .inset>:first-child{margin-top:0}.inset>:last-child{margin-bottom:0}
 .callout{border-left:4px solid var(--tone,var(--info));background:var(--tonebg,var(--infobg));border-radius:8px;padding:10px 14px;margin:10px 0}
@@ -90,12 +91,13 @@ blockquote cite{display:block;font-size:12px;font-style:normal}
 .cmp .card.rec{border:2px solid var(--acc)}
 .cmp ul{margin:4px 0;padding-left:18px}.cmp .pro::marker{content:"+ "}.cmp .con::marker{content:"− "}
 .decision{padding:12px 0;border-bottom:1px solid var(--line)}.decision:last-of-type{border-bottom:0}
-.decision .dh{font-weight:600;font-size:16px}.decision .q{font-weight:600;margin:6px 0 2px}.decision .ctx{color:var(--muted);font-size:14px}
+.decision .dh{font-weight:600;font-size:16px}.decision .ctx{color:var(--muted);font-size:14px}
 .decision .desc p:first-child{margin-top:4px}
+.why{border-left:3px solid var(--line);padding:2px 12px;margin:8px 0;font-size:14px}
+.why p{margin:0}.why .lbl{color:var(--acc)}.why .tech{color:var(--muted);margin-top:6px}.why .tech p{margin:4px 0}
 .opts{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0;font-size:14px}
 .opts label{display:flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:4px 10px;cursor:pointer;background:var(--card)}
-.opts .tag{color:var(--muted);font-size:12px}
-.rec-note{font-size:14px}.rec-note b{color:var(--acc)}
+.opts label.rec{border-color:color-mix(in srgb,var(--acc) 60%,var(--line));background:var(--infobg)}
 textarea{width:100%;min-height:38px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);padding:6px 8px;font:inherit;font-size:14px}
 button{font:inherit;font-size:14px;border:1px solid var(--acc);color:var(--acc);background:var(--card);border-radius:8px;padding:6px 14px;cursor:pointer}
 button.ok,button.bad{border-color:var(--tone);color:var(--tone)}
@@ -104,18 +106,24 @@ button.ok,button.bad{border-color:var(--tone);color:var(--tone)}
 .copy-text.ok,.copy-text.bad{border-color:var(--tone)}
 figure{margin:10px 0}
 figure img,figure iframe,figure video{display:block;max-width:100%;border-radius:8px;border:1px solid var(--line);background:var(--card)}
-figure iframe{width:100%}
+/* Light, like a document that sets no scheme: otherwise Chrome paints an opaque box behind a transparent plot on a dark page. */
+figure iframe{width:100%;color-scheme:light}
 figcaption{color:var(--muted);font-size:13px;margin-top:4px}
 figcaption a{margin-left:8px;font-size:12px}
 .legend{color:var(--muted);font-size:13px;margin:6px 0}
+div.legend{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
 .matrix tbody th{color:var(--ink);min-width:150px;max-width:260px}
 .matrix small{display:block;color:var(--muted);font-weight:400}
-.matrix .group th{background:var(--mutedbg);color:var(--ink)}
+.matrix .group th{background:var(--mutedbg)}
 .chips{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
 .gallery{display:flex;flex-wrap:wrap;gap:12px;margin:10px 0}
 .gallery figure{width:var(--w);max-width:100%;margin:0}
 .gallery img,.gallery video{width:100%;height:auto}
 .gallery.pixelated img{image-rendering:pixelated}
+.gallery-group{margin:22px 0 8px}
+.gallery-group h4{display:flex;align-items:center;gap:12px;margin:0 0 4px;font-size:15px}
+.gallery-group h4::after{content:"";flex:1;height:1px;background:color-mix(in srgb,var(--muted) 40%,transparent)}
+.gallery-group .gallery{margin-top:8px}
 .split{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:20px;align-items:start}
 @media (max-width:760px){.split{grid-template-columns:1fr}}
 body.slides main{max-width:none;padding:0}
@@ -131,14 +139,20 @@ body.slides h1{font-size:44px}
 .changes .pill{text-transform:capitalize}
 details.changes{border:0;border-left:4px solid var(--tone)}.changes summary{padding:0;font-weight:700}.changes ul{margin:6px 0;padding-left:20px}.changes li{margin:2px 0}
 .toggle-changes{display:block;margin-top:8px;cursor:pointer}
-[data-change]:not(section,tr){outline:2px solid color-mix(in srgb,var(--acc) 55%,transparent);outline-offset:2px;border-radius:8px}
+[data-change]:not(section,tr,li,details,.decision){outline:2px solid color-mix(in srgb,var(--acc) 55%,transparent);outline-offset:2px;border-radius:8px}
+.step[data-change]{outline-offset:0}
+/* Stacked items sit too close for an outline: list items get an underline, rows a left bar. */
+li[data-change]{text-decoration:underline 2px color-mix(in srgb,var(--acc) 60%,transparent);text-underline-offset:4px}
+li[data-change]:has(> :is(ul,ol)){text-decoration:none;box-shadow:inset 3px 0 var(--acc);padding-left:8px}
+:is(details,.decision)[data-change]{box-shadow:inset 3px 0 var(--acc);padding-left:12px}
 .block[data-change]{padding:8px 12px;margin:10px 0}
 tr[data-change]>:is(td,th){background:color-mix(in srgb,var(--acc) 10%,transparent)}
 tr[data-change]>:first-child{box-shadow:inset 3px 0 var(--acc)}
 body.only-changes section:not([data-change]):not(:has([data-change])),
 body.only-changes section:not([data-change="added"]) .block:not([data-change]):not(:has([data-change])),
 body.only-changes [data-item]:not([data-change]),
-body.only-changes .matrix tbody:has([data-item]):not(:has([data-change])){display:none}
+body.only-changes .matrix tbody:has([data-item]):not(:has([data-change])),
+body.only-changes .gallery-group:has([data-item]):not(:has([data-change])){display:none}
 </style>
 </head>
 <body>
@@ -179,8 +193,10 @@ function inline(text) {
     .replace(/\u0000(\d+)\u0000/g, (_, n) => `<code>${codes[n]}</code>`);
 }
 
-function paragraphs(text) {
-  return String(text ?? "").split(/\n\s*\n/).map((p) => `<p>${inline(p).replace(/\n/g, "<br>")}</p>`).join("");
+// `tail` is markup that ends the last paragraph.
+function paragraphs(text, tail = "") {
+  const parts = String(text ?? "").split(/\n\s*\n/);
+  return parts.map((p, i) => `<p>${inline(p).replace(/\n/g, "<br>")}${i === parts.length - 1 ? tail : ""}</p>`).join("");
 }
 
 // Unknown names draw nothing, so a typo never breaks the page.
@@ -200,13 +216,20 @@ function tone(name) {
   return TONES.includes(name) ? name : "muted";
 }
 
-// A table cell is a string, or { text, tone } for a status chip.
+// A chip is { text, tone, title, icon }: `title` is hover text and `icon` a key of the icon catalog,
+// drawn before the text. A bare string stands for a muted chip.
+function chip(c) {
+  const { text, tone: name, title, icon: iconName } = c !== null && typeof c === "object" ? c : { text: c };
+  return `<span class="pill ${tone(name)}"${title ? ` title="${escapeHtml(title)}"` : ""}>${icon(iconName)}${inline(text)}</span>`;
+}
+
+// A table cell is a string, or a chip object for a status chip.
 function cellText(cell) {
   return cell !== null && typeof cell === "object" ? cell.text : cell;
 }
 
 function cellHtml(cell) {
-  return cell !== null && typeof cell === "object" ? `<span class="pill ${tone(cell.tone)}">${inline(cell.text)}</span>` : inline(cell);
+  return cell !== null && typeof cell === "object" ? chip(cell) : inline(cell);
 }
 
 function pill(statusKey) {
@@ -260,15 +283,15 @@ const renderers = {
     const columns = (b.columns || []).map((c) => typeof c === "string" ? { name: c } : c);
     const note = (text) => text ? `<small>${inline(text)}</small>` : "";
     // A cell is a list of chips; a single chip or a string stands for a one-chip list, and blanks draw nothing.
-    const chip = (c) => {
-      const { text, tone: name, title } = typeof c === "object" && c ? c : { text: c };
-      return `<span class="pill ${tone(name)}"${title ? ` title="${escapeHtml(title)}"` : ""}>${inline(text)}</span>`;
-    };
-    const cell = (chips) => `<td><div class="chips">${[].concat(chips ?? []).filter(Boolean).map(chip).join("")}</div></td>`;
+    const cell = (chips) => `<td><div class="chips">${[].concat(chips ?? []).filter((c) => c != null && c !== "" && c !== false).map(chip).join("")}</div></td>`;
     const row = (r) => `<tr><th scope="row">${inline(r.label)}${note(r.note)}</th>${columns.map((_, n) => cell(r.cells?.[n])).join("")}</tr>`;
     const group = (g) => `<tbody>${g.title ? `<tr class="group"><th colspan="${columns.length + 1}">${inline(g.title)}</th></tr>` : ""}${(g.rows || []).map(row).join("")}</tbody>`;
     const head = columns.map((c) => `<th>${inline(c.name)}${note(c.note)}</th>`).join("");
-    return `${b.legend ? `<p class="legend">${inline(b.legend)}</p>` : ""}<div class="scroll"><table class="matrix"><thead><tr><th></th>${head}</tr></thead>${(b.groups || []).map(group).join("")}</table></div>`;
+    // The legend is a line of text, or a list of chips and text pieces that explain them.
+    const legend = b.legend
+      ? `<div class="legend">${[].concat(b.legend).map((i) => typeof i === "string" ? `<span>${inline(i)}</span>` : chip(i)).join("")}</div>`
+      : "";
+    return `${legend}<div class="scroll"><table class="matrix"><thead><tr><th></th>${head}</tr></thead>${(b.groups || []).map(group).join("")}</table></div>`;
   },
   steps: (b) => `<div class="steps">${(b.items || []).map((i) => `<div class="step">${icon(i.icon)}<b>${inline(i.title)}</b><span>${inline(i.text)}</span></div>`).join('<span class="arrow">→</span>')}</div>`,
   details: (b) => (b.items || []).map((i) => `<details${i.open ? " open" : ""}><summary>${icon(i.icon)}<span class="t">${inline(i.title)}</span>${i.preview ? `<span class="preview">${inline(i.preview)}</span>` : ""}</summary><div class="body">${i.text ? paragraphs(i.text) : ""}${(i.blocks || []).map(renderBlock).join("")}</div></details>`).join(""),
@@ -287,16 +310,18 @@ const renderers = {
     const state = loadState(storageKey);
     return (b.items || []).map((d) => {
       const picked = state[d.id]?.choice ?? d.recommended;
-      const options = (d.options || []).map((o) => `<label><input type="radio" name="dec-${escapeHtml(d.id)}" value="${escapeHtml(o)}"${o === picked ? " checked" : ""}>${inline(o)}${o === d.recommended ? '<small class="tag">recommended</small>' : ""}</label>`).join("");
-      // An item with a title leads with it and a plain description, then asks the question; an older
-      // item leads with the question. The recommended option is already ticked, so only `why` is shown.
+      // The recommended option stays softly outlined whichever option is picked; it carries no word.
+      const options = (d.options || []).map((o) => `<label${o === d.recommended ? ' class="rec" title="Recommended"' : ""}><input type="radio" name="dec-${escapeHtml(d.id)}" value="${escapeHtml(o)}"${o === picked ? " checked" : ""}>${inline(o)}</label>`).join("");
+      // An item with a title leads with it, then one paragraph: the description ending in the question
+      // in bold. An older item leads with the question and may add `context`.
+      const asked = d.title && d.question ? ` <b>${inline(d.question)}</b>` : "";
       const heading = inline(d.title || d.question);
-      const description = d.description ? `<div class="desc">${paragraphs(d.description)}</div>` : "";
-      const question = d.title && d.question ? `<div class="q">${inline(d.question)}</div>` : "";
+      const description = d.description || asked ? `<div class="desc">${paragraphs(d.description, asked)}</div>` : "";
       const context = d.context ? `<div class="ctx">${inline(d.context)}</div>` : "";
-      const why = d.why ? `<div class="rec-note"><b>Why recommended:</b> ${inline(d.why)}</div>` : "";
-      const technical = d.technical ? `<div class="inset">${paragraphs(d.technical)}</div>` : "";
-      return `<div class="decision" data-id="${escapeHtml(d.id)}"><div class="dh">${escapeHtml(d.id)}. ${heading}</div>${description}${question}${context}<div class="opts">${options}</div>${why}${technical}<textarea placeholder="Note (optional)">${escapeHtml(state[d.id]?.note || "")}</textarea></div>`;
+      // The recommended option is already ticked, so the box gives the reason, then the mechanics in muted text.
+      const reasons = (d.why ? `<p><b class="lbl">Why recommended:</b> ${inline(d.why)}</p>` : "") + (d.technical ? `<div class="tech">${paragraphs(d.technical)}</div>` : "");
+      const box = reasons ? `<div class="why">${reasons}</div>` : "";
+      return `<div class="decision" data-id="${escapeHtml(d.id)}"><div class="dh">${escapeHtml(d.id)}. ${heading}</div>${description}${context}${box}<div class="opts">${options}</div><textarea placeholder="Note (optional)">${escapeHtml(state[d.id]?.note || "")}</textarea></div>`;
     }).join("");
   },
   code: (b) => `<pre><code>${escapeHtml(b.text)}</code></pre>`,
@@ -310,7 +335,13 @@ const renderers = {
     const links = `<a href="${src}" target="_blank" rel="noopener">Open full size</a>${b.source ? `<a href="${escapeHtml(b.source)}" target="_blank" rel="noopener">Editable source</a>` : ""}`;
     return `<figure>${media}<figcaption>${inline(b.caption || "")}${links}</figcaption></figure>`;
   },
-  gallery: (b) => `<div class="gallery${b.pixelated ? " pixelated" : ""}" style="--w:${Number(b.width) || 320}px">${(b.items || []).map((i) => renderers.figure(i)).join("")}</div>`,
+  // `groups` split the items by method or experiment: a title with a divider line, an optional note,
+  // then the group's own wrapping row.
+  gallery: (b) => {
+    const row = (items) => `<div class="gallery${b.pixelated ? " pixelated" : ""}" style="--w:${Number(b.width) || 320}px">${(items || []).map((i) => renderers.figure(i)).join("")}</div>`;
+    const group = (g) => `<div class="gallery-group">${g.title ? `<h4>${inline(g.title)}</h4>` : ""}${g.note ? `<p class="legend">${inline(g.note)}</p>` : ""}${row(g.items)}</div>`;
+    return b.groups ? b.groups.map(group).join("") : row(b.items);
+  },
   // Escape hatch for hand-drawn SVG or markup no block covers; content is trusted agent output.
   html: (b) => b.html || "",
 };
@@ -324,18 +355,20 @@ function renderBlock(block) {
 // fill.py embeds the version the user last saw as data.previous. The page compares the two and
 // marks what is added or changed. Sections match by id, else title; blocks by position in their
 // section; items by id, else title or name, else their own text or src. Matrix rows are items
-// keyed by group title and label.
+// keyed by group title and label. `fields` are the block fields that hold items, which diffBlock sets
+// aside when it compares the block itself; itemsOf reads the first one, except for matrix rows and
+// grouped gallery items, which it lifts out of `groups`.
 const ITEM_DOM = {
-  list: { field: "items", items: ":scope > :is(ul, ol) > li" },
-  cards: { field: "items", items: ":scope > .grid > .card", badge: "h3" },
-  steps: { field: "items", items: ":scope .step", badge: "b" },
-  details: { field: "items", items: ":scope > details", badge: "summary > .t" },
-  findings: { field: "items", items: ":scope > details", badge: "summary > .t" },
-  decisions: { field: "items", items: ":scope > .decision", badge: ".dh" },
-  compare: { field: "options", items: ":scope > .cmp > .card", badge: "h3" },
-  table: { field: "rows", items: ":scope tbody tr", badge: "td:not(:has(input))" },
-  matrix: { field: "groups", items: ":scope tbody tr:not(.group)", badge: "th" },
-  gallery: { field: "items", items: ":scope > .gallery > figure", badge: "figcaption" },
+  list: { fields: ["items"], items: ":scope > :is(ul, ol) > li" },
+  cards: { fields: ["items"], items: ":scope > .grid > .card", badge: "h3" },
+  steps: { fields: ["items"], items: ":scope .step", badge: "b" },
+  details: { fields: ["items"], items: ":scope > details", badge: "summary > .t" },
+  findings: { fields: ["items"], items: ":scope > details", badge: "summary > .t" },
+  decisions: { fields: ["items"], items: ":scope > .decision", badge: ".dh" },
+  compare: { fields: ["options"], items: ":scope > .cmp > .card", badge: "h3" },
+  table: { fields: ["rows"], items: ":scope tbody tr", badge: "td:not(:has(input))" },
+  matrix: { fields: ["groups"], items: ":scope tbody tr:not(.group)", badge: "th" },
+  gallery: { fields: ["items", "groups"], items: ":scope .gallery > figure", badge: "figcaption" },
 };
 const KIND_TONE = { added: "ok", changed: "warn", removed: "bad" };
 
@@ -356,10 +389,12 @@ function itemLabel(item) {
   return label.length > 80 ? label.slice(0, 77) + "..." : label;
 }
 
-// The items a block is diffed by. Matrix rows are lifted out of their groups.
+// The items a block is diffed by. Matrix rows and grouped gallery items are lifted out of their
+// groups; a gallery item keeps its `src` key and notes its group, so a moved item reads as changed.
 function itemsOf(block) {
-  if (block.type !== "matrix") return block[ITEM_DOM[block.type]?.field] || [];
-  return (block.groups || []).flatMap((group) => (group.rows || []).map((row) => ({ ...row, id: [group.title, row.label].filter(Boolean).join(" › ") })));
+  if (block.type === "matrix") return (block.groups || []).flatMap((group) => (group.rows || []).map((row) => ({ ...row, id: [group.title, row.label].filter(Boolean).join(" › ") })));
+  if (block.type === "gallery" && block.groups) return block.groups.flatMap((group) => (group.items || []).map((item) => ({ ...item, group: group.title, note: group.note })));
+  return block[ITEM_DOM[block.type]?.fields[0]] || [];
 }
 
 // Marks each current item "added", "changed", or null; removed items come back whole. `reordered`
@@ -384,10 +419,11 @@ function diffItems(before, after) {
 function diffBlock(before, after) {
   if (!before) return { mark: "added", own: false, marks: [], removed: [] };
   if (same(before, after)) return null;
-  const field = ITEM_DOM[after.type]?.field;
-  if (!field || before.type !== after.type) return { mark: "changed", own: true, marks: [], removed: [] };
+  const fields = ITEM_DOM[after.type]?.fields;
+  if (!fields || before.type !== after.type) return { mark: "changed", own: true, marks: [], removed: [] };
   const { marks, removed, reordered } = diffItems(itemsOf(before), itemsOf(after));
-  const own = reordered || !same({ ...before, [field]: 0 }, { ...after, [field]: 0 });
+  const withoutItems = (block) => ({ ...block, ...Object.fromEntries(fields.map((field) => [field, 0])) });
+  const own = reordered || !same(withoutItems(before), withoutItems(after));
   return { mark: own || !marks.some(Boolean) ? "changed" : null, own, marks, removed };
 }
 
@@ -631,12 +667,13 @@ wireDecisions();
 if (data.layout === "slides") wireSlides(toolbar);
 // A page rewritten during a long run reloads itself, at most daily. A reload would close what the
 // reader opened, so a tick is skipped while a row they opened is open, "Show only changes" is on,
-// or a textarea has focus; the next tick tries again.
+// a textarea has focus, or a video is playing; the next tick tries again.
 const refreshSeconds = Number(data.refresh);
-if (Number.isFinite(refreshSeconds) && refreshSeconds >= 10) {
+if (refreshSeconds >= 10) {
   const openAtLoad = new Set(document.querySelectorAll("details[open]"));
   const readerIsBusy = () => document.body.classList.contains("only-changes")
     || document.activeElement?.matches("textarea")
+    || [...document.querySelectorAll("video")].some((v) => !v.paused)
     || [...document.querySelectorAll("details[open]")].some((d) => !openAtLoad.has(d));
   setInterval(() => { if (!readerIsBusy()) location.reload(); }, Math.min(refreshSeconds, 86400) * 1000);
 }

@@ -98,8 +98,17 @@ def main():
     page = fill_block(PAGE.read_text(encoding="utf-8"), ICONS_BLOCK, json.loads(ICONS.read_text(encoding="utf-8")))
     page = fill_block(page, DATA_BLOCK, data)
 
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(page, encoding="utf-8")
+    # Swap a finished file in: a reload during a plain write reads an empty or partial page, and a
+    # page cut off before its last script never starts its auto-refresh. The temp file sits beside
+    # the resolved output, so a symlinked output keeps its link, and a failed write leaves nothing.
+    output = args.output.resolve()
+    output.parent.mkdir(parents=True, exist_ok=True)
+    temp = output.with_name(f".{output.name}.tmp")
+    try:
+        temp.write_text(page, encoding="utf-8")
+        temp.replace(output)
+    finally:
+        temp.unlink(missing_ok=True)
     print(args.output)
 
 

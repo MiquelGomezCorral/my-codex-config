@@ -7,7 +7,7 @@
       "id": "context",
       "title": "Context",
       "blocks": [
-        { "type": "callout", "tone": "info", "title": "Why now", "text": "The new index is ready; these choices decide how it reaches users." }
+        { "type": "callout", "tone": "info", "title": "Why now", "text": "Two choices decide how the new search reaches users, and what happens to the old one." }
       ]
     },
     {
@@ -18,8 +18,8 @@
         { "type": "decisions", "items": [
           {
             "id": "D1",
-            "title": "Who sees the new search first",
-            "description": "This decides how many people get the new search on day one, and how fast we can switch it off if results look wrong.",
+            "title": "Who sees the new search first?",
+            "description": "The new index is ready. This decides how many people get the new search on day one, and how fast we can switch it off if results look wrong.",
             "question": "How should the rollout start?",
             "options": ["Behind a flag for 10% of users", "Everyone at once", "Internal users only"],
             "recommended": "Behind a flag for 10% of users",
@@ -28,7 +28,7 @@
           },
           {
             "id": "D2",
-            "title": "What happens to the old search",
+            "title": "What happens to the old search?",
             "description": "Some clients still call the old search address. Removing it frees us from maintaining two searches but breaks any client that has not moved yet.",
             "question": "Keep the old search endpoint?",
             "options": ["Keep for two weeks", "Remove now"],
