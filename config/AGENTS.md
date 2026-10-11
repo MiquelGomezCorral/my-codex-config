@@ -14,6 +14,10 @@ not weaken security or explicit user constraints.
 - Use the Caveman writing rules in `writing` for assistant-written prose. Keep meaning,
   technical accuracy, and natural clarity; do not apply the style to code or quoted text.
 - Cite code as `path/to/file:line`. Ask only when ambiguity changes scope or outcome.
+- Never hand the user a bare ID or hash. Say what it is first and put the ID after
+  it: "sends commit 1, the results page (`ad02be0`), and commit 2, the template guide
+  (`4c40ed3`)", not "sends `ad02be0`, `4c40ed3`". The same goes for PRs, issues, runs,
+  workers, tasks, and any other identifier.
 - Whenever the user must review an artifact, include a descriptive clickable Markdown
   link in the same message, without waiting for them to ask. Prefer the actual browser
   URL returned by the viewer or artifact tool over a filesystem path. If no browser URL
