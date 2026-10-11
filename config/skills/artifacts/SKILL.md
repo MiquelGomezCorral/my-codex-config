@@ -1,6 +1,6 @@
 ---
 name: artifacts
-description: Present work to the user as a local HTML page filled from a JSON template instead of a long chat answer - findings reports, decision sheets, option comparisons, explainers, and short slide decks. Use when results, choices, or explanations are easier to review as a page, or when the user asks for a page, summary app, report, or deck.
+description: Present work to the user as a local HTML page filled from a JSON template instead of a long chat answer - findings reports, decision sheets, option comparisons, explainers, and short slide decks. Use when results, choices, or explanations are easier to review as a page, or when the user asks for a page, summary app, report, or deck. Also the one way to serve a page or list a running app for the user; never start a server of your own.
 ---
 
 # Artifacts
@@ -52,30 +52,67 @@ end with a decisions block, and an explainer can include a comparison.
 
 ## Steps
 
-1. Copy the closest template to `<dir>/data.json`, where `<dir>` is
-   `agent-memory/artifacts/<name>` in the Git common directory, so the page survives
-   reboots and other worktrees can reach it. Never use a temporary directory.
+`<skill>` is this skill's directory. Run every command from the project you work in, not from
+`<skill>`: `hub.py` takes the repo and the worktree from the current directory.
+
+1. Get the page folder: `python3 <skill>/scripts/hub.py dir <name>`, with a short lowercase
+   `<name>` such as `dqn-results`. It prints `<dir>`. Copy the closest `<skill>/templates/`
+   file to `<dir>/data.json`.
 2. Replace every example value with real content. Delete blocks and sections you do not
    need; never leave example text or empty sections.
-3. Render it from this skill's directory:
-   `python3 scripts/fill.py <dir>/data.json <dir>/index.html`
-4. Serve `<dir>` detached, so the server outlives the shell that started it. From the same
-   skill directory (the skills sit side by side in every install):
-   `setsid python3 ../workflow/scripts/serve-artifact.py --directory <dir> > <dir>.serve.log 2>&1 < /dev/null &`
-   (or the harness's background task). The log sits beside the folder, not inside it, because
-   the server publishes everything in the folder. The server picks a free port
-   and prints the LAN URL, `http://<ip>:<port>/`. Wait until `<dir>.serve.log` has its lines
-   (the first can take a few seconds), read the LAN URL from it, and give it to the user. To
-   change the page, edit `data.json` and run step 3 again.
+3. Render it: `python3 <skill>/scripts/fill.py <dir>/data.json <dir>/index.html`
+4. Publish it:
+   `python3 <skill>/scripts/hub.py publish <dir> --title "<plain title>" --desc "<one plain line>" --by "<harness> · <model>"`.
+   The first word of `--by` (`claude`, `codex`, `pi`, `agy`) picks the mark on the index. It
+   prints the page's LAN URL, then a local one: give the user the LAN URL. To change the page,
+   edit `data.json` and run steps 3 and 4 again; the address stays. Never start a server of your
+   own for a page.
+
+## Page hub
+
+One small server, the hub, lists every page and app agents show the user. It listens on port
+3200 on every network interface (`0.0.0.0`) and starts itself the first time `publish` or `app`
+needs it. The user opens `http://<lan-ip>:3200/` to see everything, and can Stop a page, Serve
+it again, or Delete it there. Anyone on the local network can press those buttons, and every
+file in a page folder and every app command is readable there, so keep secrets out of page
+folders, app commands, and descriptions. The hub answers only by IP address, `localhost:3200` or
+`127.0.0.1:3200`: a host name or a forwarded port gets 403.
+
+A page keeps its address: `http://<lan-ip>:3200/<repo>/<page>/`. A page made in a worktree adds
+the worktree's folder name: `<repo>/<worktree>/<page>/`. Outside any Git repo the address is
+`_local/<page>/`. A name that another worktree already uses gets `-2`, so check the address
+`publish` prints.
+
+`hub.py` below is `python3 <skill>/scripts/hub.py`.
+
+**Apps.** An app, such as a dev server or a progress page, keeps its own port; the hub only
+links to it. Start it in the background and keep its pid, then register it with the same command:
+
+```
+nohup sh -c '<command>' > <log> 2>&1 &
+python3 <skill>/scripts/hub.py app <name> --port <port> --pid $! --cmd '<command>' --desc "<one plain line>" --by "<harness> · <model>"
+```
+
+The hub keeps the command and the folder you ran `app` from (or `--cwd`), and runs the command
+again with `/bin/sh` when the user presses Start. It gets the hub's environment, not your
+shell's, so the command must run in the foreground, set its own variables or activate its venv
+itself, and use plain `sh` syntax: no `source`, use `. file` or `bash -c '...'`.
+
+**Cleanup.** When you replace a page or an app, stop or delete the old one so the index stays
+short. `hub.py list` shows the ids (`<repo>/<page>` or `<repo>/<worktree>/<page>`). `stop <id>`
+keeps the files and `resume <id>` serves the page again at the same address; `delete <id> --yes`
+removes the folder. `stop` and `delete` also take `--repo R`. Leave pages and apps you did not
+make alone unless the user asks. `hub.py --help` lists the rest.
 
 ## Revising a page
 
-Render a revised page to the same output path. `fill.py` treats the page already there as
-the version the user last saw: its data becomes `previous` and `version` goes up by one. The
-page then shows a collapsible "Changed since v<N>" list with the added, changed, and removed
-entries, a badge on each changed block or item (changed collapsible rows open), and a "Show
-only changes" toggle. The engine finds the
-changes; never mark them yourself, and never write `version` or `previous` in `data.json`.
+Get the folder again with `hub.py dir <same name>` from the same worktree, render to the same
+output path, and publish again (step 4). `fill.py` treats the page already there as the version
+the user last saw: its data becomes `previous` and `version` goes up by one. The page then shows
+a collapsible "Changed since v<N>" list with the added, changed, and removed entries, a badge on
+each changed block or item (changed collapsible rows open), and a "Show only changes" toggle.
+The engine finds the changes; never mark them yourself, and never write `version` or `previous`
+in `data.json`.
 
 Pass `--keep-baseline` to fix a page before the user has seen it. The version and baseline
 stay as they were, so the page still compares against what the user last saw.
@@ -164,8 +201,8 @@ clipped at desktop and phone widths; for the phone view use `--width 390` (see
 to install):
 
 ```
-node scripts/capture.mjs <url> --screenshot <file.png> [--width <px>]
-node scripts/capture.mjs <url> --video <file.webm> [--seconds <n>] [--width <px>]
+node <skill>/scripts/capture.mjs <url> --screenshot <file.png> [--width <px>]
+node <skill>/scripts/capture.mjs <url> --video <file.webm> [--seconds <n>] [--width <px>]
 ```
 
 `--width` sets the width the page lays out at, 1280 by default, and the shot is 720 px tall.

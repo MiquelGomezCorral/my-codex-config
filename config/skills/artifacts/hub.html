@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent pages</title>
+<style>
+:root{color-scheme:light;--bg:#f7f7f5;--card:#fff;--ink:#1d1d1f;--muted:#6b6b70;--line:#e3e3e0;--acc:#2f5bd3;
+--ok:#1f7a4d;--okbg:#e6f4ec;--bad:#b3261e;--badbg:#fbe9e7;--warn:#8a5a00;--warnbg:#fff4dc;--mutedbg:#ececf0;--code:#1f5f99;
+--shade:rgba(20,20,30,.38)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#141416;--card:#1d1d21;--ink:#ececf0;
+--muted:#a0a0aa;--line:#2e2e34;--acc:#8fb0ff;--ok:#5fd394;--okbg:#16301f;--bad:#ff8a80;--badbg:#3a1a18;--warn:#ffcc66;
+--warnbg:#3a2e12;--mutedbg:#2a2a30;--code:#9fcced;--shade:rgba(0,0,0,.6)}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#141416;--card:#1d1d21;--ink:#ececf0;--muted:#a0a0aa;--line:#2e2e34;
+--acc:#8fb0ff;--ok:#5fd394;--okbg:#16301f;--bad:#ff8a80;--badbg:#3a1a18;--warn:#ffcc66;--warnbg:#3a2e12;--mutedbg:#2a2a30;
+--code:#9fcced;--shade:rgba(0,0,0,.6)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:1120px;margin:0 auto;padding:22px 16px 80px}
+svg.i{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;color:var(--code)}
+h1{font-size:22px;margin:0 0 2px}
+.info{display:flex;align-items:flex-start;gap:6px;color:var(--muted);font-size:13px;margin-bottom:16px}
+.info svg{margin-top:3px}
+.offline{color:var(--bad)}
+.toolbar{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:18px}
+.search{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:9px;padding:0 10px;max-width:280px;color:var(--muted)}
+.search input{border:0;background:transparent;color:var(--ink);font:inherit;padding:7px 0;outline:none;width:100%}
+.seg{display:inline-flex;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:3px;gap:2px}
+.seg button{display:inline-flex;align-items:center;gap:7px;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:500;padding:7px 14px;border-radius:9px;cursor:pointer}
+.seg button b{font-weight:600;font-size:12px;background:var(--mutedbg);color:var(--muted);border-radius:999px;padding:0 7px}
+.seg button.on{background:var(--mutedbg);color:var(--ink)}
+.seg button.on b{background:var(--card);color:var(--ink)}
+.layout{justify-self:end;display:inline-flex;border:1px solid var(--line);background:var(--card);border-radius:9px;padding:2px}
+.layout button{border:0;background:transparent;color:var(--muted);padding:6px 8px;border-radius:7px;cursor:pointer;display:inline-flex}
+.layout button.on{background:var(--mutedbg);color:var(--ink)}
+.repo{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:16px;overflow:hidden}
+.repo-h{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.repo-h h2{font-size:16px;margin:0}
+.repo-h .path{color:var(--muted);font-size:12.5px}
+.repo-h .acts{margin-left:auto;display:flex;gap:18px}
+.wt{padding:6px 14px;font-size:12.5px;color:var(--muted);background:var(--bg);border-bottom:1px solid var(--line);display:flex;gap:6px;align-items:center}
+.btn{text-decoration:none;display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:7px;padding:3px 9px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--acc)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn:disabled:hover{border-color:var(--line)}
+.btn.danger{color:var(--bad)}
+.btn.danger:hover{border-color:var(--bad)}
+.btn.icon{padding:4px 6px}
+.chip{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:0 8px;font-size:12px;white-space:nowrap}
+.chip.serving{background:var(--okbg);color:var(--ok)}
+.chip.stopped{background:var(--mutedbg);color:var(--muted)}
+.chip.running,.chip.starting{background:var(--warnbg);color:var(--warn)}
+.chip.dead{background:var(--badbg);color:var(--bad)}
+.head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.who{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:12.5px;white-space:nowrap}
+.logo{width:18px;height:18px;flex:none}
+.t{font-weight:600;overflow-wrap:anywhere}
+.open{color:var(--muted);display:inline-flex}
+.open:hover{color:var(--acc)}
+.d{color:var(--muted)}
+.addr{display:block;margin-top:2px;overflow-wrap:anywhere}
+.row{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:4px 18px;padding:11px 14px;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row>div:first-child{min-width:0}
+.row .acts{display:flex;justify-content:space-between;align-items:flex-start}
+.stopped :is(.t,.d,.addr){opacity:.6}
+.cmd{display:flex;align-items:center;gap:6px;margin-top:6px;background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:3px 4px 3px 8px;max-width:100%}
+.cmd code{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.stopped-group summary{padding:8px 14px;color:var(--muted);cursor:pointer;font-size:13px;border-top:1px solid var(--line)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;padding:12px 14px}
+.card{min-width:0;border:1px solid var(--line);border-radius:10px;padding:11px 12px;display:flex;flex-direction:column;gap:6px}
+.card .d{font-size:13px}
+.card .foot{margin-top:auto;padding-top:8px;display:flex;flex-direction:column;gap:8px}
+.card .acts{display:flex;justify-content:space-between;align-items:center}
+.modal{position:fixed;inset:0;background:var(--shade);display:none;align-items:center;justify-content:center;padding:16px;z-index:5}
+.modal.on{display:flex}
+.box{background:var(--card);border:1px solid var(--line);border-radius:14px;max-width:440px;width:100%;padding:18px 20px;box-shadow:0 18px 50px rgba(0,0,0,.3)}
+.box h3{margin:0 0 8px;font-size:17px;display:flex;align-items:center;gap:8px}
+.box h3 span:empty{display:none}
+.box p{margin:0 0 6px;color:var(--muted);overflow-wrap:anywhere}
+.box p:empty{display:none}
+.box .err{color:var(--bad)}
+.box .row-btns{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
+.box .confirm{background:var(--bad);border-color:var(--bad);color:#fff;padding:5px 14px}
+.box .confirm.neutral{background:var(--ink);border-color:var(--ink);color:var(--card)}
+.theme{position:fixed;right:18px;bottom:18px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px;cursor:pointer;display:inline-flex}
+.empty{color:var(--muted);text-align:center;padding:48px 0}
+@media (max-width:760px){.toolbar{grid-template-columns:1fr auto}.search{grid-column:1/-1;max-width:none;order:3}
+.seg{overflow-x:auto}.seg button{padding:7px 9px}.seg .lbl{display:none}.row{grid-template-columns:minmax(0,1fr)}.row .acts{max-width:240px}}
+</style>
+</head>
+<body>
+<main>
+<h1>Agent pages</h1>
+<div class="info"><span data-i="server"></span><span>Hub at <span class="mono" id="host">…</span> · every page and app agents show you on this machine<span class="offline" id="offline" hidden> · can't reach the hub, trying again</span></span></div>
+<div class="toolbar">
+  <label class="search"><span data-i="search"></span><input type="search" id="query" placeholder="Search pages, repos…" aria-label="Search pages and repos"></label>
+  <div class="seg" role="group" aria-label="Show">
+    <button data-f="all" class="on"><span data-i="layers"></span><span class="lbl">All</span><b data-n="all">0</b></button>
+    <button data-f="serving"><span data-i="radio"></span><span class="lbl">Serving</span><b data-n="serving">0</b></button>
+    <button data-f="stopped"><span data-i="pause"></span><span class="lbl">Stopped</span><b data-n="stopped">0</b></button>
+    <button data-f="app"><span data-i="term"></span><span class="lbl">Apps</span><b data-n="app">0</b></button>
+  </div>
+  <div class="layout" role="group" aria-label="Layout"><button data-l="rows" title="Rows" aria-label="Rows"><span data-i="rows"></span></button><button data-l="cards" title="Cards" aria-label="Cards"><span data-i="grid"></span></button></div>
+</div>
+<div id="out"><p class="empty">Loading…</p></div>
+</main>
+<button class="theme" id="theme" title="Switch light / dark" aria-label="Switch light or dark theme"><span data-i="sun"></span></button>
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="m-title"><div class="box">
+  <h3 id="m-title"><span id="m-icon"></span><span id="m-text"></span></h3><p id="m-body"></p><p id="m-extra" class="mono"></p><p id="m-err" class="err"></p>
+  <div class="row-btns"><button class="btn" id="m-cancel">Cancel</button><button class="btn confirm" id="m-ok"></button></div>
+</div></div>
+<script>
+const I = {
+  open: '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+  stop: '<rect x="5" y="5" width="14" height="14" rx="2"/>',
+  trash: '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  again: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+  copy: '<rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  play: '<polygon points="6 3 20 12 6 21 6 3"/>',
+  branch: '<line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/>',
+  term: '<polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/>',
+  folder: '<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
+  search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  layers: '<path d="m12 2 10 5-10 5L2 7Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/>',
+  radio: '<circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49"/><path d="M7.76 16.24a6 6 0 0 1 0-8.49"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 19.07a10 10 0 0 1 0-14.14"/>',
+  pause: '<circle cx="12" cy="12" r="10"/><line x1="10" x2="10" y1="15" y2="9"/><line x1="14" x2="14" y1="15" y2="9"/>',
+  rows: '<path d="M3 5h18"/><path d="M3 12h18"/><path d="M3 19h18"/>',
+  grid: '<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>',
+  server: '<rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+  alert: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>'
+};
+const ic = (n) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${I[n]}</svg>`;
+// Harness marks, picked by the first word of an entry's "by" text.
+const LOGO = {
+  claude: '<svg class="logo" viewBox="0 0 24 24"><g stroke="#D97757" stroke-width="2.6" stroke-linecap="round"><path d="M12 3v18"/><path d="M3 12h18"/><path d="m5.6 5.6 12.8 12.8"/><path d="m18.4 5.6-12.8 12.8"/></g></svg>',
+  codex: '<svg class="logo" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="6" fill="currentColor"/><path d="m7 9 3 3-3 3" stroke="var(--card)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.5 15.5H17" stroke="var(--card)" stroke-width="2" stroke-linecap="round"/></svg>',
+  pi: '<svg class="logo" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="6" fill="#6a5acd"/><text x="12" y="17" text-anchor="middle" font-size="14" font-weight="700" fill="#fff" font-family="serif">π</text></svg>',
+  agy: '<svg class="logo" viewBox="0 0 24 24"><path d="M12 2c.6 5.2 4.8 9.4 10 10-5.2.6-9.4 4.8-10 10-.6-5.2-4.8-9.4-10-10 5.2-.6 9.4-4.8 10-10Z" fill="#4285F4"/></svg>',
+  unknown: '<svg class="logo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3 3"/></svg>'
+};
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const $ = (id) => document.getElementById(id);
+const store = (key, value) => { try { if (value === undefined) return localStorage.getItem(key); localStorage.setItem(key, value); } catch {} return null; };
+
+// ---- state ----
+let data = { hub: "", repos: [] }, raw = "", index = new Map();
+let filter = "all", layout = store("hub:layout") === "cards" ? "cards" : "rows", query = "", pending = 0;
+const openGroups = new Set();
+const FILTERS = {
+  all: () => true,
+  serving: (it) => it.kind === "page" && it.state === "serving",
+  stopped: (it) => it.kind === "page" && it.state !== "serving",
+  app: (it) => it.kind === "app"
+};
+const matches = (repo, it) => !query || [repo.name, it.id, it.title, it.desc, it.by, it.worktree, it.branch, it.cmd].join("\n").toLowerCase().includes(query);
+const isLive = (it) => ["serving", "running", "starting"].includes(it.state);
+
+// ---- pieces of an entry ----
+function when(iso) {
+  const d = new Date(iso);
+  if (isNaN(d)) return "";
+  const day = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const ago = Math.round((day(new Date()) - day(d)) / 864e5);
+  if (ago === 0) return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  return ago === 1 ? "yesterday" : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+function harness(by) {
+  const key = String(by).trim().split(/\s+/)[0].toLowerCase();
+  return Object.hasOwn(LOGO, key) ? LOGO[key] : LOGO.unknown;
+}
+function openUrl(it) {
+  if (it.kind === "page") return it.state === "serving" && !it.no_index ? it.path : "";
+  if (it.state !== "running") return "";
+  try { const u = new URL(it.url); return u.protocol === "http:" || u.protocol === "https:" ? u.href : ""; } catch { return ""; }
+}
+function chip(it) {
+  if (it.no_index) return `<span class="chip dead">${ic("alert")}no page file</span>`;
+  const label = { serving: "serving", stopped: "stopped", running: "running", starting: "starting", dead: "not running" }[it.state];
+  return `<span class="chip ${label ? it.state : "stopped"}">${it.kind === "app" ? ic("term") : ""}${esc(label ?? it.state)}</span>`;
+}
+function address(it) {
+  if (it.kind === "page") return decodeURIComponent(it.path);
+  let host = "";
+  try { host = new URL(it.url).host; } catch {}
+  return isLive(it) && it.pid ? `${host} · pid ${it.pid}` : host;
+}
+const head = (it) => {
+  const url = openUrl(it);
+  return `<div class="head"><span class="who" title="${esc(it.by)}">${harness(it.by)}${esc(when(it.updated))}</span>
+  <span class="t">${esc(it.title)}</span>${url ? `<a class="open" href="${esc(url)}" target="_blank" rel="noopener" title="Open" aria-label="Open ${esc(it.title)}">${ic("open")}</a>` : ""}${chip(it)}</div>`;
+};
+const desc = (it) => esc(it.desc || (it.recorded ? "" : "No record: folder found in the repo's artifacts folder."));
+const addr = (it) => `<span class="addr mono">${esc(address(it))}</span>`;
+const cmd = (it) => it.kind === "app" && it.cmd ? `<div class="cmd"><code title="${esc(it.cmd)}">${esc(it.cmd)}</code><button class="btn icon" data-copy="${esc(it.id)}" title="Copy command" aria-label="Copy command">${ic("copy")}</button></div>` : "";
+function actions(it) {
+  const id = esc(it.id);
+  const del = `<button class="btn icon danger" data-ask="delete" data-id="${id}" title="Delete" aria-label="Delete ${esc(it.title)}">${ic("trash")}</button>`;
+  const main = it.no_index ? ""
+    : isLive(it) ? `<button class="btn" data-ask="stop" data-id="${id}">${ic("stop")}Stop</button>`
+    : it.kind === "app" ? `<button class="btn" data-do="start" data-id="${id}">${ic("play")}Start</button>`
+    : `<button class="btn" data-do="resume" data-id="${id}">${ic("again")}Serve again</button>`;
+  return `<div class="acts">${del}${main}</div>`;
+}
+const dim = (it) => it.state === "stopped" ? "stopped" : "";
+const row = (it) => `<div class="row ${dim(it)}"><div>${head(it)}<div class="d">${desc(it)}</div>${addr(it)}${cmd(it)}</div>${actions(it)}</div>`;
+const card = (it) => `<div class="card ${dim(it)}">${head(it)}<div class="d">${desc(it)}</div>
+  <div class="foot">${addr(it)}${cmd(it)}${actions(it)}</div></div>`;
+
+// ---- the page ----
+function groupsOf(repo) {
+  const groups = new Map();
+  for (const it of repo.items) {
+    if (!matches(repo, it) || !FILTERS[filter](it)) continue;
+    if (!groups.has(it.worktree)) groups.set(it.worktree, []);
+    groups.get(it.worktree).push(it);
+  }
+  return [...groups].sort(([a], [b]) => a === b ? 0 : a === "" ? -1 : b === "" ? 1 : a.localeCompare(b));
+}
+function repoHtml(repo) {
+  const body = groupsOf(repo).map(([worktree, items]) => {
+    const name = worktree || (repo.name === "_local" ? "outside any repo" : "main checkout");
+    const branch = items[0].branch;
+    const wt = `<div class="wt">${ic("branch")} ${esc(name)}${branch ? ` · <span class="mono">${esc(branch)}</span>` : ""}</div>`;
+    if (layout === "cards") return wt + `<div class="grid">${items.map(card).join("")}</div>`;
+    const live = items.filter((it) => it.state !== "stopped"), stopped = items.filter((it) => it.state === "stopped");
+    if (filter !== "all" || !stopped.length) return wt + items.map(row).join("");
+    const key = repo.name + "/" + worktree;
+    return wt + live.map(row).join("") + `<details class="stopped-group" data-key="${esc(key)}"${openGroups.has(key) ? " open" : ""}><summary>${stopped.length} stopped</summary>${stopped.map(row).join("")}</details>`;
+  }).join("");
+  if (!body) return "";
+  const running = repo.items.filter(isLive).length;
+  const name = esc(repo.name);
+  return `<section class="repo"><div class="repo-h">${ic("folder")}<h2>${name}</h2><span class="path mono">${esc(repo.path)}</span>
+    <span class="path">${running} running · ${repo.items.length} total</span>
+    <span class="acts"><button class="btn danger" data-ask="delete-repo" data-repo="${name}">${ic("trash")}Delete all</button><button class="btn" data-ask="stop-repo" data-repo="${name}"${running ? "" : " disabled"}>${ic("stop")}Stop all</button></span></div>${body}</section>`;
+}
+function render() {
+  const count = { all: 0, serving: 0, stopped: 0, app: 0 };
+  for (const repo of data.repos) for (const it of repo.items) {
+    if (!matches(repo, it)) continue;
+    for (const key in count) if (FILTERS[key](it)) count[key]++;
+  }
+  document.querySelectorAll("[data-n]").forEach((b) => b.textContent = count[b.dataset.n]);
+  const html = data.repos.map(repoHtml).join("");
+  $("out").innerHTML = html || `<p class="empty">${esc(index.size ? "Nothing matches." : "Nothing here yet. Agents add their pages and apps when they publish them.")}</p>`;
+}
+function load(text) {
+  raw = text;
+  data = JSON.parse(text);
+  index = new Map(data.repos.flatMap((repo) => repo.items.map((it) => [it.id, { repo, it }])));
+  try { $("host").textContent = new URL(data.hub).host; } catch {}
+  render();
+}
+async function refresh(force) {
+  if (pending || (document.hidden && !force)) return;
+  try {
+    const resp = await fetch("/_hub/list.json", { cache: "no-store" });
+    if (!resp.ok) throw new Error(resp.status);
+    const text = await resp.text();
+    $("offline").hidden = true;
+    if (force || text !== raw) load(text);
+  } catch { $("offline").hidden = false; }
+}
+
+// ---- actions and their dialogs ----
+async function post(body) {
+  pending++;
+  try {
+    const resp = await fetch("/_hub/action", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const answer = await resp.json().catch(() => null);
+    if (resp.ok && answer?.ok) return { error: "", message: answer.message || "" };
+    return { error: answer?.error || `The hub answered ${resp.status}.`, message: "" };
+  } catch { return { error: "Could not reach the hub.", message: "" }; } finally { pending--; }
+}
+const modal = $("modal");
+let task = null, busy = false;
+function dialog({ title, warn = false, body = "", extra = "", ok = "", danger = false, run = null }) {
+  $("m-icon").innerHTML = warn ? ic("alert") : "";
+  $("m-text").textContent = title;
+  $("m-body").textContent = body;
+  $("m-extra").textContent = extra;
+  $("m-err").textContent = "";
+  const okButton = $("m-ok");
+  okButton.hidden = !run;
+  okButton.textContent = ok;
+  okButton.classList.toggle("neutral", !danger);
+  okButton.disabled = false;
+  $("m-cancel").textContent = run ? "Cancel" : "Close";
+  task = run;
+  modal.classList.add("on");
+  $("m-cancel").focus();
+}
+const close = () => { if (!busy) modal.classList.remove("on"); };
+$("m-cancel").onclick = close;
+modal.onclick = (e) => { if (e.target === modal) close(); };
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+$("m-ok").onclick = async () => {
+  const okButton = $("m-ok");
+  busy = true;
+  okButton.disabled = true;
+  $("m-cancel").disabled = true;
+  const { error } = await task();
+  busy = false;
+  $("m-cancel").disabled = false;
+  if (error) { $("m-err").textContent = error; okButton.disabled = false; return; }
+  close();
+  refresh(true);
+};
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+const ASK = {
+  "delete": ({ it }) => ({
+    title: `Delete “${it.title}”?`, warn: true, ok: "Delete", danger: true,
+    body: it.kind === "app"
+      ? "The app is stopped if it is running, and its entry leaves the hub."
+      : "This removes the page folder and everything in it: the page, its data, plots, images and videos. It cannot be undone.",
+    extra: it.kind === "app" ? "" : it.folder + "/",
+    run: () => post({ action: "delete", id: it.id })
+  }),
+  "stop": ({ it }) => ({
+    title: `Stop “${it.title}”?`, ok: "Stop",
+    body: it.kind === "app"
+      ? "The app and the processes it started are ended. Start brings it back with the same command."
+      : "The page stops being served. Its files stay; Serve again brings it back at the same address.",
+    run: () => post({ action: "stop", id: it.id })
+  }),
+  "delete-repo": (repo) => ({
+    title: `Delete all ${plural(repo.items.length, "entry", "entries")} of ${repo.name}?`, warn: true, ok: "Delete all", danger: true,
+    body: "Every page folder of this repo is removed and its apps are stopped and unlisted. It cannot be undone.",
+    run: () => post({ action: "delete-repo", repo: repo.name })
+  }),
+  "stop-repo": (repo) => {
+    const n = repo.items.filter(isLive).length;
+    return {
+      title: `Stop all of ${repo.name}?`, ok: "Stop all",
+      body: `${plural(n, "serving or running entry stops", "serving or running entries stop")}. Files stay.`,
+      run: () => post({ action: "stop-repo", repo: repo.name })
+    };
+  }
+};
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; } catch { /* clipboard needs HTTPS or localhost; fall back below */ }
+  const area = document.createElement("textarea");
+  area.value = text;
+  area.style.cssText = "position:fixed;opacity:0";
+  const focused = document.activeElement;
+  document.body.append(area);
+  area.select();
+  try { return document.execCommand("copy"); } catch { return false; } finally {
+    area.remove();
+    focused?.focus({ preventScroll: true });
+  }
+}
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest("button[data-ask], button[data-do], button[data-copy]");
+  if (!b) return;
+  const found = index.get(b.dataset.id ?? b.dataset.copy);
+  if (pending && !b.dataset.copy) return; // one action at a time, so a late answer never lands on a newer dialog
+  if (b.dataset.ask) {
+    const target = b.dataset.repo ? data.repos.find((r) => r.name === b.dataset.repo) : found;
+    if (target) dialog(ASK[b.dataset.ask](target));
+  } else if (b.dataset.do && found) {
+    b.disabled = true;
+    const { error, message } = await post({ action: b.dataset.do, id: found.it.id });
+    refresh(true);
+    if (error) dialog({ title: `Could not ${b.dataset.do === "start" ? "start" : "serve"} “${found.it.title}”`, warn: true, body: error });
+    else if (message.includes("not listening yet")) dialog({ title: `“${found.it.title}” is still starting`, body: message });
+  } else if (b.dataset.copy && found) {
+    if (await copyText(found.it.cmd)) {
+      b.innerHTML = ic("check");
+      setTimeout(() => { b.innerHTML = ic("copy"); }, 1200);
+    } else dialog({ title: "Copy it by hand", body: "The browser blocked copying.", extra: found.it.cmd });
+  }
+});
+$("out").addEventListener("toggle", (e) => {
+  const key = e.target.dataset?.key;
+  if (key) e.target.open ? openGroups.add(key) : openGroups.delete(key);
+}, true);
+
+// ---- toolbar and theme ----
+function pick(selector, attribute, apply) {
+  document.querySelectorAll(selector).forEach((b) => b.onclick = () => {
+    apply(b.dataset[attribute]);
+    document.querySelectorAll(selector).forEach((x) => x.classList.toggle("on", x === b));
+    render();
+  });
+}
+pick("[data-f]", "f", (value) => { filter = value; });
+pick("[data-l]", "l", (value) => { layout = value; store("hub:layout", value); });
+document.querySelectorAll("[data-l]").forEach((b) => b.classList.toggle("on", b.dataset.l === layout));
+$("query").oninput = (e) => { query = e.target.value.trim().toLowerCase(); render(); };
+const themeKey = "artifact:theme", root = document.documentElement, systemDark = matchMedia("(prefers-color-scheme: dark)");
+const saved = store(themeKey);
+if (saved) root.dataset.theme = saved;
+$("theme").onclick = () => {
+  const dark = (root.dataset.theme || (systemDark.matches ? "dark" : "light")) === "dark";
+  root.dataset.theme = dark ? "light" : "dark";
+  store(themeKey, root.dataset.theme);
+};
+document.querySelectorAll("[data-i]").forEach((s) => s.outerHTML = ic(s.dataset.i));
+
+refresh(true);
+setInterval(refresh, 5000);
+document.addEventListener("visibilitychange", () => refresh());
+</script>
+</body>
+</html>

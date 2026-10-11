@@ -190,6 +190,7 @@ diagram comprehension remains Review-only.
 
 ## History
 
+- 2026-10-11: Gate pages are published through the artifacts page hub; the Lavish viewer was removed.
 - 2026-10-10: Required a page at each human gate, with changes since the last version shown and live evidence at the result gate.
 - 2026-10-10: Made grill-me + investigation, live-validation, and slice-gate questions mandatory planning steps.
 - 2026-10-10: Added the per-wave `final-only` slice-gate option chosen at planning.

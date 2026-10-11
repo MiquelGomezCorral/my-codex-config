@@ -3,16 +3,21 @@
 Use this small file for the human-facing view of a complete Markdown plan. The brief
 does not replace the plan, summarize it automatically, or change its approval boundary.
 
-Start from [the example](../templates/plan-review.json) and render it beside the plan. Run
-this from this skill's directory, with full paths for the plan, brief, and output:
+Start from [the example](../templates/plan-review.json). Get the page folder with `hub.py dir`,
+render into it, and publish it, as steps 1 and 4 of [SKILL.md](../SKILL.md#steps) say. The
+renderer works from any directory; give full paths for the plan, brief, and output:
 
-`node scripts/render-plan.mjs --input <plan.md> --review <review.json> --output <plan.html>`
+`node <skill>/scripts/render-plan.mjs --input <plan.md> --review <review.json> --output <dir>/index.html`
+
+The hub serves only `<dir>`. A brief with file `artifacts` needs those files inside `<dir>` too,
+so keep a copy of the plan next to them and pass that copy as `--input`. Copy the plan there
+again before each render, or the page shows the old plan.
 
 The renderer turns the plan and brief into artifact data and draws it with this skill's
 page engine, so the plan page has the same look, icons, versions, and change marks as
-every artifact. Render a revision to the same output path; `--keep-baseline` works as in
-`fill.py`. The renderer keeps only supplied brief content. Agents compare it with the full
-plan before presenting the page.
+every artifact. Render a revision to the same output path, and publish again;
+`--keep-baseline` works as in `fill.py`. The renderer keeps only supplied brief content. Agents
+compare it with the full plan before presenting the page.
 
 ## Fields
 
