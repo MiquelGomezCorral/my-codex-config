@@ -86,7 +86,8 @@ the worktree's folder name: `<repo>/<worktree>/<page>/`. Outside any Git repo th
 `hub.py` below is `python3 <skill>/scripts/hub.py`.
 
 **Apps.** An app, such as a dev server or a progress page, keeps its own port; the hub only
-links to it. Start it in the background and keep its pid, then register it with the same command:
+links to it. Make it listen on `0.0.0.0` (or pass `--url`), start it in the background and keep
+its pid, then register it with the same command:
 
 ```
 nohup sh -c '<command>' > <log> 2>&1 &

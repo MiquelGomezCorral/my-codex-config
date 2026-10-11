@@ -201,32 +201,24 @@ and artifacts. Keep implementation choices and durable project decisions distinc
 For human review, fill a concise brief from the artifacts skill's
 `references/plan-page.md`; read that reference only when producing the brief. Keep the
 full Markdown plan complete and authoritative, then check that the brief preserves its
-risks, questions, expected outcomes, useful artifacts, and approval boundary. Render both:
-`node <artifacts-skill>/scripts/render-plan.mjs --input <plan.md> --review <review.json> --output <artifact.html>`.
-This plan page is the gate 2 page. `--keep-baseline` keeps the old baseline for a re-render
-before the user sees it.
-Then open the resulting HTML with `npx -y lavish-axi <artifact.html>`. Capture the actual review
-URL returned by the viewer and include it as a descriptive Markdown link when presenting
-the plan, before asking for approval. Do not substitute the HTML path or guess the URL.
-For a direct browser link, serve only the artifact directory with the shared standard-library
-helper: `python3 <workflow-skill>/scripts/serve-artifact.py --directory <artifact-directory>`.
-It follows the global artifact-sharing rule and prints the local and LAN URLs with the chosen
-port, or a bind note when the machine has no LAN address.
-Share the actual direct URL and any Lavish viewer URL as separate links. If neither is
-available, report that and link to the local artifact using the chat's clickable file-link
-format. Keep the Markdown file authoritative.
-Keep the new HTML and any plan-specific editable diagrams/SVG previews
-beside the private plan so relative links work and no new plan artifact enters Git.
-Lavish displays the HTML and does not itself produce SVG. Only make diagrams that
-clarify a real decision or flow. Follow `diagrams.md` for the brief, presentation, artifact,
-and validation contract. The deterministic renderer never delegates. A useful custom
-diagram may use `super-agent`: resolve the catalog `coder` role for an artifact-only
-worker and pin its harness, exact model, and thinking at dispatch. Give it the chosen
-project style or pass diagram-design's `Minimal dark` template explicitly. Do not run
-`lavish-axi poll` unless the user asks for an
-interactive feedback session. For optional extras (the Lavish viewer, extra diagrams),
-rendering or Lavish failure is non-blocking: report it and always present the native plan
-and available artifacts.
+risks, questions, expected outcomes, useful artifacts, and approval boundary. Get the page
+folder, render, and publish exactly as `references/plan-page.md` says: it copies the plan and
+its diagrams into the page folder before each render (`scripts/render-plan.mjs` only links
+files beside its input), so do not shorten it. This plan page is the gate 2 page.
+`--keep-baseline` keeps the old baseline for a re-render before the user sees it. Share the
+LAN URL `hub.py publish` prints as a descriptive Markdown link; never start a server of your
+own. If rendering or publishing fails, report it as a blocker and link the local page file
+meanwhile. Keep the Markdown file authoritative.
+Keep plan-specific editable diagrams/SVG previews beside the private plan; the copies in the
+page folder are disposable, and Delete on the hub removes them. No plan artifact enters Git.
+Only make diagrams that clarify a real decision or flow. Follow `diagrams.md` for the
+brief, presentation, artifact, and validation contract. The deterministic renderer never delegates.
+A useful custom diagram may use `super-agent`: resolve the catalog `coder` role for an
+artifact-only worker and pin its harness, exact model, and thinking at dispatch. Give it the
+chosen project style or pass diagram-design's `Minimal dark` template explicitly.
+A required gate page that fails to render or publish is fixed or reported as a blocker,
+never skipped. For optional extras such as extra diagrams, a rendering failure is
+non-blocking: report it and always present the native plan and available artifacts.
 
 Show the human the complete wave, evidence, slice map, and artifact links before asking
 whether to start delivery. Give the progress page link too and keep it served during delivery.

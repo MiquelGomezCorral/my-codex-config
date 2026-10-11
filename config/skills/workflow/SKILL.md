@@ -22,8 +22,10 @@ the coordinator, which stores accepted artifacts beside the private plan.
 
 Present every artifact the human must review as a descriptive clickable link in the
 same message, including plans, diagrams, mockups, reports, and validation evidence.
-For browser previews, return the viewer's actual URL as described in the planning
-reference; a bare path is not a review link. Apply this at every human gate.
+Publish every browser preview, gate pages included, through the
+[artifacts skill's page hub](../artifacts/SKILL.md#page-hub) and return the URL it prints; a
+bare path is not a review link. The progress page is registered on the same hub as an app
+([workflow-progress](../workflow-progress/SKILL.md)). Apply this at every human gate.
 Each gate has a required page: the discovery page after the first draft, the plan page at
 wave approval, and the result page ([present to human](references/present-to-human.md)).
 When you ask for a decision, set `--set human-decision=<what to decide> <page URL>` and

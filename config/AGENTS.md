@@ -23,17 +23,8 @@ not weaken security or explicit user constraints.
   URL returned by the viewer or artifact tool over a filesystem path. If no browser URL
   is available, say so and provide a clickable local-file link as the fallback. Never
   invent a URL or publish a private artifact merely to obtain one.
-- When an agent-started server exposes an agent-shared artifact, progress page, or app
-  preview over HTTP, bind `0.0.0.0` and serve only the intended artifact directory, never
-  the repository, common Git, or whole private memory tree; serving one
-  `agent-memory/artifacts/<name>/` directory is fine. Use ports `3100`-`3199`: start at
-  the first free port, retry only on `EADDRINUSE`, leave existing processes alone, and fail
-  when the range is full or another bind error occurs. Serve static artifacts with
-  `scripts/serve-artifact.py` from the installed workflow skill; `workflow-progress` keeps
-  its own `serve` command. Report the actual reachable host/IP URL and selected port, not
-  `0.0.0.0`, using the machine's observed address. This covers plans, mockups, diagrams,
-  reports, and other agent-shared artifacts. Explicitly required project or user app ports
-  stay valid.
+- Show every page the user should open through the `artifacts` skill's page hub, never a
+  server of your own, and list every app preview you run on that hub.
 
 ## Authority and scope
 
@@ -65,7 +56,8 @@ it. Put that work only under `agent-memory/` in the Git common directory, not in
 home folder such as `~/.local/state`: plans in `plans/` with their handoffs and worker
 reports beside them, pages and other artifacts in `artifacts/<name>/`. Throwaway files
 that nothing reads after the current step stay in temporary locations, so junk never
-lands in a persistent folder. Outside a Git repository, ask the user where to keep it.
+lands in a persistent folder. Outside a Git repository, ask the user where to keep it,
+except a page made for the hub, which goes to the hub's `_local` folder.
 - When something you need seems lost, try one quick recovery before reporting it gone:
 harness session logs record the files agents wrote, and `git reflog` and `git stash list`
 keep Git work. Some things are gone for good; do not dig further.

@@ -24,6 +24,7 @@ node <workflow-progress-skill>/scripts/progress.mjs update --run <run-id> --slic
   --done build-review.implement --active build-review.review --current "Reviewing the implementation" \
   --next "Verify review findings" --note "Implementation is ready for review."
 node <workflow-progress-skill>/scripts/progress.mjs render --run <run-id>
+# run serve in the background, then list it on the artifacts hub with hub.py app (see "Apps" there)
 node <workflow-progress-skill>/scripts/progress.mjs serve --run <run-id>
 node <workflow-progress-skill>/scripts/demo.mjs --run workflow-demo-local --interval-ms 3000
 ```
@@ -119,9 +120,12 @@ their kind, slice, and creation time. A human decision is pending unless it is e
 working steps, next action, current activity), the wave activity, and one steps tab for the
 wave and each slice. The map follows the selected tab. Until you click a tab, the page shows
 the most recently updated slice; after a click, that tab stays selected across refreshes.
-`serve` binds `0.0.0.0` on the first free port from `3100` to `3199` (override the start
-with `--port`), prints its loopback URL and the chosen port, and refreshes progress every
-two seconds while preserving scroll position, expanded sections, and the loaded native map.
+`serve` binds `0.0.0.0` on the first free port from 3100 to 3199 (override the start with
+`--port`), prints its URL and `bound 0.0.0.0:<port>`, and refreshes progress every two seconds
+while preserving scroll position, expanded sections, and the loaded native map. Start it in the
+background, read the port from that output, and register it on the
+[artifacts hub](../artifacts/SKILL.md#page-hub) as an app with `--port <port>` and
+`--cmd '... serve --run <run-id> --port <port>'`, so Start brings back the same address.
 Remote clients use this machine's observed host/IP with the same port. A snapshot and its
 sibling map open offline. The pages escape run content, sandbox the map without same-origin
 access, and load no remote resources.

@@ -63,7 +63,11 @@ python3 -m scripts.aggregate_benchmark <iteration-dir> --skill-name <name>
 ```
 
 Then run the analyst guidance in `agents/analyzer.md` and generate the review UI with
-`eval-viewer/generate_review.py`. Use its static mode in headless environments.
+`eval-viewer/generate_review.py <workspace> --static <dir>/index.html`, where `<dir>` comes
+from `hub.py dir <name>` in the [artifacts skill](../artifacts/SKILL.md#page-hub). Publish it
+as that skill's steps say and give the user the URL. Never run the script's server mode: it
+kills whatever holds its port. The page has no server to save to, so the user presses
+**Copy feedback** and pastes the text back; save it as `feedback.json` in the workspace.
 Present outputs to the user before revising the skill.
 
 ## 4. Iterate

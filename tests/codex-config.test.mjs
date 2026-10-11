@@ -226,12 +226,10 @@ test("workflow renders its native wave plan and can commission useful planning d
   const improvement = read("config/skills/workflow/references/improvement-loop.md")
   const routing = read("config/skills/super-agent/references/routing.md")
   const orcaAdapter = read("config/skills/orchestration/references/orca.md")
-  const lavish = read("config/skills/lavish/SKILL.md")
 
   match(planning, /Markdown file\s+authoritative/i)
   match(planning, /scripts\/render-plan\.mjs/)
   doesNotMatch(planning, /\$HOME\/\.agents\/skills/)
-  match(planning, /--review <review\.json>/)
   match(planning, /references\/plan-page\.md/)
   match(planning, /deterministic renderer never delegates/i)
   match(firstDraft, /diagram guide/)
@@ -243,10 +241,7 @@ test("workflow renders its native wave plan and can commission useful planning d
   match(artifactRoute, /output directory is a task constraint,\s+not a filesystem sandbox/i)
   match(artifactRoute, /exact lifecycle commands the task packet names/)
   match(artifactRoute, /coordinator owns\s+helper checks and exports/i)
-  match(planning, /Do not run\s+`lavish-axi poll` unless the user asks/i)
-  match(planning, /Rendering or Lavish failure is non-blocking/i)
   match(planning, /always present the native plan/i)
-  match(lavish, /npx -y lavish-axi <html-file>/)
 })
 
 test("review-plan delegates final template rendering to refine-plan", () => {

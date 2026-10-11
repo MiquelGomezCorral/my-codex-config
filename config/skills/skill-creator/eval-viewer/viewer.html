@@ -503,6 +503,10 @@
       margin-bottom: 1.5rem;
       line-height: 1.5;
     }
+    .done-card textarea {
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
     .done-card .btn-row {
       display: flex;
       gap: 0.5rem;
@@ -634,7 +638,8 @@
   <div class="done-overlay" id="done-overlay">
     <div class="done-card">
       <h2>Review Complete</h2>
-      <p>Your feedback has been saved. Go back to your Claude Code session and tell Claude you're done reviewing.</p>
+      <p id="done-text">Your feedback has been saved. Go back to your Claude Code session and tell Claude you're done reviewing.</p>
+      <textarea class="feedback-textarea" id="done-json" readonly hidden></textarea>
       <div class="btn-row">
         <button onclick="closeDoneDialog()">OK</button>
       </div>
@@ -652,18 +657,24 @@
     let feedbackMap = {};  // run_id -> feedback text
     let currentIndex = 0;
     let visitedRuns = new Set();
+    let staticMode = true;  // until the probe finds the review server: feedback is copied, not saved
 
     // ---- Init ----
     async function init() {
+      // Only the review server answers /api/feedback. A page opened from disk or
+      // served as plain files (the artifact hub) has no such endpoint.
+      let resp = null;
+      try { resp = await fetch("/api/feedback"); } catch { /* no server */ }
+      staticMode = !(resp?.ok && resp.headers.get("Content-Type")?.startsWith("application/json"));
+
       // Load saved feedback from server — but only if this isn't a fresh
       // iteration (indicated by previous_feedback being present). When
       // previous feedback exists, the feedback.json on disk is stale from
       // the prior iteration and should not pre-fill the textareas.
       const hasPrevious = Object.keys(EMBEDDED_DATA.previous_feedback || {}).length > 0
         || Object.keys(EMBEDDED_DATA.previous_outputs || {}).length > 0;
-      if (!hasPrevious) {
+      if (!staticMode && !hasPrevious) {
         try {
-          const resp = await fetch("/api/feedback");
           const data = await resp.json();
           if (data.reviews) {
             for (const r of data.reviews) feedbackMap[r.run_id] = r.feedback;
@@ -671,6 +682,7 @@
         } catch { /* first run, no feedback yet */ }
       }
 
+      if (staticMode) document.getElementById("done-btn").textContent = "Copy feedback";
       document.getElementById("skill-name").textContent = EMBEDDED_DATA.skill_name;
       showRun(0);
 
@@ -679,7 +691,7 @@
       let saveTimeout = null;
       textarea.addEventListener("input", () => {
         clearTimeout(saveTimeout);
-        document.getElementById("feedback-status").textContent = "";
+        if (!staticMode) document.getElementById("feedback-status").textContent = "";
         saveTimeout = setTimeout(() => saveCurrentFeedback(), 800);
       });
     }
@@ -745,7 +757,7 @@
 
       // Feedback
       document.getElementById("feedback").value = feedbackMap[run.id] || "";
-      document.getElementById("feedback-status").textContent = "";
+      document.getElementById("feedback-status").textContent = staticMode ? "Copy feedback when done" : "";
 
       updateNavButtons();
 
@@ -1000,6 +1012,7 @@
       } else {
         feedbackMap[run.id] = text;
       }
+      if (staticMode) return;  // nothing to write; "Copy feedback" hands it over
 
       // Build reviews array from map
       const reviews = [];
@@ -1016,13 +1029,38 @@
       }).then(() => {
         document.getElementById("feedback-status").textContent = "Saved";
       }).catch(() => {
-        // Static mode or server unavailable — no-op on auto-save,
-        // feedback will be downloaded on final submit
+        // The review server stopped answering; the final submit downloads the feedback
         document.getElementById("feedback-status").textContent = "Will download on submit";
       });
     }
 
     // ---- Done ----
+    // navigator.clipboard exists only on HTTPS and localhost; a page opened by LAN IP needs execCommand.
+    async function copyText(text) {
+      try { await navigator.clipboard.writeText(text); return true; } catch { /* fall back below */ }
+      const area = document.createElement("textarea");
+      area.value = text;
+      area.style.cssText = "position:fixed;opacity:0";
+      const focused = document.activeElement;
+      document.body.append(area);
+      area.select();
+      try { return document.execCommand("copy"); } catch { return false; } finally {
+        area.remove();
+        focused?.focus({ preventScroll: true });
+      }
+    }
+
+    async function showCopiedFeedback(payload) {
+      const copied = await copyText(payload);
+      document.getElementById("done-text").textContent = copied
+        ? "Your feedback is copied. Paste it into your Claude Code session and tell Claude you're done reviewing."
+        : "Copying failed. Select the feedback below, copy it by hand, and paste it into your Claude Code session.";
+      const box = document.getElementById("done-json");
+      box.value = payload;
+      box.hidden = copied;
+      document.getElementById("done-overlay").classList.add("visible");
+    }
+
     function showDoneDialog() {
       // Save current textarea to feedbackMap (but don't POST yet)
       const run = EMBEDDED_DATA.runs[currentIndex];
@@ -1041,6 +1079,10 @@
         reviews.push({ run_id: r.id, feedback: feedbackMap[r.id] || "", timestamp: ts });
       }
       const payload = JSON.stringify({ reviews, status: "complete" }, null, 2);
+      if (staticMode) {
+        showCopiedFeedback(payload);
+        return;
+      }
       fetch("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1048,7 +1090,7 @@
       }).then(() => {
         document.getElementById("done-overlay").classList.add("visible");
       }).catch(() => {
-        // Server not available (static mode) — download as file
+        // The review server stopped answering: download the feedback as a file
         const blob = new Blob([payload], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");

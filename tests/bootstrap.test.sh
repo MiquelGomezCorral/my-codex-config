@@ -262,7 +262,7 @@ PY
 [[ -L "$CODEX_HOME_ROOT/.agents/skills/writing" ]]
 [[ -L "$CODEX_HOME_ROOT/.agents/skills/ponytail" ]]
 [[ -f "$CODEX_HOME_ROOT/.agents/skills/user-skill/SKILL.md" ]]
-[[ "$(find "$CODEX_HOME_ROOT/.agents/skills" -maxdepth 1 -type l | wc -l)" -eq 38 ]]
+[[ "$(find "$CODEX_HOME_ROOT/.agents/skills" -maxdepth 1 -type l | wc -l)" -eq 37 ]]
 [[ "$(readlink "$CODEX_HOME_ROOT/.local/share/my-codex-config/external-skills/ponytail/skills/ponytail")" == "$REUSED_PI_ROOT/skills/ponytail" ]]
 [[ "$(grep -c '^git clone' "$STUB_LOG")" -eq 2 ]]
 [[ -L "$CODEX_TARGET/commands" ]]
@@ -451,7 +451,7 @@ assert "User AGY instructions" in (home / ".gemini/GEMINI.md").read_text()
 agy_skills = home / ".gemini/config/skills"
 assert (agy_skills / "writing").is_symlink()
 assert (agy_skills / "user-skill/SKILL.md").is_file()
-assert len(list(agy_skills.glob("*"))) == 39
+assert len(list(agy_skills.glob("*"))) == 38
 cli = home / ".gemini/antigravity-cli"
 plugin = cli / "plugins/my-codex-config"
 assert len(list((cli / "agents").glob("*.md"))) == 12
