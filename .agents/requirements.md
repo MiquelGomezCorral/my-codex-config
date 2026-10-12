@@ -279,7 +279,7 @@ Status values: `done`, `partial`, `open`, `deferred`, `rejected`.
 66. **Keep the wave plan readable and its diagrams editable.** Migrate the deterministic
     HTML renderer into `$workflow`, link editable diagram files and SVG previews, and
     keep native Markdown authoritative. Status: `done` — local SVG preview and editable
-    links covered by renderer tests; live Lavish view pending.
+    links covered by renderer tests; plan pages open through the artifacts hub.
 67. **Make swarm an internal `$review` route.** Remove the separate
     `multi-agent-review` entry point while preserving its read-only specialist contracts;
     keep `review-plan`, `review-findings`, and `refine-plan` usable alone. Status: `done`

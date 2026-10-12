@@ -170,6 +170,4 @@ Include a false-positive finding, an out-of-scope observation, and a cleanup reg
 
 Do not install or authenticate tools, modify Orca itself, deploy configuration, or commit/push/create worktrees in this configuration repository. Required unavailable capabilities become explicit blockers.
 
-Lavish rendering remains pending because the current Plan mode prohibits writing its input and artifact files.
-
 The native plan is ready for the separate `$review-plan` adversarial review; `$code` then persists the finalized execution specification before implementation.
