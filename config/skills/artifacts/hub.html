@@ -414,12 +414,13 @@ function dialog({ title, warn = false, body = "", extra = "", ok = "", danger = 
   modal.classList.add("on");
   $("m-cancel").focus();
 }
-const close = () => { if (!busy) modal.classList.remove("on"); };
-$("m-cancel").onclick = close;
-modal.onclick = (e) => { if (e.target === modal) close(); };
+// Not "close": Orca's embedded browser already defines a global with that name, and redeclaring it stops the whole script.
+const closeDialog = () => { if (!busy) modal.classList.remove("on"); };
+$("m-cancel").onclick = closeDialog;
+modal.onclick = (e) => { if (e.target === modal) closeDialog(); };
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
-  close();
+  closeDialog();
   document.querySelectorAll(".tipwrap:is(:hover,:focus-within)").forEach((t) => t.classList.add("dismissed"));
 });
 // A tooltip closed with Escape comes back after the pointer or focus leaves and returns.
@@ -433,7 +434,7 @@ $("m-ok").onclick = async () => {
   busy = false;
   $("m-cancel").disabled = false;
   if (error) { $("m-err").textContent = error; okButton.disabled = false; return; }
-  close();
+  closeDialog();
   refresh(true);
 };
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
