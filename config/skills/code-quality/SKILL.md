@@ -1,6 +1,6 @@
 ---
 name: code-quality
-description: Apply the shared code-quality standard when writing or reviewing code, plus the language reference for the files you touch.
+description: Apply the shared code-quality standard when writing or reviewing code (any langauge coding, UI, design, frontend, backend, ML...), plus the language or UI reference for the files you touch.
 ---
 
 # Code Quality Standard
@@ -23,6 +23,8 @@ universal rules apply first; the language reference narrows them for that langua
 - [Python](references/python.md)
 - [Python plots](references/python-plots.md): when the Python code draws a plot for a page,
   notebook, or report
+- [UI](references/ui.md): when the change renders an interface (HTML, CSS, components);
+  design rules for layout, actions, consistency, color and states, plus the `lintapple` check
 
 ## Language checks
 
