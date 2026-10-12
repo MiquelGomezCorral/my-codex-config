@@ -139,7 +139,7 @@ check_source() {
 
 check_dependencies() {
   local missing=() tool
-  local tools=(codex python3 node npm npx codegraph btca)
+  local tools=(codex python3 node npm npx codegraph btca lintapple)
   if $SEARXNG_MCP_ENABLED; then
     tools+=(mcp-searxng)
   fi

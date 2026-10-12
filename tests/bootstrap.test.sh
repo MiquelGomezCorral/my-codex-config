@@ -20,6 +20,10 @@ if [[ "$*" == *'@colbymchenry/codegraph@1.6.0'* ]]; then
   printf '#!/usr/bin/env bash\nexit 0\n' > "$STUB_BIN/codegraph"
   chmod +x "$STUB_BIN/codegraph"
 fi
+if [[ "$*" == *'lintapple@0.1.20'* ]]; then
+  printf '#!/usr/bin/env bash\nexit 0\n' > "$STUB_BIN/lintapple"
+  chmod +x "$STUB_BIN/lintapple"
+fi
 if [[ "$*" == *'mcp-searxng@1.11.1'* ]]; then
   mkdir -p "$STUB_BIN/global/node_modules/mcp-searxng"
   printf '{"name":"mcp-searxng","version":"1.11.1"}\n' > "$STUB_BIN/global/node_modules/mcp-searxng/package.json"
@@ -277,6 +281,7 @@ grep -q 'Security Rules' "$CODEX_TARGET/AGENTS.md"
 [[ -f "$TEST_ROOT/searxng.state" ]]
 grep -q 'docker run --detach --name my-codex-config-searxng --restart unless-stopped --publish 127.0.0.1:8080:8080' "$STUB_LOG"
 grep -q 'bun add -g btca' "$STUB_LOG"
+grep -q 'npm install --global lintapple@0.1.20' "$STUB_LOG"
 [[ "$(grep -c 'npm install --global mcp-searxng@1.11.1' "$STUB_LOG")" -eq 1 ]]
 
 INCOMPLETE_HOME="$TEST_ROOT/incomplete-home"

@@ -87,6 +87,16 @@ common_install_btca() {
   command -v btca >/dev/null 2>&1 || common_die 'BTCA installation completed but btca is not on PATH.'
 }
 
+common_install_lintapple() {
+  if command -v lintapple >/dev/null 2>&1; then
+    return 0
+  fi
+  command -v npm >/dev/null 2>&1 || common_die 'Missing npm; cannot install lintapple.'
+  printf 'Installing lintapple (lintapple@0.1.20)...\n'
+  npm install --global lintapple@0.1.20
+  command -v lintapple >/dev/null 2>&1 || common_die 'lintapple installation completed but lintapple is not on PATH.'
+}
+
 common_has_pinned_searxng_connector() {
   local path_entry connector
   local -a path_entries=()
@@ -308,6 +318,7 @@ common_install_shared() {
 
   common_install_codegraph
   common_install_btca
+  common_install_lintapple
   if $searxng_mcp_enabled; then
     common_install_searxng_connector
   fi
