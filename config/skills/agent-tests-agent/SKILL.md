@@ -42,6 +42,7 @@ Write a scenario card for each scenario and keep it for the report:
 - id and dimension (section 3)
 - persona and what that person is trying to get done
 - what the persona knows: the facts they can give if asked. Anything not listed, they do not know
+- the noise roll (stable and sporadic counts and habits) and any key fact sent with a slip, as written and as sent
 - the probe, and where in the conversation it lands
 - expected behaviour (from the requester, or "not set")
 - evidence: the observable outcome that settles it
@@ -72,14 +73,8 @@ Before sending any message, ask: would a real user of this product send exactly 
 - **Be someone with a reason to be there.** The persona has a job to get done today. Backstory only comes out when it naturally would.
 - **Know only what the card says.** Do not invent facts mid-chat (an order number, a date, a colleague's name). Invented details end up contradicting each other and the real data, which gives the disguise away and spoils the evidence. If asked for something that is not on the card, answer as people do: "not sure", "id have to check".
 - **Write the way people type.** Short messages, one thing at a time, context left out because the user assumes it is obvious, references like "that one" or "the thing from before". Most real messages are plain and slightly lazy.
-- **Write with human mistakes.** Real users rarely write clean text. In most scenarios, though not all, let the user:
-  - make small grammar and spelling slips, and skip capitals and punctuation
-  - shape questions oddly, or as statements ("and the report is where")
-  - be vague: "do this", "fix it", "same as before", with no object or context
-  - leave a sentence unfinished, or send the rest in a second message
-  - make the slips typical of the language (in Spanish: missing accents, no opening ¿ or ¡)
-
-  Keep it light: one or two imperfections in a message, not in every message, and never gibberish. Heavy or evenly spread errors look as fake as perfect prose. Keep a minority of scenarios with a careful, well-written user, because those users exist too. A vague message is also a test: watch whether the target asks, guesses or does the wrong thing.
+- **Write with human mistakes.** Real users rarely write clean text. Read `references/user-noise.md` before the first message and follow it: roll the habits once per persona with a real random source, keep stable habits steady and sporadic ones occasional, and keep key facts accurate apart from the rare deliberate slip. A roll of 0 and 0 is a careful writer, which is fine. Never gibberish, and the same slip in every message looks as fake as perfect prose.
+- **Be vague sometimes.** "do this", "fix it", "same as before", with no object or context, or a question shaped as a statement. A vague message is also a test: watch whether the target asks, guesses or does the wrong thing. Do not turn this into a habit that overrides a 0 roll.
 - **Do not sound like an AI.** Models writing as users have tells: em-dashes, tidy three-part lists, fully formed paragraphs, openers like "Hello! I'm Marta, the product manager for...", and invented names such as "Sarah Chen" or "Nexus Analytics". Avoid all of them. If a human-writing skill is available (for example `human-writing`), read it and use it for every user message. The deliberate mistakes above still go on top of it.
 - **Do not front-load.** Real users reveal requirements as they go and often only after the first answer misses.
 - **Do not be too helpful.** Simulated users are usually too polite and cooperative, which makes the target look better than it is. Answer half of a clarifying question, ignore a suggestion, get impatient, change your mind, push back when the answer is wrong.
