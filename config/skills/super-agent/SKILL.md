@@ -42,7 +42,9 @@ Resolve the environment's own lifecycle before choosing anything else:
 
 ## Delegate or not
 
-Delegate only when independent scopes or perspectives are useful. Prefer one worker for a
+The human-facing root does small, scoped work itself and delegates anything bigger, so it
+stays available to the user. Fan out to several workers only when independent scopes or
+perspectives are useful. Prefer one worker for a
 small task, a dependency chain, one slow external operation, or repeated mutation of the
 same state. Never delegate to satisfy a roster.
 Prefer in-session tools. Reuse native agents or swarms only when model and thinking
