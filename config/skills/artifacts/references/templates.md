@@ -104,6 +104,12 @@ To add a Lucide icon the catalog lacks:
 **Blocks**
 - **One finding is one `findings` row.** What we did, what we expected, and what happened
   go in its fields; verbatim text goes in its quotes. Rows open on click.
+- **The row picks its layout from its text.** When every field and quote is one line of up
+  to 90 characters, the labels form a column beside the text (above phone width); when any
+  is longer or has a line break, each label sits above its text. Keep fields to one short
+  line when you can, and split long ones into more fields. A quote shows as one more line,
+  labelled by its `source` ("Quote" without one), so write the source as a short label
+  ("Agent reply", "Chrome, turn 3").
 - **Plain first** (rule in SKILL.md): a finding's title says in plain words what happened;
   the mechanics go in its fields and quotes.
 - **Counts come from `stats` with `auto: true`.** Do not type totals.

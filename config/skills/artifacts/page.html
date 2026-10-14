@@ -87,11 +87,13 @@ summary::before{content:"▸";color:var(--muted)}details[open]>summary::before{c
 summary .id{font-weight:700}summary .t{flex:1;min-width:180px}summary .icon{align-self:center}
 summary .preview{flex-basis:100%;color:var(--muted);font-size:14px;padding-left:20px}
 .body{padding:0 14px 12px}
-dl{margin:0;display:grid;grid-template-columns:150px 1fr;gap:4px 12px}
-dt{color:var(--muted);font-size:13px}dd{margin:0}
-@media (max-width:600px){dl{grid-template-columns:1fr}dt{margin-top:6px}}
-blockquote{margin:6px 0;padding:4px 10px;border-left:3px solid var(--line);color:var(--muted);font-style:italic}
-blockquote cite{display:block;font-size:12px;font-style:normal}
+/* Finding fields: each label sits above its text. When every field and quote is one short line (dl.table), wider
+   screens put the labels in a column as wide as the longest one, up to 150px; longer labels wrap. */
+dl{margin:0;display:grid}
+dt{color:var(--muted);font-size:13px;font-weight:600;line-height:1.3}dt:not(:first-child){margin-top:10px}
+dd{margin:0;overflow-wrap:anywhere}dd>:first-child{margin-top:0}dd>:last-child{margin-bottom:0}dd.quote{color:var(--muted);font-style:italic}
+@media (min-width:601px){dl.table{grid-template-columns:fit-content(150px) 1fr;gap:8px 16px;align-items:baseline}
+dl.table dt{margin-top:0;font-weight:400;line-height:inherit}}
 .steps{--rule:color-mix(in srgb,var(--muted) 40%,transparent);list-style:none;margin:10px 0;padding:0}
 .step{position:relative;overflow-wrap:anywhere}
 .step>b{display:block;font-size:16px}
@@ -334,6 +336,8 @@ function allBlocks(type) {
 
 // Longest step text, in characters, that can sit in a row.
 const STEP_TEXT_MAX = 80;
+// Longest finding field or quote, in characters, that still fits one line beside its label.
+const FIELD_LINE_MAX = 90;
 
 const renderers = {
   text: (b) => paragraphs(b.text),
@@ -397,9 +401,12 @@ const renderers = {
   details: (b) => (b.items || []).map((i) => `<details${i.open ? " open" : ""}><summary>${icon(i.icon)}<span class="t">${inline(i.title)}</span>${i.preview ? `<span class="preview">${inline(i.preview)}</span>` : ""}</summary><div class="body">${i.text ? paragraphs(i.text) : ""}${(i.blocks || []).map(renderBlock).join("")}</div></details>`).join(""),
   inset: (b) => `<div class="inset">${(b.blocks || []).map(renderBlock).join("")}</div>`,
   findings: (b) => (b.items || []).map((i) => {
-    const fields = (i.fields || []).map((f) => `<dt>${inline(f.label)}</dt><dd>${paragraphs(f.text)}</dd>`).join("");
-    const quotes = (i.quotes || []).map((q) => `<blockquote>${inline(q.text)}${q.source ? `<cite>${inline(q.source)}</cite>` : ""}</blockquote>`).join("");
-    return `<details${i.open ? " open" : ""}><summary>${i.id ? `<span class="id">${escapeHtml(i.id)}</span>` : ""}<span class="t">${inline(i.title)}</span>${pill(i.status)}</summary><div class="body"><dl>${fields}</dl>${quotes}</div></details>`;
+    // A quote is one more labelled line, named by its source. All one-liners make a label column.
+    const quotes = (i.quotes || []).map((q) => ({ label: q.source || "Quote", text: q.text, quote: true }));
+    const lines = [...(i.fields || []), ...quotes];
+    const short = lines.every((l) => { const text = String(l.text ?? ""); return text.length <= FIELD_LINE_MAX && !/[\r\n]/.test(text); });
+    const rows = lines.map((l) => `<dt>${inline(l.label)}</dt>${l.quote ? `<dd class="quote">${paragraphs(`“${l.text ?? ""}`, "”")}</dd>` : `<dd>${paragraphs(l.text)}</dd>`}`).join("");
+    return `<details${i.open ? " open" : ""}><summary>${i.id ? `<span class="id">${escapeHtml(i.id)}</span>` : ""}<span class="t">${inline(i.title)}</span>${pill(i.status)}</summary><div class="body"><dl${short ? ' class="table"' : ""}>${rows}</dl></div></details>`;
   }).join(""),
   compare: (b) => {
     const cards = (b.options || []).map((o) => `<div class="card${o.name === b.recommended ? " rec" : ""}"><h3>${inline(o.name)}${o.name === b.recommended ? '<span class="pill info">Recommended</span>' : ""}</h3>${paragraphs(o.summary)}<ul>${(o.pros || []).map((p) => `<li class="pro">${inline(p)}</li>`).join("")}${(o.cons || []).map((c) => `<li class="con">${inline(c)}</li>`).join("")}</ul></div>`).join("");
