@@ -36,6 +36,12 @@ h1{font-size:26px;margin:2px 0 4px}
 h2{font-size:19px;margin:36px 0 10px;padding-top:10px;border-top:1px solid var(--line)}
 h3{font-size:16px;margin:20px 0 8px}
 .sub,.intro{color:var(--muted);margin:0 0 14px}
+/* A section folds on its heading: the h2 is the summary, and a chevron before it shows the state. */
+details.sec{background:none;border:0;border-radius:0;margin:0}
+details.sec>summary{display:block;padding:0}
+details.sec>summary::before{display:none}
+details.sec>summary>h2::before{content:"▾" / "";display:inline-block;width:1.1em;color:var(--muted);font-size:15px}
+details.sec:not([open])>summary>h2::before{content:"▸" / ""}
 nav{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px}
 nav a{text-decoration:none;font-size:14px;border:1px solid var(--line);padding:3px 10px;border-radius:999px;background:var(--card)}
 p{margin:8px 0}
@@ -59,6 +65,9 @@ pre::-webkit-scrollbar-track,textarea::-webkit-scrollbar-track,.scroll::-webkit-
 .callout{border-left:4px solid var(--tone,var(--info));background:var(--tonebg,var(--infobg));border-radius:8px;padding:10px 14px;margin:10px 0}
 .callout b{display:block}
 .pill{display:inline-block;font-size:12px;font-weight:600;padding:1px 8px;border-radius:999px;white-space:nowrap;color:var(--tone);background:var(--tonebg)}
+/* A chip with hover text shows it has some; wireChipTips draws the text in .chip-tip. */
+.pill[data-tip]{cursor:help;text-decoration:underline dotted;text-underline-offset:3px}
+.chip-tip{position:fixed;z-index:20;pointer-events:none;max-width:min(320px,calc(100vw - 16px));padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:13px;line-height:1.4;box-shadow:0 6px 18px rgba(0,0,0,.25);white-space:pre-line;overflow-wrap:anywhere}
 .ok{--tone:var(--ok);--tonebg:var(--okbg)}.bad{--tone:var(--bad);--tonebg:var(--badbg)}
 .warn{--tone:var(--warn);--tonebg:var(--warnbg)}.info{--tone:var(--info);--tonebg:var(--infobg)}
 .muted{--tone:var(--muted-tone);--tonebg:var(--mutedbg)}
@@ -129,10 +138,17 @@ div.legend{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
 .matrix small{display:block;color:var(--muted);font-weight:400}
 .matrix .group th{background:var(--mutedbg)}
 .chips{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
-.gallery{display:flex;flex-wrap:wrap;gap:12px;margin:10px 0}
-.gallery figure{width:var(--w);max-width:100%;margin:0}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,min(var(--w),100%));gap:12px;margin:10px 0}
+/* Each figure spans the rows it shares with its neighbours (media, caption, and fold-out if any), so the figures
+   in a row grow to the tallest one and their captions and fold-outs line up. */
+.gallery figure{display:grid;grid-row:span 2;grid-template-rows:subgrid;grid-template-columns:minmax(0,1fr);row-gap:0;margin:0}
+.gallery:has(figure>details) figure{grid-row:span 3}
 .gallery img,.gallery video{width:100%;height:auto}
 .gallery.pixelated img{image-rendering:pixelated}
+/* A figure's fold-out keeps its own height when a neighbour's opens; long code lines scroll inside it. */
+figure>details{margin:6px 0 0;align-self:start}
+figure>details summary .t{min-width:0}
+figure>details pre{margin:0;max-height:420px}
 .gallery-group{margin:22px 0 8px}
 .gallery-group h4{display:flex;align-items:center;gap:12px;margin:0 0 4px;font-size:15px}
 .gallery-group h4::after{content:"";flex:1;height:1px;background:color-mix(in srgb,var(--muted) 40%,transparent)}
@@ -210,10 +226,57 @@ function inline(text) {
     .replace(/\u0000(\d+)\u0000/g, (_, n) => `<code>${codes[n]}</code>`);
 }
 
-// `tail` is markup that ends the last paragraph.
+// A Markdown list line: "- " or "* " for bullets, "1. " or "1) " for numbers, indented to nest.
+const LIST_LINE = /^(\s*)([-*]|\d+[.)])\s+(.*)$/;
+
+// Turns a run of list lines into the item tree listHtml draws. A deeper indent nests under the item
+// above it; an indented line without a marker continues the item above it.
+function parseList(lines) {
+  const top = { indent: -1, items: [] };
+  const levels = [top];
+  for (const line of lines) {
+    const match = LIST_LINE.exec(line);
+    if (!match) {
+      const item = levels.at(-1).items.at(-1);
+      if (item) item.text += " " + line.trim();
+      continue;
+    }
+    const [, space, marker, text] = match;
+    const ordered = /\d/.test(marker), start = parseInt(marker, 10);
+    while (levels.length > 1 && space.length < levels.at(-1).indent) levels.pop();
+    let level = levels.at(-1);
+    if (level === top && top.indent < 0) Object.assign(top, { indent: space.length, ordered, start });
+    else if (space.length > level.indent && level.items.length) {
+      const parent = level.items.at(-1);
+      if (!parent.items) Object.assign(parent, { items: [], ordered, start });
+      level = { indent: space.length, items: parent.items };
+      levels.push(level);
+    }
+    level.items.push({ text });
+  }
+  return top;
+}
+
+// Blank lines split paragraphs; inside one, single line breaks stay and runs of list lines become
+// lists. `tail` is markup that ends the last paragraph.
 function paragraphs(text, tail = "") {
-  const parts = String(text ?? "").split(/\n\s*\n/);
-  return parts.map((p, i) => `<p>${inline(p).replace(/\n/g, "<br>")}${i === parts.length - 1 ? tail : ""}</p>`).join("");
+  const parts = String(text ?? "").replace(/\r\n?/g, "\n").split(/\n\s*\n/);
+  return parts.map((part, i) => {
+    const end = i === parts.length - 1 ? tail : "";
+    const runs = [];
+    for (const line of part.split("\n")) {
+      // An indented line right after a list line belongs to that list.
+      const list = LIST_LINE.test(line) || Boolean(runs.at(-1)?.list && /^\s+\S/.test(line));
+      if (!runs.length || runs.at(-1).list !== list) runs.push({ list, lines: [] });
+      runs.at(-1).lines.push(line);
+    }
+    return runs.map((run, n) => {
+      const last = n === runs.length - 1 ? end : "";
+      if (!run.list) return `<p>${inline(run.lines.join("\n")).replace(/\n/g, "<br>")}${last}</p>`;
+      const list = parseList(run.lines);
+      return listHtml(list.items, list.ordered, list.start) + (last ? `<p>${last}</p>` : "");
+    }).join("");
+  }).join("");
 }
 
 // Unknown names draw nothing, so a typo never breaks the page.
@@ -223,21 +286,24 @@ function icon(name) {
 }
 
 // List items are strings, or { text, items, ordered } for a nested list.
-function listHtml(items, ordered) {
+// A numbered list may start at `start`, as written in Markdown text ("3. third").
+function listHtml(items, ordered, start) {
   const tag = ordered ? "ol" : "ul";
-  const item = (i) => typeof i === "string" ? inline(i) : inline(i.text) + (i.items?.length ? listHtml(i.items, i.ordered) : "");
-  return `<${tag}>${(items || []).map((i) => `<li>${item(i)}</li>`).join("")}</${tag}>`;
+  const item = (i) => typeof i === "string" ? inline(i) : inline(i.text) + (i.items?.length ? listHtml(i.items, i.ordered, i.start) : "");
+  const from = ordered && start > 1 ? ` start="${start}"` : "";
+  return `<${tag}${from}>${(items || []).map((i) => `<li>${item(i)}</li>`).join("")}</${tag}>`;
 }
 
 function tone(name) {
   return TONES.includes(name) ? name : "muted";
 }
 
-// A chip is { text, tone, title, icon }: `title` is hover text and `icon` a key of the icon catalog,
-// drawn before the text. A bare string stands for a muted chip.
+// A chip is { text, tone, title, icon }: `title` is hover text, shown by wireChipTips, and `icon` a key
+// of the icon catalog, drawn before the text. A bare string stands for a muted chip.
 function chip(c) {
   const { text, tone: name, title, icon: iconName } = c !== null && typeof c === "object" ? c : { text: c };
-  return `<span class="pill ${tone(name)}"${title ? ` title="${escapeHtml(title)}"` : ""}>${icon(iconName)}${inline(text)}</span>`;
+  const tip = title ? ` tabindex="0" data-tip="${escapeHtml(title)}" aria-description="${escapeHtml(title)}"` : "";
+  return `<span class="pill ${tone(name)}"${tip}>${icon(iconName)}${inline(text)}</span>`;
 }
 
 // A table cell is a string, or a chip object for a status chip.
@@ -367,7 +433,10 @@ const renderers = {
     // HTML diagrams and mockups run in a sandbox without access to this page or its storage.
     if (/\.html?$/i.test(b.src || "")) media = `<iframe src="${src}" title="${label}" style="height:${Number(b.height) || 420}px" loading="lazy" sandbox="allow-scripts"></iframe>`;
     const links = `<a href="${src}" target="_blank" rel="noopener">Open full size</a>${b.source ? `<a href="${escapeHtml(b.source)}" target="_blank" rel="noopener">Editable source</a>` : ""}`;
-    return `<figure>${media}<figcaption>${inline(b.caption || "")}${links}</figcaption></figure>`;
+    // An optional fold-out under the caption: one closed `details` row holding `text`, then `code` as monospace lines.
+    const d = b.details;
+    const fold = d ? renderers.details({ items: [{ title: d.title || "Details", text: d.text, blocks: d.code ? [{ type: "code", text: d.code }] : [] }] }) : "";
+    return `<figure>${media}<figcaption>${inline(b.caption || "")}${links}</figcaption>${fold}</figure>`;
   },
   // `groups` split the items by method or experiment: a title with a divider line, an optional note,
   // then the group's own wrapping row.
@@ -475,7 +544,8 @@ function diffSection(before, after, note) {
   });
   const dropped = (before.blocks || []).slice(blocks.length);
   dropped.forEach((block, n) => note("removed", after.title, block.heading || `${block.type} block ${blocks.length + n + 1}`));
-  const ownFields = (s) => ({ ...s, blocks: 0 });
+  // Dropped, not zeroed: same() compares JSON text, so an added key would also shift the key order.
+  const ownFields = ({ blocks, collapsed, ...rest }) => rest;
   const fieldsChanged = !same(ownFields(before), ownFields(after));
   if (fieldsChanged) note("changed", after.title, "heading or intro");
   return { mark: fieldsChanged || dropped.length ? "changed" : null, blocks };
@@ -526,7 +596,8 @@ function markChangedItems() {
       element.dataset.item = "";
       if (!marks[n]) return;
       element.dataset.change = marks[n];
-      if (element.matches("details")) element.open = true;
+      const fold = element.matches("details") ? element : element.querySelector(":scope > details");
+      if (fold) fold.open = true;
       (spec.badge ? element.querySelector(spec.badge) : element)?.insertAdjacentHTML("beforeend", badge(marks[n]));
     });
   }
@@ -554,7 +625,14 @@ function renderSection(section, index) {
   const body = section.layout === "split"
     ? `<div class="split"><div>${blocks.filter((b) => !right(b)).map((b) => b.html).join("")}</div><div>${blocks.filter(right).map((b) => b.html).join("")}</div></div>`
     : blocks.map((b) => b.html).join("");
-  return `<section id="${escapeHtml(id)}" class="slide"${diff?.mark ? ` data-change="${diff.mark}"` : ""}><h2>${inline(section.title)}${diff?.mark ? badge(diff.mark) : ""}</h2>${section.intro ? `<p class="intro">${inline(section.intro)}</p>` : ""}${body}</section>`;
+  const heading = `<h2>${inline(section.title)}${diff?.mark ? badge(diff.mark) : ""}</h2>`;
+  const content = (section.intro ? `<p class="intro">${inline(section.intro)}</p>` : "") + body;
+  // Outside a deck every section folds on its heading. `collapsed` starts it folded, unless something
+  // in it changed since the version the reader saw.
+  const changed = diff?.mark || diff?.blocks.some(Boolean);
+  const inner = data.layout === "slides" ? heading + content
+    : `<details class="sec"${section.collapsed && !changed ? "" : " open"}><summary>${heading}</summary>${content}</details>`;
+  return `<section id="${escapeHtml(id)}" class="slide"${diff?.mark ? ` data-change="${diff.mark}"` : ""}>${inner}</section>`;
 }
 
 function renderHeader() {
@@ -626,7 +704,7 @@ function wireDecisions() {
   document.addEventListener("click", async (e) => {
     const row = e.target.closest("table.pick tbody tr");
     // Dragging to select text in a row must not flip its tick.
-    if (row && !e.target.closest("input, a") && !getSelection().toString()) {
+    if (row && !e.target.closest("input, a, [data-tip]") && !getSelection().toString()) {
       row.querySelector("input").click();
       return;
     }
@@ -634,6 +712,43 @@ function wireDecisions() {
     const text = `Decisions for "${data.title}":\n` + collectDecisions();
     showCopyResult(e.target.closest(".copy-bar"), text, await copyText(text));
   });
+}
+
+// Chip hover text, in one shared tooltip instead of the native one, which shows late, never on touch,
+// and not at all in some embedded browsers. It shows on mouse hover, keyboard focus, or a tap, and
+// hides on leave, blur, Escape, or a tap elsewhere. Fixed on the body, so a scrolling table never
+// clips it; it sits below the chip, or above when there is no room, and stays inside the viewport.
+function wireChipTips() {
+  const tip = document.createElement("div");
+  tip.className = "chip-tip";
+  tip.setAttribute("role", "tooltip");
+  tip.hidden = true;
+  document.body.append(tip);
+  let owner = null;
+  const place = () => {
+    tip.style.left = tip.style.top = "0px"; // measure at full width, not squeezed by the last position
+    const r = owner.getBoundingClientRect(), gap = 6, edge = 8;
+    if (!owner.contains(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2))) return hide();
+    const { clientWidth: width, clientHeight: height } = document.documentElement; // the viewport without scrollbars
+    const fitsBelow = r.bottom + gap + tip.offsetHeight <= height - edge;
+    tip.style.top = `${fitsBelow ? r.bottom + gap : Math.max(edge, r.top - gap - tip.offsetHeight)}px`;
+    tip.style.left = `${Math.max(edge, Math.min(r.left, width - edge - tip.offsetWidth))}px`;
+  };
+  const show = (chip) => {
+    owner = chip;
+    tip.textContent = chip.dataset.tip;
+    tip.hidden = false;
+    place();
+  };
+  const hide = () => { owner = null; tip.hidden = true; };
+  const chipOf = (e) => e.target.closest?.("[data-tip]");
+  document.addEventListener("pointerover", (e) => { if (e.pointerType === "mouse" && chipOf(e)) show(chipOf(e)); });
+  document.addEventListener("pointerout", (e) => { if (e.pointerType === "mouse" && owner && chipOf(e) === owner && !owner.contains(e.relatedTarget)) hide(); });
+  document.addEventListener("focusin", (e) => { if (chipOf(e)) show(chipOf(e)); });
+  document.addEventListener("focusout", (e) => { if (owner && chipOf(e) === owner) hide(); });
+  document.addEventListener("click", (e) => { if (chipOf(e)) show(chipOf(e)); else hide(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") hide(); });
+  for (const type of ["scroll", "resize"]) addEventListener(type, () => { if (owner) place(); }, true);
 }
 
 // Steps blocks follow their own width, not the window's, so a side column and a phone behave alike. A short
@@ -702,22 +817,35 @@ document.title = data.title || "Artifact";
 document.getElementById("root").innerHTML = renderHeader() + (data.sections || []).map(renderSection).join("");
 markChangedItems();
 document.addEventListener("change", (e) => {
-  if (e.target.matches("[data-only-changes]")) document.body.classList.toggle("only-changes", e.target.checked);
+  if (!e.target.matches("[data-only-changes]")) return;
+  document.body.classList.toggle("only-changes", e.target.checked);
+  if (e.target.checked) document.querySelectorAll("section:is([data-change], :has([data-change])) > details.sec").forEach((d) => { d.open = true; });
 });
 // Any section holding picks, even inside collapsible rows, ends with the copy bar.
 for (const section of document.querySelectorAll("section")) {
   if (!section.querySelector(".decision, table.pick")) continue;
-  section.insertAdjacentHTML("beforeend", '<div class="copy-bar"><button type="button" data-copy-decisions>Copy my decisions</button> <span class="copy-status" hidden></span><pre class="copy-text" hidden></pre></div>');
+  (section.querySelector(":scope > details.sec") || section).insertAdjacentHTML("beforeend", '<div class="copy-bar"><button type="button" data-copy-decisions>Copy my decisions</button> <span class="copy-status" hidden></span><pre class="copy-text" hidden></pre></div>');
 }
+// A link to a section, from the top nav or anywhere on the page, unfolds it before the jump.
+const unfold = (hash) => {
+  let id = hash.slice(1);
+  try { id = decodeURIComponent(id); } catch { /* a stray "%" stays as typed */ }
+  const fold = id && document.getElementById(id)?.closest("section")?.querySelector(":scope > details.sec");
+  if (fold) fold.open = true;
+};
+document.addEventListener("click", (e) => { const link = e.target.closest('a[href^="#"]'); if (link) unfold(link.getAttribute("href")); });
+addEventListener("hashchange", () => unfold(location.hash));
+unfold(location.hash);
 const toolbar = document.createElement("div");
 toolbar.className = "toolbar";
 document.body.append(toolbar);
 wireTheme(toolbar);
 wireDecisions();
+wireChipTips();
 wireSteps();
 if (data.layout === "slides") wireSlides(toolbar);
-// A page rewritten during a long run reloads itself, at most daily. A reload would close what the
-// reader opened, so a tick is skipped while a row they opened is open, "Show only changes" is on,
+// A page rewritten during a long run reloads itself, at most daily. A reload would undo what the
+// reader opened or folded, so a tick is skipped while a row they opened is open or one they folded is shut, "Show only changes" is on,
 // a textarea has focus, or a video is playing; the next tick tries again.
 const refreshSeconds = Number(data.refresh);
 if (refreshSeconds >= 10) {
@@ -725,7 +853,7 @@ if (refreshSeconds >= 10) {
   const readerIsBusy = () => document.body.classList.contains("only-changes")
     || document.activeElement?.matches("textarea")
     || [...document.querySelectorAll("video")].some((v) => !v.paused)
-    || [...document.querySelectorAll("details[open]")].some((d) => !openAtLoad.has(d));
+    || [...document.querySelectorAll("details")].some((d) => d.open !== openAtLoad.has(d));
   setInterval(() => { if (!readerIsBusy()) location.reload(); }, Math.min(refreshSeconds, 86400) * 1000);
 }
 </script>

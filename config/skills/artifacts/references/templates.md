@@ -27,6 +27,9 @@ use any block.
 - **Put an `id` on sections, findings, and decisions.** Ids keep section links and change
   marks stable when a title changes. Without one, a renamed title reads as one removed item
   plus one added.
+- **Fold long reference sections.** Every section folds on its heading. Set
+  `collapsed: true` on one the reader rarely needs open, such as a long gallery or raw data;
+  it still opens by itself when it changed, from a link to it, or with "Show only changes".
 - **Add new blocks at the end of a section.** Blocks match by position, so one inserted in
   the middle marks every block after it as changed.
 - **Keep table rows distinct.** A row has no `id`: its key is all its cell text, so a row
@@ -155,8 +158,16 @@ To add a Lucide icon the catalog lacks:
 - **GIFs and videos are a `gallery`.** With several methods or experiments, use `groups`, one
   per method: each gets a title, a divider line, and its own wrapping row, so runs of
   different methods never mix. Plots of several experiments can use the same groups: give
-  each item an `.html` `src` and a `height`, and the block a `width` near 520. Set `pixelated`
+  each item an `.html` `src` and a `height`, and the block a `width` near 500. Set `pixelated`
   only for upscaled pixel art.
+- **Pick the gallery `width` for the cards per row you want.** Cards keep that width and
+  never stretch. On a full-width page, up to 334 fits 3 per row, 335 to 508 fits 2, and more
+  gives 1 per row; phones always show 1. A width between those steps leaves empty space at
+  the end of each row.
+- **Text that belongs to one picture folds out under it.** Give the gallery item `details`
+  (`title`, and `text` or `code`), such as a reward machine's transitions under its graph. It
+  starts closed and keeps to the card's width; a separate `details` block would lose which text
+  goes with which picture.
 - **A page rewritten during a long run sets `refresh`.** Drop it once the runs are done.
 
 ```json
@@ -219,7 +230,8 @@ To add a Lucide icon the catalog lacks:
           "width": 320,
           "groups": [
             { "title": "Baseline", "items": [{ "src": "gifs/q1-baseline.gif", "caption": "Query 1: rank 7 of 10" }] },
-            { "title": "Tuned ranker", "items": [{ "src": "gifs/q1-tuned.gif", "caption": "Query 1: rank 1 of 10" }] }
+            { "title": "Tuned ranker", "items": [{ "src": "gifs/q1-tuned.gif", "caption": "Query 1: rank 1 of 10",
+              "details": { "title": "Ranked list", "code": "1  q1-doc-04  0.93\n2  q1-doc-11  0.88" } }] }
           ]
         }
       ]

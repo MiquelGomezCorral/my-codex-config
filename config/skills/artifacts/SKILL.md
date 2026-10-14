@@ -132,10 +132,12 @@ Top level: `title`, optional `eyebrow` (small line above the title), `subtitle`,
 the reader is using it), `statuses`, and `sections`. Each section has a `title`,
 an optional `id` for the navigation links and `intro`, a list of `blocks`, and optional
 `layout: "split"`, which puts its figures and any block with `side: true` on the right and
-the other blocks on the left. A split section in a deck is a diagram slide.
+the other blocks on the left. A split section in a deck is a diagram slide. Outside a deck, every
+section folds and unfolds on its heading; `collapsed: true` starts it folded, unless it changed
+since the version the reader saw. Links to it unfold it.
 
 Every text field accepts `` `code` ``, `**bold**`, `*italic*`, `<u>underline</u>`,
-`[link](url)`, and blank lines between paragraphs. Any block can take a `heading` that is shown above it. A `tone`
+`[link](url)`, and blank lines between paragraphs. In fields that hold paragraphs (text blocks, callouts, card `text` and `inset`, details rows, finding fields, compare summaries, decision descriptions), lines starting `- `, `* `, `1. ` or `1) ` become a bulleted or numbered list, nested by indenting; a numbered list starts at the number written. Any block can take a `heading` that is shown above it. A `tone`
 is one of `ok`, `bad`, `warn`, `info`, or `muted`.
 
 | Block `type` | Fields |
@@ -146,7 +148,7 @@ is one of `ok`, `bad`, `warn`, `info`, or `muted`.
 | `stats` | `items` (`value`, `label`, `tone`); `auto: true` adds counts of finding statuses |
 | `cards` | `items` (`title`, `text`, optional `status`, `icon`, and `inset`, a second explanation shown in a neutral inset) |
 | `table` | `columns`, `rows` (arrays of cells; a cell is a string, or a chip: `{ text, tone, icon, title }`), `select` (adds a tick box per row; rows start ticked) |
-| `matrix` | `columns` (strings, or `name` plus `note`), `groups` (`title`, `rows` of `label`, `note`, and `cells`, one list of chips per column, where a single chip or a string also works; a chip is `text`, `tone`, `icon`, and `title` for hover text), `legend` (a line of text, or a list of chips and text that explain them). Chips stack one per line |
+| `matrix` | `columns` (strings, or `name` plus `note`), `groups` (`title`, `rows` of `label`, `note`, and `cells`, one list of chips per column, where a single chip or a string also works; a chip is `text`, `tone`, `icon`, and `title` for text shown on hover, focus or tap), `legend` (a line of text, or a list of chips and text that explain them). Chips stack one per line |
 | `steps` | `items` (`title`, `text`, optional `icon`): A then B, numbered by the page, as a row when every `text` is 80 characters or less and the width allows, else as a vertical rail; `ordered: false` for parts of one change that ship together, as rows in one panel |
 | `details` | `items` (`title`, `text`, optional `blocks`, `open`, `icon`, `preview`, a short line under the title) as collapsible rows |
 | `inset` | `blocks` drawn inside a neutral inset |
@@ -155,7 +157,7 @@ is one of `ok`, `bad`, `warn`, `info`, or `muted`.
 | `decisions` | `items` (`id`, `title`, `description`, `question`, `options`, `recommended`, `why`, optional `technical`; older items with only `question` and `context` still render) |
 | `code` | `text` |
 | `figure` | `src` (a file next to the page: image, `.html`, or `.mp4`/`.webm` video), `caption`, `alt`, `source` (editable file or URL), `height` for HTML |
-| `gallery` | `items` (`src`, `caption`, `alt`: images, GIFs, videos, or `.html` plots with a `height`; each opens full size) or `groups` (`title`, optional `note`, `items`: one titled row with a divider line per method or experiment), `width` (thumbnail px, default 320), `pixelated` (crisp upscaled pixel art) |
+| `gallery` | `items` (`src`, `caption`, `alt`: images, GIFs, videos, or `.html` plots with a `height`; each opens full size; optional `details` (`title`, `text`, `code`) folds out under the caption, closed, with `code` as monospace lines that scroll inside the card) or `groups` (`title`, optional `note`, `items`: one titled row with a divider line per method or experiment), `width` (card width in px, default 320; cards keep it and never stretch, so it sets how many share a row on a full-width page: up to 334 for 3, 335 to 508 for 2, more for 1; phones show 1), `pixelated` (crisp upscaled pixel art) |
 | `html` | `html`, only for a hand-drawn SVG or markup no other block covers |
 
 An `icon` is a key of `icons.json`, the skill's Lucide catalog, and draws on cards, steps, details rows, and chips; an
