@@ -514,6 +514,15 @@ function visualBlocks(artifact, outputDirectory) {
   return [{ type: "figure", heading: artifact.title, src: href, caption: artifact.caption, alt: artifact.title, ...source, ...side }]
 }
 
+// Icons for the refine-plan template's own headings; a brief's icon wins, and any other heading gets the document icon.
+const PLAN_SECTION_ICONS = {
+  "planning mode": "compass", goal: "target", context: "book-open", "files touched": "files", requirements: "list-checks",
+  steps: "list-ordered", "applicable instructions": "clipboard-list", "readiness check": "clipboard-check",
+  "live validation": "flask-conical", "main-agent memory updates": "notebook-pen", "decision records": "scale",
+  "workflow and authorizations": "key-round", "out of scope": "ban", "current behavior": "activity",
+}
+const planSectionIcon = (title) => PLAN_SECTION_ICONS[title.replace(/\s*\(.*\)$/, "").trim().toLowerCase()] || "file-text"
+
 function sectionItem(section, metadata = {}) {
   const blocks = metadata.body
     ? [
@@ -523,7 +532,7 @@ function sectionItem(section, metadata = {}) {
     : markdownBlocks(section.lines.join("\n"))
   return {
     title: section.title,
-    icon: metadata.icon || "file-text",
+    icon: metadata.icon || planSectionIcon(section.title),
     ...(metadata.summary ? { preview: metadata.summary } : {}),
     blocks,
   }
@@ -549,7 +558,7 @@ function detailsSection(plan, source, details) {
   blocks.push({
     type: "details",
     heading: "Source document",
-    items: [{ title: "Full Markdown source", icon: "file-text", preview: "Complete Markdown used to render this page.", blocks: [{ type: "code", text: source }] }],
+    items: [{ title: "Full Markdown source", icon: "file-code", preview: "Complete Markdown used to render this page.", blocks: [{ type: "code", text: source }] }],
   })
   return { id: "details", title: "Plan details", ...(details ? { intro: details.intro } : {}), blocks }
 }

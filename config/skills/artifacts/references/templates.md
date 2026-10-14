@@ -45,6 +45,39 @@ use any block.
 For a run: `circle-check` with tone `ok` passed, `circle-x` with `bad` failed, `loader-circle`
 with `info` running, `circle-dashed` with `muted` not started.
 
+Give every card, step, and details row an icon that says what it is about, not a generic
+document. Each entry in `icons.json` has a `label` and a `category`; the catalog, by category:
+
+- **Status:** `circle-check` passed, `circle-x` failed, `loader-circle` running,
+  `circle-dashed` not started, `circle-alert` partial, `triangle-alert` risk, `info`,
+  `circle-help` question or FAQ.
+- **Decisions and goals:** `scale` trade-off, `thumbs-up` adopted, `thumbs-down` rejected, `ban`
+  out of scope, `target` goal, `flag` gate or milestone, `lightbulb` idea or lesson, `compass`
+  planning.
+- **Changes:** `circle-plus` added, `circle-minus` removed, `git-compare` before and after,
+  `history` earlier version, `rotate-ccw` retry, `refresh-cw` rebuild, `trash-2` deleted, `trending-up`,
+  `trending-down`.
+- **Plans and work:** `clipboard-list`, `clipboard-check` readiness, `list-checks`
+  requirements, `list-ordered` steps, `list`, `notebook-pen` notes or memory, `book-open`
+  context or guide, `workflow`, `rocket` delivery.
+- **Code:** `file-code`, `file-text` prose document, `files`, `folder`, `terminal` command or
+  output, `bug`, `wrench` fix, `git-branch`, `git-commit-horizontal`, `git-merge`,
+  `git-pull-request`, `settings`, `sliders-horizontal` parameters, `package`, `package-x`,
+  `puzzle` module.
+- **Data and results:** `database`, `table`, `chart-line`, `chart-column`, `sigma` formula,
+  `filter` rank, `search`, `save`, `images`, `gauge` performance, `repeat` several runs,
+  `dice-5` seed, `shuffle` procedural, `flask-conical` experiment or test.
+- **Systems:** `server`, `cpu`, `memory-stick`, `cloud`, `globe`, `network`, `monitor`,
+  `panels-top-left` page, `layers`, `plug` integration, `unplug`, `link`, `zap`, `clock`,
+  `calendar`, `activity` live behavior.
+- **People and access:** `users`, `user`, `bot` agent, `brain` model reasoning, `key-round`
+  credentials, `lock`, `shield-check`, `shield-alert`, `eye` shown, `eye-off` hidden, `tag` name.
+- **Messages and media:** `message-square-text` prompt or note, `mail`, `bell` reminder,
+  `bell-off` muted, `mic` audio, `play` video.
+- **Environments:** `gamepad-2`, `map`, `grid-3x3` layout.
+
+`fill.py` warns about an icon name the catalog lacks, because the page draws nothing for it.
+
 To add a Lucide icon the catalog lacks:
 
 1. Fetch `https://unpkg.com/lucide-static@0.460.0/icons/<name>.svg`. Use that version for every
@@ -53,8 +86,9 @@ To add a Lucide icon the catalog lacks:
    put the shapes in this wrapper, on one line:
    `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">...</svg>`.
-3. Add `"<name>": { "label": "<what it means>", "svg": "<that line>" }` to `icons.json`. That
-   file is shared by every page and plan page, so name the icon you added in your report.
+3. Add `"<name>": { "label": "<what it means>", "category": "<one of the groups above>", "svg": "<that line>" }`
+   to `icons.json`, and add the name to its group above. That file is shared by every page and
+   plan page, so name the icon you added in your report.
 4. Render a page that uses it and look at it: a chip draws it at 14 px.
 
 ## report.json

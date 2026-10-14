@@ -64,6 +64,17 @@ def with_history(data: dict, shown: dict | None, keep_baseline: bool) -> dict:
     return {**content, "version": version + 1, "previous": without_history(shown)}
 
 
+def unknown_icons(value, catalog: dict) -> set[str]:
+    """Return the `icon` names in the data that the catalog lacks; the page draws nothing for them."""
+    if isinstance(value, list):
+        return set().union(*(unknown_icons(item, catalog) for item in value))
+    if not isinstance(value, dict):
+        return set()
+    icon = value.get("icon")
+    found = {icon} if isinstance(icon, str) and icon not in catalog else set()
+    return found.union(*(unknown_icons(item, catalog) for item in value.values()))
+
+
 def script_json(value: dict) -> str:
     """Return JSON safe inside a script element.
 
@@ -94,8 +105,15 @@ def main():
 
     source = sys.stdin.read() if args.data == "-" else Path(args.data).read_text(encoding="utf-8")
     data = with_history(json.loads(source), read_embedded_data(args.output), args.keep_baseline)
+    icons = json.loads(ICONS.read_text(encoding="utf-8"))
+    for name in sorted(unknown_icons(data, icons)):
+        print(
+            f"warning: icon {name!r} is not in icons.json and draws nothing;"
+            " add it (references/templates.md, Icons) or pick another",
+            file=sys.stderr,
+        )
     # Icons first: the data block comes earlier in the page, so data text cannot fake the icons block.
-    page = fill_block(PAGE.read_text(encoding="utf-8"), ICONS_BLOCK, json.loads(ICONS.read_text(encoding="utf-8")))
+    page = fill_block(PAGE.read_text(encoding="utf-8"), ICONS_BLOCK, icons)
     page = fill_block(page, DATA_BLOCK, data)
 
     # Swap a finished file in: a reload during a plain write reads an empty or partial page, and a

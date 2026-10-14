@@ -160,8 +160,9 @@ is one of `ok`, `bad`, `warn`, `info`, or `muted`.
 | `gallery` | `items` (`src`, `caption`, `alt`: images, GIFs, videos, or `.html` plots with a `height`; each opens full size; optional `details` (`title`, `text`, `code`) folds out under the caption, closed, with `code` as monospace lines that scroll inside the card) or `groups` (`title`, optional `note`, `items`: one titled row with a divider line per method or experiment), `width` (card width in px, default 320; cards keep it and never stretch, so it sets how many share a row on a full-width page: up to 334 for 3, 335 to 508 for 2, more for 1; phones show 1), `pixelated` (crisp upscaled pixel art) |
 | `html` | `html`, only for a hand-drawn SVG or markup no other block covers |
 
-An `icon` is a key of `icons.json`, the skill's Lucide catalog, and draws on cards, steps, details rows, and chips; an
-unknown name draws nothing. Never use emoji on a page: use an icon, and add a missing one as the
+An `icon` is a key of `icons.json`, the skill's Lucide catalog of 100 icons, and draws on cards, steps, details rows, and
+chips; pick one by meaning from the [template guide](references/templates.md#icons-never-emoji). An unknown name draws
+nothing, and `fill.py` warns about it. Never use emoji on a page: use an icon, and add a missing one as the
 [template guide](references/templates.md#icons-never-emoji) says.
 
 `statuses` maps each finding `status` key to a `label` and a `tone`. Without it, the keys
