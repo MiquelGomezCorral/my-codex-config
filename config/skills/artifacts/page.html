@@ -83,10 +83,23 @@ dt{color:var(--muted);font-size:13px}dd{margin:0}
 @media (max-width:600px){dl{grid-template-columns:1fr}dt{margin-top:6px}}
 blockquote{margin:6px 0;padding:4px 10px;border-left:3px solid var(--line);color:var(--muted);font-style:italic}
 blockquote cite{display:block;font-size:12px;font-style:normal}
-.steps{display:flex;flex-wrap:wrap;align-items:stretch;gap:6px;margin:10px 0}
-.step{flex:1;min-width:150px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
-.step b{display:block}.step span{color:var(--muted);font-size:14px}.step .icon{display:flex;margin-bottom:4px}
-.arrow{align-self:center;color:var(--muted)}
+.steps{--rule:color-mix(in srgb,var(--muted) 40%,transparent);list-style:none;margin:10px 0;padding:0}
+.step{position:relative;overflow-wrap:anywhere}
+.step>b{display:block;font-size:16px}
+.step .icon{margin-right:6px;vertical-align:-4px}
+.step .txt{display:block;margin-top:2px;color:var(--muted);font-size:14px}
+.step .num{position:absolute;left:0;top:0;display:grid;place-items:center;width:26px;height:26px;border:1px solid var(--line);border-radius:50%;background:var(--card);color:var(--muted);font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1}
+.steps:not(.rail,.parts){display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);column-gap:20px}
+.steps:not(.rail,.parts)>.step{padding-top:36px}
+.steps:not(.rail,.parts)>.step:not(:last-child)::after{content:"";position:absolute;top:13px;left:34px;right:-12px;border-top:1px solid var(--rule)}
+.steps.rail{display:flex;flex-direction:column;gap:18px}
+.steps.rail>.step{min-height:26px;padding-left:40px}
+.steps.rail>.step:not(:last-child)::after{content:"";position:absolute;left:12.5px;top:30px;bottom:-14px;border-left:1px solid var(--rule)}
+.steps.parts{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:4px 10px}
+.parts>.step{padding:10px 6px}
+.parts>.step+.step{border-top:1px solid var(--line)}
+.parts.cols>.step{display:grid;grid-template-columns:minmax(10em,28%) minmax(0,1fr);column-gap:14px;align-items:baseline}
+.parts.cols .txt{margin-top:0}
 .cmp{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:10px 0}
 .cmp .card.rec{border:2px solid var(--acc)}
 .cmp ul{margin:4px 0;padding-left:18px}.cmp .pro::marker{content:"+ "}.cmp .con::marker{content:"− "}
@@ -140,7 +153,11 @@ body.slides h1{font-size:44px}
 details.changes{border:0;border-left:4px solid var(--tone)}.changes summary{padding:0;font-weight:700}.changes ul{margin:6px 0;padding-left:20px}.changes li{margin:2px 0}
 .toggle-changes{display:block;margin-top:8px;cursor:pointer}
 [data-change]:not(section,tr,li,details,.decision){outline:2px solid color-mix(in srgb,var(--acc) 55%,transparent);outline-offset:2px;border-radius:8px}
-.step[data-change]{outline-offset:0}
+/* A changed step gets a tint, not an outline or underline, so the connector stays clean; the extra ring sits outside the item. */
+.step[data-change]{--mark:color-mix(in srgb,var(--acc) 10%,transparent);background:var(--mark);box-shadow:0 0 0 6px var(--mark);border-radius:8px;text-decoration:none}
+.parts>.step[data-change]{box-shadow:none;border-top-color:transparent}
+.step[data-change] .txt{color:var(--muted-tone)}
+body.only-changes .step:has(+ [data-item]:not([data-change]))::after{display:none}
 /* Stacked items sit too close for an outline: list items get an underline, rows a left bar. */
 li[data-change]{text-decoration:underline 2px color-mix(in srgb,var(--acc) 60%,transparent);text-underline-offset:4px}
 li[data-change]:has(> :is(ul,ol)){text-decoration:none;box-shadow:inset 3px 0 var(--acc);padding-left:8px}
@@ -249,6 +266,9 @@ function allBlocks(type) {
   return (data.sections || []).flatMap((s) => s.blocks || []).filter((b) => b.type === type);
 }
 
+// Longest step text, in characters, that can sit in a row.
+const STEP_TEXT_MAX = 80;
+
 const renderers = {
   text: (b) => paragraphs(b.text),
   callout: (b) => `<div class="callout ${tone(b.tone || "info")}">${b.title ? `<b>${inline(b.title)}</b>` : ""}${paragraphs(b.text)}</div>`,
@@ -293,7 +313,21 @@ const renderers = {
       : "";
     return `${legend}<div class="scroll"><table class="matrix"><thead><tr><th></th>${head}</tr></thead>${(b.groups || []).map(group).join("")}</table></div>`;
   },
-  steps: (b) => `<div class="steps">${(b.items || []).map((i) => `<div class="step">${icon(i.icon)}<b>${inline(i.title)}</b><span>${inline(i.text)}</span></div>`).join('<span class="arrow">→</span>')}</div>`,
+  // Ordered steps (the default) are an <ol> with each number written here, so "Show only changes" keeps it right;
+  // `ordered: false` is a <ul> of parts. A block with any long text is always a rail. Shorter ones leave the
+  // choice of row or rail to wireSteps, by width.
+  steps: (b) => {
+    const items = b.items || [];
+    if (!items.length) return "";
+    const ordered = b.ordered !== false;
+    const list = items.map((i, n) => {
+      const number = ordered ? `<span class="num" aria-hidden="true">${n + 1}</span>` : "";
+      return `<li class="step">${number}<b>${icon(i.icon)}${inline(i.title)}</b><span class="txt">${inline(i.text)}</span></li>`;
+    }).join("");
+    if (!ordered) return `<ul class="steps parts">${list}</ul>`;
+    const long = items.some((i) => String(i.text ?? "").length > STEP_TEXT_MAX);
+    return `<ol class="steps${long ? " rail" : ""}">${list}</ol>`;
+  },
   details: (b) => (b.items || []).map((i) => `<details${i.open ? " open" : ""}><summary>${icon(i.icon)}<span class="t">${inline(i.title)}</span>${i.preview ? `<span class="preview">${inline(i.preview)}</span>` : ""}</summary><div class="body">${i.text ? paragraphs(i.text) : ""}${(i.blocks || []).map(renderBlock).join("")}</div></details>`).join(""),
   inset: (b) => `<div class="inset">${(b.blocks || []).map(renderBlock).join("")}</div>`,
   findings: (b) => (b.items || []).map((i) => {
@@ -602,6 +636,22 @@ function wireDecisions() {
   });
 }
 
+// Steps blocks follow their own width, not the window's, so a side column and a phone behave alike. A short
+// ordered block is a row while each step gets 10em, else a rail; a parts block puts its titles in a column from
+// 40em. Hidden slides and folded sections measure 0 and fire again when shown.
+function wireSteps() {
+  const observer = new ResizeObserver((entries) => {
+    for (const { target, borderBoxSize } of entries) {
+      const width = borderBoxSize[0].inlineSize;
+      const em = parseFloat(getComputedStyle(target).fontSize);
+      if (target.matches(".parts")) target.classList.toggle("cols", width >= 40 * em);
+      else target.classList.toggle("rail", width < target.children.length * 10 * em);
+    }
+  });
+  // A block with long text is already a rail and stays one, so it is not observed.
+  document.querySelectorAll(".steps:not(.rail)").forEach((block) => observer.observe(block));
+}
+
 // The saved choice applies to every artifact; without one the page follows the system theme.
 function wireTheme(bar) {
   const root = document.documentElement;
@@ -664,6 +714,7 @@ toolbar.className = "toolbar";
 document.body.append(toolbar);
 wireTheme(toolbar);
 wireDecisions();
+wireSteps();
 if (data.layout === "slides") wireSlides(toolbar);
 // A page rewritten during a long run reloads itself, at most daily. A reload would close what the
 // reader opened, so a tick is skipped while a row they opened is open, "Show only changes" is on,

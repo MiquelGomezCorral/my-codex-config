@@ -147,7 +147,7 @@ is one of `ok`, `bad`, `warn`, `info`, or `muted`.
 | `cards` | `items` (`title`, `text`, optional `status`, `icon`, and `inset`, a second explanation shown in a neutral inset) |
 | `table` | `columns`, `rows` (arrays of cells; a cell is a string, or a chip: `{ text, tone, icon, title }`), `select` (adds a tick box per row; rows start ticked) |
 | `matrix` | `columns` (strings, or `name` plus `note`), `groups` (`title`, `rows` of `label`, `note`, and `cells`, one list of chips per column, where a single chip or a string also works; a chip is `text`, `tone`, `icon`, and `title` for hover text), `legend` (a line of text, or a list of chips and text that explain them). Chips stack one per line |
-| `steps` | `items` (`title`, `text`, optional `icon`) drawn as a left-to-right flow |
+| `steps` | `items` (`title`, `text`, optional `icon`): A then B, numbered by the page, as a row when every `text` is 80 characters or less and the width allows, else as a vertical rail; `ordered: false` for parts of one change that ship together, as rows in one panel |
 | `details` | `items` (`title`, `text`, optional `blocks`, `open`, `icon`, `preview`, a short line under the title) as collapsible rows |
 | `inset` | `blocks` drawn inside a neutral inset |
 | `findings` | `items` (`id`, `title`, `status`, `fields` of `label`/`text`, `quotes` of `text`/`source`, `open`) |

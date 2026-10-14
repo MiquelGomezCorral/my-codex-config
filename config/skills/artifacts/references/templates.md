@@ -387,7 +387,8 @@ To add a Lucide icon the catalog lacks:
 **Blocks**
 - **Plain first** (rule in SKILL.md): the TL;DR is the plain layer; the `details` rows hold
   the mechanics.
-- **Three to six steps in a line are `steps`.** Each has a short title and one line.
+- **Three to six steps in order are `steps`.** Each has a short title and a short text; when
+  every text is short and the width allows, the page draws a row.
 - **Depth goes in `details`.** The title is the reader's question.
 - **Branching flows and architecture are figures** made with `diagram-design`, not `steps`.
 
@@ -438,7 +439,9 @@ To add a Lucide icon the catalog lacks:
 
 **Pitfalls**
 - **The TL;DR must stand alone.** A reader who stops there should still know the answer.
-- **Steps are one line, left to right.** A flow with branches or loops goes in a diagram.
+- **Steps mean A, then B.** The page picks a row or a rail. Parts of one change that ship
+  together, not in sequence, take `"ordered": false`. A flow with branches or loops goes in
+  a diagram.
 - **Use the terms the glossary defines.** Define a term once; do not rename it later.
 - **Three or more sections add a nav bar.** Section `id`s keep its links stable across
   renames.
