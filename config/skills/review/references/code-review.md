@@ -18,7 +18,8 @@ Findings are more valuable than commentary. False positives are worse than silen
    - Public contracts, callers, migrations, integration points, and fixtures.
    - Coupling, ownership, avoidable complexity, naming, stale documentation, and
      obvious performance regressions.
-   - Tests: relevant behavior, boundary coverage, and whether important checks can fail.
+   - Tests: whether important checks can fail, and low-value tests by the `test-audit`
+     bar. Report a missing unit test only when that bar calls for one, never for coverage.
 7. Run only repository-defined verification justified by the change.
 8. Use specialist reviewers only for distinct risk surfaces; verify and deduplicate
    their claims before reporting.

@@ -21,13 +21,9 @@ no demonstrated need in the plan or its callers is a finding; do not drop it bec
 looks harmless or might help later, state your confidence instead. Run the read-only checks
 `code-quality` requires and report each failure as a finding.
 
-Audit added or modified tests for tautological or implementation-mirroring assertions,
-language/framework/dependency behavior, insignificant cases, duplicated stronger coverage,
-excessive fixtures, mocks, snapshots, setup, test-only abstractions, removed behavior,
-speculative behavior, and unapproved behavior. Do not recommend deletion when acceptance
-behavior, reproduced regressions, trust boundaries, security or data-loss risks, important
-failures, or critical deterministic contracts would lose meaningful protection.
-When uncertain whether a test or protection matters, do not recommend its deletion.
+Load `test-audit` and judge every added or modified test by its junk patterns, value bar,
+and retention bar. Use only its read-only discovery and judgment, never its edit steps.
+Tests of removed, speculative, or unapproved behavior are findings too.
 
 Always run the cleanup swarm. Load `super-agent`, resolve its catalog roles, and launch
 fresh, read-only workers concurrently; they never edit or delegate. Use each harness's
@@ -40,7 +36,7 @@ read-only reviewer agent closest to the lens, such as `reviewer-arch` for struct
   duplication and reinvention (duplicated policy, validation, or logic, and rebuilt
   project, stdlib, or platform capabilities); indirection and structure (wrappers, extra
   layers, coupling, misplaced ownership, organization, convention violations); and test
-  value (the test audit above), only when tests changed.
+  value (the `test-audit` judgment above), only when tests changed.
 - One or two simplest-design reviewers from the catalog `reviewer-high` role;
   `super-agent` owns how many. Each reads the plan and, before reading the diff, writes the
   simplest design that meets its acceptance criteria. It then compares the change with that

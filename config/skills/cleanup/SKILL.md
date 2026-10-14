@@ -88,12 +88,8 @@ or commit other Slopo state; never edit the generated template automatically.
 Return findings only, ordered by expected simplification value. Each finding includes a
 category, `path:line`, source evidence, concrete maintenance or complexity cost, the
 smallest simplification direction, and confidence. A production element with no
-demonstrated need is a finding even when it looks harmless. Audit tests for low-value or
-implementation-mirroring assertions, dependency behavior, duplicated coverage, excessive
-fixtures or mocks, and unapproved behavior; preserve acceptance behavior, regressions,
-trust boundaries, security, data-loss protections, important failures, and critical
-deterministic contracts. When uncertain whether a test or protection matters, do not
-recommend its deletion.
+demonstrated need is a finding even when it looks harmless. Audit every added or modified
+test with `test-audit`'s junk patterns, value bar, and retention bar, as findings only.
 Do not produce edits, a correction brief, automatic acceptance, or invented work. Return
 `Lean already. No cleanup findings.` when appropriate.
 

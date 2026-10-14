@@ -13,7 +13,8 @@ status and relevant code, preserve unrelated changes, and verify paths and assum
 Stop and report a blocker when the plan conflicts with repository evidence or cannot be
 completed safely. Make the smallest coherent change, touch only authorized files, and
 never delegate, publish, or commit unless the persisted plan explicitly requires a
-checkpoint commit. Run only the plan's minimum non-live readiness check and the language
-checks `code-quality` requires, and leave live validation pending user approval. Report
-changed files, verification, blockers, gaps, and the pending Flow, Expected, and Can run.
+checkpoint commit. Add a unit test only when it passes `test-audit`'s authoring gate. Run
+only the plan's minimum non-live readiness check and the language checks `code-quality`
+requires, and leave live validation pending user approval. Report changed files,
+verification, blockers, gaps, and the pending Flow, Expected, and Can run.
 """

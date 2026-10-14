@@ -39,7 +39,7 @@ Post-implementation quality gates expose unnecessary production and test complex
   executable correction brief; explicit Slopo mode may only create a missing
   `slopo.conf.yaml` template.
 - Unrelated and ambiguously owned changes remain outside cleanup findings.
-- Added tests are not preserved merely for coverage; deletion is recommended only when meaningful regression protection remains.
+- Added tests must show their value. A test whose value is uncertain is recommended for deletion; tests that independently guard a reproduced regression, security, or a critical contract are kept.
 - Slopo candidates must intersect task-owned changed hunks and be semantically confirmed.
 - OCR cannot replace the native review verdict or inspect unrelated workspace changes.
 - OCR provider credentials, sessions, and runtime state are never stored in this repository.
@@ -64,6 +64,7 @@ Separating diagnosis from correction lets the user choose which simplifications 
 
 ## History
 
+- 2026-10-14: Cleanup judges tests through `test-audit`, and an uncertain test is now recommended for deletion instead of kept, because coders kept landing low-value unit tests.
 - 2026-10-07: Replaced the optional two-helper cleanup audit with an always-on swarm plus simplest-design reviewers, a no-demonstrated-need finding rule, recorded accept/reject outcomes, and a closure check, because single-agent cleanup left overengineering in place.
 - 2026-10-05: Made repository checks plus configured `code-quality` language checks a gate
   for code work: fix-and-rerun in the editing agent, read-only findings in cleanup, and

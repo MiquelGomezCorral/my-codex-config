@@ -18,9 +18,9 @@ Read the repository's own `AGENTS.md`, contributing guide, and testing instructi
 judging any test, and follow the repository's test policy even where it differs from this
 skill. Where the repository is silent, use these defaults. In this repository,
 `AGENTS.md` settles the bar: prefer live validation of the real flow, treat unit tests as
-secondary evidence, and add one only for a reproduced regression, behavior the real flow
-cannot cover reliably, or a critical deterministic contract — never for coverage or
-convention.
+secondary evidence, and keep unit tests to the minimum: add one only for a small algorithm,
+a critical deterministic contract, or a reproduced regression the live flow cannot cover —
+never for coverage or convention.
 
 ## Authoring gate
 
@@ -77,7 +77,9 @@ and audits hunt for existing tests that do.
 Tests justify their maintenance cost by protecting behavior, a credible regression, or an
 independently meaningful contract. In an audit, an existing test that must change for
 behavior-preserving source reorganization is suspect, not automatically deletable; the
-authoring gate still rejects new ones.
+authoring gate still rejects new ones. A test must show its value; the audit does not have
+to prove it useless. When uncertain whether a test matters, recommend its deletion and state
+your confidence.
 
 Before judging a candidate, read the complete test and production owner, its entry point,
 callers, callees, sibling implementations, overlapping tests, CI routing, and relevant
@@ -111,7 +113,7 @@ artifact, package, release, or architecture contract. Also keep:
   it, and repair the owner rather than deleting it.
 
 Static or slow is not a deletion reason. A test that resembles implementation may still be
-the independent contract; prove otherwise before removing it.
+the independent contract; look for that contract before recommending its deletion.
 
 ## Candidate evidence
 
