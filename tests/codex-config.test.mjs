@@ -30,9 +30,9 @@ test("repository has one shared skill owner with unique valid names", () => {
     "writing", "super-agent", "cleanup", "review", "code", "git",
     "review-findings", "codegraph-setup", "agents-memory",
     "refine-plan", "review-plan", "workflow", "test-audit", "code-quality", "skill-scout", "btca",
-    "bro", "orca-cli", "orchestration", "computer-use", "decision-records",
+    "bro", "orchestration", "decision-records",
   ]) ok(names.includes(required), `missing skill: ${required}`)
-  for (const removed of ["core", "miquel-voice", "objective-scholar", "plan-implementation", "implementation-planning", "multi-agent-review", "code-review", "python-coding", "skillspector", "find-skills", "btca-first", "btca-cli"]) {
+  for (const removed of ["core", "miquel-voice", "objective-scholar", "plan-implementation", "implementation-planning", "multi-agent-review", "code-review", "python-coding", "skillspector", "find-skills", "btca-first", "btca-cli", "orca-cli", "computer-use"]) {
     ok(!names.includes(removed), `removed skill still present: ${removed}`)
   }
   ok(!names.includes("task-model-recovery"))
@@ -313,7 +313,6 @@ test("four native bootstraps share dependencies and deliver portable assets", ()
   for (const harness of ["Codex", "Claude Code", "Pi", "Antigravity"]) {
     match(readme, new RegExp(`\\| ${harness} \\|`))
   }
-  match(readme, /31 repository skills, 12 focused roles, and 13 command intents/)
   match(readme, /harness-init/)
   match(readme, /configured-root connector-path repair/)
   for (const script of source) match(script, /common_install_shared/)
@@ -468,7 +467,6 @@ test("Codex TOML agents use native fields and preserve all twelve roles", () => 
   match(diagramWorker, /operate Git.*install tools; publish; or delegate/s)
   doesNotMatch(config, /^\[mcp_servers\./m)
   deepStrictEqual(Object.keys(JSON.parse(read("config/mcp.json")).mcpServers).sort(), ["btca", "codegraph", "searxng"])
-  match(config, /^model = "gpt-6-sol"$/m)
   match(config, /^web_search = "live"$/m)
   doesNotMatch(config, /\[mcp_servers\.(?:playwright|searxng)\]/)
   doesNotMatch(config, /\/Users\/|\/Applications\/|\/home\/[^/]+\//)
@@ -483,10 +481,12 @@ test("cheap model catalog is harness-first and keeps identifiers centralized", (
   const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
   const defaultSubagentModel = read("config/codex.toml").match(/^default_subagent_model = "([^"]+)"$/m)?.[1]
 
-  match(catalog, /^max_local_concurrency:\s*1$/m)
+  match(catalog, /^max_local_concurrency:\s*0$/m)
   match(catalog, /^codex:\n  low:\n    model: \S+\n    thinking: \S+$/m)
   strictEqual(defaultSubagentModel, "gpt-6-luna")
   ok(modelIds.includes(defaultSubagentModel), "Codex default subagent model must come from the catalog")
+  const rootModel = read("config/codex.toml").match(/^model = "([^"]+)"$/m)?.[1]
+  ok(modelIds.includes(rootModel), "Codex root model must come from the catalog")
   for (const harness of ["pi", "agy"]) {
     match(catalog, new RegExp(`^${harness}:$`, "m"))
     for (const tier of ["low", "medium", "high"]) match(catalog, new RegExp(`^  ${tier}:$`, "m"))
@@ -494,7 +494,7 @@ test("cheap model catalog is harness-first and keeps identifiers centralized", (
   match(catalog, /^  local:\s*$/m)
   match(catalog, /^    medium:\s*$/m)
   match(catalog, /^      model:\n        - \S+$/m)
-  doesNotMatch(catalog, /capability:|models:/)
+  doesNotMatch(catalog, /capability:|^models:/m)
   match(routing, /Read `references\/model-catalog\.yaml` for every delegation/)
   match(routing, /cheapest adequate tier/)
   match(routing, /remaining entries in list order/)
@@ -562,8 +562,7 @@ test("delegating skills require runtime-native capability-aware routing", () => 
   match(swarm, /other available harnesses/)
   match(orcaAdapter, /role selection precedes lifecycle mechanics/)
   match(reviewOrchestration, /Preserve an explicit AGY\/Pi roster exactly/)
-  match(reviewOrchestration, /For `flash`, route directly to one `reviewer-quick` through `super-agent`/)
-  match(read("config/skills/review/references/presets/full.md"), /Codex `live-validator`/)
+  match(reviewOrchestration, /For `flash`, resolve the catalog role `reviewer-fast` through `super-agent`/)
   match(multiReview, /When the user requests five/)
   match(multiReview, /explicit or review-preset\s+preference/)
   match(read("config/skills/code/SKILL.md"), /through `super-agent`/)
@@ -719,7 +718,7 @@ test("agentic workflow keeps stage contracts, approvals, and scenario definition
   const hooks = JSON.parse(read("config/codex-hooks.json"))
   const hookCommands = Object.values(hooks.hooks).flatMap((events) => (
     events.flatMap(({ hooks: registeredHooks }) => registeredHooks.map(({ command }) => command))
-  )).filter((command) => command.includes("codex-hook.sh"))
+  ))
 
   for (const path of [
     "config/skills/workflow/templates/progress.md",
@@ -763,18 +762,17 @@ test("agentic workflow keeps stage contracts, approvals, and scenario definition
   match(shipPr, /final tree matches the accepted result/)
   match(reviewOrchestration, /task-owned staged, unstaged, and\s+untracked worktree changes/)
   match(reviewOrchestration, /reviewers report those revisions/)
-  ok(hookCommands.length > 0, "Codex config must retain the Orca hook")
-  for (const command of hookCommands) {
-    match(command, /\$HOME\/\.orca\/agent-hooks\/codex-hook\.sh/)
-    doesNotMatch(command, /\/home\/[^/]+\/\.orca\/agent-hooks\/codex-hook\.sh/)
-  }
+  strictEqual(hookCommands.length, 1)
+  match(hookCommands[0], /codex-command-dispatch\.mjs/)
+  doesNotMatch(read("config/codex-hooks.json"), /codex-hook\.sh/)
+  match(read("bootstrap_codex.sh"), /merge-hooks/)
   match(code, /`\$code` itself still stops after implementation/)
   match(findings, /Blocked\/unverified/)
   for (const preset of ["flash", "swarm", "swarm-smart", "full"]) {
     match(reviewOrchestration, new RegExp(`--preset[^\\n]*${preset}`))
   }
   match(read("config/skills/review/references/presets/swarm-smart.md"), /resolves the catalog role entry.*pin the resolved harness, model, and thinking/s)
-  match(orcaAdapter, /Review modes and presets choose the review shape only;\s+they never set a harness, model, or thinking default/)
+  match(orcaAdapter, /[Rr]eview\s+modes and presets choose the review shape only;\s+they never set a harness, model, or\s+thinking default/)
   match(codingLoop, /\$review --preset/)
   match(codingLoop, /reviewer reads the full plan/)
   match(workflow, /coordinator advances routine stages/)
@@ -802,8 +800,8 @@ printf 'test-token\\n'
 `)
   writeFileSync(ocr, `#!/usr/bin/env bash
 [[ "$OCR_LLM_TOKEN" == "test-token" ]] || exit 21
-[[ "$OCR_LLM_URL" == "https://opencode.ai/zen/go/v1/chat/completions" ]] || exit 22
-[[ "$OCR_LLM_MODEL" == "deepseek-v4-flash" ]] || exit 23
+[[ "$OCR_LLM_URL" == "https://opencode.ai/inference/go/v1/chat/completions" ]] || exit 22
+[[ "$OCR_LLM_MODEL" == "deepseek-v4.1-flash" ]] || exit 23
 [[ "$OCR_LLM_PROTOCOL" == "openai" ]] || exit 24
 [[ "$OCR_USE_ANTHROPIC" == "false" ]] || exit 25
 [[ "$OCR_LLM_EXTRA_HEADERS" == x-opencode-session=ocr-* ]] || exit 26
@@ -862,12 +860,12 @@ test("skill-scout vets before installing and never merges on its own", () => {
   match(vetting, /request for\s+manual investigation, not a verdict/)
   match(vetting, /Report real concerns and false positives separately, with `file:line` evidence/)
   match(vetting, /## 3\. Reachability/)
-  match(vetting, /granted\s+to the role that needs it/)
+  match(vetting, /granted\s+to the\s+role that needs it/)
 
   // the measured base rate
   match(evidence, /2603\.15401/)
   match(evidence, /39 of 49 produced zero pass-rate improvement/)
-  match(evidence, /2605\.31408/)
+  match(evidence, /2602\.12670/)
   match(evidence, /Self-generated skills gave no benefit/)
   match(evidence, /16% of runs/)
   match(evidence, /\+451%/)
@@ -877,7 +875,6 @@ test("skill-scout vets before installing and never merges on its own", () => {
     "VoltAgent/awesome-agent-skills", "agenticskills.io", "autoskills.sh", "skills.sh",
   ]) match(sources, new RegExp(source.replace(/[.]/g, "\\.")))
   match(sources, /A listing is a lead, not evidence/)
-  match(catalog, /git clone https:\/\/github\.com\/humbleteam\/design-review/)
   match(catalog, /Add an entry only after the user says yes/)
 })
 

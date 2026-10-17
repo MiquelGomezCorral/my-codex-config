@@ -14,11 +14,19 @@ OpenCode configuration remains separately owned by `my-opencode-config`.
 
 ### Agents and their jobs
 
-![Agent tree and step-by-step workflow](workflow-diagrams/Agent-Hierarchy.png)
+![Agents during planning](workflow-diagrams/Agent-tree-planning.png)
+
+![Agents during building](workflow-diagrams/Agent-tree-build.png)
+
+![Agents during finishing](workflow-diagrams/Agent-tree-finish.png)
+
+![What each agent may write and delegate](workflow-diagrams/Agent-rules.png)
+
+![Step-by-step workflow](workflow-diagrams/Agent-workflow.png)
 
 Who starts whom, each agent's catalog role and model, what it may write, and which
-workflow stage it owns. Edit or regenerate it from
-[`docs/diagrams/agent-hierarchy/`](docs/diagrams/agent-hierarchy/).
+workflow stage it owns. Full-size chart: [Agent-Hierarchy.png](workflow-diagrams/Agent-Hierarchy.png).
+Edit or regenerate it from [`docs/diagrams/agent-hierarchy/`](docs/diagrams/agent-hierarchy/).
 
 ### Workflow progress map
 
@@ -60,18 +68,24 @@ The map `workflow-progress` highlights during a run. It is exported from
 
 ### Review
 
-![Review](workflow-diagrams/Reviw.png)
+![Review](workflow-diagrams/Review.png)
 
 </details>
 
 ## Requirements
 
-- Bash, Git, Python 3, Node.js, npm, and `npx`.
+- Bash, Git, Python 3.11+, Node.js 22+ (needed by `lintapple`, which bootstrap installs, and
+  the Excalidraw CLI), npm, and `npx`.
 - Install each desired harness separately: Codex CLI, Claude Code, Pi, or Antigravity.
 - If BTCA is missing, install Bun first; the shared bootstrap then uses the official
   `bun add -g btca` command. The bootstrap does not install Bun.
 - Docker is optional. If it is available and running, SearXNG is deployed at
-  `http://localhost:8080`; otherwise setup continues with a warning.
+  `http://localhost:8080` with a random per-machine secret key generated into its local
+  `settings.yml` (never stored in this repository); otherwise setup continues with a
+  warning. A machine set up before that secret existed keeps its secret-less file and the
+  container fails to start: with the default path and container name, remove the container
+  `my-codex-config-searxng` and `~/.local/share/my-codex-config/searxng/config/settings.yml`,
+  then re-run the bootstrap.
 - GitHub CLI (`gh`) authenticated to clone this private repository.
 
 ## Install On Another Computer
@@ -100,7 +114,7 @@ connector and managed SearXNG entry. Both defaults enable them.
 Default user locations are `~/.codex`, `${CLAUDE_CONFIG_DIR:-~/.claude}`,
 `${PI_CODING_AGENT_DIR:-~/.pi/agent}`, and `~/.gemini/config`; Antigravity CLI assets
 also use `~/.gemini/antigravity-cli`. Existing configured roots remain supported.
-Conflicting managed entries are backed up under
+Set `AGY_CLI_ROOT` to move the Antigravity CLI root. Conflicting managed entries are backed up under
 `${XDG_STATE_HOME:-$HOME/.local/state}/my-codex-config/backups/<timestamp>/` with private
 permissions. Shared external skill sources live under
 `${XDG_DATA_HOME:-$HOME/.local/share}/my-codex-config/external-skills/`.
@@ -109,7 +123,7 @@ CodeGraph does not index projects automatically. In each project where semantic 
 needed, run `codegraph init` and `codegraph index`, then restart the harness so its MCP
 tools are discovered. Pi keeps its configured-root connector-path repair and continues to
 use local SearXNG search without paid-search or Codex-search fallback.
-Pi also pins `pi-subagents@0.73.1` and `pi-mcp-adapter@2.34.0`, and installs the
+Pi registers the `searxng` tools without a server prefix. Pi also pins `pi-subagents@0.73.1` and `pi-mcp-adapter@2.34.0`, and installs the
 diagram-design Pi extension when missing.
 `config/bin/update-codex` remains an explicit, opt-in updater; bootstrap never runs it.
 
@@ -133,7 +147,7 @@ flow.
 
 ## What gets installed where
 
-All 31 repository skills, 12 focused roles, and 13 command intents share the sources under
+All 32 repository skills, 12 focused roles, and 13 command intents share the sources under
 `config/`. Native adapters load each command's owning skill and forward its arguments.
 Skills are linked one entry at a time, so unrelated user skills remain available. Native
 mutable config is merged; malformed files are left untouched and managed conflicts receive
@@ -141,10 +155,10 @@ private backups.
 
 | Harness | Shared assets and policy | Roles and commands | MCP configuration |
 | --- | --- | --- | --- |
-| Codex | `~/.agents/skills`, individual links; managed policy appended to `~/.codex/AGENTS.md` | `~/.codex/agents` private role copies; linked `commands/` | `~/.codex/config.toml` merged with local MCPs and runtime tables preserved; native hooks, plugins, dispatcher, and updater remain Codex-owned |
+| Codex | `~/.agents/skills`, individual links; managed policy appended to `~/.codex/AGENTS.md` | `~/.codex/agents` private role copies; linked `commands/` | `~/.codex/config.toml` merged with local MCPs and runtime tables preserved; `~/.codex/hooks.json` is merged too: only the command dispatcher hook is added or refreshed and Orca's hooks are left to Orca; plugins and updater remain Codex-owned |
 | Claude Code | `~/.claude/skills`, individual links; policy appended to `CLAUDE.md` | `agents/*.md`; command aliases are thin skills, with `harness-init` and `harness-review` reserved | User-scoped `claude mcp` commands add the three managed stdio servers and remove retired IDs |
 | Pi | Configured agent-root `skills/`; `AGENTS.md` policy append | `agents/*.md`, native `prompts/*.md`; async child agents inherit project/global context and skills | `mcp.json` merged; uses a compatible configured-root connector executable when present, otherwise the resolved shared binary |
-| Antigravity | CLI and IDE plugin each link shared skill entries; global policy and plugin policy are appended | CLI command TOML plus plugin skill aliases; CLI/IDE roles derive from the shared role source | `mcp_config.json` merged while preserving unrelated entries |
+| Antigravity | CLI and IDE plugin each link shared skill entries; global policy and plugin policy are appended | CLI command TOML plus CLI-plugin skill aliases; CLI/IDE roles derive from the shared role source | `mcp_config.json` merged while preserving unrelated entries |
 
 The common MCP source is exactly CodeGraph, SearXNG, and BTCA in `config/mcp.json`.
 Clients receive native command paths and fields. MCP connection success still depends on
@@ -177,7 +191,9 @@ the main orchestrator applies those changes
 and passes protected invariants to implementation and review workers. Routine work reports no
 change, while intent conflicts require user resolution.
 
-Delegating skills load `super-agent`. A proven active wrapper such as Orca owns the
+Delegating skills load `super-agent`. The `reviewer-fast` and `swarms` roles run on the
+launching agent's own harness with that harness's cheap model at its highest thinking, and
+fall back to that harness's `low` tier. A proven active wrapper such as Orca owns the
 worker lifecycle and exposes eligible harnesses; without a wrapper, delegation stays on
 the current harness and uses its native worker tools. Generic mixed swarms keep at least
 half their workers, rounded up, on the current harness when no catalog role, harness
@@ -207,16 +223,17 @@ supervised worker lifecycle described by the adapter. Explicit cross-harness one
 adapters are documented by `super-agent`; they pass catalog values as arguments and never
 evaluate them as shell code. Pi search remains on its local SearXNG MCP tools.
 
-The `orchestration`, `orca-cli`, and `computer-use` skills are version-matched discovery
-stubs that fetch their guide from the installed binary; their content is intentionally not
-duplicated here.
+The `orchestration` skill is a local lifecycle router. It loads its Orca adapter
+(`references/orca.md`), which does the version-matched discovery from the installed Orca
+binary. Orca installs its own `orca-cli` and `computer-use` skills, so this repository ships
+neither.
 
 Repository command intents pass their arguments to one named skill, and that skill owns the
 workflow. Each harness gets its native form: Codex slash commands, Pi prompt templates,
-Claude thin skill aliases, and Antigravity CLI command TOML plus IDE skill aliases. Claude
-reserves native `init`, `review`, and `code-review` names, producing `harness-init` and
-`harness-review`; it also prefixes aliases that match their owning skill. Each alias loads
-its owning skill and forwards the full invocation arguments.
+Claude thin skill aliases, and Antigravity CLI command TOML plus CLI-plugin skill aliases.
+Claude reserves native `init`, `review`, and `code-review` names, producing `harness-init`
+and `harness-review`, and the Antigravity CLI renames `init` to `harness-init`; it also prefixes aliases that match their owning skill. Each alias
+loads its owning skill and forwards the full invocation arguments.
 
 | Command | Skill |
 | --- | --- |
@@ -234,15 +251,15 @@ its owning skill and forwards the full invocation arguments.
 | `review-pr-comments` | `git` |
 | `review` | `review` |
 
-For example, a native `review` alias passes `quick focus on the payment path` to the
-`review` skill. Direct `$skill-name` invocation also remains available.
+For example, a native `review` alias passes `focus on the payment path` to the
+`review` skill as free-text context. Direct `$skill-name` invocation also remains available.
 
 The `$review --preset` values are `flash`, `swarm`, `swarm-smart`, and `full`, for one
 brief reviewer, adaptive swarm, verified swarm synthesis, or authorized live end-to-end
 validation. OCR stays a separate explicit `$review --ocr` opt-in. Install OCR separately,
 then authenticate `opencode-go` in Pi with `/login`; Pi is only the credential store, not
 the review harness. The review helper calls OpenCode Go directly, defaults to
-`deepseek-v4-flash`, and stores no credential or session state in this repository. Set
+`deepseek-v4.1-flash`, and stores no credential or session state in this repository. Set
 `OCR_OPENCODE_GO_MODEL` before launching the harness to select another Go model. Without
 Pi, provide `OPENCODE_API_KEY` through the approved secret store.
 
@@ -254,12 +271,13 @@ ocr --version
 
 From any repository, run `ocr-go review --preview` and then `ocr-go review`.
 
-The shared installer obtains only the skill folders for Ponytail, diagram-design, and
-Excalidraw from their public repositories, then links those skills into each harness.
-Sources are cached outside the repository under the XDG data directory. Native plugin
-hooks are not copied or translated. The repository's `excalidraw-draw` skill renders with
-the official Excalidraw CLI, which bootstrap does not install: run
-`npm install -g @excalidraw/cli` (Node 22+) to enable it.
+The shared installer shallow-clones the public Ponytail, diagram-design, and Excalidraw
+repositories into a cache outside this repository (the XDG data directory), then links only
+their skill folders into each harness. Ponytail holds six skills, so it is always cloned
+whole and never reused from another harness's folder. Native plugin hooks are not copied
+or translated. Bootstrap links the review helper as `ocr-go` on `PATH` for every harness.
+The repository's `excalidraw-draw` skill renders with the official Excalidraw CLI, which
+bootstrap does not install: run `npm install -g @excalidraw/cli` to enable it.
 
 ### Attribution
 
@@ -295,14 +313,20 @@ edit shape, and campaign phases are kept. Its OpenClaw-specific skill names, Vit
 and PR flow are replaced by this repository's own test commands and the `git` skill.
 
 The artifacts skill bundles selected [Lucide](https://github.com/lucide-icons/lucide)
-SVGs in `config/skills/artifacts/icons.json`. Lucide's ISC notice and the MIT notice for
-Feather-derived icons are in `config/skills/artifacts/licenses/lucide.LICENSE`.
+SVGs in `config/skills/artifacts/icons.json`. Lucide's ISC notice, which also names the
+Feather portions it carries, is in `config/skills/artifacts/licenses/lucide.LICENSE`.
+
+The `skill-creator` skill is adapted from
+[anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/skill-creator)
+(Apache-2.0, modified). Its license is kept at `config/skills/skill-creator/LICENSE.txt`.
+
+The `bro` skill is adapted from [luchasarie/bro-skill](https://github.com/luchasarie/bro-skill) (MIT, Copyright (c) 2026 Hermes Agent + Luka, modified). The upstream license is kept at `config/skills/bro/LICENSE`.
 
 The `skill-scout` skill replaces the former `find-skills` and `skillspector` skills, folding
 their marketplace discovery and static security scan into one find-vet-catalog flow. Its
 `references/evidence.md` cites the measurements it reasons from:
 [SWE-Skills-Bench](https://arxiv.org/abs/2603.15401),
-[SkillsBench](https://arxiv.org/abs/2605.31408), and a study of 34,000 real skills reported
+[SkillsBench](https://arxiv.org/abs/2602.12670v1), and a study of 34,000 real skills reported
 by The Decoder.
 
 ## Repository ownership

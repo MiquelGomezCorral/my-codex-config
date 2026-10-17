@@ -27,6 +27,14 @@ links shared assets and renders only the native files that differ.
   without becoming user-facing configuration modes.
 - Fresh independent harness sessions validate actual discovery and bounded
   read-only MCP execution after the normal bootstraps run.
+- A wrapper's own files stay with the wrapper. The repository ships only its own
+  Codex hook (the command dispatcher) and merges it into the native hooks file;
+  wrapper hooks and the wrapper's own installed skills are never shipped,
+  replaced or deleted.
+- The managed SearXNG service gets a per-machine secret at deploy time; the
+  repository settings file carries none.
+- Skill and role text never hard-codes a harness skill root or a user home path;
+  shared files point at sibling skills relatively, and `--check` rejects the rest.
 
 ## Protected invariants
 
@@ -40,6 +48,8 @@ links shared assets and renders only the native files that differ.
 - Runtime identities and remote/local folder names remain unchanged.
 - A generated file or agent-reported guess is not proof of runtime discovery.
 - Native tool access never grants edit/Git/publish/nesting authority by itself.
+- A bootstrap never removes or rewrites native entries it does not own, including
+  wrapper hooks and wrapper-installed skills, and re-runs leave them unchanged.
 
 ## Rationale and tradeoffs
 
@@ -59,6 +69,9 @@ instruction constraints.
 
 ## History
 
+- 2026-10-16: Stopped shipping the wrapper's hooks and its own skills after each Codex
+  bootstrap and the wrapper kept overwriting each other; added the per-machine SearXNG
+  secret and a check against machine-only skill paths, which kept coming back.
 - 2026-10-03: User approved the consolidated config layout, merged security policy,
   one repeat-safe common installer, normal four-bootstrap runs and a fresh
   four-harness validation swarm.

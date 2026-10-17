@@ -17,6 +17,7 @@ MARKERS = (
 POLICY_START = "<!-- BEGIN my-harness-config policy -->"
 POLICY_END = "<!-- END my-harness-config policy -->"
 LEGACY_POLICY_MARKER = MARKERS[1]
+HOOK_OWNER = "codex-command-dispatch.mjs"
 
 
 def backup(target: pathlib.Path, backup_root: pathlib.Path) -> None:
@@ -241,6 +242,64 @@ def install_policy(args: argparse.Namespace) -> None:
     managed_file(target, output, pathlib.Path(args.backup), force_backup=replace_legacy)
 
 
+def owns_hook(hook: dict) -> bool:
+    command = hook.get("command")
+    return isinstance(command, str) and HOOK_OWNER in command
+
+
+def merge_event(event: str, existing: list, groups: list) -> list:
+    """Replace this repository's hook entries with `groups`, keeping every user hook and its order.
+
+    The new groups take the place of the first owned entry, even inside a shared group; later owned
+    entries are dropped, and with no owned entry the groups are appended.
+    """
+    merged, placed = [], False
+    for group in existing:
+        hooks = group.get("hooks") if isinstance(group, dict) else None
+        if not isinstance(hooks, list) or not all(isinstance(hook, dict) for hook in hooks):
+            raise SystemExit(f"Codex hooks event {event} must hold groups with a list of hook objects")
+        run = []
+        for hook in hooks:
+            if not owns_hook(hook):
+                run.append(hook)
+            elif not placed:
+                if run:
+                    merged.append({**group, "hooks": run})
+                    run = []
+                merged.extend(groups)
+                placed = True
+        if run or not hooks:
+            merged.append({**group, "hooks": run})
+    return merged if placed else merged + groups
+
+
+def merge_hooks(args: argparse.Namespace) -> None:
+    """Put this repository's hook groups in a Codex hooks file, replacing only entries it owns."""
+    source = json.loads(pathlib.Path(args.source).read_text(encoding="utf-8"))["hooks"]
+    target = pathlib.Path(args.target)
+    try:
+        current = json.loads(target.read_text(encoding="utf-8")) if target.exists() else {}
+    except (OSError, ValueError) as error:
+        raise SystemExit(f"Cannot safely parse Codex hooks at {target}: {error}")
+    if not isinstance(current, dict) or not isinstance(current.get("hooks", {}), dict):
+        raise SystemExit(f"Codex hooks must be an object with a hooks object: {target}")
+
+    current_hooks = current.get("hooks", {})
+    hooks = {}
+    for event in dict.fromkeys([*current_hooks, *source]):
+        existing = current_hooks.get(event, [])
+        if not isinstance(existing, list):
+            raise SystemExit(f"Codex hooks event must be a list: {event}")
+        groups = merge_event(event, existing, source.get(event, []))
+        # An event that held only owned entries and is no longer shipped goes away.
+        if groups or not existing:
+            hooks[event] = groups
+    merged = {**current, "hooks": hooks}
+    if merged == current:
+        return
+    managed_file(target, json.dumps(merged, indent=2) + "\n", pathlib.Path(args.backup), force_backup=True)
+
+
 def parser() -> argparse.ArgumentParser:
     root = argparse.ArgumentParser()
     commands = root.add_subparsers(dest="action", required=True)
@@ -271,6 +330,12 @@ def parser() -> argparse.ArgumentParser:
     policy.add_argument("--target", required=True)
     policy.add_argument("--backup", required=True)
     policy.set_defaults(run=install_policy)
+
+    hooks = commands.add_parser("merge-hooks")
+    hooks.add_argument("--source", required=True)
+    hooks.add_argument("--target", required=True)
+    hooks.add_argument("--backup", required=True)
+    hooks.set_defaults(run=merge_hooks)
     return root
 
 

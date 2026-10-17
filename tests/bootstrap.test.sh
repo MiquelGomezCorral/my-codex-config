@@ -85,6 +85,14 @@ if [[ "$1" == mcp && "$2" == remove ]]; then
   grep -Fxq "$name" "$CLAUDE_MCP_STATE" || exit 1
   awk -v name="$name" '$0 != name' "$CLAUDE_MCP_STATE" > "$CLAUDE_MCP_STATE.tmp"
   mv "$CLAUDE_MCP_STATE.tmp" "$CLAUDE_MCP_STATE"
+elif [[ "$1" == mcp && "$2" == get ]]; then
+  grep -Fxq "$3" "$CLAUDE_MCP_STATE" || exit 1
+  printf '%s:\n  Scope: User config (available in all your projects)\n  Type: stdio\n' "$3"
+  if [[ -n "${CLAUDE_SEARXNG_CUSTOM:-}" ]]; then
+    printf '  Command: /usr/bin/mcp-searxng\n  Args: --custom\n  Environment:\n    SEARXNG_URL=http://localhost:8080\n'
+  else
+    printf '  Command: /usr/bin/mcp-searxng\n  Args:\n  Environment:\n    SEARXNG_URL=http://localhost:8080\n'
+  fi
 elif [[ "$1" == mcp && "$2" == add-json ]]; then
   name=$3
   if grep -Fxq "$name" "$CLAUDE_MCP_STATE"; then
@@ -161,6 +169,24 @@ if HOME="$TEST_ROOT/check-home" "$CHECK_ROOT/bootstrap_codex.sh" --check \
 fi
 grep -Fxq 'Missing config/bin/update-codex' "$TEST_ROOT/missing-source.err"
 ln -s "$REPO_ROOT/config/bin/update-codex" "$CHECK_ROOT/config/bin/update-codex"
+printf '%s\n' 'Read ~/.agents/skills/review/scripts/ocr-opencode-go.' > "$CHECK_ROOT/config/agents/guard-fixture.txt"
+if HOME="$TEST_ROOT/check-home" "$CHECK_ROOT/bootstrap_codex.sh" --check \
+  > /dev/null 2> "$TEST_ROOT/harness-root.err"; then
+  printf 'Codex source check accepted a hard-coded harness skill root.\n' >&2
+  exit 1
+fi
+grep -Fxq 'Hard-coded harness skill root found; use a path relative to the loaded skill instead' "$TEST_ROOT/harness-root.err"
+printf '%s\n' 'Read `/home/miquel`' > "$CHECK_ROOT/config/agents/guard-fixture.txt"
+HOME="$TEST_ROOT/check-home" "$CHECK_ROOT/bootstrap_codex.sh" --check > /dev/null 2> "$TEST_ROOT/home-path.err" || true
+grep -Fxq 'Hard-coded harness skill root found; use a path relative to the loaded skill instead' "$TEST_ROOT/home-path.err"
+rm "$CHECK_ROOT/config/agents/guard-fixture.txt"
+printf '%s\n' 'See https://example.com/home/x/page and the rule /home/<user>/.' > "$CHECK_ROOT/config/agents/guard-fixture.md"
+HOME="$TEST_ROOT/check-home" "$CHECK_ROOT/bootstrap_codex.sh" --check > /dev/null 2> "$TEST_ROOT/guard-quote.err" || true
+if grep -Fq 'Hard-coded harness skill root' "$TEST_ROOT/guard-quote.err"; then
+  printf 'Codex source check rejected a URL or quoted placeholder path.\n' >&2
+  exit 1
+fi
+rm "$CHECK_ROOT/config/agents/guard-fixture.md"
 credential_value='sk-'
 for _ in {1..16}; do credential_value+='a'; done
 printf '%s\n' "$credential_value" > "$CHECK_ROOT/credential-fixture.txt"
@@ -170,7 +196,6 @@ if HOME="$TEST_ROOT/check-home" "$CHECK_ROOT/bootstrap_codex.sh" --check \
   exit 1
 fi
 [[ "$(<"$TEST_ROOT/credential-check.err")" == 'Credential-shaped value found in repository' ]]
-! grep -Fq "$credential_value" "$TEST_ROOT/credential-check.err"
 
 # An unpinned executable is replaced by the required connector version.
 printf '{"name":"mcp-searxng","version":"1.0.0"}\n' > "$STUB_BIN/global/node_modules/mcp-searxng/package.json"
@@ -199,6 +224,9 @@ ln -s "$REUSED_PI_ROOT/npm/node_modules/mcp-searxng/cli.js" "$REUSED_PI_ROOT/npm
 mkdir -p "$CODEX_HOME_ROOT/.agents/skills/user-skill"
 printf '%s\n' 'name: user-skill' > "$CODEX_HOME_ROOT/.agents/skills/user-skill/SKILL.md"
 printf 'User Codex instructions.\n' > "$CODEX_TARGET/AGENTS.md"
+cat > "$CODEX_TARGET/hooks.json" <<'JSON'
+{"hooks":{"UserPromptSubmit":[{"hooks":[{"type":"command","command":": orca-agent-hook-form=1; orca","timeout":10}]}],"Stop":[{"hooks":[{"type":"command","command":"user-stop-hook"}]}]},"extra":"keep"}
+JSON
 printf '%s\n' '{"auth":"preserve"}' > "$CODEX_TARGET/auth.json"
 printf '%s\n' 'user-owned role' > "$CODEX_TARGET/agents/coder.toml"
 cat > "$CODEX_TARGET/config.toml" <<'TOML'
@@ -245,7 +273,7 @@ import tomllib
 
 config_path, agents, backup, stub_bin = map(pathlib.Path, sys.argv[1:])
 config = tomllib.loads(config_path.read_text(encoding="utf-8"))
-assert config["model"] == "gpt-6-sol"
+assert config["model"] == "gpt-6.1-sol"
 assert config["custom_root_setting"] == "preserve"
 assert config["user_paths"] == ["one", "two"]
 assert config["plan_mode_reasoning_effort"] == "medium"
@@ -266,13 +294,35 @@ PY
 [[ -L "$CODEX_HOME_ROOT/.agents/skills/writing" ]]
 [[ -L "$CODEX_HOME_ROOT/.agents/skills/ponytail" ]]
 [[ -f "$CODEX_HOME_ROOT/.agents/skills/user-skill/SKILL.md" ]]
-[[ "$(find "$CODEX_HOME_ROOT/.agents/skills" -maxdepth 1 -type l | wc -l)" -eq 37 ]]
-[[ "$(readlink "$CODEX_HOME_ROOT/.local/share/my-codex-config/external-skills/ponytail/skills/ponytail")" == "$REUSED_PI_ROOT/skills/ponytail" ]]
-[[ "$(grep -c '^git clone' "$STUB_LOG")" -eq 2 ]]
+[[ "$(find "$CODEX_HOME_ROOT/.agents/skills" -maxdepth 1 -type l | wc -l)" -eq 35 ]]
+[[ ! -L "$CODEX_HOME_ROOT/.local/share/my-codex-config/external-skills/ponytail/skills/ponytail" ]]
+[[ "$(grep -c '^git clone' "$STUB_LOG")" -eq 3 ]]
 [[ -L "$CODEX_TARGET/commands" ]]
 [[ "$(find -L "$CODEX_TARGET/commands" -maxdepth 1 -type f -name '*.md' | wc -l)" -eq 13 ]]
 [[ "$(find "$CODEX_TARGET/agents" -maxdepth 1 -type f -name '*.toml' | wc -l)" -eq 12 ]]
-cmp -s "$REPO_ROOT/config/codex-hooks.json" "$CODEX_TARGET/hooks.json"
+python3 - "$CODEX_TARGET/hooks.json" <<'PY'
+import json
+import pathlib
+import sys
+
+data = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+commands = [hook["command"] for group in data["hooks"]["UserPromptSubmit"] for hook in group["hooks"]]
+assert commands[0] == ": orca-agent-hook-form=1; orca", commands
+assert sum("codex-command-dispatch.mjs" in command for command in commands) == 1, commands
+assert data["hooks"]["Stop"][0]["hooks"][0]["command"] == "user-stop-hook"
+assert data["extra"] == "keep"
+assert set(data["hooks"]) == {"UserPromptSubmit", "Stop"}
+PY
+[[ -f "$BACKUP_ROOT/.codex/hooks.json" ]]
+[[ -L "$CODEX_HOME_ROOT/.local/bin/ocr-go" ]]
+SEARXNG_SETTINGS="$CODEX_HOME_ROOT/.local/share/my-codex-config/searxng/config/settings.yml"
+grep -Eq '^  secret_key: "[0-9a-f]{64}"$' "$SEARXNG_SETTINGS"
+grep -q '^use_default_settings: true$' "$SEARXNG_SETTINGS"
+[[ "$(stat -c %a "$SEARXNG_SETTINGS")" == 600 ]]
+if grep -q secret_key "$REPO_ROOT/config/searxng/settings.yml"; then
+  printf 'The tracked SearXNG settings hold a secret key.\n' >&2
+  exit 1
+fi
 [[ -L "$CODEX_TARGET/rules/my-opencode-config.rules" ]]
 [[ -e "$CODEX_TARGET/vault-context" ]]
 grep -q 'BEGIN my-harness-config policy' "$CODEX_TARGET/AGENTS.md"
@@ -294,19 +344,26 @@ env -u CODEX_HOME -u XDG_DATA_HOME -u XDG_STATE_HOME HOME="$INCOMPLETE_HOME" \
   --no-searxng --no-searxng-mcp > "$TEST_ROOT/incomplete.out" 2> "$TEST_ROOT/incomplete.err"
 [[ -f "$INCOMPLETE_SKILL/skills/ponytail/SKILL.md" ]]
 [[ "$(<"$INCOMPLETE_BACKUPS/.local/share/my-codex-config/external-skills/ponytail/partial.txt")" == 'stale source' ]]
-[[ "$(grep -c '^git clone' "$STUB_LOG")" -eq 5 ]]
+[[ "$(grep -c '^git clone' "$STUB_LOG")" -eq 6 ]]
 
 cp "$CODEX_TARGET/config.toml" "$TEST_ROOT/codex-before-rerun.toml"
+cp "$CODEX_TARGET/hooks.json" "$TEST_ROOT/codex-hooks-before-rerun.json"
+cp "$SEARXNG_SETTINGS" "$TEST_ROOT/searxng-before-rerun.yml"
+backups_before_rerun=$(find "$BACKUP_ROOT" -name 'hooks.json*' | wc -l)
 CODEX_HOME="$CODEX_HOME" HOME="$CODEX_HOME_ROOT" BACKUP_ROOT="$BACKUP_ROOT" \
   DOCKER_STATE="$TEST_ROOT/searxng.state" "$REPO_ROOT/bootstrap_codex.sh" \
   > "$TEST_ROOT/codex-repeat.out" 2> "$TEST_ROOT/codex-repeat.err"
 cmp -s "$TEST_ROOT/codex-before-rerun.toml" "$CODEX_TARGET/config.toml"
+cmp -s "$TEST_ROOT/codex-hooks-before-rerun.json" "$CODEX_TARGET/hooks.json"
+cmp -s "$TEST_ROOT/searxng-before-rerun.yml" "$SEARXNG_SETTINGS"
+[[ "$(find "$BACKUP_ROOT" -name 'hooks.json*' | wc -l)" -eq "$backups_before_rerun" ]]
 [[ "$(grep -c '^docker run' "$STUB_LOG")" -eq 1 ]]
 [[ "$(grep -c 'npm install --global mcp-searxng@1.11.1' "$STUB_LOG")" -eq 1 ]]
 
 CODEX_NO_MCP_HOME="$TEST_ROOT/codex-no-mcp-home"
 mkdir -p "$CODEX_NO_MCP_HOME/.codex"
-printf '%s\n' '[mcp_servers.searxng]' 'command = "mcp-searxng"' > "$CODEX_NO_MCP_HOME/.codex/config.toml"
+printf '%s\n' '[mcp_servers.searxng]' 'command = "/usr/bin/mcp-searxng"' 'args = []' 'startup_timeout_sec = 120.0' \
+  '[mcp_servers.searxng.env]' 'SEARXNG_URL = "http://localhost:8080"' > "$CODEX_NO_MCP_HOME/.codex/config.toml"
 HOME="$CODEX_NO_MCP_HOME" CODEX_HOME="$CODEX_NO_MCP_HOME/.codex" BACKUP_ROOT="$TEST_ROOT/codex-no-mcp-backups" \
   "$REPO_ROOT/bootstrap_codex.sh" --no-searxng --no-searxng-mcp > "$TEST_ROOT/codex-no-mcp.out" 2> "$TEST_ROOT/codex-no-mcp.err"
 python3 - "$CODEX_NO_MCP_HOME/.codex/config.toml" <<'PY'
@@ -316,6 +373,21 @@ import tomllib
 
 servers = tomllib.loads(pathlib.Path(sys.argv[1]).read_text())["mcp_servers"]
 assert set(servers) == {"codegraph", "btca"}
+PY
+
+CODEX_OWN_MCP_HOME="$TEST_ROOT/codex-own-mcp-home"
+mkdir -p "$CODEX_OWN_MCP_HOME/.codex"
+printf '%s\n' '[mcp_servers.searxng]' 'command = "my-own-search"' 'args = ["--mine"]' > "$CODEX_OWN_MCP_HOME/.codex/config.toml"
+HOME="$CODEX_OWN_MCP_HOME" CODEX_HOME="$CODEX_OWN_MCP_HOME/.codex" BACKUP_ROOT="$TEST_ROOT/codex-own-mcp-backups" \
+  "$REPO_ROOT/bootstrap_codex.sh" --no-searxng --no-searxng-mcp > "$TEST_ROOT/codex-own-mcp.out" 2> "$TEST_ROOT/codex-own-mcp.err"
+python3 - "$CODEX_OWN_MCP_HOME/.codex/config.toml" <<'PY'
+import pathlib
+import sys
+import tomllib
+
+servers = tomllib.loads(pathlib.Path(sys.argv[1]).read_text())["mcp_servers"]
+assert set(servers) == {"codegraph", "btca", "searxng"}
+assert servers["searxng"] == {"command": "my-own-search", "args": ["--mine"]}
 PY
 
 CODEX_INITIAL_HOME="$TEST_ROOT/codex-initial-home"
@@ -361,6 +433,8 @@ assert config["mcpServers"]["searxng"]["command"] == str(root / "npm/node_module
 assert config["mcpServers"]["searxng"]["env"]["SEARXNG_URL"] == "http://localhost:8080"
 assert config["mcpServers"]["searxng"]["lifecycle"] == "lazy"
 assert config["mcpServers"]["searxng"]["directTools"] is True
+assert config["mcpServers"]["searxng"]["toolPrefix"] == "none"
+assert "toolPrefix" not in config["mcpServers"]["codegraph"]
 role = (root / "agents/coder.md").read_text(encoding="utf-8")
 assert "systemPromptMode: append" in role
 assert "inheritGlobalContext: true" in role and "inheritSkills: true" in role
@@ -380,6 +454,7 @@ for path in (root / "prompts").glob("*.md"):
     assert "$@" in path.read_text(encoding="utf-8"), path
 PY
 [[ "$(grep -c '^docker ' "$STUB_LOG")" -eq "$docker_calls_before" ]]
+[[ -L "$PI_HOME/.local/bin/ocr-go" ]]
 cp "$PI_AGENT_ROOT/mcp.json" "$TEST_ROOT/pi-before-rerun.json"
 "$REPO_ROOT/bootstrap_pi.sh" --no-searxng > "$TEST_ROOT/pi-repeat.out" 2> "$TEST_ROOT/pi-repeat.err"
 cmp -s "$TEST_ROOT/pi-before-rerun.json" "$PI_AGENT_ROOT/mcp.json"
@@ -424,7 +499,7 @@ if HOME="$TEST_ROOT/pi-broken-home" PI_CODING_AGENT_DIR="$BROKEN_PI_ROOT" BACKUP
   exit 1
 fi
 cmp -s "$TEST_ROOT/pi-broken-before.json" "$BROKEN_PI_ROOT/mcp.json"
-! compgen -G "$BROKEN_PI_ROOT/mcp.json.*" > /dev/null
+[[ -z "$(compgen -G "$BROKEN_PI_ROOT/mcp.json.*")" ]]
 
 AGY_HOME="$TEST_ROOT/agy-home"
 AGY_ROOT="$AGY_HOME/.gemini/config"
@@ -456,7 +531,7 @@ assert "User AGY instructions" in (home / ".gemini/GEMINI.md").read_text()
 agy_skills = home / ".gemini/config/skills"
 assert (agy_skills / "writing").is_symlink()
 assert (agy_skills / "user-skill/SKILL.md").is_file()
-assert len(list(agy_skills.glob("*"))) == 38
+assert len(list(agy_skills.glob("*"))) == 36
 cli = home / ".gemini/antigravity-cli"
 plugin = cli / "plugins/my-codex-config"
 assert len(list((cli / "agents").glob("*.md"))) == 12
@@ -479,6 +554,13 @@ servers = json.loads(pathlib.Path(sys.argv[1]).read_text())["mcpServers"]
 assert set(servers) == {"keep", "codegraph", "btca"}
 PY
 
+CUSTOM_AGY_HOME="$TEST_ROOT/agy-custom-home"
+HOME="$CUSTOM_AGY_HOME" AGY_CONFIG_ROOT="$CUSTOM_AGY_HOME/agy-config" AGY_CLI_ROOT="$CUSTOM_AGY_HOME/agy-cli" \
+  BACKUP_ROOT="$TEST_ROOT/agy-custom-backups" "$REPO_ROOT/bootstrap_agy.sh" --no-searxng \
+  > "$TEST_ROOT/agy-custom.out" 2> "$TEST_ROOT/agy-custom.err"
+[[ -f "$CUSTOM_AGY_HOME/agy-cli/agents/coder.md" ]]
+[[ ! -e "$CUSTOM_AGY_HOME/.gemini/antigravity-cli" ]]
+
 BROKEN_AGY_HOME="$TEST_ROOT/agy-broken-home"
 BROKEN_AGY_ROOT="$BROKEN_AGY_HOME/.gemini/config"
 mkdir -p "$BROKEN_AGY_HOME/.gemini/antigravity-cli" "$BROKEN_AGY_ROOT"
@@ -490,7 +572,7 @@ if HOME="$BROKEN_AGY_HOME" AGY_CONFIG_ROOT="$BROKEN_AGY_ROOT" BACKUP_ROOT="$TEST
   exit 1
 fi
 cmp -s "$TEST_ROOT/agy-broken-before.json" "$BROKEN_AGY_HOME/.gemini/antigravity-cli/settings.json"
-! compgen -G "$BROKEN_AGY_HOME/.gemini/antigravity-cli/settings.json.*" > /dev/null
+[[ -z "$(compgen -G "$BROKEN_AGY_HOME/.gemini/antigravity-cli/settings.json.*")" ]]
 
 CLAUDE_HOME="$TEST_ROOT/claude-home"
 mkdir -p "$CLAUDE_HOME/.claude"
@@ -532,6 +614,13 @@ grep -q '^claude mcp remove searxng' "$CLAUDE_LOG"
 [[ "$(grep -c '^claude mcp add-json codegraph' "$CLAUDE_LOG")" -eq 2 ]]
 [[ "$(grep -c '^claude mcp add-json searxng' "$CLAUDE_LOG")" -eq 1 ]]
 [[ "$(grep -c '^claude mcp add-json btca' "$CLAUDE_LOG")" -eq 2 ]]
+[[ -L "$CLAUDE_HOME/.local/bin/ocr-go" ]]
+
+# A user's own searxng server survives --no-searxng-mcp.
+printf 'searxng\n' >> "$CLAUDE_MCP_STATE"
+CLAUDE_SEARXNG_CUSTOM=1 HOME="$CLAUDE_HOME" CLAUDE_CONFIG_DIR="$CLAUDE_HOME/.claude" BACKUP_ROOT="$TEST_ROOT/claude-backups" \
+  "$REPO_ROOT/bootstrap_claude.sh" --no-searxng --no-searxng-mcp > "$TEST_ROOT/claude-own.out" 2> "$TEST_ROOT/claude-own.err"
+grep -Fxq searxng "$CLAUDE_MCP_STATE"
 
 run_searxng_case() {
   local name=$1
@@ -564,7 +653,7 @@ if HOME="$BROKEN_HOME" CODEX_HOME="$BROKEN_HOME/.codex" BACKUP_ROOT="$TEST_ROOT/
   exit 1
 fi
 cmp -s "$TEST_ROOT/broken-before.toml" "$BROKEN_HOME/.codex/config.toml"
-! compgen -G "$BROKEN_HOME/.codex/config.toml.tmp.*" > /dev/null
+[[ -z "$(compgen -G "$BROKEN_HOME/.codex/config.toml.tmp.*")" ]]
 
 UNSAFE_HOME="$TEST_ROOT/unsafe-home"
 mkdir -p "$UNSAFE_HOME/.codex"
@@ -583,7 +672,7 @@ if HOME="$UNSAFE_HOME" CODEX_HOME="$UNSAFE_HOME/.codex" BACKUP_ROOT="$TEST_ROOT/
 fi
 grep -Fxq 'Could not safely merge multiline Codex root settings' "$TEST_ROOT/unsafe.err"
 cmp -s "$TEST_ROOT/unsafe-before.toml" "$UNSAFE_HOME/.codex/config.toml"
-! compgen -G "$UNSAFE_HOME/.codex/config.toml.tmp.*" > /dev/null
+[[ -z "$(compgen -G "$UNSAFE_HOME/.codex/config.toml.tmp.*")" ]]
 
 HOME="$CODEX_HOME_ROOT" CODEX_HOME="$CODEX_HOME" "$REPO_ROOT/bootstrap_codex.sh" --check \
   > "$TEST_ROOT/check.out" 2> "$TEST_ROOT/check.err"

@@ -6,6 +6,7 @@ CONFIG_SOURCE="$ROOT/config"
 CODEX_SOURCE="$CONFIG_SOURCE"
 COMMANDS_SOURCE="$CONFIG_SOURCE/commands"
 SKILLS_SOURCE="$CONFIG_SOURCE/skills"
+HARNESS_ROOT_PATTERN='(~|\$\{?[A-Z_]*HOME\}?"?)/\.(agents|claude|codex)/skills|\$\{?(CLAUDE_CONFIG_DIR|PI_CODING_AGENT_DIR|CODEX_HOME)(:-[^}]*)?\}?/skills|\.pi/agent/skills|\.gemini/[A-Za-z0-9_./-]*skills|(^|[^A-Za-z0-9_/.-])/(home|Users)/[A-Za-z0-9_]'
 CHECK_ONLY=false
 CHECK_DEPS=false
 SEARXNG_ENABLED=true
@@ -64,8 +65,8 @@ commands = root / "commands"
 skill_paths = sorted(path for path in skills.iterdir() if (path / "SKILL.md").is_file())
 agent_paths = sorted(agents.glob("*.toml"))
 command_paths = sorted(commands.glob("*.md"))
-if len(skill_paths) != 34 or len(agent_paths) != 12 or len(command_paths) != 13:
-    raise SystemExit("Expected 34 skills, 12 roles, and 13 command intents")
+if len(skill_paths) != 32 or len(agent_paths) != 12 or len(command_paths) != 13:
+    raise SystemExit("Expected 32 skills, 12 roles, and 13 command intents")
 
 for path in skill_paths:
     text = (path / "SKILL.md").read_text(encoding="utf-8")
@@ -131,6 +132,11 @@ check_source() {
     --exclude='*.md' --exclude='*.bak' "$CONFIG_SOURCE"; then
     die 'Machine-specific path or credential-shaped value found in managed configuration'
   fi
+  # Harnesses install skills in different roots, so skills and roles must not name one.
+  if grep -R -I -n -E "$HARNESS_ROOT_PATTERN" --exclude-dir=node_modules --exclude-dir=__pycache__ \
+    "$CONFIG_SOURCE/skills" "$CONFIG_SOURCE/agents"; then
+    die 'Hard-coded harness skill root found; use a path relative to the loaded skill instead'
+  fi
   if grep -R -I -q -E '(sk-[A-Za-z0-9]{16,}|gh[pousr]_[A-Za-z0-9]{20,}|Fe26\.2\*\*)' \
     --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=.codegraph "$ROOT"; then
     die 'Credential-shaped value found in repository'
@@ -173,7 +179,7 @@ install_codex_config() {
   if [[ -f "$target" && ! -L "$target" ]]; then
     temporary=$(mktemp "$target.tmp.XXXXXX")
     runtime_line=$(grep -n -m 1 -E '^\[(marketplaces|plugins|hooks\.state|projects)(\.|\])' "$target" | cut -d: -f1 || true)
-    if python3 - "$source" "$target" "$runtime_line" "$temporary" <<'PY'
+    if python3 - "$source" "$target" "$runtime_line" "$temporary" "$($SEARXNG_MCP_ENABLED && echo 0 || echo 1)" <<'PY'
 import pathlib
 import re
 import sys
@@ -221,6 +227,18 @@ for line in root_text.splitlines():
 
 retired = {"braintrust", "vidext-operator-my-workspace", "headroom", "sequential-thinking"}
 managed = {"codegraph", "searxng", "btca"}
+
+def managed_searxng(entry):
+    return (
+        isinstance(entry, dict)
+        and set(entry) == {"command", "args", "startup_timeout_sec", "env"}
+        and pathlib.PurePath(str(entry["command"])).name == "mcp-searxng"
+        and entry["args"] == []
+        and entry["env"] == {"SEARXNG_URL": "http://localhost:8080"}
+    )
+
+if sys.argv[5] == "1" and not managed_searxng(target_data.get("mcp_servers", {}).get("searxng")):
+    managed = managed - {"searxng"}
 local_servers = set(target_data.get("mcp_servers", {})) - managed - retired
 local_tables = []
 local_table_paths = []
@@ -391,7 +409,8 @@ install_config() {
     --source "$ROOT/config/mcp.json" --codex "$ROOT/config/codex.toml" \
     --output "$TEMP_DIR/config.toml" "${mcp_args[@]}"
   install_codex_config "$TEMP_DIR/config.toml" "$CODEX_TARGET/config.toml"
-  common_install_generated_file "$ROOT/config/codex-hooks.json" "$CODEX_TARGET/hooks.json"
+  python3 "$ROOT/config/bin/harness-assets.py" merge-hooks \
+    --source "$ROOT/config/codex-hooks.json" --target "$CODEX_TARGET/hooks.json" --backup "$BACKUP_ROOT"
   common_link_managed "$COMMANDS_SOURCE" "$CODEX_TARGET/commands"
   common_link_managed "$ROOT/config/rules/my-opencode-config.rules" "$CODEX_TARGET/rules/my-opencode-config.rules"
   for name in automation-runner commit-worker; do
@@ -408,7 +427,6 @@ install_config() {
   python3 "$ROOT/config/bin/harness-assets.py" install-policy \
     --source "$ROOT/config/AGENTS.md" --target "$CODEX_TARGET/AGENTS.md" --backup "$BACKUP_ROOT"
   common_link_managed "$ROOT/config/bin/codex-command-dispatch.mjs" "$CODEX_TARGET/bin/codex-command-dispatch.mjs"
-  common_link_managed "$SKILLS_SOURCE/review/scripts/ocr-opencode-go" "$HOME/.local/bin/ocr-go"
   common_link_managed "$ROOT/config/bin/update-codex" "$HOME/.local/bin/update-codex"
   common_link_managed "$ROOT/config/plugins/vault-context" "$CODEX_TARGET/vault-context"
 }

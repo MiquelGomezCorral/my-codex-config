@@ -25,13 +25,22 @@ while (($#)); do
   shift
 done
 
+claude_has_managed_searxng() {
+  local details
+  details=$(claude mcp get searxng 2>/dev/null) || return 1
+  grep -Eq '^  Command: (.*/)?mcp-searxng$' <<< "$details" &&
+    grep -Eq '^  Args: *$' <<< "$details" &&
+    [[ "$(grep -Ec '^    [A-Za-z_]+=' <<< "$details")" -eq 1 ]] &&
+    grep -Fxq '    SEARXNG_URL=http://localhost:8080' <<< "$details"
+}
+
 install_mcp() {
   local server_json name
 
   for name in braintrust vidext-operator-my-workspace headroom sequential-thinking; do
     claude mcp remove "$name" --scope user >/dev/null 2>&1 || true
   done
-  if ! $SEARXNG_MCP_ENABLED; then
+  if ! $SEARXNG_MCP_ENABLED && claude_has_managed_searxng; then
     claude mcp remove searxng --scope user >/dev/null 2>&1 || true
   fi
   for name in codegraph searxng btca; do

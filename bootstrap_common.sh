@@ -77,6 +77,10 @@ common_install_codegraph() {
   ensure_codegraph
 }
 
+common_link_ocr() {
+  common_link_managed "$COMMON_ROOT/config/skills/review/scripts/ocr-opencode-go" "$HOME/.local/bin/ocr-go"
+}
+
 common_install_btca() {
   if command -v btca >/dev/null 2>&1; then
     return 0
@@ -143,22 +147,27 @@ common_install_searxng_connector() {
   common_has_pinned_searxng_connector || common_die 'SearXNG connector installation completed without a shared pinned executable on PATH.'
 }
 
+# A fourth argument of "clone" skips reusing another harness's copy: a reused folder links
+# only the one skill it holds, so multi-skill sources must be cloned whole.
 common_clone_portable() {
-  local name=$1 repository=$2 required=$3 destination temporary root source portable_name skip
+  local name=$1 repository=$2 required=$3 reuse=${4:-reuse} destination temporary root source portable_name skip
   local -a roots=() names=()
   destination="$COMMON_PORTABLE_ROOT/$name"
 
-  [[ -f "$destination/$required/SKILL.md" ]] && return 0
+  if [[ -f "$destination/$required/SKILL.md" ]] && { [[ "$reuse" != clone ]] || [[ ! -L "$destination/$required" ]]; }; then
+    return 0
+  fi
   if [[ -e "$destination" || -L "$destination" ]]; then
     common_backup_existing "$destination"
   fi
 
-  roots=("$HOME/.agents/skills" "$HOME/.codex/skills" "$HOME/.claude/skills")
-  roots+=("${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/skills")
-  roots+=("${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills")
-  roots+=("${AGY_CLI_ROOT:-$HOME/.gemini/antigravity-cli}/skills")
-  roots+=("${AGY_PLUGIN_TARGET:-$HOME/.gemini/config/plugins/my-codex-config}/skills")
-  roots+=("${AGY_CONFIG_ROOT:-$HOME/.gemini/config}/plugins/my-codex-config/skills")
+  if [[ "$reuse" != clone ]]; then
+    roots=("$HOME/.agents/skills" "$HOME/.codex/skills" "$HOME/.claude/skills")
+    roots+=("${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/skills")
+    roots+=("${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills")
+    roots+=("${AGY_CLI_ROOT:-$HOME/.gemini/antigravity-cli}/skills")
+    roots+=("${AGY_CONFIG_ROOT:-$HOME/.gemini/config}/plugins/my-codex-config/skills")
+  fi
   names=("$name")
   if [[ "$name" == excalidraw ]]; then
     names+=(skill)
@@ -199,7 +208,7 @@ common_clone_portable() {
 }
 
 common_prepare_portable_skills() {
-  common_clone_portable ponytail https://github.com/DietrichGebert/ponytail.git skills/ponytail
+  common_clone_portable ponytail https://github.com/DietrichGebert/ponytail.git skills/ponytail clone
   common_clone_portable diagram-design https://github.com/cathrynlavery/diagram-design.git skills/diagram-design
   common_clone_portable excalidraw https://github.com/fabricioartur/codex-excalidraw-skill.git skill
 }
@@ -241,6 +250,21 @@ common_check_searxng_startup() {
       return 1
     fi
   done
+}
+
+# Writes the per-machine settings: the repository file plus a random secret key, which the
+# image refuses to start without. The secret never enters the repository.
+common_write_searxng_settings() {
+  local target=$1 secret
+
+  secret=$(head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n')
+  (
+    umask 077
+    {
+      cat "$COMMON_ROOT/config/searxng/settings.yml"
+      printf 'server:\n  secret_key: "%s"\n' "$secret"
+    } > "$target"
+  )
 }
 
 common_install_searxng() {
@@ -290,7 +314,7 @@ common_install_searxng() {
   cache_root="$data_root/cache"
   mkdir -p "$config_root" "$cache_root"
   if [[ ! -e "$config_root/settings.yml" ]]; then
-    install -m 600 "$COMMON_ROOT/config/searxng/settings.yml" "$config_root/settings.yml"
+    common_write_searxng_settings "$config_root/settings.yml"
   fi
   if ! docker run --detach --name "$COMMON_SEARXNG_CONTAINER" --restart unless-stopped \
     --publish 127.0.0.1:8080:8080 \
@@ -323,6 +347,7 @@ common_install_shared() {
     common_install_searxng_connector
   fi
   common_prepare_portable_skills
+  common_link_ocr
   if $searxng_enabled; then
     common_install_searxng
   fi

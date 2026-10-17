@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 SKILLS_SOURCE="$ROOT/config/skills"
 AGY_CONFIG_ROOT="${AGY_CONFIG_ROOT:-$HOME/.gemini/config}"
-AGY_CLI_ROOT="$HOME/.gemini/antigravity-cli"
+AGY_CLI_ROOT="${AGY_CLI_ROOT:-$HOME/.gemini/antigravity-cli}"
 AGY_PLUGIN_TARGET="$AGY_CONFIG_ROOT/plugins/my-codex-config"
 AGY_CLI_PLUGIN_TARGET="$AGY_CLI_ROOT/plugins/my-codex-config"
 AGY_GLOBAL_AGENTS="$AGY_CONFIG_ROOT/agents"
