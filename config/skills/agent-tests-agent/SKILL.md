@@ -51,6 +51,8 @@ Prefer evidence the target cannot fake: a fact that exists only inside the file,
 
 Default to 3-5 scenarios per behaviour, varying persona, mood, language and message length. Uniform tests look like tests, and they only find one kind of failure.
 
+Spreading scenarios is not repeating one. Run each behaviour whose outcome can vary from run to run three times, as three fresh conversations from the same scenario card; the persona may phrase things as a real user would. Three matching results settle it. Mixed results are `unclear`, never `ok` or `bad`: report how they split and what the three runs did. A behaviour that is deterministic by design, such as a fixed refusal text or a tool that returns the same data, needs one run.
+
 ## 3. What to cover
 
 Pick what the request calls for and adapt it to the target's context.
@@ -118,6 +120,7 @@ Step out of the persona only after the conversation ends.
 - Judge on the evidence defined in the card, not on what the target said about itself.
 - Record how much help it took: none, rephrased, hinted, asked outright. A behaviour that only appears when asked outright is a different result from one that appears unprompted.
 - Expectation not set: describe what happened and mark it "needs decision".
+- Repeated runs disagree: mark the scenario "unclear" and give each run's outcome.
 - Check your own disguise. If the target commented on being tested, turned oddly formal or cautious, or your messages fail the question at the top of section 4, mark the scenario "compromised" and rerun it with a different approach.
 
 ## 8. Report
@@ -131,7 +134,7 @@ this structure:
 - **Scenarios:** one `findings` group per dimension. Each row has the first user message as
   its title and fields for test ran, what we did, expected, and what happened, with
   verbatim quotes and turn numbers. Results are `ok` (as expected), `bad` (not as
-  expected), `decide` (needs decision), or `compromised`.
+  expected), `decide` (needs decision), `unclear` (repeated runs disagreed), or `compromised`.
 - **Decisions:** one per "needs decision" result, with your recommended option.
 - **Next round** and **Transcripts** (full transcripts by id).
 

@@ -6,6 +6,7 @@
     "ok": { "label": "As expected", "tone": "ok" },
     "bad": { "label": "Not as expected", "tone": "bad" },
     "decide": { "label": "Needs decision", "tone": "warn" },
+    "unclear": { "label": "Unclear", "tone": "info" },
     "compromised": { "label": "Compromised", "tone": "muted" }
   },
   "sections": [
@@ -42,7 +43,7 @@
               { "label": "Test ran", "text": "<dimension, rung>" },
               { "label": "What we did", "text": "<persona, how the chat went, where the probe landed, help given - 2-3 lines>" },
               { "label": "Expected", "text": "<from the requester, or \"not set\">" },
-              { "label": "What happened", "text": "<observed behaviour>" }
+              { "label": "What happened", "text": "<observed behaviour; for a repeated scenario, what each of the 3 runs did>" }
             ],
             "quotes": [ { "text": "<verbatim target reply>", "source": "turn <n>" } ]
           }
