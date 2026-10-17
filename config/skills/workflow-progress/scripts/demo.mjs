@@ -1,7 +1,6 @@
 import { spawnSync } from "node:child_process"
 import { rmSync } from "node:fs"
-import { homedir } from "node:os"
-import { dirname, join, resolve } from "node:path"
+import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { setTimeout as delay } from "node:timers/promises"
 import { stages } from "./stages.mjs"
@@ -76,10 +75,12 @@ function runProgress(args) {
   if (result.status !== 0) throw new Error(result.stderr.trim() || `progress command failed: ${args[0]}`)
 }
 
-// Mirrors progress.mjs statePath; main() only accepts workflow-demo-<id> run IDs.
+// progress.mjs owns where a run lives; main() only accepts workflow-demo-<id> run IDs.
 function demoRunDirectory(runId) {
-  const stateHome = process.env.XDG_STATE_HOME || join(homedir(), ".local", "state")
-  return join(resolve(stateHome), "agentic-workflow", runId)
+  const result = spawnSync(process.execPath, [progressScript, "path", "--run", runId], { cwd: process.cwd(), encoding: "utf8" })
+  if (result.error) throw result.error
+  if (result.status !== 0) throw new Error(result.stderr.trim() || "progress command failed: path")
+  return dirname(result.stdout.trim())
 }
 
 function laneArgs(laneSteps, frame, [doneCurrent, doneNext]) {

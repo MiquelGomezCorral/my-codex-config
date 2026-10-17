@@ -11,9 +11,21 @@ updates at intake, before dispatch or wait, after results, during corrections, a
 and on resume.
 For review JSON icons, use the [shared icon catalog](../artifacts/references/plan-page.md#icons).
 
-Run `scripts/progress.mjs` from this skill. It uses Node's standard library and stores one
-JSON record under `${XDG_STATE_HOME:-$HOME/.local/state}/agentic-workflow/<run-id>/`.
-The generated HTML snapshot lives beside that record. State stays outside the repository.
+Run `scripts/progress.mjs` from this skill, from any folder. It uses Node's standard library
+and stores one JSON record under
+`$(git rev-parse --path-format=absolute --git-common-dir)/agent-memory/workflow-runs/<run-id>/`,
+shared by every worktree and never tracked. The generated HTML snapshot lives beside that
+record. `init` takes that Git folder from `--repository`, and from the current folder only when
+`--repository` is missing or not a Git path. It also leaves a pointer to the repository under
+`${XDG_STATE_HOME:-$HOME/.local/state}/agentic-workflow/<run-id>/`. Other commands look for the
+run in the current repository, then in the repository the pointer names, then in the old
+location below, so they work from `$HOME` or the skill folder. Outside any Git repository the
+record stays in the old location. `path --run <run-id>` prints the record's location.
+
+Runs started under the old `~/.local/state` location stay loadable there: `render` and `serve`
+work, and `update` refuses with a message when you run it inside a repository. Copy such a run
+into that repository with `migrate --run <run-id>`; it leaves the old copy in place, so a page
+already served from there keeps working. Delete the old copy once nothing serves it.
 
 ```sh
 node <workflow-progress-skill>/scripts/progress.mjs init --run <run-id> --repository <repo>

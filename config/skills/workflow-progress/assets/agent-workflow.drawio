@@ -556,13 +556,13 @@
         <mxCell id="c11" parent="1" style="rounded=1;arcSize=26.3;whiteSpace=nowrap;html=1;fillColor=#f6e5f8;strokeColor=#b050cf;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="Agent worker" vertex="1">
           <mxGeometry height="19" width="132" x="1494" y="90" as="geometry" />
         </mxCell>
-        <mxCell id="c12" parent="1" style="rounded=1;arcSize=26.3;whiteSpace=nowrap;html=1;fillColor=#dffaf8;strokeColor=#1fb5ad;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="Intermidiate - artifact" vertex="1">
+        <mxCell id="c12" parent="1" style="rounded=1;arcSize=26.3;whiteSpace=nowrap;html=1;fillColor=#dffaf8;strokeColor=#1fb5ad;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="Intermediate - artifact" vertex="1">
           <mxGeometry height="19" width="131" x="1215" y="123" as="geometry" />
         </mxCell>
         <mxCell id="c13" parent="1" style="rounded=1;arcSize=26.3;whiteSpace=nowrap;html=1;fillColor=#dffaf8;strokeColor=#1fb5ad;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;dashed=1;dashPattern=4 3;" value="Optional mid-artifact" vertex="1">
           <mxGeometry height="19" width="132" x="1354" y="123" as="geometry" />
         </mxCell>
-        <mxCell id="c14" parent="1" style="rounded=1;arcSize=26.3;whiteSpace=nowrap;html=1;fillColor=#e5f7ec;strokeColor=#2aa06b;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="Main flow outup" vertex="1">
+        <mxCell id="c14" parent="1" style="rounded=1;arcSize=26.3;whiteSpace=nowrap;html=1;fillColor=#e5f7ec;strokeColor=#2aa06b;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="Main flow output" vertex="1">
           <mxGeometry height="19" width="132" x="1494" y="123" as="geometry" />
         </mxCell>
         <mxCell id="c15" parent="1" style="rounded=1;arcSize=26.3;whiteSpace=nowrap;html=1;fillColor=#fdeedc;strokeColor=#e8863c;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="Human decision" vertex="1">
@@ -577,10 +577,10 @@
         <mxCell id="c18" parent="1" style="rounded=1;arcSize=21.4;whiteSpace=nowrap;html=1;fillColor=#e9ecef;strokeColor=#444444;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="Incoming work" vertex="1">
           <mxGeometry height="42" width="142" x="798" y="83" as="geometry" />
         </mxCell>
-        <mxCell id="c19" parent="1" style="rounded=1;arcSize=20.5;whiteSpace=nowrap;html=1;fillColor=#fdeedc;strokeColor=#e8863c;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="Draf what happened, the&lt;br&gt;initial goal, evidence and&lt;br&gt;anything already clear" vertex="1">
+        <mxCell id="c19" parent="1" style="rounded=1;arcSize=20.5;whiteSpace=nowrap;html=1;fillColor=#fdeedc;strokeColor=#e8863c;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="Draft what happened, the&lt;br&gt;initial goal, evidence and&lt;br&gt;anything already clear" vertex="1">
           <mxGeometry height="44" width="142" x="798" y="154" as="geometry" />
         </mxCell>
-        <mxCell id="c20" parent="1" style="rounded=1;arcSize=19.6;whiteSpace=nowrap;html=1;fillColor=#eaedfd;strokeColor=#5b6be0;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="Investigate an draft" vertex="1">
+        <mxCell id="c20" parent="1" style="rounded=1;arcSize=19.6;whiteSpace=nowrap;html=1;fillColor=#eaedfd;strokeColor=#5b6be0;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="Investigate and draft" vertex="1">
           <mxGeometry height="46" width="133" x="803" y="256" as="geometry" />
         </mxCell>
         <mxCell id="c21" parent="1" style="rounded=1;arcSize=19.1;whiteSpace=nowrap;html=1;fillColor=#eaedfd;strokeColor=#5b6be0;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="Grill me" vertex="1">
@@ -592,7 +592,7 @@
         <mxCell id="c23" parent="1" style="rounded=1;arcSize=20.9;whiteSpace=nowrap;html=1;fillColor=#f6e5f8;strokeColor=#b050cf;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="From 0, no code opinion" vertex="1">
           <mxGeometry height="43" width="132" x="1121" y="380" as="geometry" />
         </mxCell>
-        <mxCell id="c24" parent="1" style="rounded=1;arcSize=20.9;whiteSpace=nowrap;html=1;fillColor=#dffaf8;strokeColor=#1fb5ad;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;dashed=1;dashPattern=4 3;" value="Artifacts:&lt;br&gt;Schemas / Mocup" vertex="1">
+        <mxCell id="c24" parent="1" style="rounded=1;arcSize=20.9;whiteSpace=nowrap;html=1;fillColor=#dffaf8;strokeColor=#1fb5ad;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;dashed=1;dashPattern=4 3;" value="Artifacts:&lt;br&gt;Schemas / Mockup" vertex="1">
           <mxGeometry height="43" width="133" x="1121" y="442" as="geometry" />
         </mxCell>
         <mxCell id="c25" parent="1" style="rounded=1;arcSize=20.9;whiteSpace=nowrap;html=1;fillColor=#dffaf8;strokeColor=#1fb5ad;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="First draft" vertex="1">
@@ -640,7 +640,7 @@
         <mxCell id="c39" parent="1" style="rounded=1;arcSize=20.9;whiteSpace=nowrap;html=1;fillColor=#eaedfd;strokeColor=#5b6be0;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="Put all together" vertex="1">
           <mxGeometry height="43" width="132" x="603" y="720" as="geometry" />
         </mxCell>
-        <mxCell id="c40" parent="1" style="rounded=1;arcSize=21.4;whiteSpace=nowrap;html=1;fillColor=#e5f7ec;strokeColor=#2aa06b;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="Dart or wave&lt;br&gt;for follow-up" vertex="1">
+        <mxCell id="c40" parent="1" style="rounded=1;arcSize=21.4;whiteSpace=nowrap;html=1;fillColor=#e5f7ec;strokeColor=#2aa06b;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="Draft or wave&lt;br&gt;for follow-up" vertex="1">
           <mxGeometry height="42" width="133" x="794" y="795" as="geometry" />
         </mxCell>
         <mxCell id="c41" parent="1" style="rounded=1;arcSize=20.9;whiteSpace=nowrap;html=1;fillColor=#fdeedc;strokeColor=#e8863c;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="Notify" vertex="1">
@@ -712,19 +712,19 @@
         <mxCell id="c64" parent="1" style="rounded=1;arcSize=20.5;whiteSpace=nowrap;html=1;fillColor=#dffaf8;strokeColor=#1fb5ad;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="Reject / P0 to P3 file:line&lt;br&gt;Each test pass / fail / unclear" vertex="1">
           <mxGeometry height="46" width="133" x="1013" y="1229" as="geometry" />
         </mxCell>
-        <mxCell id="c65" parent="1" style="rounded=1;arcSize=20.9;whiteSpace=nowrap;html=1;fillColor=#eaedfd;strokeColor=#5b6be0;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;dashed=1;dashPattern=4 3;" value="Validate P0s &amp;amp; P1s&lt;br&gt;Real or FPs" vertex="1">
+        <mxCell id="c65" parent="1" style="rounded=1;arcSize=20.9;whiteSpace=nowrap;html=1;fillColor=#eaedfd;strokeColor=#5b6be0;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;dashed=1;dashPattern=4 3;" value="Validate P0 to P3&lt;br&gt;Real or FPs" vertex="1">
           <mxGeometry height="43" width="133" x="1013" y="1312" as="geometry" />
         </mxCell>
-        <mxCell id="c66" parent="1" style="rounded=1;arcSize=20.9;whiteSpace=nowrap;html=1;fillColor=#dffaf8;strokeColor=#1fb5ad;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="P0 &amp;amp; P1 real findings" vertex="1">
+        <mxCell id="c66" parent="1" style="rounded=1;arcSize=20.9;whiteSpace=nowrap;html=1;fillColor=#dffaf8;strokeColor=#1fb5ad;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="P0 to P3 real findings" vertex="1">
           <mxGeometry height="43" width="132" x="795" y="1313" as="geometry" />
         </mxCell>
-        <mxCell id="c67" parent="1" style="rhombus;whiteSpace=nowrap;html=1;fillColor=#ffecec;strokeColor=#e0505c;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;dashed=1;dashPattern=4 3;" value="Any&lt;br&gt;bloker?" vertex="1">
+        <mxCell id="c67" parent="1" style="rhombus;whiteSpace=nowrap;html=1;fillColor=#ffecec;strokeColor=#e0505c;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;dashed=1;dashPattern=4 3;" value="Any&lt;br&gt;blocker?" vertex="1">
           <mxGeometry height="59" width="85" x="662" y="1305" as="geometry" />
         </mxCell>
         <mxCell id="c68" parent="1" style="rounded=1;arcSize=25.0;whiteSpace=nowrap;html=1;fillColor=#f6e5f8;strokeColor=#b050cf;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="Git worker&lt;br&gt;Persist validated version" vertex="1">
           <mxGeometry height="36" width="132" x="795" y="1397" as="geometry" />
         </mxCell>
-        <mxCell id="c69" parent="1" style="rounded=1;arcSize=21.4;whiteSpace=nowrap;html=1;fillColor=#eaedfd;strokeColor=#5b6be0;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="Orchestarte a clean up" vertex="1">
+        <mxCell id="c69" parent="1" style="rounded=1;arcSize=21.4;whiteSpace=nowrap;html=1;fillColor=#eaedfd;strokeColor=#5b6be0;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="Orchestrate a clean up" vertex="1">
           <mxGeometry height="42" width="132" x="795" y="1467" as="geometry" />
         </mxCell>
         <mxCell id="c70" parent="1" style="rounded=1;arcSize=20.9;whiteSpace=nowrap;html=1;fillColor=#eaedfd;strokeColor=#5b6be0;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;dashed=1;dashPattern=4 3;" value="Get the commits and think" vertex="1">
@@ -784,7 +784,7 @@
         <mxCell id="c88" parent="1" style="rounded=1;arcSize=27.8;whiteSpace=nowrap;html=1;fillColor=#f6e5f8;strokeColor=#b050cf;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value=". . ." vertex="1">
           <mxGeometry height="18" width="49" x="1267" y="1950" as="geometry" />
         </mxCell>
-        <mxCell id="c89" parent="1" style="rhombus;whiteSpace=nowrap;html=1;fillColor=#ffecec;strokeColor=#e0505c;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;dashed=1;dashPattern=4 3;" value="Bloker?" vertex="1">
+        <mxCell id="c89" parent="1" style="rhombus;whiteSpace=nowrap;html=1;fillColor=#ffecec;strokeColor=#e0505c;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;dashed=1;dashPattern=4 3;" value="Blocker?" vertex="1">
           <mxGeometry height="60" width="86" x="820" y="2027" as="geometry" />
         </mxCell>
         <mxCell id="c90" parent="1" style="rounded=1;arcSize=20.9;whiteSpace=nowrap;html=1;fillColor=#eaedfd;strokeColor=#5b6be0;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="Wait for CI / CD&lt;br&gt;Git flow Review / feedack" vertex="1">
@@ -826,7 +826,7 @@
         <mxCell id="c170" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=nowrap;spacing=0;spacingLeft=0;spacingRight=0;overflow=visible;fontSize=12;fontFamily=Courier New;fontColor=#1e1e1e;" value="Review + Live Test" vertex="1">
           <mxGeometry height="16" width="141" x="1407" y="1098" as="geometry" />
         </mxCell>
-        <mxCell id="c171" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=nowrap;spacing=0;spacingLeft=0;spacingRight=0;overflow=visible;fontSize=9.7;fontFamily=Courier New;fontColor=#1e1e1e;" value="Get an agent to think a bout the solution without&lt;br&gt;looking at the code or &amp;#x27;what we want&amp;#x27;. The idea is that&lt;br&gt;the agent think by itself and is not biased by what we&lt;br&gt;have bc &amp;#x27;is already done&amp;#x27;" vertex="1">
+        <mxCell id="c171" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=nowrap;spacing=0;spacingLeft=0;spacingRight=0;overflow=visible;fontSize=9.7;fontFamily=Courier New;fontColor=#1e1e1e;" value="Get an agent to think about the solution without&lt;br&gt;looking at the code or &amp;#x27;what we want&amp;#x27;. The idea is that&lt;br&gt;the agent thinks by itself and is not biased by what we&lt;br&gt;have bc &amp;#x27;is already done&amp;#x27;" vertex="1">
           <mxGeometry height="50" width="300" x="1303" y="376" as="geometry" />
         </mxCell>
         <mxCell id="c172" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=nowrap;spacing=0;spacingLeft=0;spacingRight=0;overflow=visible;fontSize=8;fontFamily=Helvetica;fontColor=#1e1e1e;" value="No" vertex="1">
@@ -835,7 +835,7 @@
         <mxCell id="c173" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=nowrap;spacing=0;spacingLeft=0;spacingRight=0;overflow=visible;fontSize=8;fontFamily=Helvetica;fontColor=#1e1e1e;" value="Yes" vertex="1">
           <mxGeometry height="12" width="24" x="876" y="492" as="geometry" />
         </mxCell>
-        <mxCell id="c174" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=nowrap;spacing=0;spacingLeft=0;spacingRight=0;overflow=visible;fontSize=7;fontFamily=Courier New;fontColor=#1e1e1e;" value="User must be able to ask for more,&lt;br&gt;resolve questions with the other&lt;br&gt;grill me, see the mocups and&lt;br&gt;schemas, change them and land ALL" vertex="1">
+        <mxCell id="c174" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=nowrap;spacing=0;spacingLeft=0;spacingRight=0;overflow=visible;fontSize=7;fontFamily=Courier New;fontColor=#1e1e1e;" value="User must be able to ask for more,&lt;br&gt;resolve questions with the other&lt;br&gt;grill me, see the mockups and&lt;br&gt;schemas, change them and land ALL" vertex="1">
           <mxGeometry height="40" width="160" x="406" y="357" as="geometry" />
         </mxCell>
         <mxCell id="c175" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=nowrap;spacing=0;spacingLeft=0;spacingRight=0;overflow=visible;fontSize=9;fontFamily=Helvetica;fontColor=#1e1e1e;" value="At hand optional swarm for fixing" vertex="1">
@@ -892,7 +892,7 @@
         <mxCell id="c192" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=nowrap;spacing=0;spacingLeft=0;spacingRight=0;overflow=visible;fontSize=15.5;fontFamily=Courier New;fontColor=#1e1e1e;" value="Clean up" vertex="1">
           <mxGeometry height="22" width="160" x="130" y="1394" as="geometry" />
         </mxCell>
-        <mxCell id="c193" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=nowrap;spacing=0;spacingLeft=0;spacingRight=0;overflow=visible;fontSize=8.5;fontFamily=Helvetica;fontColor=#1e1e1e;" value="Overengineer&lt;br&gt;Actually solved the problem&lt;br&gt;No extra things broke&lt;br&gt;Shity things done for testing&lt;br&gt;. . .&lt;br&gt;Ponytail&lt;br&gt;OCR&lt;br&gt;Slopo&lt;br&gt;. . ." vertex="1">
+        <mxCell id="c193" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=nowrap;spacing=0;spacingLeft=0;spacingRight=0;overflow=visible;fontSize=8.5;fontFamily=Helvetica;fontColor=#1e1e1e;" value="Overengineer&lt;br&gt;Actually solved the problem&lt;br&gt;No extra things broke&lt;br&gt;Messy things done for testing&lt;br&gt;. . .&lt;br&gt;Ponytail&lt;br&gt;OCR&lt;br&gt;Slopo&lt;br&gt;. . ." vertex="1">
           <mxGeometry height="100" width="125" x="654" y="1472" as="geometry" />
         </mxCell>
         <mxCell id="c194" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=nowrap;spacing=0;spacingLeft=0;spacingRight=0;overflow=visible;fontSize=8;fontFamily=Courier New;fontColor=#1e1e1e;" value="Swarm" vertex="1">
@@ -981,7 +981,7 @@
         <mxCell id="c215" parent="1" style="rounded=1;arcSize=26.3;whiteSpace=nowrap;html=1;fillColor=#f6e5f8;strokeColor=#b050cf;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="Tester" vertex="1">
           <mxGeometry height="19" width="50" x="1433" y="1454" as="geometry" />
         </mxCell>
-        <mxCell id="c216" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=nowrap;spacing=0;spacingLeft=0;spacingRight=0;overflow=visible;fontSize=8;fontFamily=Helvetica;fontColor=#1e1e1e;" value="&lt;span style=&quot;font-size: 10px;&quot;&gt;Each agent Veredict:&lt;/span&gt;" vertex="1">
+        <mxCell id="c216" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=nowrap;spacing=0;spacingLeft=0;spacingRight=0;overflow=visible;fontSize=8;fontFamily=Helvetica;fontColor=#1e1e1e;" value="&lt;span style=&quot;font-size: 10px;&quot;&gt;Each agent Verdict:&lt;/span&gt;" vertex="1">
           <mxGeometry height="12" width="100" x="1030" y="1210" as="geometry" />
         </mxCell>
         <mxCell id="c217" parent="1" style="rounded=1;arcSize=20.9;whiteSpace=nowrap;html=1;fillColor=#eaedfd;strokeColor=#5b6be0;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;dashed=1;dashPattern=4 3;" value="Gather insights&lt;br&gt;pass / fail / unclear / not possible" vertex="1">

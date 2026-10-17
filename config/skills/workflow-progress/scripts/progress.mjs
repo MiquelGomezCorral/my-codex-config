@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto"
-import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs"
+import { execFileSync } from "node:child_process"
+import { cpSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs"
 import { createServer } from "node:http"
 import { homedir } from "node:os"
 import { dirname, isAbsolute, join, resolve } from "node:path"
@@ -19,6 +20,8 @@ const referenceImage = readFileSync(resolve(scriptDirectory, "../assets/Whole-Fl
 const usage = `usage:
   node progress.mjs init --run <id> [--repository <path>] [--planning-mode brief|full] [--map <configuration.json>]
   node progress.mjs list-steps
+  node progress.mjs path --run <id>
+  node progress.mjs migrate --run <id>
   node progress.mjs update --run <id> [flags] [--slice <id[,id...]>|--new-slice <id> [flags]]... [--map <configuration.json>]
   node progress.mjs render --run <id> [--output <html-file>]
   node progress.mjs serve --run <id> [--port <port 3100-3199>]
@@ -173,9 +176,54 @@ function requireRunId(value) {
   return value
 }
 
-function statePath(runId) {
+// Runs live in the private agent-memory of the Git repository they belong to, shared by its
+// worktrees. `init` picks that repository from `--repository`; the working folder is only the
+// fallback. Outside any repository they stay under the XDG state home.
+function repositoryRunsOf(directory) {
+  try {
+    const gitCommonDirectory = execFileSync("git", ["rev-parse", "--path-format=absolute", "--git-common-dir"], {
+      cwd: directory, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"],
+    }).trim()
+    return join(gitCommonDirectory, "agent-memory", "workflow-runs")
+  } catch {
+    return null
+  }
+}
+
+function legacyRunDirectory(runId) {
   const stateHome = process.env.XDG_STATE_HOME || join(homedir(), ".local", "state")
-  return join(resolve(stateHome), "agentic-workflow", requireRunId(runId), "progress.json")
+  return join(resolve(stateHome), "agentic-workflow", runId)
+}
+
+// `init` leaves this pointer to the run's repository beside the old location, so later commands
+// find the run from any folder.
+function pointerPath(runId) {
+  return join(legacyRunDirectory(runId), "repository")
+}
+
+function pointedRuns(runId) {
+  const path = pointerPath(runId)
+  return existsSync(path) ? repositoryRunsOf(readFileSync(path, "utf8").trim()) : null
+}
+
+// A run is found in the current repository, then in the repository recorded at init, then in the
+// old XDG location. Old runs stay loadable inside a repository but read-only until `migrate`
+// copies them. A run that does not exist yet gets the recorded or current repository.
+function locateRun(runId) {
+  requireRunId(runId)
+  const legacy = legacyRunDirectory(runId)
+  const currentRuns = repositoryRunsOf(process.cwd())
+  const pointed = pointedRuns(runId)
+  for (const runs of [currentRuns, pointed]) {
+    if (runs && existsSync(join(runs, runId, "progress.json"))) return { directory: join(runs, runId), readOnly: false }
+  }
+  if (existsSync(join(legacy, "progress.json"))) return { directory: legacy, readOnly: Boolean(currentRuns) }
+  const runs = pointed ?? currentRuns
+  return { directory: runs ? join(runs, runId) : legacy, readOnly: false }
+}
+
+function statePath(runId) {
+  return join(locateRun(runId).directory, "progress.json")
 }
 
 function currentSlice(state) {
@@ -428,6 +476,10 @@ function atomicWrite(path, contents) {
 
 function saveState(state) {
   validateState(state, state.run.id)
+  const { directory, readOnly } = locateRun(state.run.id)
+  if (readOnly) {
+    throw new Error(`run ${state.run.id} is read-only at ${directory}; copy it into the repository with: migrate --run ${state.run.id}`)
+  }
   // ponytail: one coordinator writes each run; add locking if updates ever become concurrent.
   atomicWrite(statePath(state.run.id), `${JSON.stringify(state, null, 2)}\n`)
 }
@@ -616,14 +668,30 @@ function resolveAttention(state, options, target) {
 function initialize(options) {
   validateOptions(options, new Set(["--run", "--repository", "--planning-mode", "--map"]))
   const runId = requireRunId(one(options, "--run"))
-  const path = statePath(runId)
-  if (existsSync(path)) throw new Error(`run already initialized: ${path}`)
+  const repository = resolve(one(options, "--repository", process.cwd()))
+  const runs = repositoryRunsOf(repository)
+  for (const existing of [statePath(runId), runs && join(runs, runId, "progress.json")]) {
+    if (existing && existsSync(existing)) throw new Error(`run already initialized: ${existing}`)
+  }
   const planningMode = one(options, "--planning-mode", "full")
   if (planningMode !== "brief" && planningMode !== "full") throw new Error("--planning-mode must be brief or full")
   const map = readMapConfiguration(one(options, "--map", defaultMapPath))
-  const state = makeState(runId, one(options, "--repository", process.cwd()), planningMode, map)
+  const state = makeState(runId, repository, planningMode, map)
+  if (runs) atomicWrite(pointerPath(runId), `${repository}\n`)
   saveState(state)
-  console.log(path)
+  console.log(statePath(runId))
+}
+
+function migrate(options) {
+  validateOptions(options, new Set(["--run"]))
+  const runId = requireRunId(one(options, "--run"))
+  const { directory, readOnly } = locateRun(runId)
+  if (!readOnly) throw new Error(`run ${runId} has no old-location copy to migrate`)
+  const target = join(repositoryRunsOf(process.cwd()), runId)
+  mkdirSync(target, { recursive: true, mode: 0o700 })
+  cpSync(directory, target, { recursive: true })
+  console.log(join(target, "progress.json"))
+  console.error(`copied from ${directory}; the old copy stays until you delete it`)
 }
 
 function readMapInfo(path, configuration) {
@@ -1088,7 +1156,11 @@ function main() {
   else if (command === "list-steps") {
     validateOptions(options, new Set())
     listSteps()
-  } else if (command === "render") render(options)
+  } else if (command === "path") {
+    validateOptions(options, new Set(["--run"]))
+    console.log(statePath(one(options, "--run")))
+  } else if (command === "migrate") migrate(options)
+  else if (command === "render") render(options)
   else if (command === "serve") serve(options)
   else if (command === "rebuild-map") {
     validateOptions(options, new Set(["--map", "--drawio"]))

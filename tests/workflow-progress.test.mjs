@@ -19,7 +19,8 @@ function createRun(t, runId, selectedMap = undefined) {
   const stateHome = mkdtempSync(join(tmpdir(), "workflow-progress-test-"))
   t.after(() => rmSync(stateHome, { recursive: true, force: true }))
   const env = { ...process.env, XDG_STATE_HOME: stateHome }
-  const runCli = (args) => spawnSync(process.execPath, [cli, ...args], { cwd: root, env, encoding: "utf8" })
+  // The temporary folder is not a Git repository, so runs stay under the XDG state home.
+  const runCli = (args) => spawnSync(process.execPath, [cli, ...args], { cwd: stateHome, env, encoding: "utf8" })
   const initialized = runCli([
     "init", "--run", runId, "--repository", "sample-repo", "--planning-mode", "brief",
     ...(selectedMap ? ["--map", selectedMap] : []),
@@ -27,7 +28,7 @@ function createRun(t, runId, selectedMap = undefined) {
   strictEqual(initialized.status, 0, initialized.stderr)
   const path = join(stateHome, "agentic-workflow", runId, "progress.json")
   const readState = () => JSON.parse(readFileSync(path, "utf8"))
-  return { env, path, readState, runCli }
+  return { cwd: stateHome, env, path, readState, runCli }
 }
 
 test("native map manifest anchors refer to unique source cell IDs", () => {
@@ -116,7 +117,7 @@ test("served progress refreshes retain the native map frame and export an unchan
   strictEqual(result.status, 0, result.stderr)
 
   const server = spawn(process.execPath, [cli, "serve", "--run", "diagram-refresh"], {
-    cwd: root, env: run.env, stdio: ["ignore", "pipe", "pipe"],
+    cwd: run.cwd, env: run.env, stdio: ["ignore", "pipe", "pipe"],
   })
   t.after(async () => {
     if (server.exitCode !== null) return
@@ -559,4 +560,65 @@ test("update adopts a map for an existing run and rejects incompatible overrides
   notStrictEqual(result.status, 0)
   match(result.stderr, /saved map overrides are incompatible.*c46/s)
   strictEqual(readFileSync(run.path, "utf8"), beforeInvalidUpdate)
+})
+
+test("runs in a Git repository live in its agent-memory; old-location runs stay read-only until migrated", (t) => {
+  const directory = mkdtempSync(join(tmpdir(), "workflow-progress-repo-"))
+  t.after(() => rmSync(directory, { recursive: true, force: true }))
+  const stateHome = join(directory, "state")
+  const repository = join(directory, "repo")
+  mkdirSync(repository)
+  strictEqual(spawnSync("git", ["init", "-q"], { cwd: repository }).status, 0)
+  const env = { ...process.env, XDG_STATE_HOME: stateHome }
+  const runCli = (cwd, args) => spawnSync(process.execPath, [cli, ...args], { cwd, env, encoding: "utf8" })
+
+  let result = runCli(repository, ["init", "--run", "fresh"])
+  strictEqual(result.status, 0, result.stderr)
+  const fresh = join(repository, ".git/agent-memory/workflow-runs/fresh/progress.json")
+  strictEqual(existsSync(fresh), true)
+  strictEqual(existsSync(join(stateHome, "agentic-workflow/fresh/progress.json")), false)
+
+  // An old run: initialized outside a repository, so it lands under the XDG state home.
+  result = runCli(directory, ["init", "--run", "old"])
+  strictEqual(result.status, 0, result.stderr)
+  const old = join(stateHome, "agentic-workflow/old/progress.json")
+  const before = readFileSync(old, "utf8")
+  result = runCli(repository, ["update", "--run", "old", "--new-slice", "slice-1"])
+  notStrictEqual(result.status, 0)
+  match(result.stderr, /read-only.*migrate --run old/s)
+  strictEqual(readFileSync(old, "utf8"), before)
+  result = runCli(repository, ["render", "--run", "old"])
+  strictEqual(result.status, 0, result.stderr)
+
+  result = runCli(repository, ["migrate", "--run", "old"])
+  strictEqual(result.status, 0, result.stderr)
+  const migrated = join(repository, ".git/agent-memory/workflow-runs/old/progress.json")
+  strictEqual(result.stdout.trim(), migrated)
+  result = runCli(repository, ["update", "--run", "old", "--new-slice", "slice-1"])
+  strictEqual(result.status, 0, result.stderr)
+  strictEqual(readFileSync(old, "utf8"), before)
+})
+
+test("a run follows the repository given to init, from any folder", (t) => {
+  const directory = mkdtempSync(join(tmpdir(), "workflow-progress-follow-"))
+  t.after(() => rmSync(directory, { recursive: true, force: true }))
+  const repository = join(directory, "repo")
+  mkdirSync(repository)
+  strictEqual(spawnSync("git", ["init", "-q"], { cwd: repository }).status, 0)
+  const env = { ...process.env, XDG_STATE_HOME: join(directory, "state") }
+  const runCli = (cwd, args) => spawnSync(process.execPath, [cli, ...args], { cwd, env, encoding: "utf8" })
+
+  // Started outside Git, the run still lands in the named repository and updates from inside it.
+  let result = runCli(directory, ["init", "--run", "named", "--repository", repository])
+  strictEqual(result.status, 0, result.stderr)
+  const named = join(repository, ".git/agent-memory/workflow-runs/named/progress.json")
+  strictEqual(result.stdout.trim(), named)
+  result = runCli(repository, ["update", "--run", "named", "--new-slice", "slice-1"])
+  strictEqual(result.status, 0, result.stderr)
+
+  // Started inside Git, the run is found and updated from a folder outside it.
+  result = runCli(repository, ["init", "--run", "inside"])
+  strictEqual(result.status, 0, result.stderr)
+  result = runCli(directory, ["update", "--run", "inside", "--new-slice", "slice-1"])
+  strictEqual(result.status, 0, result.stderr)
 })

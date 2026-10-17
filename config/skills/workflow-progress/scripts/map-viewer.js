@@ -691,6 +691,10 @@
     let tokenSignature = ""
     let tokenOverlays = []
     let lastActiveAnchors = []
+    // A frame below the fold gets no animation frames, so a camera move started there stalls.
+    // The embedded map frames its anchors once enough of it is on screen.
+    let onScreen = !embedded
+    let pendingReveal = null
     const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)") ?? null
 
     function cellBounds(id) {
@@ -816,8 +820,10 @@
       removeTokens()
       if (anchors.length) {
         window.Archify.focus.setMany(anchors, { toggle: false, updateUrl: false, hideChip: true })
-        window.Archify.view.reveal(anchors, { includeNeighbors: false, maxScale: 3, reason: "focus" })
+        if (onScreen) window.Archify.view.reveal(anchors, { includeNeighbors: false, maxScale: 3, reason: "focus" })
+        else pendingReveal = anchors
       } else {
+        pendingReveal = null
         window.Archify.focus.clear({ updateUrl: false, preserveView: true })
       }
       syncFocusBoxes()
@@ -886,6 +892,17 @@
     window.addEventListener("pageshow", observeFocusBoxes)
     window.addEventListener("beforeunload", teardown, { once: true })
     observeFocusBoxes()
+    if (embedded) {
+      new IntersectionObserver(([entry]) => {
+        onScreen = entry.intersectionRatio >= 0.6
+        if (onScreen && pendingReveal) {
+          const anchors = pendingReveal
+          pendingReveal = null
+          // The viewer's own first sync runs on the first frame on screen; frame after it.
+          requestAnimationFrame(() => window.Archify.view.reveal(anchors, { includeNeighbors: false, maxScale: 3, reason: "focus" }))
+        }
+      }, { threshold: [0.6] }).observe(document.querySelector(".diagram-container"))
+    }
     window.setInterval(() => inventory.compatible && syncTokens(lastActiveAnchors), 2000)
     if (embedded) send({ type: "workflow-map-ready" })
   }

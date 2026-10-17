@@ -77,14 +77,31 @@ anchors between steps are allowed. `nodes` metadata uses native categories `fron
 `description`, `context`, and `tag` text. Descriptions, context, and tags are plain text, up to
 500 characters. Native selectability and one-hop relationships come from `nodes` keys and
 every step anchor. Register meaningful extra cells, including real artifact and reviewer
-chips; headings, notes, legends, enclosures, and ellipsis placeholders stay static.
+chips; headings, notes, enclosures, and ellipsis placeholders stay static.
+
+The viewer colors a node by its `kind`, so the shipped map gives each source-legend color
+family one `kind` and registers the legend chips (`c9` to `c17`) with that same `kind`, which
+explains every color:
+
+| Legend role (dashed variant shares the color) | `kind` | Viewer color |
+| --- | --- | --- |
+| Super-agent, Sub orchestrator | `frontend` | cyan |
+| Agent worker | `database` | violet |
+| Intermediate artifact, Optional mid-artifact | `cloud` | amber |
+| Main flow output | `backend` | green |
+| Human decision | `messagebus` | orange |
+| Decision (human and agent) | `security` | rose |
+| Incoming work (no legend chip) | `external` | slate |
+
+Keep a new node's `kind` in step with the fill color of its draw.io cell.
 
 `focusBoxes` maps a non-selectable enclosing cell ID to its real selectable members. Use it
 when the draw.io cells are flat siblings and model parentage cannot identify the box contents.
 The viewer applies native focus emphasis once to the outer configured box in a nested chain; it
 keeps separate and partially overlapping boxes emphasized. It never registers boxes as nodes.
 Automatic progress focus excludes unselected connector neighbors from its frame, so long return
-arrows do not pull the camera away from the active steps. Automatic progress focus hides Semantic
+arrows do not pull the camera away from the active steps. The embedded frame waits until most of it is on screen before it frames the active nodes,
+because a frame below the fold gets no animation frames. Automatic progress focus hides Semantic
 Passport. Clicking or keyboard-activating the focused node or label opens the native details
 panel. Unchanged progress polls preserve manual map exploration, and clearing focus removes box
 emphasis. Use the demo replay to inspect lower review, cleanup, presentation, conflict, and CI
@@ -129,7 +146,7 @@ runs do not inherit another run's metadata. Legacy runs without map fields use t
 default map.
 
 `render` creates `progress.html` and a sibling `workflow-map.html`. `serve` exposes the map
-through the same loopback server and keeps its native frame loaded while progress refreshes.
+through the same server and keeps its native frame loaded while progress refreshes.
 The host opens the map in the native presentation viewport. Both viewers start with the native
 dark theme; the theme control remains available. The frame is sandboxed and isolated from the
 host page. Native selection, arrows, Passport, and Route Probe
