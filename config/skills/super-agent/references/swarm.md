@@ -58,7 +58,7 @@ condition:
 
 ```text
 Class: D
-Depth: 1
+Depth: <parent depth + 1; 1 for a root child>
 Delegation: forbidden | allowed (max depth N, total N, active N)
 Goal: observable outcome
 Scope: owned files or question

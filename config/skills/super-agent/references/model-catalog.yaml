@@ -1,4 +1,4 @@
-max_local_concurrency: 0 
+max_local_concurrency: 0
 local_models: not-available
 
 # =======================================================================
@@ -27,7 +27,6 @@ claude:
     thinking: xhigh
 
 pi:
-  available: not-available
   low:
     model: opencode-go/deepseek-v4.1-flash
     thinking: high
@@ -43,12 +42,12 @@ pi:
     thinking: max
   local:
     medium:
-      model: local-llama/Qwen3.8-27B-GSQ-RCO-IQ2_S
+      model: local-llama/Qwen3.8-27B-GSQ-RCO-IQ2_S.gguf
       thinking: medium
     low:
       model:
         - bonsai-local/Ternary-Bonsai-2-27B-PQ2_0.gguf
-        - local-llama/Qwen3.8-27B-GSQ-RCO-IQ2_XS
+        - local-llama/Qwen3.8-27B-GSQ-RCO-IQ2_XS.gguf
       thinking: medium
 
 agy:
@@ -60,7 +59,7 @@ agy:
     thinking: medium
   high:
     model: gemini-3.8-flash-high
-    thinking: xhigh
+    thinking: high
 
 # =======================================================================
 #                               ROLES
@@ -88,26 +87,59 @@ adversarial:
     model: claude-fable-5-1
     thinking: high
 
+# reviewer-fast and swarms (further below) run on the harness of the agent doing the launch,
+# using that harness's by_harness entry, or its `low` tier above when that model is unavailable.
 reviewer-fast:
-  harness: pi
-  model:
-    - opencode-go/deepseek-v4.1-flash
-    - opencode-go/glm-5.3-flash
-  thinking: max
+  harness: current
+  by_harness:
+    claude:
+      model: claude-haiku-5-5
+      thinking: max
+    codex:
+      model: gpt-6-luna
+      thinking: max
+    agy:
+      model: gemini-3.8-flash-high
+      thinking: high
+    pi:
+      model:
+        - opencode-go/deepseek-v4.1-flash
+        - opencode-go/glm-5.3-flash
+      thinking: max
 
 reviewer-high:
   - harness: codex
     model: gpt-6.1-sol
     thinking: xhigh
   - harness: claude
-    model:
-      - claude-opus-5-5
-      - claude-fable-5-1
+    model: claude-opus-5-5
     thinking: high
 
 swarms:
-  harness: pi
-  model:
-    - opencode-go/deepseek-v4.1-flash
-    - opencode-go/glm-5.3-flash
-  thinking: max
+  harness: current
+  by_harness:
+    claude:
+      model: claude-haiku-5-5
+      thinking: max
+    codex:
+      model: gpt-6-luna
+      thinking: max
+    agy:
+      model: gemini-3.8-flash-high
+      thinking: high
+    pi:
+      model:
+        - opencode-go/deepseek-v4.1-flash
+        - opencode-go/glm-5.3-flash
+      thinking: max
+
+
+git-worker:
+  pi: 
+    when: 'when the repo is mid-short size'
+    model: opencode-go/deepseek-v4.1-flash
+    thinking: max
+  claude: 
+    when: 'when the repo is very big sized'
+    model: claude-sonnet-5-5
+    thinking: high

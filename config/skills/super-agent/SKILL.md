@@ -35,8 +35,13 @@ Resolve the environment's own lifecycle before choosing anything else:
   reimplement, or guess those operations.
 - When a managed runtime is identified without an installed guide, use its documented help
   or discovery path.
-- For Orca, load the version-matched adapter guide in
-  `config/skills/orchestration/references/orca.md` before lifecycle commands.
+- For Orca, load the version-matched adapter guide in the `orchestration` skill's
+  `references/orca.md` before lifecycle commands.
+- The environment's guides, hooks, lifecycle, and files come first and this skill adds
+  routing on top. Where an environment guide documents a limit or a different way to do
+  something, the guide wins and this skill reports the gap. Catalog pins are the user's
+  standing model choice, so pass them through the options the guide documents. Never edit,
+  regenerate, or work around files, hooks, or settings the environment owns.
 - Otherwise use the current harness's native subagent tooling.
 - Cross to another harness only through an explicitly requested documented one-shot adapter.
 
@@ -79,6 +84,13 @@ automatic launch. A stage maps to exactly one role:
 | Direct review, verifier, or live validator | `reviewer-fast` |
 | Supporting read-only investigation, review-swarm or cleanup-swarm specialist | `swarms` |
 
+`reviewer-fast` and `swarms` follow the current harness instead of naming one. The current
+harness is the harness of the agent doing the launch (a delegate's own harness, not the
+root's or the wrapper's default), read from runtime evidence. The role's `by_harness` entry
+for it gives the model and thinking. When that model is unavailable, use the same harness's
+`low` tier with that tier's model and thinking. A current harness with no `by_harness`
+entry is a blocker.
+
 A cleanup or review worker uses `sub_orchestrator` only while it coordinates assigned
 workers under a matching nesting grant; its own work keeps the role above.
 
@@ -107,8 +119,9 @@ defaults, and any role-file model or effort metadata. An explicit current-user h
 model, or thinking override wins over the role entry.
 
 The `low`, `medium`, `high`, and `local` tier records are only for a launch the user or
-approved plan explicitly routed by tier or harness. Ordered candidates are fallback order,
-never random distribution, and an exhausted role candidate list is a blocker with no
+approved plan explicitly routed by tier or harness, plus the `low` fallback of
+`reviewer-fast` and `swarms` above. Ordered candidates are fallback order, never random
+distribution, and for every other role an exhausted candidate list is a blocker with no
 automatic escape to a tier or harness default. Unavailability or capability filtering may
 drop a candidate but never silently changes the role harness or thinking.
 
@@ -127,7 +140,8 @@ Catalog rules:
 - When the user explicitly routes by tier, prefer the cheapest adequate tier and an
   adequate local route first. `max_local_concurrency` is shared across the whole tree.
   Count a cataloged local orchestrator against it, and serialize or take an adequate
-  online route while the slot is occupied.
+  online route while the slot is occupied. A value of `0`, or `local_models:
+  not-available`, means skip local routes and take an online route.
 - Try only compatible remaining entries in list order from the role entry when the
   preferred candidate is unavailable.
 - Never let a wrapper or harness choose an uncataloged default model; report the blocker

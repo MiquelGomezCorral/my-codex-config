@@ -17,7 +17,10 @@ launching a worker.
 - A wrapper's agent selector names the harness, not a worker role.
 - Read the stage's catalog role entry, then carry its catalog role, harness, exact model,
   and thinking in the worker packet, together with the task's native agent role and
-  permissions.
+  permissions. For `reviewer-fast` and `swarms`, the harness is the current harness (the
+  harness of the agent doing the launch) and the model and thinking come from the role's
+  `by_harness` entry, or from that harness's `low` tier when the entry's model is
+  unavailable.
 - The parent pins the resolved harness, model, and thinking in the launch before invoking
   any worker prompt.
 - Role settings win over generic tiers, invoking-skill or wrapper model preferences,
@@ -77,14 +80,14 @@ user-selected Claude one-shot route are:
 ```text
 ["codex", "exec", "-c", "model_reasoning_effort=<catalog_thinking>", "--model", catalog_model, prompt]
 ["pi", "--model", catalog_model, "--thinking", catalog_thinking, "--print", "--", prompt]
-["agy", "--model", catalog_model, "--effort", catalog_thinking, "--print", prompt]
-["opencode", "run", "--model", catalog_model, prompt]
+["agy", "--model", catalog_model, "--effort", catalog_thinking, "--print", "--dangerously-skip-permissions", prompt]
+["opencode", "run", "--model", catalog_model, "--variant", catalog_thinking, prompt]
 ["claude", "--model", catalog_model, "--effort", catalog_thinking, "--print", "--dangerously-skip-permissions", "--no-session-persistence", prompt]
 ```
 
-Pi, Codex, AGY, and Claude accept the verified thinking option shown. OpenCode exposes
-no verified thinking or effort option; when the role names one for that route, report the
-unsupported pinning instead of inventing a flag.
+Pi, Codex, AGY, Claude, and OpenCode (`--variant`, its provider-specific reasoning
+effort) accept the thinking option shown. A model that rejects the value is an unavailable
+pin: report it instead of inventing a flag. For an AGY model alias that already encodes its thinking level, pass the catalog's matching value.
 
 Pass `prompt` and `catalog_model` as separate arguments. Never concatenate catalog values into shell code;
 never invoke `eval` or execute a catalog field as a command. These adapters do not own a
