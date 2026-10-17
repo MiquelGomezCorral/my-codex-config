@@ -70,8 +70,12 @@ slices with inspectable verification and explicit human authority across project
 - Approved plans persist implementation decisions and attached approved amendments.
   Decision records preserve lasting project product or architecture intent, not ordinary
   sequencing, temporary implementation choices, or progress.
-- Runtime progress stays in local XDG state associated with the wrapper run. Actual
-  worker, Git, and hosting-service state remains authoritative for reconciliation.
+- Runtime progress lives in the repository's private `agent-memory/` in the Git common
+  directory, beside the rest of the agent's work; outside a Git repository it uses local XDG
+  state. Runs started under the old XDG location stay readable. Actual worker, Git, and
+  hosting-service state remains authoritative for reconciliation.
+- Plan-specific editable diagrams, SVG previews, mockups and live-test samples live in
+  `agent-memory/artifacts/<name>/`, which the artifacts skill owns; the plan links to them.
 - A script-maintained progress record generates the local HTML status page. Routine
   workflow runs use it instead of the retained legacy Markdown template. The root updates
   it at dispatches, waits, results, corrections, gates, and resume. Updates preserve
@@ -114,7 +118,8 @@ slices with inspectable verification and explicit human authority across project
   bindings and native-supported run metadata into viewer inputs and calls. Manual graph
   exploration is transient and cannot change workflow progress or approval. Shared diagram
   layout and bindings remain separate from local run content; native viewer defaults own
-  graph interaction and styling.
+  graph interaction and styling. Every viewer colour maps to a role in the diagram's own
+  legend, and the legend is registered so the colours stay explained.
 
 ## Protected invariants
 
@@ -190,6 +195,9 @@ diagram comprehension remains Review-only.
 
 ## History
 
+- 2026-10-16: Moved run state into private `agent-memory/` and plan diagrams and samples into
+  `agent-memory/artifacts/<name>/`, so durable agent work has one home and the artifacts skill
+  stays the central owner; the map viewer's colours now follow the diagram legend.
 - 2026-10-11: Gate pages are published through the artifacts page hub; the Lavish viewer was removed.
 - 2026-10-10: Required a page at each human gate, with changes since the last version shown and live evidence at the result gate.
 - 2026-10-10: Made grill-me + investigation, live-validation, and slice-gate questions mandatory planning steps.

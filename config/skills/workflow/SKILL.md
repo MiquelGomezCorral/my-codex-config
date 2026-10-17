@@ -18,7 +18,7 @@ worker lifecycle.
 The human-facing coordinator alone loads `agents-memory` and writes to the private plan
 and memory directory. Workers receive the exact approved plan and relevant context, not
 access to other private notes; they report memory candidates and produced artifacts to
-the coordinator, which stores accepted artifacts beside the private plan.
+the coordinator, which stores accepted artifacts in the artifacts skill's `agent-memory/artifacts/<name>/` folder.
 
 Present every artifact the human must review as a descriptive clickable link in the
 same message, including plans, diagrams, mockups, reports, and validation evidence.
@@ -49,7 +49,7 @@ Workflow context: approved
 Plan path: <absolute private plan path, or an existing approved plan path>
 Slice: <slice id or name>
 Stage: <current stage>
-Progress path: <XDG state path outside the repository>
+Progress path: <path printed by workflow-progress `path --run <id>`>
 Scope: <approved paths and behavior>
 Exclusions: <explicit boundaries>
 Coding size: <small|large, as recorded in the approved plan>
@@ -208,7 +208,7 @@ out-of-scope observations without putting them in correction briefs. Required un
 evidence is blocked/unverified, never an invented defect or approval. Deeper review presets
 do not enable OCR or Slopo; those remain explicit opt-ins.
 
-Keep script-maintained JSON run state and its generated HTML under `${XDG_STATE_HOME:-$HOME/.local/state}`.
+Keep script-maintained JSON run state and its generated HTML where [workflow-progress](../workflow-progress/SKILL.md) puts them, under the repository's `agent-memory/workflow-runs/`.
 Reconcile them against the selected lifecycle, Git, and hosting-service state; they are not proof of completion.
 Do not store raw logs, handles, credentials, or sessions there. Preserve checkpoints and
 unrelated changes during recovery. No implicit reset, rebase, squash, amendment, force-push,

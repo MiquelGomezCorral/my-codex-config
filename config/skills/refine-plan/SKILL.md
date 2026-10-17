@@ -59,7 +59,7 @@ simple (start the app, smoke, simple mock data) to precise (real data, edge case
 each test these fields:
 
 - `Flow`: the steps a real user or caller takes.
-- `Samples`: the files and data it needs, prepared during planning and saved beside the plan.
+- `Samples`: the files and data it needs, prepared during planning and saved in the plan's `agent-memory/artifacts/<name>/` folder (see the [artifacts skill](../artifacts/SKILL.md#page-hub)).
 - `Where`: the environment it runs in.
 - `Can run`: who runs it (the agent with the current tool and commands, the user only, or
   both).
@@ -105,5 +105,6 @@ Omit this section for standalone plans.
 Files, behavior, cleanup, and follow-up work the executor must not perform.
 
 Do not modify files. End by stating that the plan is finalized in chat and ready for
-`$code`; do not request another verification pass. The finalized plan remains in the
-conversation until `$code` persists it for execution.
+`$code`; do not request another verification pass. In a standalone use the finalized plan
+remains in the conversation until `$code` persists it for execution. In a complete workflow
+the coordinator persists it and returns to the wave-approval gate before any coding.

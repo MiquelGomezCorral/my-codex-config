@@ -1,8 +1,8 @@
 # Workflow progress
 
-Keep this file under `${XDG_STATE_HOME:-$HOME/.local/state}/agentic-workflow/<run-id>/`,
-associated with the repository and active wrapper run. Use a unique local run identifier
-when no wrapper exists. Keep it out of the repository. It is a reconciliation aid,
+Keep this file in the run's folder under the repository's `agent-memory/workflow-runs/<run-id>/`,
+associated with the active wrapper run. Use a unique local run identifier
+when no wrapper exists. Keep it out of the tracked tree. It is a reconciliation aid,
 not proof of approval or completion.
 
 ## Run

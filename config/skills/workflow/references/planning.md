@@ -209,8 +209,10 @@ files beside its input), so do not shorten it. This plan page is the gate 2 page
 LAN URL `hub.py publish` prints as a descriptive Markdown link; never start a server of your
 own. If rendering or publishing fails, report it as a blocker and link the local page file
 meanwhile. Keep the Markdown file authoritative.
-Keep plan-specific editable diagrams/SVG previews beside the private plan; the copies in the
-page folder are disposable, and Delete on the hub removes them. No plan artifact enters Git.
+Keep plan-specific editable diagrams, SVG previews, and live-test samples in the
+`agent-memory/artifacts/<name>/` folder that the [artifacts skill](../../artifacts/SKILL.md#page-hub)
+hands out with `hub.py dir`, not beside the plan. Delete on the hub removes that folder. No
+plan artifact enters Git.
 Only make diagrams that clarify a real decision or flow. Follow `diagrams.md` for the
 brief, presentation, artifact, and validation contract. The deterministic renderer never delegates.
 A useful custom diagram may use `super-agent`: resolve the catalog `coder` role for an

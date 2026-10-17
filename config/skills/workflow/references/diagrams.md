@@ -49,7 +49,8 @@ HTML is the default preview. Use SVG when requested or easier to embed, and keep
 source supplied by the tool. An `excalidraw-draw` drawing previews as its rendered PNG. Do not promise an Excalidraw export of a `diagram-design`
 drawing. Attach accepted artifacts through the existing `title`, `caption`, `path`,
 `sourcePath`, and `placement` fields. Keep the takeaway and review question in the caption,
-and link the artifact beside the plan.
+and link the artifact in its `agent-memory/artifacts/<name>/` folder (see the
+[artifacts skill](../../artifacts/SKILL.md#page-hub)).
 
 When `diagram-design` and the `excalidraw` skill templates cannot express the drawing, or
 it goes beyond diagrams (wireframes, slides, illustrations, maps), use
