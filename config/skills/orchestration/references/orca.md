@@ -1,15 +1,17 @@
 # Orca adapter
 
-Under Orca, role selection precedes lifecycle mechanics: `super-agent` resolves the
-stage's catalog role entry and pins its harness, exact model, and thinking before this
-adapter runs any launch command. Review modes and presets choose the review shape only;
-they never set a harness, model, or thinking default. Explicit user or approved-plan
-routes take precedence, and the adversarial stage follows `super-agent`'s family
-preference for the `adversarial` role.
+Orca's own guide, hooks, and lifecycle come first. Resolve one executable for the active
+session, then load its version-matched guide before using Orca commands. The guide owns
+exact arguments and lifecycle behavior and wins wherever it differs from this adapter;
+this adapter does not copy a lifecycle engine and never edits, regenerates, or works
+around files, hooks, or skill stubs Orca owns.
 
-Resolve one executable for the active session, then load its version-matched guide before
-using Orca commands. The guide owns exact arguments and lifecycle behavior; this adapter
-does not copy a lifecycle engine.
+Under Orca, role selection precedes lifecycle mechanics: `super-agent` resolves the stage's catalog
+role entry and supplies its harness, exact model, and thinking for the launch commands the
+guide documents, before this adapter runs any of them. Review
+modes and presets choose the review shape only; they never set a harness, model, or
+thinking default. Explicit user or approved-plan routes take precedence, and the
+adversarial stage follows `super-agent`'s family preference for the `adversarial` role.
 
 ## Executable and guide
 
@@ -26,7 +28,9 @@ cancellation, completion, and release. Resolve run and task identity from Orca s
 invent IDs or replay work into an unknown terminal. A dispatched task reports completion
 through its documented `worker_done` route with both task and dispatch identity.
 
-Orca Pi launch recipe when the wrapper cannot express Pi's model pin:
+Orca Pi launch recipe when the wrapper cannot express Pi's model pin. `--command` is typed
+into the host shell, so this is the one path where catalog values reach a shell string:
+substitute only values copied exactly from the catalog, never user text.
 
 ```text
 orca terminal create --worktree active --title <worker> --command "pi --model <catalog_model> --thinking <catalog_thinking>" --json
