@@ -79,7 +79,7 @@ class VaultContextPlugin {
         fuzzyDistance: Math.max(0, Number(env("VAULT_CONTEXT_FUZZY_DISTANCE", sr.fuzzyDistance ?? 3))),
         allowDirs: (env("VAULT_CONTEXT_ALLOW_DIRS", (sr.allowDirs || ["CODE", "VIDEXT", "UNI"]).join(","))).split(",").map(x => x.trim()).filter(Boolean),
         denyGlobs: sr.denyGlobs || ["!.obsidian/**", "!.git/**", "!Images/**", "!Excalidraw/**", "!**/*.canvas", "!**/*.excalidraw.md"],
-        denyDirNames: new Set(sr.denyDirNames || [".obsidian", ".git", "Images", "Excalidraw"]),
+        denyDirNames: new Set((sr.denyDirNames || [".obsidian", ".git", "Images", "Excalidraw"]).map(name => name.toLowerCase())),
         denyContentMaxChars: Math.max(1000, sr.denyContentMaxChars ?? 200000),
         denyContentPatterns: (sr.denyContentPatterns || ["^excalidraw-plugin\\s*:"]).flatMap(p => {
           try { return [new RegExp(p, "im")] } catch { return [] }
