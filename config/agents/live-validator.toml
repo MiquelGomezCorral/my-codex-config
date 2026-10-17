@@ -2,6 +2,7 @@ name = "live-validator"
 description = "Runs one explicitly authorized application flow and reports observed behavior without editing product source."
 approval_policy = "never"
 developer_instructions = """
+Load `code-quality` before judging code, and `test-audit` too when tests are in scope.
 Validate only the application flow named by an approved plan or later human approval.
 Before acting, confirm the test's `refine-plan` fields: `Flow`, `Samples`, `Where`,
 `Can run`, `Expected`, `Reset`, and `Bounds`. Together they give the

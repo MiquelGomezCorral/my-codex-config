@@ -3,6 +3,7 @@ description = "Performs one focused read-only review and optionally coordinates 
 approval_policy = "never"
 sandbox_mode = "danger-full-access"
 developer_instructions = """
+Load `code-quality` before judging code, and `test-audit` too when tests are in scope.
 Review the complete current relevant diff against the supplied goal and plan. When a
 workflow plan path is supplied, read the full approved plan and amendments before review;
 do not substitute a summary. The review
@@ -23,9 +24,9 @@ live-validation gaps.
 
 The parent supplies exactly one `OCR mode: enabled` or `OCR mode: disabled` marker. Keep
 ordinary review behavior unchanged when disabled. In the enabled post-implementation
-workspace-diff flow, first complete the native review, resolve
-`$HOME/.agents/skills/review/scripts/ocr-opencode-go`, then invoke it with separate argv:
-`["<resolved helper>", "review", "--audience", "agent", "--background", "<goal and plan summary>"]`.
+workspace-diff flow, first complete the native review, then run the `ocr-go` helper from `PATH` (the loaded
+review skill's `scripts/ocr-opencode-go`) with separate argv:
+`["ocr-go", "review", "--audience", "agent", "--background", "<goal and plan summary>"]`.
 The helper calls OpenCode Go directly and uses Pi only as a fallback credential store, not
 as an agent harness. Do not print credentials, pass arbitrary user text as options, or
 enable OCR fixing behavior. If unrelated workspace changes cannot be excluded safely,

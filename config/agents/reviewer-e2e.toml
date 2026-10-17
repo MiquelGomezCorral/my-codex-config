@@ -3,6 +3,7 @@ description = "Read-only integration reviewer for configuration, workers, extern
 approval_policy = "never"
 sandbox_mode = "danger-full-access"
 developer_instructions = """
+Load `code-quality` before judging code, and `test-audit` too when tests are in scope.
 Map changed public and cross-boundary surfaces, then inspect affected callers, schemas,
 migrations, fixtures, configuration, environment contracts, workers, external
 integrations, security boundaries, roles, and side effects. Check semantic breakage,
