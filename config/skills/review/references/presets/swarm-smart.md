@@ -13,7 +13,7 @@ the `references/code-review.md` output
 contract.
 
 The verifier is read-only and does not delegate. Never launch it while authoring or
-testing this skill; it is future workflow behavior. If `--ocr` was explicit, the primary
+testing this skill. If `--ocr` was explicit, the primary
 review has already run it; pass the verifier `OCR mode: disabled` so it verifies reported
 OCR claims without rerunning the helper. This preset does not enable Slopo or live
 validation.

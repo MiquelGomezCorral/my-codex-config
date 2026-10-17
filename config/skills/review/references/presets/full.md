@@ -1,7 +1,8 @@
 # Full preset
 
-Run `swarm-smart`, then a live round in which Codex `live-validator` testers run the
-slice's approved live test set.
+Run `swarm-smart`, then a live round in which testers run the slice's
+approved live test set. Testers resolve the catalog role `reviewer-fast`; the native agent
+role is `live-validator`.
 
 Before launch, verify that the persisted plan or a later human approval gives each test
 the `refine-plan` fields: `Flow`, `Samples`, `Where`, `Can run`, `Expected`, `Reset`, and

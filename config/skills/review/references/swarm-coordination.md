@@ -9,7 +9,9 @@ selected review coordinator owns synthesis; in Codex this is `review-worker`.
 The goal is the supplied review goal and persisted plan, if one exists. In approved workflow
 context, every reviewer reads the complete plan and amendments; a summary is insufficient.
 Review the complete
-current working-tree change, including staged, unstaged, and untracked files. Specialists
+current working-tree change, including staged, unstaged, and untracked files. In approved
+workflow context, also review everything from the recorded slice base through the current
+head, so committed checkpoint changes are not missed. Specialists
 may inspect surrounding code as evidence but may report findings only against the reviewed
 change. The entire workflow is read-only: no edits, fixes, coder or fixer calls, accepted
 findings, commits, pushes, or publication. Only the coordinator launches the selected
@@ -65,7 +67,9 @@ Give every selected specialist the same packet, changing only its lens:
 ```text
 Goal: the observable review outcome
 Scope: the complete current diff and these changed files: <list>
-Diff basis: staged, unstaged, and untracked changes in the current worktree
+Diff basis: slice base..head plus task-owned worktree changes in workflow context; otherwise staged, unstaged, and untracked changes in the current worktree
+Base/head: the recorded slice base revision and inspected head (workflow context only)
+Task-owned paths: the explicit path list to review (workflow context only)
 Context: complete approved plan and amendments when in workflow; otherwise persisted plan path when available
 Workflow context: slice, stage, local progress path, scope, exclusions, and named authorizations
 Decision records: applicable record paths and protected constraints

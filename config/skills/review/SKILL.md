@@ -24,9 +24,9 @@ diff when nothing is staged. Approved workflow review uses the complete slice ba
 
 ## Review modes
 
-- `full`: correctness review plus convention audit.
-- `quick`: convention audit only.
-- `deep`: correctness review only, with all justified specialist coverage.
+The modes are the worker-packet markers `Review mode: direct` and `Review mode: swarm`,
+which [references/orchestration.md](references/orchestration.md) sets. A preset (`flash`,
+`swarm`, `swarm-smart`, `full`) selects a mode and more; `full` names only the preset.
 
 ## Route
 

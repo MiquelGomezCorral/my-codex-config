@@ -1,6 +1,6 @@
 # Type Inference Checks
 
-Flag these anti-patterns during the convention audit. Derived from the **Type Inference (Critical Rule)** in `AGENTS.md`.
+Flag these anti-patterns during the convention audit.
 
 1. **Shuttle types** — A type defined only to annotate a single function's return. If the type has one usage site and that site is a return annotation, flag it. Let TS infer the return instead.
 2. **Explicit return type annotations** — On internal/private functions where TS can infer the type from the implementation. Exported public API boundaries are acceptable.

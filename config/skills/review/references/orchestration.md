@@ -6,7 +6,8 @@ The parent routes the review but never reviews or edits the change itself.
 
 `$review --ocr` is an explicit opt-in for additional OCR evidence. Consume the flag in
 the parent and normalize it to exactly one worker-packet marker, `OCR mode: enabled`;
-ordinary `$review` uses `OCR mode: disabled`. Never forward `--ocr` or arbitrary user
+ordinary `$review` uses `OCR mode: disabled`. The `flash` preset has no OCR runner and
+ignores `--ocr`: send `OCR mode: disabled` and tell the user. Never forward `--ocr` or arbitrary user
 text as an external command option.
 
 Common forms are:
@@ -22,8 +23,8 @@ interpretation is materially more likely. Do not silently rewrite an explicit mo
 When `--preset` is present, load its matching [flash](presets/flash.md),
 [swarm](presets/swarm.md), [swarm-smart](presets/swarm-smart.md),
 or [full](presets/full.md) reference. Ask once if the value is missing,
-unknown, or conflicts with an explicit mode. Without a preset or an explicit review mode,
-use the `full` preset, including for a bare `$review`; outside an approved wave, its live round reports
+unknown, or conflicts with an explicit `direct` or `swarm` mode. Without a preset or an
+explicit mode, use the `full` preset, including for a bare `$review`; outside an approved wave, its live round reports
 blocked/unverified unless bounded authorization exists. With an explicit mode and no preset,
 preserve that mode and its stopping behavior. Then apply the normalized harness intent
 below. Presets never enable OCR or Slopo; `--ocr` remains an independent, explicit choice.
@@ -51,7 +52,6 @@ vendor review instructions into this orchestration guide.
    default harness, model, and thinking from the catalog role; outside Orca, follow the
    current-harness route when the role leaves a slot open.
    Preserve an explicit AGY/Pi roster exactly, without adding or substituting reviewers.
-   Route full-preset live validation through Codex.
 4. Remove tokens consumed as preset, coordinator, swarm, harness, or roster intent. Preserve
    all other text as review context.
 
@@ -105,16 +105,18 @@ If another harness has no named coordinator but exposes a documented general age
 that agent the complete coordinator packet. Do not invent task keys, commands, roles, or
 unsupported model substitutions.
 
-For `flash`, route directly to one `reviewer-quick` through `super-agent`; do not add a
-coordinator. For ordinary direct and swarm review, use the selected harness's configured
+For `flash`, resolve the catalog role `reviewer-fast` through `super-agent` and route
+directly to one reviewer; do not add a coordinator. The harness's native agent role for it
+is `reviewer-quick`. For ordinary direct and swarm review, use the selected harness's configured
 review coordinator through `super-agent`. For `swarm-smart` and `full`, route the primary
 report to the separate fresh verifier specified in the preset reference; the parent routes
 reports and does not review or edit them. For `full`, the parent also starts, resets, and
-stops the app for the live round as its preset reference defines, and routes
-`live-validator` through Codex only after that reference's authorization check.
+stops the app for the live round as its preset reference defines, and routes the testers
+only after that reference's authorization check. Testers resolve the catalog role
+`reviewer-fast`; the harness's native agent role for them is `live-validator`.
 
-- `agent`: `reviewer-quick` for `flash`, otherwise the selected harness's best matching
-  configured review coordinator
+- `agent`: the native role of catalog `reviewer-fast` (`reviewer-quick`) for `flash`,
+  otherwise the selected harness's best matching configured review coordinator
 - `prompt`: the complete relevant diff basis and stated goal, exact mode, swarm-model,
   and OCR markers, harness-routing intent, complete approved plan and amendments when in
   workflow context, remaining context, and permission to delegate only for swarm mode
