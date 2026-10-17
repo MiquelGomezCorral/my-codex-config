@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "codegraph": {
+      "command": "codegraph",
+      "args": ["serve", "--mcp"]
+    },
+    "searxng": {
+      "command": "mcp-searxng",
+      "args": [],
+      "env": {
+        "SEARXNG_URL": "http://localhost:8080"
+      }
+    },
+    "btca": {
+      "command": "btca",
+      "args": ["mcp"]
+    }
+  }
+}

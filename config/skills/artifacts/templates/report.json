@@ -1,0 +1,178 @@
+{
+  "eyebrow": "Audit · 2026-10-06",
+  "title": "Login flow audit",
+  "subtitle": "Four checks against the expected behavior; two need attention.",
+  "statuses": {
+    "ok": {
+      "label": "As expected",
+      "tone": "ok"
+    },
+    "bad": {
+      "label": "Not as expected",
+      "tone": "bad"
+    },
+    "decide": {
+      "label": "Needs decision",
+      "tone": "warn"
+    },
+    "no-evidence": {
+      "label": "No evidence",
+      "tone": "bad"
+    }
+  },
+  "sections": [
+    {
+      "id": "summary",
+      "title": "Summary",
+      "blocks": [
+        {
+          "type": "stats",
+          "auto": true
+        },
+        {
+          "type": "list",
+          "items": [
+            "**Expired sessions loop:** users with an expired cookie bounce between `/login` and `/home`.",
+            "**Error copy is unclear:** the lockout message does not say when to retry."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "findings",
+      "title": "Findings",
+      "intro": "Most important first. Click a row to open it.",
+      "blocks": [
+        {
+          "type": "findings",
+          "items": [
+            {
+              "id": "F1",
+              "title": "Expired session redirect loop",
+              "status": "bad",
+              "fields": [
+                {
+                  "label": "What we did",
+                  "text": "Logged in, waited for the cookie to expire, reloaded `/home`."
+                },
+                {
+                  "label": "Expected",
+                  "text": "One redirect to `/login`."
+                },
+                {
+                  "label": "What happened",
+                  "text": "Five redirects, then the browser stopped the loop."
+                }
+              ],
+              "quotes": [
+                {
+                  "text": "ERR_TOO_MANY_REDIRECTS",
+                  "source": "Chrome, turn 3"
+                }
+              ]
+            },
+            {
+              "id": "F2",
+              "title": "Lockout after five failed attempts",
+              "status": "ok",
+              "fields": [
+                {
+                  "label": "Expected",
+                  "text": "Lock for 15 minutes after five failures."
+                },
+                {
+                  "label": "What happened",
+                  "text": "Locked on the fifth failure."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "figure",
+          "src": "loop.svg",
+          "source": "loop.excalidraw",
+          "caption": "F1: the guard sends an expired session to `/login`, which sends it straight back."
+        }
+      ]
+    },
+    {
+      "id": "evidence",
+      "title": "Live evidence",
+      "intro": "Each live test, what it produced, and the commit or snapshot it ran on. A test with no evidence stays red.",
+      "blocks": [
+        {
+          "type": "findings",
+          "items": [
+            {
+              "id": "L1",
+              "title": "Expired session sends the user to `/login` once",
+              "status": "ok",
+              "fields": [
+                {
+                  "label": "Ran on",
+                  "text": "Commit `a1b2c3d`, or the pre-slice snapshot name when nothing is committed"
+                },
+                {
+                  "label": "Evidence",
+                  "text": "Screenshot and video below, captured with `scripts/capture.mjs`"
+                }
+              ]
+            },
+            {
+              "id": "L2",
+              "title": "Lockout message names the retry time",
+              "status": "no-evidence",
+              "fields": [
+                {
+                  "label": "Ran on",
+                  "text": "Commit `a1b2c3d`"
+                },
+                {
+                  "label": "Evidence",
+                  "text": "None captured"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "figure",
+          "src": "expired-session.png",
+          "caption": "L1: the browser lands on `/login` after one redirect."
+        },
+        {
+          "type": "figure",
+          "src": "expired-session.webm",
+          "caption": "L1: reload `/home` with an expired cookie."
+        }
+      ]
+    },
+    {
+      "id": "next",
+      "title": "Next steps",
+      "blocks": [
+        {
+          "type": "table",
+          "columns": [
+            "Step",
+            "Owner",
+            "Why"
+          ],
+          "rows": [
+            [
+              "Fix the redirect guard",
+              "Backend",
+              "Blocks every user with an old cookie"
+            ],
+            [
+              "Rewrite lockout copy",
+              "Product",
+              "Users retry too early"
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

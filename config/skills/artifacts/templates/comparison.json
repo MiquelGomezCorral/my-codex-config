@@ -1,0 +1,93 @@
+{
+  "eyebrow": "Options",
+  "title": "Where to store session state",
+  "subtitle": "Three approaches compared on the criteria that matter for this change.",
+  "sections": [
+    {
+      "id": "options",
+      "title": "Options",
+      "blocks": [
+        {
+          "type": "compare",
+          "recommended": "Redis",
+          "options": [
+            {
+              "name": "Redis",
+              "summary": "Shared store already used for rate limits.",
+              "pros": [
+                "Already deployed",
+                "Survives app restarts"
+              ],
+              "cons": [
+                "One more dependency on the request path"
+              ]
+            },
+            {
+              "name": "Signed cookie",
+              "summary": "State travels with the browser.",
+              "pros": [
+                "No server storage"
+              ],
+              "cons": [
+                "4 KB limit",
+                "Cannot revoke one session"
+              ]
+            },
+            {
+              "name": "Database table",
+              "summary": "Rows in the main Postgres.",
+              "pros": [
+                "Easy to inspect"
+              ],
+              "cons": [
+                "Adds a write per request"
+              ]
+            }
+          ],
+          "criteria": [
+            {
+              "name": "Revoke one session",
+              "values": [
+                "Yes",
+                "No",
+                "Yes"
+              ]
+            },
+            {
+              "name": "Extra latency",
+              "values": [
+                "~1 ms",
+                "None",
+                "~5 ms"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mockup",
+      "title": "What users would see",
+      "blocks": [
+        {
+          "type": "figure",
+          "src": "mockup.html",
+          "height": 320,
+          "caption": "Redis and the database keep this screen; a signed cookie cannot revoke the session behind it."
+        }
+      ]
+    },
+    {
+      "id": "recommendation",
+      "title": "Recommendation",
+      "blocks": [
+        {
+          "type": "callout",
+          "tone": "ok",
+          "title": "Use Redis",
+          "text": "It is the only option that is already running and can revoke a single session."
+        }
+      ]
+    }
+  ]
+}

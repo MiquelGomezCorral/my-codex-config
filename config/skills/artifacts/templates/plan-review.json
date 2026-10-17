@@ -1,0 +1,101 @@
+{
+  "title": "Preserve saved destinations",
+  "summary": "Keep the existing return flow working while accepting a saved destination.",
+  "actionsIntro": "Both changes keep the existing return path in control, so current destination checks still decide where a request may go.",
+  "actions": [
+    {
+      "title": "Keep existing checks",
+      "description": "Retain current destination validation for every caller.",
+      "icon": "shield-check"
+    },
+    {
+      "title": "Support saved destinations",
+      "description": "Accept the saved destination through the existing return path.",
+      "technical": "After validation succeeds, the handler uses the existing return route. It does not add a separate redirect path.",
+      "icon": "workflow"
+    }
+  ],
+  "success": [
+    {
+      "title": "Existing flows still work",
+      "description": "Current callers keep their return behavior.",
+      "technical": "Check both paths against current results before treating this outcome as verified."
+    },
+    {
+      "title": "Saved destination returns",
+      "description": "The requested destination reaches the existing return path."
+    }
+  ],
+  "boundary": "Code changes and focused checks only. Deployment needs separate approval.",
+  "risks": [
+    {
+      "title": "Caller behavior may differ",
+      "description": "The full plan names the callers that need separate verification.",
+      "technical": "A saved value could take a shortcut that current callers do not use. Check both paths before treating the shared behavior as verified."
+    }
+  ],
+  "risksIntro": "The main confidence gap is whether saved and caller-provided values follow the same checks across all callers.",
+  "questions": [
+    {
+      "title": "Confirm missing-value behavior",
+      "description": "Should an absent saved destination keep the existing fallback?",
+      "technical": "The return description covers valid saved values, so confirm this branch instead of inferring it."
+    }
+  ],
+  "details": {
+    "intro": "The deeper sections explain where destination checks run, how a valid saved value returns to its caller, and which cases still need verification.",
+    "groups": [
+      {
+        "title": "How it works",
+        "sections": [
+          {
+            "heading": "Validation path",
+            "summary": "Saved and caller-provided values reach the same existing validator.",
+            "icon": "shield-check",
+            "layered": true
+          },
+          {
+            "heading": "Return behavior",
+            "summary": "Only a destination that passes validation reaches the existing return route.",
+            "icon": "workflow",
+            "layered": true
+          }
+        ]
+      },
+      {
+        "title": "Checks",
+        "sections": [
+          {
+            "heading": "Verification",
+            "summary": "Check current and saved destination paths, plus the existing fallback.",
+            "icon": "clipboard-list",
+            "layered": true
+          }
+        ]
+      }
+    ]
+  },
+  "artifacts": [
+    {
+      "title": "Return flow",
+      "caption": "How a saved destination travels through the existing return path.",
+      "steps": [
+        {
+          "title": "Read saved destination",
+          "description": "The handler reads the destination saved with the request.",
+          "icon": "file-text"
+        },
+        {
+          "title": "Keep validation",
+          "description": "The existing validator checks it like any caller-provided value.",
+          "icon": "shield-check"
+        },
+        {
+          "title": "Return to caller",
+          "description": "Only a value that passed validation reaches the existing return route.",
+          "icon": "workflow"
+        }
+      ]
+    }
+  ]
+}

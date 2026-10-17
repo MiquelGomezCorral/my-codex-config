@@ -1,0 +1,185 @@
+{
+  "eyebrow": "Experiments · updated 2026-10-10 14:20",
+  "title": "Ranker experiments",
+  "subtitle": "Three rankers on two datasets, three seeds each. The baseline passes rarely; the tuned ranker clears the bar from round 2.",
+  "sections": [
+    {
+      "id": "where",
+      "title": "Where we are",
+      "blocks": [
+        {
+          "type": "stats",
+          "items": [
+            { "value": "10", "label": "runs finished", "tone": "info" },
+            { "value": "6", "label": "passed", "tone": "ok" },
+            { "value": "4", "label": "failed", "tone": "bad" },
+            { "value": "4", "label": "still running", "tone": "info" }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            "**Phase 1, small corpus: nearly done.** Two reranker seeds are still training. The tuned ranker passes with 3 of 3 seeds in round 2; the baseline passes with 1 of 3.",
+            "**Phase 2, full corpus: running.** Round 1 finishes in about 40 minutes. Next: a held-out query set."
+          ]
+        },
+        {
+          "type": "callout",
+          "title": "How to read the grids",
+          "tone": "info",
+          "text": "Each row is one setting and each column one method. Each chip is one run, `s1` to `s3` being the seed. A check means recall@10 reached 90% or more, a cross means it stayed below, and a spinner means the run is still going and shows how far along it is. Hover a chip for the step where it first passed."
+        }
+      ]
+    },
+    {
+      "id": "phase-1",
+      "title": "Phase 1 · Small corpus",
+      "intro": "Can each ranker reach 90% recall@10 on the 20k-document corpus? Pass means the finished model reaches it on the held-out queries.",
+      "blocks": [
+        {
+          "type": "matrix",
+          "heading": "Summary",
+          "legend": [
+            { "icon": "circle-check", "text": "passed", "tone": "ok" },
+            { "icon": "circle-x", "text": "failed", "tone": "bad" },
+            { "icon": "loader-circle", "text": "running, % done", "tone": "info" }
+          ],
+          "columns": [
+            { "name": "Baseline", "note": "BM25 only" },
+            { "name": "Tuned ranker" },
+            { "name": "Reranker", "note": "cross-encoder on top" }
+          ],
+          "groups": [
+            {
+              "title": "Round 1",
+              "rows": [
+                {
+                  "label": "c1",
+                  "note": "50k steps",
+                  "cells": [
+                    [{ "icon": "circle-x", "text": "62% s1", "tone": "bad", "title": "never reached 90%; 11 min" }],
+                    [{ "icon": "circle-x", "text": "78% s1", "tone": "bad", "title": "never reached 90%; 14 min" }],
+                    [{ "icon": "circle-check", "text": "93% s1", "tone": "ok", "title": "first passed at 30k steps; 19 min" }]
+                  ]
+                }
+              ]
+            },
+            {
+              "title": "Round 2",
+              "rows": [
+                {
+                  "label": "c1",
+                  "note": "50k steps · learning rate 0.0003",
+                  "cells": [
+                    [
+                      { "icon": "circle-check", "text": "91% s1", "tone": "ok", "title": "first passed at 45k steps; 11 min" },
+                      { "icon": "circle-x", "text": "84% s2", "tone": "bad", "title": "never reached 90%; 11 min" },
+                      { "icon": "circle-x", "text": "80% s3", "tone": "bad", "title": "never reached 90%; 11 min" }
+                    ],
+                    [
+                      { "icon": "circle-check", "text": "95% s1", "tone": "ok", "title": "first passed at 20k steps; 14 min" },
+                      { "icon": "circle-check", "text": "94% s2", "tone": "ok", "title": "first passed at 25k steps; 14 min" },
+                      { "icon": "circle-check", "text": "95% s3", "tone": "ok", "title": "first passed at 20k steps; 14 min" }
+                    ],
+                    [
+                      { "icon": "circle-check", "text": "96% s1", "tone": "ok", "title": "first passed at 15k steps; 19 min" },
+                      { "icon": "loader-circle", "text": "70% s2", "tone": "info", "title": "training, last check 88%" },
+                      { "icon": "loader-circle", "text": "40% s3", "tone": "info", "title": "training, last check 71%" }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "table",
+          "heading": "All runs",
+          "columns": ["Method", "Setting", "Seed", "Status", "Final score", "First passed", "Last checks", "Time"],
+          "rows": [
+            ["Baseline", "round 2 · c1", "1", { "icon": "circle-check", "text": "pass", "tone": "ok" }, "91%", "45k steps", "88% → 90% → 90% → 91% → 91%", "11 min"],
+            ["Baseline", "round 2 · c1", "2", { "icon": "circle-x", "text": "fail", "tone": "bad" }, "84%", "never", "82% → 83% → 85% → 84% → 84%", "11 min"],
+            ["Tuned ranker", "round 2 · c1", "1", { "icon": "circle-check", "text": "pass", "tone": "ok" }, "95%", "20k steps", "94% → 95% → 95% → 95% → 95%", "14 min"],
+            ["Reranker", "round 2 · c1", "2", { "icon": "loader-circle", "text": "training 70%", "tone": "info" }, "-", "-", "81% → 85% → 88% → 88% → 88%", "-"]
+          ]
+        },
+        {
+          "type": "figure",
+          "src": "phase-1-recall.html",
+          "height": 420,
+          "caption": "Recall@10 over training, from a plotly export (updated 2026-10-10 14:20): the tuned ranker passes the 90% line by 20k steps; the baseline wobbles around it."
+        },
+        {
+          "type": "gallery",
+          "heading": "Example queries",
+          "width": 320,
+          "groups": [
+            {
+              "title": "Baseline",
+              "note": "BM25 only: the right document often sits low in the list.",
+              "items": [{ "src": "queries/q1-baseline.gif", "caption": "Query 1 · rank 7 of 10" }]
+            },
+            {
+              "title": "Tuned ranker",
+              "items": [{ "src": "queries/q1-tuned.gif", "caption": "Query 1 · rank 1 of 10" }]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-2",
+      "title": "Phase 2 · Full corpus",
+      "intro": "Same question on the 2M-document corpus. Runs are 10x longer, so only round 1 has started.",
+      "blocks": [
+        {
+          "type": "matrix",
+          "legend": [
+            { "icon": "loader-circle", "text": "running, % done", "tone": "info" },
+            { "icon": "circle-dashed", "text": "not started", "tone": "muted" }
+          ],
+          "columns": ["Baseline", "Tuned ranker"],
+          "groups": [
+            {
+              "title": "Round 1",
+              "rows": [
+                {
+                  "label": "c1",
+                  "note": "500k steps",
+                  "cells": [
+                    [{ "icon": "loader-circle", "text": "30% s1", "tone": "info", "title": "training, last check 55%" }],
+                    [{ "icon": "loader-circle", "text": "25% s1", "tone": "info", "title": "training, last check 61%" }]
+                  ]
+                },
+                {
+                  "label": "c2",
+                  "note": "1M steps",
+                  "cells": [
+                    [{ "icon": "circle-dashed", "text": "s1", "tone": "muted", "title": "waits for a free GPU" }],
+                    [{ "icon": "circle-dashed", "text": "s1", "tone": "muted", "title": "waits for a free GPU" }]
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "notes",
+      "title": "Phase notes",
+      "blocks": [
+        {
+          "type": "details",
+          "items": [
+            {
+              "icon": "flask-conical",
+              "title": "Phase 1 notes",
+              "text": "Round 1 used the default learning rate and all three methods stalled below 90%. Round 2 raised it to 0.0003, which fixed the tuned ranker; the baseline stays noisy across seeds."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

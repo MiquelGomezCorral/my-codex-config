@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent pages</title>
+<style>
+:root{color-scheme:light;--bg:#f7f7f5;--card:#fff;--ink:#1d1d1f;--muted:#64646a;--line:#e3e3e0;--acc:#2f5bd3;
+--ok:#1f7a4d;--bad:#b3261e;--warn:#b07400;--info:#2f5bd3;--mutedbg:#ececf0;--code:#1f5f99;
+--shade:rgba(20,20,30,.38);--lift:rgba(20,20,30,.18);--ctl:32px;--actw:9em}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#141416;--card:#1d1d21;--ink:#ececf0;
+--muted:#a0a0aa;--line:#2e2e34;--acc:#8fb0ff;--ok:#5fd394;--bad:#ff8a80;--warn:#ffcc66;
+--info:#8fb0ff;--mutedbg:#2a2a30;--code:#9fcced;--shade:rgba(0,0,0,.6);--lift:rgba(0,0,0,.5)}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#141416;--card:#1d1d21;--ink:#ececf0;--muted:#a0a0aa;--line:#2e2e34;
+--acc:#8fb0ff;--ok:#5fd394;--bad:#ff8a80;--warn:#ffcc66;--info:#8fb0ff;--mutedbg:#2a2a30;
+--code:#9fcced;--shade:rgba(0,0,0,.6);--lift:rgba(0,0,0,.5)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{background:var(--bg);scrollbar-gutter:stable}
+body{margin:0;color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:1120px;margin:0 auto;padding:22px 16px 80px}
+svg.i{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--code)}
+h1{font-size:24px;margin:0 0 2px}
+.info{display:flex;align-items:flex-start;gap:6px;color:var(--muted);margin-bottom:16px}
+.info svg{margin-top:3px}
+.offline{color:var(--bad)}
+.toolbar{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:12px}
+.search{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:9px;padding:0 10px;max-width:280px;color:var(--muted)}
+.search input{border:0;background:transparent;color:var(--ink);font:inherit;padding:7px 0;outline:none;width:100%}
+.search input::placeholder{color:var(--muted);opacity:1}
+.seg{display:inline-flex;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:3px;gap:8px}
+.seg button{display:inline-flex;align-items:center;gap:7px;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:500;padding:7px 14px;border-radius:9px;cursor:pointer}
+.seg button b{font-weight:600;background:var(--mutedbg);color:var(--muted);border-radius:999px;padding:0 7px}
+.seg button.on{background:var(--mutedbg);color:var(--ink)}
+.seg button.on b{background:var(--card);color:var(--ink)}
+.tools{justify-self:end;display:flex;align-items:center;gap:8px}
+.layout,.fold{display:inline-flex;gap:8px;border:1px solid var(--line);background:var(--card);border-radius:9px;padding:2px}
+.layout button,.fold button{border:0;background:transparent;color:var(--muted);padding:6px 8px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font:inherit}
+.layout button.on{background:var(--mutedbg);color:var(--ink)}
+.fold button:is(:hover,:focus-visible){background:var(--mutedbg);color:var(--ink)}
+/* on a phone the toolbar has room, so Collapse all and Expand all show their words instead of a tooltip */
+.fold .lbl{display:none}
+.repo{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:16px}
+.repo-h{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.repo-h h2{font-size:20px;margin:0}
+.repo-h .path{color:var(--muted);font-size:12px}
+.repo-h .acts{margin-left:auto;display:flex;gap:8px}
+.wt{padding:6px 14px;font-size:12px;color:var(--muted);background:var(--bg);border-bottom:1px solid var(--line);display:flex;gap:6px;align-items:center}
+/* a branch group and its "N stopped" group fold with the same chevron, always the first thing on the line */
+.wt-group>summary,.stopped-group>summary{list-style:none;cursor:pointer}
+.wt-group>summary::-webkit-details-marker,.stopped-group>summary::-webkit-details-marker{display:none}
+.wt-group>summary:hover{color:var(--ink)}
+.wtn{min-width:0;overflow-wrap:anywhere}
+.wt .n{margin-left:auto;flex:none;white-space:nowrap}
+.chev{transition:transform .15s}
+details[open]>summary>.chev{transform:rotate(90deg)}
+.wt-group:last-child:not([open])>.wt{border-bottom:0;border-radius:0 0 11px 11px}
+.tipwrap{position:relative;display:inline-flex}
+.tip{position:absolute;bottom:calc(100% + 6px);right:0;z-index:3;width:max-content;max-width:min(260px,70vw);padding:4px 8px;border-radius:6px;background:var(--ink);color:var(--card);font-size:12px;line-height:1.5;pointer-events:none;visibility:hidden}
+.tipwrap:is(:hover,:focus-within):not(.dismissed) .tip{visibility:visible}
+.btn{text-decoration:none;display:inline-flex;align-items:center;gap:6px;min-height:var(--ctl);border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:8px;padding:0 12px;font:inherit;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--acc)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn:disabled:hover{border-color:var(--line)}
+.btn.danger:is(:hover,:focus-visible){color:var(--bad);border-color:var(--bad)}
+.btn.act{width:var(--actw)}
+.btn.act:disabled{opacity:1;color:var(--muted)}
+.btn.act.busy svg.i{animation:spin 1s linear infinite}
+.del,.ico,.trig{width:var(--ctl);padding:0;justify-content:center;color:var(--muted)}
+.del,.ico{border-color:transparent}
+.ico{width:28px;min-height:28px}
+/* copy buttons sit tight against their text, so hover only recolors the icon; keyboard focus keeps the browser ring */
+.ico:is(:hover,:focus-visible){border-color:transparent;color:var(--acc)}
+.del:is(:hover,:focus-visible){color:var(--bad);border-color:var(--bad)}
+/* the command button: bordered like every button, disabled on pages, which have no command */
+.trig:not(:disabled):is(:hover,:focus-visible){color:var(--acc);border-color:var(--acc)}
+.head{display:flex;align-items:center;gap:8px;min-width:0}
+.head>.t{flex:0 1 auto}
+.logo{width:16px;height:16px;flex:none}
+/* the harness logo sits on a small tile; the state badge sits on the tile's bottom-right corner, cut out by a ring in the surface color */
+.tile{position:relative;width:32px;height:32px;border-radius:8px;background:var(--mutedbg);display:grid;place-items:center;flex:none}
+.badge{position:absolute;right:-3px;bottom:-3px;width:12px;height:12px;border-radius:50%;box-shadow:0 0 0 2px var(--card)}
+.live .badge{background:var(--ok)}
+.off .badge{background:var(--card);border:2px solid var(--muted)}
+.busy .badge{background:var(--card);border:2px solid var(--info);border-right-color:transparent;animation:spin 1s linear infinite}
+.warn .badge{background:var(--warn);border-radius:2px;width:9px;height:9px;right:-2px;bottom:-2px;transform:rotate(45deg)}
+@keyframes spin{to{transform:rotate(1turn)}}
+@media (prefers-reduced-motion:reduce){.badge,.btn.act svg.i,.chev{animation:none!important;transition:none!important}}
+/* the legend names each badge once, under the toolbar */
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;color:var(--muted);font-size:12px;margin:0 0 12px}
+.legend>span{display:inline-flex;align-items:center;gap:8px}
+.legend .badge{position:relative;right:auto;bottom:auto;box-shadow:none;flex:none}
+.legend .warn .badge{margin:0 2px}
+.open{color:var(--muted);display:inline-flex;flex:none}
+.open:hover{color:var(--acc)}
+.body{min-width:0}
+.stopped .t{color:var(--muted)}
+/* Cut text: one line (two for a description) ending in "…"; resting on it opens the full text in a small panel below.
+   One panel serves titles, addresses, commands and descriptions; markCut() marks only the text that is actually cut. */
+.more{position:relative;min-width:0}
+.short{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pop{position:absolute;top:calc(100% + 2px);left:-9px;z-index:4;width:max-content;min-width:calc(100% + 18px);max-width:min(440px,80vw);padding:6px 8px;
+  background:var(--card);border:1px solid var(--line);border-radius:7px;box-shadow:0 6px 16px var(--lift);white-space:normal;overflow-wrap:anywhere;visibility:hidden}
+.more:is(.cut,.always):is(:hover,:focus-within) .pop{visibility:visible;transition:visibility 0s .5s}
+.more:is(.cut,.always):focus-within .pop{transition:none}
+.pop::before{content:"";position:absolute;left:0;right:0;top:-6px;height:6px}
+.pop .ln{display:flex;align-items:flex-start;gap:8px}
+.pop .ln>:first-child{flex:1;min-width:0;padding-top:4px}
+.pop.has-copy{padding:2px 2px 2px 8px}
+.pfx{color:var(--muted)}
+.t .short,.t .pop{font-weight:600}
+.addr .short,.addr .pop,.cmd .short,.cmd .pop{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--code)}
+.desc .short{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:anywhere;color:var(--muted)}
+.desc .pop{left:-9px;right:-9px;width:auto;max-width:none}
+.more.always>.pop{left:0;min-width:0}
+/* on a narrower window the command panel would run past the right edge, so it opens leftward from its button */
+@media (max-width:1100px){.more.always>.pop{left:auto;right:0}}
+.tm{color:var(--muted);font-size:12px;white-space:nowrap}
+.line2{display:flex;align-items:center;gap:6px;min-width:0}
+.line2>.addr{flex:0 1 auto}
+/* the copy icon keeps a 24 px target but takes only the line's height, so the row stays two lines */
+.line2 .tipwrap{align-items:center;height:18px;flex:none}
+.line2 .ico{width:24px;min-height:24px;height:24px}
+/* the command keeps its box: one line, the copy icon inside the box */
+.cmd{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:1px 1px 1px 8px;min-width:0}
+.cmd>.more{flex:1}
+.cmd .pop{left:-9px}
+/* rows: [action] [tile] [title / address] [command] [description] [time] [trash] */
+/* min-height: the height of a row whose description fills two lines, so every row is the same height */
+.row{display:grid;grid-template-columns:var(--actw) 32px minmax(0,1.4fr) 32px minmax(0,1fr) 64px 32px;align-items:center;gap:6px 16px;padding:8px 14px;min-height:59px;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .tm{text-align:right}
+/* link, address copy and trash appear at once on row hover or focus; they stay focusable, and touch screens always show them */
+.row .hov{opacity:0}
+.row:is(:hover,:focus-within) .hov{opacity:1}
+@media (hover:none){.row .hov{opacity:1}}
+.stopped-group>summary{padding:8px 14px;color:var(--muted);border-top:1px solid var(--line);display:flex;gap:6px;align-items:center}
+.wt+.stopped-group>summary{border-top:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;padding:12px 14px}
+/* cards: the tile beside the title, link and time on line 1 and the address on line 2; a thin line; then description, command, buttons */
+.card{min-width:0;border:1px solid var(--line);border-radius:10px;padding:11px 12px;display:flex;flex-direction:column;gap:8px}
+.card .top{display:grid;grid-template-columns:32px minmax(0,1fr);gap:0 10px;align-items:center}
+.card .top .tile{grid-row:1/3}
+.card .head .tm{margin-left:auto;padding-left:4px}
+.card .sep{border-top:1px solid var(--line);margin:2px -12px 0}
+.card .acts{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.card .btn.act{width:auto}
+/* inside a card every panel keeps to the card's width */
+.card .pop{width:auto;min-width:0;max-width:none;right:-9px}
+.card .cmd .pop{right:-1px}
+.modal{position:fixed;inset:0;background:var(--shade);display:none;align-items:center;justify-content:center;padding:16px;z-index:5}
+.modal.on{display:flex}
+.box{background:var(--card);border:1px solid var(--line);border-radius:14px;max-width:440px;width:100%;padding:18px 20px;box-shadow:0 18px 50px rgba(0,0,0,.3)}
+.box h3{margin:0 0 8px;font-size:20px;display:flex;align-items:center;gap:8px}
+.box h3 span:empty{display:none}
+.box p{margin:0 0 6px;color:var(--muted);overflow-wrap:anywhere}
+.box p:empty{display:none}
+.box .err{color:var(--bad)}
+.box .row-btns{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
+.box .confirm{background:var(--bad);border-color:var(--bad);color:var(--card);padding:0 14px}
+.box .confirm.neutral{background:var(--ink);border-color:var(--ink);color:var(--card)}
+.theme{position:fixed;right:18px;bottom:18px}
+.theme button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px;cursor:pointer;display:inline-flex}
+.empty{color:var(--muted);text-align:center;padding:48px 0}
+@media (max-width:760px){.toolbar{grid-template-columns:1fr}.search{max-width:none;order:3}.layout{display:none}
+.fold .lbl{display:inline}.fold .tip{display:none}.seg{display:grid;grid-template-columns:1fr 1fr}.seg button{justify-content:center}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="codex-blue" gradientUnits="userSpaceOnUse" x1="12" y1="0" x2="12" y2="24"><stop stop-color="#B1A7FF"/><stop offset=".5" stop-color="#7A9DFF"/><stop offset="1" stop-color="#3941FF"/></linearGradient></defs></svg>
+<main>
+<h1>Agent pages</h1>
+<div class="info"><span data-i="server"></span><span>Hub at <span class="mono" id="host">…</span> · every page and app agents show you on this machine<span class="offline" id="offline" hidden> · can't reach the hub, trying again</span></span></div>
+<div class="toolbar">
+  <label class="search"><span data-i="search"></span><input type="search" id="query" placeholder="Search pages, repos…" aria-label="Search pages and repos"></label>
+  <div class="seg" role="group" aria-label="Show">
+    <button data-f="all" class="on"><span data-i="layers"></span><span class="lbl">All</span><b data-n="all">0</b></button>
+    <button data-f="serving"><span data-i="radio"></span><span class="lbl">Serving</span><b data-n="serving">0</b></button>
+    <button data-f="stopped"><span data-i="pause"></span><span class="lbl">Stopped</span><b data-n="stopped">0</b></button>
+    <button data-f="app"><span data-i="term"></span><span class="lbl">Apps</span><b data-n="app">0</b></button>
+  </div>
+  <div class="tools">
+    <div class="fold" role="group" aria-label="Branch groups">
+      <span class="tipwrap"><button id="collapse-all" aria-label="Collapse all" data-ui-tooltip="tip-collapse"><span data-i="collapse"></span><span class="lbl">Collapse all</span></button><span class="tip" role="tooltip" id="tip-collapse">Collapse all</span></span>
+      <span class="tipwrap"><button id="expand-all" aria-label="Expand all" data-ui-tooltip="tip-expand"><span data-i="expand"></span><span class="lbl">Expand all</span></button><span class="tip" role="tooltip" id="tip-expand">Expand all</span></span>
+    </div>
+    <div class="layout" role="group" aria-label="Layout">
+      <span class="tipwrap"><button data-l="rows" aria-label="Rows" data-ui-tooltip="tip-rows"><span data-i="rows"></span></button><span class="tip" role="tooltip" id="tip-rows">Rows</span></span>
+      <span class="tipwrap"><button data-l="cards" aria-label="Cards" data-ui-tooltip="tip-cards"><span data-i="grid"></span></button><span class="tip" role="tooltip" id="tip-cards">Cards</span></span>
+    </div>
+  </div>
+</div>
+<div class="legend"><span class="live"><span class="badge"></span>Running</span><span class="off"><span class="badge"></span>Stopped</span><span class="busy"><span class="badge"></span>Starting</span><span class="warn"><span class="badge"></span>No page file</span></div>
+<div id="out"><p class="empty">Loading…</p></div>
+</main>
+<span class="tipwrap theme"><button id="theme" aria-label="Switch light or dark theme" data-ui-tooltip="tip-theme"><span data-i="sun"></span></button><span class="tip" role="tooltip" id="tip-theme">Switch light or dark theme</span></span>
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="m-title"><div class="box">
+  <h3 id="m-title"><span id="m-icon"></span><span id="m-text"></span></h3><p id="m-body"></p><p id="m-extra" class="mono"></p><p id="m-err" class="err"></p>
+  <div class="row-btns"><button class="btn" id="m-cancel">Cancel</button><button class="btn confirm" id="m-ok"></button></div>
+</div></div>
+<script>
+const I = {
+  open: '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+  stop: '<rect x="5" y="5" width="14" height="14" rx="2"/>',
+  trash: '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  again: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+  copy: '<rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  play: '<polygon points="6 3 20 12 6 21 6 3"/>',
+  branch: '<line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/>',
+  term: '<polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/>',
+  folder: '<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
+  search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  layers: '<path d="m12 2 10 5-10 5L2 7Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/>',
+  radio: '<circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49"/><path d="M7.76 16.24a6 6 0 0 1 0-8.49"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 19.07a10 10 0 0 1 0-14.14"/>',
+  pause: '<circle cx="12" cy="12" r="10"/><line x1="10" x2="10" y1="15" y2="9"/><line x1="14" x2="14" y1="15" y2="9"/>',
+  rows: '<path d="M3 5h18"/><path d="M3 12h18"/><path d="M3 19h18"/>',
+  grid: '<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>',
+  server: '<rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+  loader: '<path d="M21 12a9 9 0 1 1-6.22-8.56"/>',
+  filex: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m14.5 12.5-5 5"/><path d="m9.5 12.5 5 5"/>',
+  chevron: '<path d="m9 18 6-6-6-6"/>',
+  collapse: '<path d="m7 20 5-5 5 5"/><path d="m7 4 5 5 5-5"/>',
+  expand: '<path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/>',
+  alert: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>'
+};
+const ic = (n, cls = "") => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${I[n]}</svg>`;
+const chevron = ic("chevron", "chev");
+// Harness marks, picked by the first word of an entry's "by" text. Codex: the cloud outline and ">_" of its mark in the Codex blue
+// gradient (#codex-blue at the top of body, sized to the icon so the flat "_" still paints).
+const LOGO = {
+  claude: '<svg class="logo" viewBox="0 0 24 24"><g stroke="#D97757" stroke-width="2.6" stroke-linecap="round"><path d="M12 3v18"/><path d="M3 12h18"/><path d="m5.6 5.6 12.8 12.8"/><path d="m18.4 5.6-12.8 12.8"/></g></svg>',
+  codex: '<svg class="logo" viewBox="0 0 24 24"><g transform="translate(1.3 1.3) scale(.89)" fill="none" stroke="url(#codex-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.086.457a6.105 6.105 0 013.046-.415c1.333.153 2.521.72 3.564 1.7a.117.117 0 00.107.029c1.408-.346 2.762-.224 4.061.366l.063.03.154.076c1.357.703 2.33 1.77 2.918 3.198.278.679.418 1.388.421 2.126a5.655 5.655 0 01-.18 1.631.167.167 0 00.04.155 5.982 5.982 0 011.578 2.891c.385 1.901-.01 3.615-1.183 5.14l-.182.22a6.063 6.063 0 01-2.934 1.851.162.162 0 00-.108.102c-.255.736-.511 1.364-.987 1.992-1.199 1.582-2.962 2.462-4.948 2.451-1.583-.008-2.986-.587-4.21-1.736a.145.145 0 00-.14-.032c-.518.167-1.04.191-1.604.185a5.924 5.924 0 01-2.595-.622 6.058 6.058 0 01-2.146-1.781c-.203-.269-.404-.522-.551-.821a7.74 7.74 0 01-.495-1.283 6.11 6.11 0 01-.017-3.064.166.166 0 00.008-.074.115.115 0 00-.037-.064 5.958 5.958 0 01-1.38-2.202 5.196 5.196 0 01-.333-1.589 6.915 6.915 0 01.188-2.132c.45-1.484 1.309-2.648 2.577-3.493.282-.188.55-.334.802-.438.286-.12.573-.22.861-.304a.129.129 0 00.087-.087A6.016 6.016 0 015.635 2.31C6.315 1.464 7.132.846 8.086.457z"/><path d="m7.2 8.6 2 3.4-2 3.4"/><path d="M13 15.3h3.6"/></g></svg>',
+  pi: '<svg class="logo" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="6" fill="#6a5acd"/><path d="M7 8h10M10 8l-.6 8.5M14.2 8v6.6c0 1.4.6 2 1.8 2" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  agy: '<svg class="logo" viewBox="0 0 24 24"><path d="M12 2c.6 5.2 4.8 9.4 10 10-5.2.6-9.4 4.8-10 10-.6-5.2-4.8-9.4-10-10 5.2-.6 9.4-4.8 10-10Z" fill="#4285F4"/></svg>',
+  unknown: '<svg class="logo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3 3"/></svg>'
+};
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const $ = (id) => document.getElementById(id);
+const store = (key, value) => { try { if (value === undefined) return localStorage.getItem(key); localStorage.setItem(key, value); } catch {} return null; };
+
+// ---- state ----
+let data = { hub: "", repos: [] }, raw = "", index = new Map();
+let working = null; // { id, label }: the entry whose Start or Serve again request is running; it keeps its busy button through redraws
+let filter = "all", layout = store("hub:layout") === "cards" ? "cards" : "rows", query = "", pending = 0;
+// Fold state is kept in the browser: stopped groups the user opened, and branch groups the user collapsed.
+const savedSet = (key) => { try { return new Set(JSON.parse(store(key) || "[]")); } catch { return new Set(); } };
+const keepSet = (key, set) => store(key, JSON.stringify([...set]));
+const openGroups = savedSet("hub:open"), collapsed = savedSet("hub:collapsed");
+const groupKey = (repo, worktree) => repo.name + "/" + worktree;
+// On a phone the rows layout shows cards: a row's columns do not fit.
+const phone = matchMedia("(max-width:760px)");
+const FILTERS = {
+  all: () => true,
+  serving: (it) => it.kind === "page" && it.state === "serving",
+  stopped: (it) => it.kind === "page" && it.state !== "serving",
+  app: (it) => it.kind === "app"
+};
+const matches = (repo, it) => !query || [repo.name, it.id, it.title, it.desc, it.by, it.worktree, it.branch, it.cmd].join("\n").toLowerCase().includes(query);
+const isLive = (it) => ["serving", "running", "starting"].includes(it.state);
+
+// ---- pieces of an entry ----
+function when(iso) {
+  const d = new Date(iso);
+  if (isNaN(d)) return "";
+  const day = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const ago = Math.round((day(new Date()) - day(d)) / 864e5);
+  if (ago === 0) return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  return ago === 1 ? "yesterday" : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+function harness(by) {
+  const key = String(by).trim().split(/\s+/)[0].toLowerCase();
+  return Object.hasOwn(LOGO, key) ? LOGO[key] : LOGO.unknown;
+}
+function openUrl(it) {
+  if (it.kind === "page") return it.state === "serving" && !it.no_index ? it.path : "";
+  if (it.state !== "running") return "";
+  try { const u = new URL(it.url); return u.protocol === "http:" || u.protocol === "https:" ? u.href : ""; } catch { return ""; }
+}
+function address(it) {
+  if (it.kind === "page") return decodeURIComponent(it.path);
+  let host = "";
+  try { host = new URL(it.url).host; } catch {}
+  return isLive(it) && it.pid ? `${host} · pid ${it.pid}` : host;
+}
+const time = (it) => `<span class="tm">${esc(when(it.updated))}</span>`;
+// One state per entry: its badge tone and word, and the one button it shows.
+function status(it) {
+  if (it.no_index) return { tone: "warn", word: "No page file", act: { label: "No page file", icon: "filex", disabled: true } };
+  if (it.state === "serving" || it.state === "running") return { tone: "live", word: it.kind === "page" ? "Serving" : "Running", act: { ask: "stop", label: "Stop", icon: "stop" } };
+  // A starting app is alive but not on its port yet, maybe never; Stop stays so it cannot get stuck.
+  if (it.state === "starting") return { tone: "busy", word: "Starting", act: { ask: "stop", label: "Stop", icon: "stop" } };
+  const start = it.kind === "app" ? { do: "start", label: "Start", icon: "play", busy: "Starting…" } : { do: "resume", label: "Serve again", icon: "again", busy: "Serving…" };
+  return { tone: "off", word: "Stopped", act: start };
+}
+const tile = (it) => `<span class="tile" role="img" aria-label="${status(it).word}" title="${esc(it.by)}">${harness(it.by)}<span class="badge"></span></span>`;
+// Text that may be cut: the short form ends in "…"; when it is cut, resting on it opens the full text in a panel.
+const more = (cls, html) => `<div class="more ${cls}"><span class="short" tabindex="-1">${html}</span><span class="pop" aria-hidden="true">${html}</span></div>`;
+// Icon-only buttons keep their name in aria-label and show it as a tooltip on hover and keyboard focus.
+let tips = 0;
+function iconButton(cls, attrs, icon, name) {
+  const id = `tip${++tips}`;
+  return `<span class="tipwrap"><button class="${cls}" ${attrs} aria-label="${esc(name)}" data-ui-tooltip="${id}">${ic(icon)}</button><span class="tip" role="tooltip" id="${id}">${esc(name)}</span></span>`;
+}
+// "hov" controls appear on row hover or focus; cards show them always.
+function head(it, extra = "") {
+  const url = openUrl(it);
+  const open = url ? `<a class="open hov" href="${esc(url)}" target="_blank" rel="noopener" title="Open" aria-label="Open ${esc(it.title)}">${ic("open")}</a>` : "";
+  return `<div class="head">${more("t", esc(it.title))}${open}${extra}</div>`;
+}
+// What a copy button puts on the clipboard: a page's address on the hub, an app's own URL, or its start command.
+function copyValue(it, what) {
+  if (what === "cmd") return it.cmd;
+  return it.kind === "page" ? new URL(it.path, data.hub).href : it.url;
+}
+const copyButton = (it, what, name, cls = "") => iconButton(`btn ico ${cls}`, `data-copy="${what}" data-id="${esc(it.id)}"`, "copy", name);
+const addrLine = (it) => `<div class="line2">${more("addr", esc(address(it)))}${copyButton(it, "link", "Copy link", "hov")}</div>`;
+const descText = (it) => esc(it.desc || (it.recorded ? "" : "No record: folder found in the repo's artifacts folder."));
+const desc = (it) => more("desc", descText(it));
+const hasCmd = (it) => it.kind === "app" && it.cmd;
+const cmdLine = (it, prefix = "") => `<div class="ln"><span>${prefix}${esc(it.cmd)}</span>${copyButton(it, "cmd", "Copy command")}</div>`;
+// Rows: a bordered terminal button on every row; on an app, resting on it opens the command with its copy button.
+const cmdCell = (it) => hasCmd(it)
+  ? `<div class="more always"><button class="btn trig" aria-label="Show command">${ic("term")}</button><div class="pop has-copy mono">${cmdLine(it, '<span class="pfx">$ </span>')}</div></div>`
+  : `<button class="btn trig" disabled aria-label="No command">${ic("term")}</button>`;
+// Cards: the command in its own box, one line, with its copy button inside the box.
+const cmdBox = (it) => hasCmd(it) ? `<div class="cmd"><div class="more"><span class="short" tabindex="-1">${esc(it.cmd)}</span><div class="pop has-copy">${cmdLine(it)}</div></div>${copyButton(it, "cmd", "Copy command")}</div>` : "";
+// Rows end with Delete as a bare icon, revealed on row hover or focus; cards give it a label.
+function del(it, label) {
+  const attrs = `data-ask="delete" data-id="${esc(it.id)}"`;
+  if (!label) return iconButton("btn danger del hov", attrs, "trash", `Delete ${it.title}`);
+  return `<button class="btn danger" ${attrs} aria-label="Delete ${esc(it.title)}">${ic("trash")}${label}</button>`;
+}
+// Every entry shows one button: its action, its progress while starting, or why there is none.
+function action(it) {
+  if (working?.id === it.id) return `<button class="btn act busy" disabled>${ic("loader")}${working.label}</button>`;
+  const { act } = status(it);
+  if (act.disabled) return `<button class="btn act" disabled>${ic(act.icon)}${act.label}</button>`;
+  const attrs = act.ask ? `data-ask="${act.ask}"` : `data-do="${act.do}" data-busy="${act.busy}"`;
+  return `<button class="btn act" ${attrs} data-id="${esc(it.id)}" aria-label="${act.label} ${esc(it.title)}">${ic(act.icon)}${act.label}</button>`;
+}
+const stateClass = (it) => `${status(it).tone} ${it.state === "stopped" && !it.no_index ? "stopped" : ""}`;
+const row = (it) => `<div class="row ${stateClass(it)}">${action(it)}${tile(it)}<div class="body">${head(it)}${addrLine(it)}</div>${cmdCell(it)}${desc(it)}${time(it)}${del(it, "")}</div>`;
+const card = (it) => `<div class="card ${stateClass(it)}"><div class="top">${tile(it)}${head(it, time(it))}${addrLine(it)}</div>
+  <div class="sep"></div>${descText(it) ? desc(it) : ""}${cmdBox(it)}<div class="acts">${action(it)}${del(it, "Delete")}</div></div>`;
+
+// ---- the page ----
+function groupsOf(repo) {
+  const groups = new Map();
+  for (const it of repo.items) {
+    if (!matches(repo, it) || !FILTERS[filter](it)) continue;
+    if (!groups.has(it.worktree)) groups.set(it.worktree, []);
+    groups.get(it.worktree).push(it);
+  }
+  return [...groups].sort(([a], [b]) => a === b ? 0 : a === "" ? -1 : b === "" ? 1 : a.localeCompare(b));
+}
+function repoHtml(repo) {
+  const body = groupsOf(repo).map(([worktree, items]) => {
+    const name = worktree || (repo.name === "_local" ? "outside any repo" : "main checkout");
+    const branch = items[0].branch;
+    const key = groupKey(repo, worktree);
+    const wt = `<summary class="wt">${chevron}${ic("branch")}<span class="wtn">${esc(name)}${branch ? ` · <span class="mono">${esc(branch)}</span>` : ""}</span><span class="n">${plural(items.length, "entry", "entries")}</span></summary>`;
+    const list = (its) => !its.length ? "" : layout === "cards" || phone.matches ? `<div class="grid">${its.map(card).join("")}</div>` : its.map(row).join("");
+    const live = items.filter((it) => it.state !== "stopped"), stopped = items.filter((it) => it.state === "stopped");
+    const inner = filter !== "all" || !stopped.length ? list(items)
+      : list(live) + `<details class="stopped-group" data-key="${esc(key)}"${openGroups.has(key) ? " open" : ""}><summary>${chevron}${stopped.length} stopped</summary>${list(stopped)}</details>`;
+    return `<details class="wt-group" data-wt="${esc(key)}"${collapsed.has(key) ? "" : " open"}>${wt}${inner}</details>`;
+  }).join("");
+  if (!body) return "";
+  const running = repo.items.filter(isLive).length;
+  const name = esc(repo.name);
+  return `<section class="repo"><div class="repo-h">${ic("folder")}<h2>${name}</h2><span class="path mono">${esc(repo.path)}</span>
+    <span class="path">${running} running · ${repo.items.length} total</span>
+    <span class="acts"><button class="btn danger" data-ask="delete-repo" data-repo="${name}">${ic("trash")}Delete all</button><button class="btn" data-ask="stop-repo" data-repo="${name}"${running ? "" : " disabled"}>${ic("stop")}Stop all</button></span></div>${body}</section>`;
+}
+function render() {
+  tips = 0;
+  const fold = document.activeElement?.closest?.("summary")?.parentElement;
+  const foldAttr = fold && ["data-wt", "data-key"].find((a) => fold.hasAttribute(a));
+  const count = { all: 0, serving: 0, stopped: 0, app: 0 };
+  for (const repo of data.repos) for (const it of repo.items) {
+    if (!matches(repo, it)) continue;
+    for (const key in count) if (FILTERS[key](it)) count[key]++;
+  }
+  document.querySelectorAll("[data-n]").forEach((b) => b.textContent = count[b.dataset.n]);
+  const html = data.repos.map(repoHtml).join("");
+  $("out").innerHTML = html || `<p class="empty">${esc(index.size ? "Nothing matches." : "Nothing here yet. Agents add their pages and apps when they publish them.")}</p>`;
+  if (foldAttr) $("out").querySelector(`[${foldAttr}="${CSS.escape(fold.getAttribute(foldAttr))}"]>summary`)?.focus({ preventScroll: true });
+  markCut();
+}
+// Only text that is actually cut gets its panel.
+function markCut() {
+  for (const box of document.querySelectorAll(".more")) {
+    const text = box.querySelector(".short");
+    if (text) box.classList.toggle("cut", text.scrollWidth > text.clientWidth + 1 || text.scrollHeight > text.clientHeight + 1);
+  }
+}
+addEventListener("resize", markCut);
+phone.addEventListener("change", render);
+function load(text) {
+  raw = text;
+  data = JSON.parse(text);
+  index = new Map(data.repos.flatMap((repo) => repo.items.map((it) => [it.id, { repo, it }])));
+  try { $("host").textContent = new URL(data.hub).host; } catch {}
+  render();
+}
+async function refresh(force) {
+  if (pending || (document.hidden && !force)) return;
+  try {
+    const resp = await fetch("/_hub/list.json", { cache: "no-store" });
+    if (!resp.ok) throw new Error(resp.status);
+    const text = await resp.text();
+    $("offline").hidden = true;
+    if (force || text !== raw) load(text);
+  } catch { $("offline").hidden = false; }
+}
+
+// ---- actions and their dialogs ----
+async function post(body) {
+  pending++;
+  try {
+    const resp = await fetch("/_hub/action", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const answer = await resp.json().catch(() => null);
+    if (resp.ok && answer?.ok) return { error: "", message: answer.message || "" };
+    return { error: answer?.error || `The hub answered ${resp.status}.`, message: "" };
+  } catch { return { error: "Could not reach the hub.", message: "" }; } finally { pending--; }
+}
+const modal = $("modal");
+let task = null, busy = false;
+function dialog({ title, warn = false, body = "", extra = "", ok = "", danger = false, run = null }) {
+  $("m-icon").innerHTML = warn ? ic("alert") : "";
+  $("m-text").textContent = title;
+  $("m-body").textContent = body;
+  $("m-extra").textContent = extra;
+  $("m-err").textContent = "";
+  const okButton = $("m-ok");
+  okButton.hidden = !run;
+  okButton.textContent = ok;
+  okButton.classList.toggle("neutral", !danger);
+  okButton.disabled = false;
+  $("m-cancel").textContent = run ? "Cancel" : "Close";
+  task = run;
+  modal.classList.add("on");
+  $("m-cancel").focus();
+}
+// Not "close": Orca's embedded browser already defines a global with that name, and redeclaring it stops the whole script.
+const closeDialog = () => { if (!busy) modal.classList.remove("on"); };
+$("m-cancel").onclick = closeDialog;
+modal.onclick = (e) => { if (e.target === modal) closeDialog(); };
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  closeDialog();
+  document.querySelectorAll(".tipwrap:is(:hover,:focus-within)").forEach((t) => t.classList.add("dismissed"));
+});
+// A tooltip closed with Escape comes back after the pointer or focus leaves and returns.
+for (const type of ["pointerleave", "focusout"]) document.addEventListener(type, (e) => e.target.closest?.(".tipwrap")?.classList.remove("dismissed"), true);
+$("m-ok").onclick = async () => {
+  const okButton = $("m-ok");
+  busy = true;
+  okButton.disabled = true;
+  $("m-cancel").disabled = true;
+  const { error } = await task();
+  busy = false;
+  $("m-cancel").disabled = false;
+  if (error) { $("m-err").textContent = error; okButton.disabled = false; return; }
+  closeDialog();
+  refresh(true);
+};
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+const ASK = {
+  "delete": ({ it }) => ({
+    title: `Delete “${it.title}”?`, warn: true, ok: "Delete", danger: true,
+    body: it.kind === "app"
+      ? "The app is stopped if it is running, and its entry leaves the hub."
+      : "This removes the page folder and everything in it: the page, its data, plots, images and videos. It cannot be undone.",
+    extra: it.kind === "app" ? "" : it.folder + "/",
+    run: () => post({ action: "delete", id: it.id })
+  }),
+  "stop": ({ it }) => ({
+    title: `Stop “${it.title}”?`, ok: "Stop",
+    body: it.kind === "app"
+      ? "The app and the processes it started are ended. Start brings it back with the same command."
+      : "The page stops being served. Its files stay; Serve again brings it back at the same address.",
+    run: () => post({ action: "stop", id: it.id })
+  }),
+  "delete-repo": (repo) => ({
+    title: `Delete all ${plural(repo.items.length, "entry", "entries")} of ${repo.name}?`, warn: true, ok: "Delete all", danger: true,
+    body: "Every page folder of this repo is removed and its apps are stopped and unlisted. It cannot be undone.",
+    run: () => post({ action: "delete-repo", repo: repo.name })
+  }),
+  "stop-repo": (repo) => {
+    const n = repo.items.filter(isLive).length;
+    return {
+      title: `Stop all of ${repo.name}?`, ok: "Stop all",
+      body: `${plural(n, "serving or running entry stops", "serving or running entries stop")}. Files stay.`,
+      run: () => post({ action: "stop-repo", repo: repo.name })
+    };
+  }
+};
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; } catch { /* clipboard needs HTTPS or localhost; fall back below */ }
+  const area = document.createElement("textarea");
+  area.value = text;
+  area.style.cssText = "position:fixed;opacity:0";
+  const focused = document.activeElement;
+  document.body.append(area);
+  area.select();
+  try { return document.execCommand("copy"); } catch { return false; } finally {
+    area.remove();
+    focused?.focus({ preventScroll: true });
+  }
+}
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest("button[data-ask], button[data-do], button[data-copy]");
+  if (!b) return;
+  const found = index.get(b.dataset.id);
+  if (pending && !b.dataset.copy) return; // one action at a time, so a late answer never lands on a newer dialog
+  if (b.dataset.ask) {
+    const target = b.dataset.repo ? data.repos.find((r) => r.name === b.dataset.repo) : found;
+    if (target) dialog(ASK[b.dataset.ask](target));
+  } else if (b.dataset.do && found) {
+    working = { id: found.it.id, label: b.dataset.busy };
+    render();
+    const { error, message } = await post({ action: b.dataset.do, id: found.it.id });
+    working = null;
+    raw = ""; // the next good list always redraws, even when it matches the one before the request
+    refresh(true);
+    if (error) dialog({ title: `Could not ${b.dataset.do === "start" ? "start" : "serve"} “${found.it.title}”`, warn: true, body: error });
+    else if (message.includes("not listening yet")) dialog({ title: `“${found.it.title}” is still starting`, body: message });
+  } else if (b.dataset.copy && found) {
+    const text = copyValue(found.it, b.dataset.copy);
+    if (await copyText(text)) {
+      b.innerHTML = ic("check");
+      setTimeout(() => { b.innerHTML = ic("copy"); }, 1200);
+    } else dialog({ title: "Copy it by hand", body: "The browser blocked copying.", extra: text });
+  }
+});
+$("out").addEventListener("toggle", (e) => {
+  const { key, wt } = e.target.dataset ?? {};
+  if (key) { e.target.open ? openGroups.add(key) : openGroups.delete(key); keepSet("hub:open", openGroups); }
+  if (wt) { e.target.open ? collapsed.delete(wt) : collapsed.add(wt); keepSet("hub:collapsed", collapsed); }
+  markCut(); // text in a closed group has no size until the group opens
+}, true);
+
+// ---- toolbar and theme ----
+function pick(selector, attribute, apply) {
+  document.querySelectorAll(selector).forEach((b) => b.onclick = () => {
+    apply(b.dataset[attribute]);
+    document.querySelectorAll(selector).forEach((x) => x.classList.toggle("on", x === b));
+    render();
+  });
+}
+pick("[data-f]", "f", (value) => { filter = value; });
+pick("[data-l]", "l", (value) => { layout = value; store("hub:layout", value); });
+document.querySelectorAll("[data-l]").forEach((b) => b.classList.toggle("on", b.dataset.l === layout));
+// Collapse all and Expand all cover every branch group of every repo, whatever the filter or search shows.
+function foldAll(collapse) {
+  collapsed.clear();
+  if (collapse) for (const repo of data.repos) for (const it of repo.items) collapsed.add(groupKey(repo, it.worktree));
+  keepSet("hub:collapsed", collapsed);
+  render();
+}
+$("collapse-all").onclick = () => foldAll(true);
+$("expand-all").onclick = () => foldAll(false);
+$("query").oninput = (e) => { query = e.target.value.trim().toLowerCase(); render(); };
+const themeKey = "artifact:theme", root = document.documentElement, systemDark = matchMedia("(prefers-color-scheme: dark)");
+const saved = store(themeKey);
+if (saved) root.dataset.theme = saved;
+$("theme").onclick = () => {
+  const dark = (root.dataset.theme || (systemDark.matches ? "dark" : "light")) === "dark";
+  root.dataset.theme = dark ? "light" : "dark";
+  store(themeKey, root.dataset.theme);
+};
+document.querySelectorAll("[data-i]").forEach((s) => s.outerHTML = ic(s.dataset.i));
+
+refresh(true);
+setInterval(refresh, 5000);
+document.addEventListener("visibilitychange", () => refresh());
+</script>
+</body>
+</html>

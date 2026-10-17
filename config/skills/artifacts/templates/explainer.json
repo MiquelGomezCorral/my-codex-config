@@ -1,0 +1,121 @@
+{
+  "eyebrow": "How it works",
+  "title": "How the job queue retries work",
+  "subtitle": "For someone who was not there when it was built.",
+  "sections": [
+    {
+      "id": "tldr",
+      "title": "In short",
+      "blocks": [
+        {
+          "type": "callout",
+          "tone": "info",
+          "title": "TL;DR",
+          "text": "A failed job goes back to the queue with a growing delay, up to five tries, then lands in the dead-letter table."
+        }
+      ]
+    },
+    {
+      "id": "flow",
+      "title": "The flow",
+      "blocks": [
+        {
+          "type": "steps",
+          "items": [
+            {
+              "title": "Enqueue",
+              "text": "API writes the job row"
+            },
+            {
+              "title": "Run",
+              "text": "Worker picks the oldest due job"
+            },
+            {
+              "title": "Retry",
+              "text": "On failure, delay doubles"
+            },
+            {
+              "title": "Dead letter",
+              "text": "After 5 tries, stop and alert"
+            }
+          ]
+        },
+        {
+          "type": "details",
+          "items": [
+            {
+              "title": "Where the delay is computed",
+              "text": "`retry_delay()` in `queue/worker.py` doubles from 30 s, capped at 1 hour."
+            },
+            {
+              "title": "What counts as a failure",
+              "text": "Any exception, or a run longer than the job's timeout."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "architecture",
+      "title": "Where it runs",
+      "layout": "split",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "The API and the workers share one Postgres. The queue is a table, not a separate broker."
+        },
+        {
+          "type": "list",
+          "items": [
+            "Workers poll every 2 s",
+            "Retries never leave the database"
+          ]
+        },
+        {
+          "type": "figure",
+          "src": "architecture.svg",
+          "caption": "The API and the workers meet only at the jobs table.",
+          "source": "architecture.excalidraw"
+        }
+      ]
+    },
+    {
+      "id": "faq",
+      "title": "FAQ",
+      "blocks": [
+        {
+          "type": "details",
+          "items": [
+            {
+              "title": "Can I retry a dead job by hand?",
+              "text": "Yes: `make requeue ID=<job id>`."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "glossary",
+      "title": "Glossary",
+      "blocks": [
+        {
+          "type": "table",
+          "columns": [
+            "Term",
+            "Meaning"
+          ],
+          "rows": [
+            [
+              "Dead letter",
+              "A job that failed every retry and needs a human"
+            ],
+            [
+              "Due",
+              "A job whose next run time has passed"
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

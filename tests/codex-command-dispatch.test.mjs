@@ -19,12 +19,14 @@ function runCommand(home, prompt) {
 test("repository commands load one skill and preserve arguments", () => {
   const home = mkdtempSync(join(tmpdir(), "codex-command-"))
   try {
-    symlinkSync(join(root, "codex/commands"), join(home, "commands"), "dir")
+    symlinkSync(join(root, "config/commands"), join(home, "commands"), "dir")
     for (const [name, skill] of [
-      ["bro", "bro"], ["cleanup", "cleanup"], ["code", "code"], ["commit", "commit"],
-      ["index", "index"], ["init", "init"], ["plan-implementation", "plan-implementation"],
+      ["bro", "bro"], ["cleanup", "cleanup"], ["code", "code"], ["commit", "git"],
+      ["index", "codegraph-setup"], ["init", "project-init"], ["merge", "git"],
+      ["workflow", "workflow"],
+      ["refine-plan", "refine-plan"],
       ["review-findings", "review-findings"], ["review-plan", "review-plan"],
-      ["review-pr-comments", "review-pr-comments"], ["review", "review"],
+      ["review-pr-comments", "git"], ["review", "review"],
     ]) {
       const result = runCommand(home, `/commands/${name} preserve the public API`)
       strictEqual(result.status, 0, result.stderr)
@@ -42,6 +44,12 @@ test("repository commands load one skill and preserve arguments", () => {
     const empty = runCommand(home, "/commands/cleanup")
     strictEqual(empty.status, 0, empty.stderr)
     doesNotMatch(JSON.parse(empty.stdout).hookSpecificOutput.additionalContext, /\(none\)/)
+
+    const combinedGit = runCommand(home, "/commands/commit --push --pr")
+    strictEqual(combinedGit.status, 0, combinedGit.stderr)
+    const gitContext = JSON.parse(combinedGit.stdout).hookSpecificOutput.additionalContext
+    match(gitContext, /\$git/)
+    match(gitContext, /--push --pr/)
 
     const unknown = runCommand(home, "/commands/does-not-exist")
     strictEqual(unknown.status, 0, unknown.stderr)

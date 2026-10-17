@@ -24,8 +24,3 @@ test("explicit adapter returns only generated context", async (t) => {
   match(result.stdout, /Source: CODE\/Git\.md:/)
   deepStrictEqual(result.stderr, "")
 })
-
-test("adapter does not install a prompt hook", () => {
-  const hooks = JSON.stringify({ hooks: {} })
-  strictEqual(hooks.includes("UserPromptSubmit"), false)
-})

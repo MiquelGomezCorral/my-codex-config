@@ -1,0 +1,115 @@
+{
+  "skill_name": "super-agent",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "The active wrapper offers Claude, Codex, and Pi. The user explicitly requests a five-slot plan: one delegated coordinator on Claude, two implementation workers on Codex, and two independent review specialists on Pi. Return each catalog role, harness, model, and thinking; do not execute.",
+      "expected_output": "Keeps the explicit 1/2/2 harness roster. The coordinator is sub_orchestrator on Claude with its role pins. The user's Codex harness overrides the Claude-only coder role, so no exact coder pin exists: it reports the Codex catalog tier it picked, not a role pin. The Pi specialists use swarms on the current-harness entry for Pi. Nothing is launched.",
+      "expectations": [
+        "Preserves every explicit harness assignment and reports the coder-on-Codex slot as a user override, not a coder-role pin",
+        "Takes the Codex model and thinking for the coder slots from a catalog tier and says which tier it chose",
+        "Maps the delegated coordinator to sub_orchestrator and the Pi review specialists to swarms, using the role's Pi entry",
+        "Reports exact model and thinking pins from the catalog",
+        "Keeps review specialists read-only and does not create an implicit branch or worktree",
+        "Uses the active wrapper lifecycle without executing the plan"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I have a two-line typo fix in one file. Should you launch a three-agent swarm? Explain the execution decision in at most five sentences.",
+      "expected_output": "Rejects delegation because the change is small and single-owner.",
+      "expectations": [
+        "Chooses no worker rather than a swarm",
+        "Explains that coordination cost outweighs parallel value",
+        "Does not launch external agents merely because they are available"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "A wrapper-managed read-only review launched from Pi runs three direct-review workers on the reviewer-fast role. The first candidate in the Pi entry fails at launch with an explicit quota-exhausted error. Another candidate remains in that entry, while OpenCode offers a native default. Explain the recovery, roster, and result if the remaining candidate also fails.",
+      "expected_output": "Replaces only the failed worker's model with the next compatible candidate in the Pi entry's order, preserving its role, harness, thinking, and review packet. Rejects the OpenCode default because it is outside the role entry. If the remaining candidate also fails, the Pi low tier holds a model that already failed, so it reports a blocker.",
+      "expectations": [
+        "Does not retry the quota-exhausted candidate",
+        "Replaces only the failed worker",
+        "Preserves the review lens, read-only permission, deliverable, and evidence contract",
+        "Uses the next compatible candidate from the same entry in list order",
+        "Rejects the OpenCode native default and other uncataloged models",
+        "Reports the quota substitution and a blocker when the entry and the low tier offer no unfailed model"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "The current harness is Pi. The user explicitly requests three independent read-only support workers on the medium tier. Return each selected role, tier route and candidate order, local-slot decision, and wrapper or native lifecycle without launching.",
+      "expected_output": "Uses the swarms role for all support slots and honors the explicit medium-tier route on Pi from the catalog tier record, in candidate order. Skips the local medium route because max_local_concurrency is 0 and local_models is not-available, takes the online route, then reports the selected pins and lifecycle.",
+      "expectations": [
+        "Assigns the swarms role to each supporting worker",
+        "Honors the explicitly requested medium tier instead of selecting an unrequested tier, using the Pi catalog tier record",
+        "Uses catalog candidate order as fallback order",
+        "Skips local routes because max_local_concurrency is 0, with no serialization wait",
+        "Reports harness, selected route, and lifecycle without launching"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Run a read-only review with quick and reasoning specialists, coordinated by a delegated worker that will nest them. The user explicitly requests the medium tier for both specialists and leaves their harness unspecified. Explain the roles, harnesses, pins, concurrency, fallback, and lifecycle without launching.",
+      "expected_output": "Uses sub_orchestrator for the nested coordinator with that role's catalog harness, model, and thinking. The specialists are review-swarm specialists, so they use swarms. The user's medium tier replaces the role pins, and the unspecified harness is the coordinator's own (the current harness), so each specialist takes that harness's medium catalog tier. Local routes are skipped because max_local_concurrency is 0. Reports exact pins, fallback, and wrapper lifecycle.",
+      "expectations": [
+        "Assigns the nested coordinator the catalog sub_orchestrator role",
+        "Assigns review-swarm specialists the catalog swarms role, not reviewer-fast",
+        "Takes the specialists' harness from the launching coordinator and their model and thinking from that harness's medium catalog tier",
+        "Keeps the coordinator's role pins separate from the specialists' explicit tier route",
+        "Preserves read-only permissions and the requested review roles",
+        "Skips local routes because max_local_concurrency is 0",
+        "Uses the active wrapper or current harness through super-agent"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "A user explicitly asks to commit two small documentation files with no push. State the Git worker's catalog role, harness, model, and thinking, preserve the requested commit scope and options, and report the required plan path and lifecycle.",
+      "expected_output": "Uses one coder-role worker with the catalog harness, model, and thinking. Preserves the exact commit scope and options, includes the plan path or 'unavailable', and does not push; missing coder-role coverage is a blocker.",
+      "expectations": [
+        "Chooses one coder-role worker",
+        "Includes the coder role's catalog harness, model, and thinking",
+        "Preserves user options, exact file scope, and plan path status",
+        "Reports a blocker when coder-role coverage is missing",
+        "Does not push or publish"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "The current main conversation runs in Pi, while the root super_agent role is configured for Claude. Runtime evidence shows an active wrapper exposing Codex and Pi. The user asks for one implementation worker without naming a harness. Explain root handling, worker selection, lifecycle, and whether a direct one-shot adapter is allowed.",
+      "expected_output": "Does not switch the existing main conversation to the root role's configured harness. The coder role names only Claude, which the wrapper does not expose, so the role has no runnable slot and the answer is a blocker. It does not fall back to Codex, Pi, or a direct one-shot adapter, and it tells the user they can name a harness to override the role.",
+      "expectations": [
+        "Treats super_agent as the role for new root launches only",
+        "Does not replace or authenticate the existing main conversation",
+        "Reports a blocker because the coder role's only harness is not exposed by the wrapper",
+        "Does not substitute Codex or Pi for the coder role without an explicit user override",
+        "Does not silently use a direct one-shot adapter"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "A Pi support worker (Pi is the current harness) needs web research while its local SearXNG service is offline. Explain the provider-specific search route before generic model selection and state whether Codex search or a paid API may be used.",
+      "expected_output": "Keeps the supporting investigation on the swarms role and Pi's configured local SearXNG route, reports the offline service limitation, and does not fall back to Codex search or a paid API.",
+      "expectations": [
+        "Applies Pi local-search protection before generic model routing",
+        "Keeps the SearXNG connector configuration independent of service availability",
+        "Reports the offline service limitation",
+        "Does not use paid search APIs",
+        "Does not delegate search to Codex"
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "A reviewer-fast worker launched from Pi has its first candidate model fail to load. The wrapper offers a native default and another uncataloged model, plus one compatible remaining candidate in the Pi entry of the role. Explain recovery, pin verification, and what happens if that candidate also fails.",
+      "expected_output": "Tries only the next compatible candidate of the Pi entry in catalog order, rejects both uncataloged choices, verifies effective model and thinking when reported, and blocks when the entry and the Pi low tier offer no unfailed model.",
+      "expectations": [
+        "Treats the role entry's candidate list as the closed allowlist for automatic selection",
+        "Tries only a compatible remaining candidate from the same entry in list order",
+        "Rejects the wrapper native default and uncataloged model",
+        "Verifies effective model and thinking when the runtime reports them",
+        "Reports a blocker when the entry and the harness low tier hold no unfailed model"
+      ]
+    }
+  ]
+}

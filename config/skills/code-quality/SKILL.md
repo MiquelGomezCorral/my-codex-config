@@ -1,0 +1,107 @@
+---
+name: code-quality
+description: Apply the shared code-quality standard when writing or reviewing code (any langauge coding, UI, design, frontend, backend, ML...), plus the language or UI reference for the files you touch.
+---
+
+# Code Quality Standard
+
+## Purpose
+
+Writers use this standard before and during implementation. Reviewers use it to assess
+changed behavior and its surrounding design. It supplements, rather than repeats, the
+universal rules in `AGENTS.md`.
+
+Before writing, changing, or reviewing any test, load `test-audit`. It gates every new or
+changed test at write time and audits existing tests that re-assert source, duplicate
+stronger proof, couple behavior to implementation, or keep test-only production seams alive.
+
+## Language references
+
+Read `references/<language>.md` for the language of the file you are about to touch. The
+universal rules apply first; the language reference narrows them for that language.
+
+- [Python](references/python.md)
+- [Python plots](references/python-plots.md): when the Python code draws a plot for a page,
+  notebook, or report
+- [UI](references/ui.md): when the change renders an interface (HTML, CSS, components);
+  design rules for layout, actions, consistency, color and states, plus the `lintapple` check
+
+## Language checks
+
+The repository's own required checks (its pre-commit, lint, type-check, test, or CI
+commands) always apply and must pass. The language reference's checks add to them when the
+project has them configured. The agent that edits code runs both before reporting the work
+done:
+
+1. Run the repository's checks and the reference's fix mode on the task-owned files, fix
+   the code, and run again.
+2. Fix the code, never the rules. Without the user's approval, add no suppression comment,
+   lint configuration change, excluded path, or skipped hook. A fix must keep behavior; when
+   only a behavior change silences a rule, or mocked tests cannot prove the change, stop and
+   ask.
+3. A new failure after a fix is progress; keep going. When the same rule still fails on the
+   same code after three fix attempts, stop and report the rule, `path:line`, the attempts,
+   and why it resists. The user decides whether to skip it.
+4. An approved skip uses the narrowest suppression the reference names, with the reason in
+   the comment.
+
+Read-only stages run the same checks without modifying files (the reference's read-only
+mode and the repository's non-mutating checks) and report failures as findings.
+
+## Choose a solution in this order
+
+Stop at the first option that fully solves the verified problem:
+
+1. Existing project capability.
+2. Standard library.
+3. Native platform feature.
+4. Already-installed dependency.
+5. Existing local abstraction.
+6. Minimum new code.
+
+Do not build custom infrastructure when an existing mechanism owns the behavior.
+
+## Understand ownership before editing
+
+Read the target function, its callers, and the functions it calls. Identify inputs,
+outputs, side effects, ownership boundaries, invariants, validation, and failure cases.
+Find where related policy already lives. Make the smallest component own the requested
+behavior and do not change unrelated code for consistency or speculation.
+
+## Functions and control flow
+
+- Give each function one coherent purpose and keep orchestration separate from transformations
+  and side effects.
+- Keep the normal path visible from top to bottom. Handle invalid inputs early when that
+  reduces nesting, without bypassing required validation or cleanup.
+- Prefer explicit intermediate values and direct loops when they make data flow clearer.
+  Avoid dense expressions, hidden mutation, magic values, and boolean mode switches.
+- Separate queries from commands when practical: returned information should not silently
+  mutate state, and state changes should be visible at the call site.
+
+## Abstractions and interfaces
+
+- Abstract stable concepts with a current consumer and a real boundary; do not abstract
+  code merely because it looks similar.
+- Prefer a little duplication over a generic layer with flags, special cases, or speculative
+  flexibility. Keep interfaces narrow and do not add one only for mocking.
+- Hide necessary complexity behind a small explicit contract. Remove a wrong abstraction
+  from its callers before extracting again around the remaining commonality.
+
+## Naming, comments, and public documentation
+
+- Name functions for observable operations and values for their meaning, role, units, and
+  important distinctions. Avoid vague names and unfamiliar abbreviations.
+- Let structure and naming explain straightforward code. Comments explain rationale,
+  constraints, invariants, external quirks, and non-obvious trade-offs, not narration.
+- Public documentation states purpose, calling contract, inputs, outputs, side effects,
+  and relevant failures without exposing implementation details callers do not need.
+
+## Duplication, concision, and changeability
+
+- Remove duplicated knowledge and policy, not every repeated sequence. Keep one authoritative
+  owner for each rule and do not duplicate validation guaranteed elsewhere.
+- Delete unused code, parameters, branches, wrappers, comments, and compatibility paths.
+  Do not combine meaningful operations merely to reduce lines.
+- Localize policy and decisions so likely changes affect the smallest area. Separate code
+  that changes for different reasons and do not design for hypothetical variants.
