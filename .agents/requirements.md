@@ -1,8 +1,9 @@
 # Requirements
 
 The user's own stated wants for this repository, kept as intent rather than as design.
-Quotes are the user's words. Read this before planning or executing changes here, and
-update it whenever the user states a new want or changes one.
+Quotes are the user's words. Read this before planning or executing changes here. This
+tracked file is now historical: the human-facing agent records new wants and changes in
+private `agent-memory/requirements.md` (see `AGENTS.md`), not here.
 
 Status values: `done`, `partial`, `open`, `deferred`, `rejected`.
 
@@ -25,15 +26,15 @@ Status values: `done`, `partial`, `open`, `deferred`, `rejected`.
 ## Agent management
 
 6. **One delegation skill, named `super-agent`.** Status: `done` —
-   `agent-home/skills/super-agent/`.
+   `config/skills/super-agent/`.
 7. **It holds all delegation insights; other skills only refer to it.** Status: `done` —
    `code`, `cleanup`, `review`, `git`, `writing`, and the rest point at `super-agent`.
 8. **It must not be bloated.** Policy in `SKILL.md`, procedures in `references/`. Status:
    `done`.
 9. **The cheap-model catalog lives inside `super-agent`, and every agent that can handle
    subagents has access to it.** Status: `done` — `references/model-catalog.yaml`;
-   `cleanup-worker`, `coder`, and `review-worker` receive `super-agent` in
-   `bootstrap_pi.sh`.
+   `cleanup-worker`, `coder`, and `review-worker` get `super-agent` as a shared skill (Pi
+   roles now inherit all skills instead of carrying per-role lists).
 10. **Two agent classes, with the root declaring the class to the child.** The root is the
     agent talking to the user; it decides whether to send a subagent or a swarm, and tells
     the child which class it is. A delegated agent may itself run a swarm. Status: `done` —
@@ -47,7 +48,10 @@ Status values: `done`, `partial`, `open`, `deferred`, `rejected`.
     generically, so a future change of environment needs no skill change. Status: `done` —
     `## Active wrapper first`; `super-agent/SKILL.md` contains no vendor name.
 13. **Keep the Orca bridge skills untouched.** `orchestration`, `orca-cli`, and
-    `computer-use` stay as version-matched discovery stubs. Status: `done`.
+    `computer-use` stay as version-matched discovery stubs. Status: `done` — superseded:
+    `orchestration` is now a local lifecycle router with an Orca adapter
+    (`references/orca.md`), and Orca installs its own `orca-cli` and `computer-use`, so the
+    repository no longer ships them.
 14. **Delete `handoff`.** "I think it's useless." Status: `done`.
 15. **Keep learned failures as known errors, not as policy.** The AGY readiness-timeout
     fact lives in `.agents/known-errors.md`. Status: `done`.
@@ -55,7 +59,7 @@ Status values: `done`, `partial`, `open`, `deferred`, `rejected`.
 ## Git
 
 16. **One git skill with references for: commit, push, craft a PR, merge, review PR
-    comments.** Status: `done` — `agent-home/skills/git/` with those five references.
+    comments.** Status: `done` — `config/skills/git/` with those five references.
 17. **Repository-specific git guidelines win over the general ones.** "if we are working on
     repo, and that repo has specific guidelines for git management, those are the ones to
     follow." Status: `done` — `## Repository rules win` is the first section of
@@ -66,9 +70,10 @@ Status values: `done`, `partial`, `open`, `deferred`, `rejected`.
 19. **Push and PR are escalations of a commit, never standalone.** "I will rarely (never)
     ask to push or craft a PR alone, always when commits are needed and then the push and
     pr." Status: `done`.
-20. **`rebase` and `make-pr-easy-to-review` fold in, not kept as separate skills — and the
-    user does not want rebases at all, so no rebase step survives in the merge workflow.**
-    Status: `done`.
+20. **`rebase` and `make-pr-easy-to-review` fold in, not kept as separate skills — and
+    there are no rebases in merge.** The PR rebuild and the final fold are approval-gated
+    exceptions, kept to get clean PR commits. Status: `done` (earlier wording: the user
+    wanted no rebases at all).
 21. **A merge must not lose or break history, and each branch keeps its own commit history
     of the work done only on that branch.** Sync the base into the current feature branch;
     never merge a feature into `main` or `staging`. Status: `done` — `## History integrity`
@@ -85,11 +90,11 @@ Status values: `done`, `partial`, `open`, `deferred`, `rejected`.
 
 24. **Workmux.** "forget about anything about Wormuks, don't even add it back and if you
     see any other reference to it, remove it." Status: `done` — removed from
-    `codex/hooks.json`, `merge`, `rebase`, `config/AGENTS.md`, `README.md`, and memory.
+    `config/codex-hooks.json`, `merge`, `rebase`, `config/AGENTS.md`, `README.md`, and memory.
 25. **The `worktree` skill.** It was too narrow; its rule now lives in
     `super-agent/references/swarm.md` under `## Isolated tasks`. Status: `done`.
 26. **`index` and `init` skills.** Their commands now point at `codegraph-setup` and
-    `agents-memory`. Status: `done`.
+    `project-init`. Status: `done`.
 27. **`commit-push-pr/assets/maintainers.json`.** Dead asset, nothing read it. Status:
     `done`.
 
@@ -101,12 +106,14 @@ Status values: `done`, `partial`, `open`, `deferred`, `rejected`.
 ## Open questions the user still owns
 
 29. **`pi.high` model identifier** in `super-agent/references/model-catalog.yaml`. It
-    currently duplicates `pi.medium`, which fails one test assertion. Needs a real unique
-    identifier, or revert `pi.medium` to `opencode-go/deepseek-v4-flash`. Status: `open`.
-30. **The hardcoded Orca hook path** in `codex/hooks.json`
-    (`/home/turbotowerlnx/.orca/agent-hooks/codex-hook.sh`, 8 occurrences). It violates the
-    repository's no-machine-paths rule and makes `./bootstrap.sh --check` fail. Status:
-    `open` — not authorized to change yet.
+    duplicated `pi.medium`, which failed one test assertion. Status: `done` — resolved: the
+    catalog now holds ordered candidate lists with different thinking levels, and no test
+    requires unique tier model IDs.
+30. **The hardcoded Orca hook path** in the former `codex/hooks.json`
+    (`$HOME/.orca/agent-hooks/codex-hook.sh`, 8 occurrences). It violated the repository's
+    no-machine-paths rule and made `./bootstrap.sh --check` fail. Status: `done` —
+    resolved: `config/codex-hooks.json` now holds only the command-dispatcher hook, which
+    bootstrap merges into `~/.codex/hooks.json`; Orca's hooks are left to Orca.
 31. **Live validation** of `super-agent` and `git` in a real harness session. Status:
     `open` — needs explicit approval because it launches real agent sessions and writes
     commit/push/merge state.
@@ -127,8 +134,8 @@ Status values: `done`, `partial`, `open`, `deferred`, `rejected`.
 35. **Persist the full 100-question voice interview as a repo skill usable by any
     agent.** "persist all this on a skill on this repo"; use agent-neutral wording
     throughout. Status: `done` —
-    `agent-home/skills/writing/references/voice-profile.md` holds the full interview
-    profile inside the `writing` skill.
+    `config/skills/writing/references/voice-interview.md` holds the full interview inside
+    the `writing` skill; `voice-profile.md` is the compressed operating profile (item 72).
 36. **Test the voice skill with a few subagents writing paired samples.** "then
     making a few sub agents write something would go?" and "do it". Status: `done` —
     three with-skill/baseline pairs ran on the same model and their drafts were compared.
@@ -140,25 +147,25 @@ Status values: `done`, `partial`, `open`, `deferred`, `rejected`.
 
 ## Writing
 
-38. **One `writing` skill owns prose, with four references.** `natural-writing.md`,
-    `voice-profile.md`, `academic.md`, and `latex.md`. Status: `done` —
+38. **One `writing` skill owns prose, with five references.** `natural-writing.md`,
+    `voice-profile.md`, `voice-interview.md` (split out later, item 72), `academic.md`, and
+    `latex.md`; originally four. Status: `done` —
     `miquel-voice` and `objective-scholar` are removed, not kept as aliases;
     `objective-scholar`'s rules are folded in as the two academic references.
 39. **No evals are carried over.** Only the voice profile survives from `miquel-voice`.
     Status: `done` — no `evals/` directory exists under
-    `agent-home/skills/writing/`, and neither the upstream `eval.md` nor
+    `config/skills/writing/`, and neither the upstream `eval.md` nor
     `miquel-voice/evals/evals.json` was imported.
 40. **Every agent is instructed to read `natural-writing` and `voice-profile` for any
     prose task; the academic and LaTeX references are opt-in.** Status: `done` — one
-    bullet in `config/AGENTS.md`, `writing` in all eight `bootstrap_pi.sh` skill lists
-    with `['writing']` as the fallback, and `## Read these two first` in
-    `writing/SKILL.md`.
+    bullet in `config/AGENTS.md`, `writing` inherited by Pi roles (no per-role skill
+    lists), and `## Read these two first` in `writing/SKILL.md`.
 41. **Attribution for imported rules lives in `README.md` only, never inside a skill
     file.** Status: `done` — the `### Attribution` subsection of the README's skills
     section.
 42. **`core` is deleted and every remaining reference to it is removed.** Status:
-    `done` — `bootstrap.sh`, `bootstrap_pi.sh`, `config/AGENTS.md`, and the tests.
-    `codex/config.toml`'s `inherit = "core"` stays: it is a shell-environment-policy
+    `done` — `bootstrap_codex.sh`, `bootstrap_pi.sh`, `config/AGENTS.md`, and the tests.
+    `config/codex.toml`'s `inherit = "core"` stays: it is a shell-environment-policy
     value, not the deleted skill.
 43. **The `$miquel-voice` and `$objective-scholar` triggers disappear; both become
     `$writing`.** Status: `done`.
@@ -195,7 +202,7 @@ Status values: `done`, `partial`, `open`, `deferred`, `rejected`.
 48. **Land the goal with the human before coding.** Record the current and desired behavior,
     scope and exclusions, evidence and sources, environment and test method, and useful
     diagrams or mockups. Verify facts; ask the human to decide preferences and tradeoffs.
-    Status: `done` — authored in `agent-home/skills/workflow/` and the planning references;
+    Status: `done` — authored in `config/skills/workflow/` and the planning references;
     live use is pending.
 49. **Get an independent proposal without code or the preferred solution, then challenge
     the plan adversarially.** Check source claims and bug evidence, allow one rebuttal, and
@@ -235,20 +242,22 @@ Status values: `done`, `partial`, `open`, `deferred`, `rejected`.
     `done` — authored; timed live trial is pending.
 57. **Install OpenClaw's `test-audit` skill for coders, reviewers, and cleanup.** "It works
     for the coders and the reviewrs, for the clean up." Status: `done` —
-    `agent-home/skills/test-audit/` holds the adapted skill plus
+    `config/skills/test-audit/` holds the adapted skill plus
     `references/campaign.md`. Its value bar, junk patterns, retention bar, candidate
     evidence, edit shape, and eight campaign phases are kept; its OpenClaw-specific skill
     names (`$openclaw-testing`, `$crabbox`, `$autoreview`, `$openclaw-pr-maintainer`),
     Vitest scripts, and PR flow are replaced with this repository's own test commands and
-    the `git` skill. `test-audit` is wired into `coder`, `cleanup-worker`,
-    `coding-supervisor`, `live-validator`, `review-worker`, and all four `reviewer-*` roles;
-    `git-worker` is deliberately excluded. Provenance is recorded in the README
-    attribution block (MIT, OpenClaw Foundation).
+    the `git` skill. Eight role files name `test-audit`: `coder`, `cleanup-worker`,
+    `review-worker`, `live-validator`, and the four `reviewer-*` roles.
+    `code-quality/SKILL.md` requires loading it whenever tests are written, changed, or
+    reviewed, so every role that loads `code-quality` reaches it. Provenance is recorded in
+    the README attribution block (MIT, OpenClaw Foundation).
 58. **Prefer catalog-selected Pi reviewers under Orca, keep full-preset live validation on
     Codex, and honor explicit AGY/Pi reviewer rosters exactly.** Pin Pi through Orca's
     supervised custom-terminal route and report the effective model when the runtime exposes
     it. Status: `partial` — policy and contract checks are authored; a supervised live Pi
-    smoke test remains pending.
+    smoke test remains pending. Superseded 2026-10-16: `reviewer-fast` and swarms run on the
+    current harness's cheap model.
 59. **Let the human-facing super-agent advance routine stages.** "The things that are just
     one after the other ... is the super agent who does that." The progress template must
     show the current gate and next action; pause for human decisions or blockers. Status:
@@ -263,7 +272,8 @@ Status values: `done`, `partial`, `open`, `deferred`, `rejected`.
 62. **State default reviewer harness and model tier, then select the exact model from the
     catalog.** Preserve explicit user routes; Pi is the default reviewer harness under
     Orca and Codex owns full-preset live validation. Status: `done` — review routing now
-    names tiers and consults the catalog; live Pi routing remains unverified.
+    names tiers and consults the catalog; live Pi routing remains unverified. Superseded
+    2026-10-16: `reviewer-fast` and swarms run on the current harness's cheap model.
 63. **For small slices, the super-agent babysits the coder; for large slices, a read-only
     sub-orchestrator babysits one coder and coordinates review.** Status: `done` — routing
     and supervisor instructions updated; live use pending.
@@ -297,7 +307,7 @@ Status values: `done`, `partial`, `open`, `deferred`, `rejected`.
     the original body. Status: `done` — verified identical by diff and checksum.
 70. **Make the `code-quality` standard mandatory for code work.** One bullet in
     `config/AGENTS.md` plus `code-quality` granted to the roles that write, review, or
-    validate code, with `bootstrap.sh` requiring the skill. No PreToolUse hook: the policy
+    validate code, with `bootstrap_codex.sh` requiring the skill. No PreToolUse hook: the policy
     bullet and the role grants are the fix, and a hook is a separate decision. Status:
     `done` — wired and covered by tests; live use pending.
 71. **Keep the engineering principles in `config/AGENTS.md`.** They stay always loaded and
@@ -323,7 +333,7 @@ Status values: `done`, `partial`, `open`, `deferred`, `rejected`.
 74. **One skill scouts, vets, and installs skills, with `skillspector` folded in.** "I want
     to make a skill searcher… the skillspector will get folded inside that searcher bc after
     a skill is cloned on a repo, it must get verified." Status: `done` —
-    `agent-home/skills/skill-scout/` replaces `skillspector` and `find-skills`. Its
+    `config/skills/skill-scout/` replaces `skillspector` and `find-skills`. Its
     `references/vetting.md` absorbs the static scan, the manual review of matched lines, and
     the false-positive discipline, and adds a reachability check.
 75. **Keep a catalog of known project-agnostic skills.** "After you add skills for any
@@ -343,13 +353,13 @@ Status values: `done`, `partial`, `open`, `deferred`, `rejected`.
     decide" and the non-negotiables in `skill-scout/SKILL.md`.
 78. **`skill-scout` carries the measured base rate for skills.** SWE-Skills-Bench (arXiv
     2603.15401: 39 of 49 skills gave zero pass-rate improvement, mean +1.2%, overhead up to
-    +451%), SkillsBench (arXiv 2605.31408: curated skills help inconsistently, self-generated
+    +451%), SkillsBench (arXiv 2602.12670: curated skills help inconsistently, self-generated
     skills gave no benefit), and the 34,000-skill loading study reported by The Decoder (16%
     load rate in the hardest setting). Status: `done` — `references/evidence.md`, paraphrased
     in `SKILL.md` as "the default answer to a candidate is no".
 79. **Merge `btca-first` and `btca-cli` into one `btca` skill.** They already cross-referenced
     each other, which was the tell that one concern had been split in two. Status: `done` —
-    one `agent-home/skills/btca/SKILL.md` holding the scope, the ask workflow, the
+    one `config/skills/btca/SKILL.md` holding the scope, the ask workflow, the
     missing-resource rule, and the administration section. Consumers re-pointed:
     `grill-me`, `workflow/references/planning.md`, `review/references/effect-checks.md`.
 80. **State BTCA's real scope, and do not make it always-first.** "regarding the caveats that

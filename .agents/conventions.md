@@ -7,8 +7,8 @@ JSON, and skill frontmatter. Keep patches narrow and preserve unrelated source c
 
 ## Naming
 
-Use lowercase hyphenated skill and Codex agent names. Keep skills under
-`agent-home/skills`, policy under `config`, and custom agents under `codex/agents`.
+Use lowercase hyphenated skill and agent names. Keep skills under `config/skills`, agents
+under `config/agents`, and policy under `config`.
 
 ## Portability and Security
 

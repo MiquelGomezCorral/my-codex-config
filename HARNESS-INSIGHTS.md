@@ -3,6 +3,9 @@
 Audit notes and recommendations, 2026-10-03. These are proposals for the repository
 pivot, not an approved implementation plan.
 
+> Dated snapshot (2026-10-03), superseded: the Claude bootstrap exists, Pi inherits skills
+> and context, and all four harnesses share the same three MCP servers. See `README.md`.
+
 ## Repository direction
 
 - Use `my-harness-config` in documentation. Preserve the current source layout,

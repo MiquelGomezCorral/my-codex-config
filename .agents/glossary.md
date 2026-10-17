@@ -11,10 +11,11 @@
 - Wrapper: a proven active orchestration runtime that owns worker launch and lifecycle.
 - Super agent: the root or delegated agent that owns delegation for its subtree and loads
   `super-agent`.
-- Harness: an agent runtime, such as Codex, Pi, or AGY, available directly or through a
+- Harness: an agent runtime, such as Codex, Claude Code, Pi, or AGY, available directly or through a
   wrapper.
-- Preset: one catalog strength label: `low`, `medium`, `high`, or `local`.
-- Capability tier: the minimum preset strength a task or local model can satisfy.
+- Preset: a review shape: `flash`, `swarm`, `swarm-smart`, or `full`.
+- Tier: a catalog capability label: `low`, `medium`, `high`, or `local`.
+- Capability tier: the minimum tier strength a task or local model can satisfy.
 - Local route: a catalog model executed on the current machine and subject to the shared
   local concurrency limit.
 - Direct adapter: a documented one-shot command for an explicitly requested harness when
