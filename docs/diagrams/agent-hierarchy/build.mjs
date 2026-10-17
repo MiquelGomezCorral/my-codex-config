@@ -2,6 +2,22 @@
 //   node build.mjs > agent-hierarchy.excalidraw
 //   excalidraw render agent-hierarchy.excalidraw --max-width 8000 --max-height 8000 --scale 1.5 \
 //     --out ../../../workflow-diagrams/Agent-Hierarchy.png
+// The full poster is too wide for a README column, so each view below is its own readable panel:
+//   for v in tree-planning tree-build tree-finish rules workflow; do
+//     node build.mjs $v > /tmp/$v.excalidraw
+//     excalidraw render /tmp/$v.excalidraw --max-width 8000 --max-height 8000 --scale 1.5 \
+//       --out ../../../workflow-diagrams/Agent-$v.png
+//   done
+const view = process.argv[2] ?? "full";
+const treeKids = {
+  "tree-planning": ["Code-blind proposer", "Researchers", "diagram-worker", "critic ×2"],
+  "tree-build": ["coding-supervisor"],
+  "tree-finish": ["cleanup-worker", "Closure check", "git-worker"],
+};
+const panelName = { "tree-planning": "planning side", "tree-build": "building a slice", "tree-finish": "cleanup and Git" };
+const showTree = view === "full" || view in treeKids;
+const showRules = view === "full" || view === "rules";
+const showFlow = view === "full" || view === "workflow";
 let n = 0;
 const els = [];
 const base = () => ({
@@ -94,27 +110,29 @@ const cardH = (node, w = BW) => {
 const N = (k, t, m, b, kids = [], edge = "", dashed = false) => ({ k, t, m, b, kids, edge, dashed });
 const tree = N("human", "Human", "the person", "Decides, approves the wave and its live tests, accepts the result, authorizes shipping", [
   N("root", "Root coordinator", "super_agent · Opus 5.5 · xhigh", "The agent you talk to. Plans with you, alone holds private memory, launches every worker through super-agent, never edits product code. Also presents the result and closes the wave.", [
-    N("plan", "Code-blind proposer", "swarms · Pi flash", "Gets only problem facts, never the code, and proposes a fix on its own", [], "delegate"),
-    N("plan", "Researchers", "swarms · Pi flash", "Read-only research: sources, code facts, bug-evidence checks", [], "delegate"),
-    N("diagram", "diagram-worker", "coder · Opus 5.5", "Draws planning diagrams and mockups, only inside one assigned folder", [], "delegate"),
-    N("critic", "critic ×2", "adversarial · GPT-6.1 Sol + Fable 5.1", "Two independent read-only critiques of the plan, one pass each", [], "$review-plan"),
+    N("plan", "Code-blind proposer", "swarms · cheap model\non the current harness", "Gets only problem facts, never the code, and proposes a fix on its own", [], "delegate"),
+    N("plan", "Researchers", "swarms · cheap model\non the current harness", "Read-only research: sources, code facts, bug-evidence checks", [], "delegate"),
+    N("diagram", "diagram-worker", "coder · Sonnet 5.5", "Draws planning diagrams and mockups, only inside one assigned folder", [], "delegate"),
+    N("critic", "critic ×2", "adversarial · GPT-6.1 Sol\n+ Fable 5.1", "Two independent read-only critiques of the plan, one pass each", [], "$review-plan"),
     N("sup", "coding-supervisor", "sub_orchestrator · Opus 5.5", "Large slices only; for small ones the root does this job. Read-only: narrows the slice, directs one coder, runs review, routes verified fixes", [
-      N("coder", "coder", "coder · Opus 5.5", "The only writer in a slice. Implements the plan, then applies accepted fixes", [], "retained"),
+      N("coder", "coder", "coder · Sonnet 5.5", "The only writer in a slice. Implements the plan, then applies accepted fixes", [], "retained"),
       N("review", "review-worker", "sub_orchestrator · Opus 5.5", "Swarm review lead: picks lenses, verifies and dedupes. The flash preset uses one reviewer-quick instead", [
-        N("review", "Lens specialists", "swarms · Pi flash", "reviewer-quick, -reasoning, -arch, -e2e: only the lenses the diff needs", [], "lenses"),
+        N("review", "Lens specialists", "swarms · cheap model\non the current harness", "reviewer-quick, -reasoning, -arch, -e2e: only the lenses the diff needs", [], "lenses"),
         N("review", "Strong reviewers 1-2", "reviewer-high · Sol / Opus", "Review the whole change; two when it touches security, data or contracts", [], "1-2 slots"),
       ], "$review"),
-      N("review", "Verifier", "reviewer-fast · Pi flash", "A fresh review-worker that re-checks every finding against the source", [], "swarm-smart, full", true),
-      N("live", "live-validator ×N", "reviewer-fast · via Codex", "Runs the approved live tests on the real app and reports evidence", [], "full preset", true),
+      N("review", "Verifier", "reviewer-fast · cheap model\non the current harness", "A fresh review-worker that re-checks every finding against the source", [], "swarm-smart, full", true),
+      N("live", "live-validator ×N", "reviewer-fast · cheap model\non the current harness", "Runs the approved live tests on the real app and reports evidence", [], "full preset", true),
     ], "large slice", true),
     N("cleanup", "cleanup-worker", "sub_orchestrator · Opus 5.5", "Read-only deslop audit of the slice diff. Findings only; the root accepts or rejects each", [
-      N("cleanup", "Cleanup lenses ≥2", "swarms · Pi flash", "Dead code, duplication, indirection, test value", [], "lenses"),
+      N("cleanup", "Cleanup lenses ≥2", "swarms · cheap model\non the current harness", "Dead code, duplication, indirection, test value", [], "lenses"),
       N("cleanup", "Simplest-design 1-2", "reviewer-high · Sol / Opus", "Sketch the simplest design first, then flag what the diff adds beyond it", [], "1-2 slots"),
     ], "$cleanup"),
     N("cleanup", "Closure check", "reviewer-high · 1 slot", "Confirms accepted simplifications landed and nothing new crept in", [], "after fixes"),
-    N("git", "git-worker", "coder · Opus 5.5", "Checkpoint commit before cleanup; after you accept: final commit, push, PR", [], "$git"),
+    N("git", "git-worker", "coder · Sonnet 5.5", "Checkpoint commit before cleanup; after you accept: final commit, push, PR", [], "$git"),
   ], "chat"),
 ]);
+
+if (view in treeKids) tree.kids[0].kids = tree.kids[0].kids.filter((c) => treeKids[view].includes(c.t));
 
 const HG = 28, VG = 110, X0 = 0, Y0 = 260;
 let nextX = X0;
@@ -152,105 +170,115 @@ const draw = (node, depth) => {
   }
 };
 
-text(X0, 0, "The agent tree: who starts whom, and what each one does", 40);
-text(X0, 58, "Read from config/agents/*.toml, super-agent's model-catalog.yaml and the workflow skill on branch consolidate-agent-skills, 2026-10-08.", 18, { color: "#868e96" });
-text(X0, 92, "Each card: name · catalog role · model · job. The arrow label says what starts the child.", 18, { color: "#868e96" });
-arrow([[X0, 140], [X0 + 70, 140]], { endArrowhead: null, strokeColor: "#343a40" });
-text(X0 + 82, 128, "Always runs in its stage", 16);
-arrow([[X0 + 320, 140], [X0 + 390, 140]], { endArrowhead: null, strokeColor: "#868e96", strokeStyle: "dashed" });
-text(X0 + 402, 128, "Only when the slice size or review preset calls for it", 16);
-drawLegend(X0, 176);
-draw(tree, 0);
+if (showTree) {
+  text(X0, 0, `The agent tree${panelName[view] ? `, ${panelName[view]}` : ""}: who starts whom, and what each one does`, 40);
+  text(X0, 58, "Read from config/agents/*.toml, super-agent's model-catalog.yaml and the workflow skill on branch consolidate-agent-skills, 2026-10-16.", 18, { color: "#868e96" });
+  text(X0, 92, "Each card: name · catalog role · model · job. The arrow label says what starts the child. Models checked against model-catalog.yaml 2026-10-16.", 18, { color: "#868e96" });
+  arrow([[X0, 140], [X0 + 70, 140]], { endArrowhead: null, strokeColor: "#343a40" });
+  text(X0 + 82, 128, "Always runs in its stage", 16);
+  arrow([[X0 + 320, 140], [X0 + 390, 140]], { endArrowhead: null, strokeColor: "#868e96", strokeStyle: "dashed" });
+  text(X0 + 402, 128, "Only when the slice size or review preset calls for it", 16);
+  drawLegend(X0, 176);
+  draw(tree, 0);
+}
 
 // Whole-tree rules and the write/start table, under the tree
-let by = levelY.at(-1) + levelH.at(-1) + 90;
-text(X0, by, "Rules for the whole tree", 28);
-const rules = [
-  "One writer per slice: only the coder edits product code. diagram-worker and git-worker write only in their own lane.",
-  "Every launch goes through super-agent: stage → catalog role → exact harness, model and thinking. No harness defaults.",
-  "Nesting needs the parent's Delegation grant; a child never widens its own budget. A missing grant means forbidden.",
-  "Workers get the plan, never private memory. Each report ends with \"Memory candidates\" for the root to save.",
-  "A slot that can't run is skipped and reported as reduced coverage. Only a role with no runnable slot blocks the stage.",
-  "Retained workers live only inside their loop; a fresh session starts each new stage or slice.",
-];
-rules.forEach((r, i) => { rect(X0, by + 52 + i * 30, 12, 12, { strokeWidth: 1.5 }); text(X0 + 24, by + 46 + i * 30, r, 17); });
+const by = view === "full" ? levelY.at(-1) + levelH.at(-1) + 90 : 0;
+let page1Bottom = 0, page1W = 0;
+if (showRules) {
+  text(X0, by, "Rules for the whole tree", 28);
+  const rules = [
+    "One writer per slice: only the coder edits product code. diagram-worker and git-worker write only in their own lane.",
+    "Every launch goes through super-agent: stage → catalog role → exact harness, model and thinking. No harness defaults.",
+    "Nesting needs the parent's Delegation grant; a child never widens its own budget. A missing grant means forbidden.",
+    "Workers get the plan, never private memory. Each report ends with \"Memory candidates\" for the root to save.",
+    "A slot that can't run is skipped and reported as reduced coverage. Only a role with no runnable slot blocks the stage.",
+    "Retained workers live only inside their loop; a fresh session starts each new stage or slice.",
+  ];
+  rules.forEach((r, i) => { rect(X0, by + 52 + i * 30, 12, 12, { strokeWidth: 1.5 }); text(X0 + 24, by + 46 + i * 30, r, 17); });
 
-const tx = X0 + 1250;
-text(tx, by, "Who may write, and who may start workers", 28);
-const rows = [
-  ["Agent", "Writes", "Starts workers"],
-  ["Root coordinator", "plans and private memory only", "yes: everything, via super-agent"],
-  ["coding-supervisor", "nothing", "one retained coder, plus review"],
-  ["coder", "product code inside the slice", "no"],
-  ["review-worker", "nothing", "lens specialists + strong reviewers"],
-  ["cleanup-worker", "nothing", "cleanup lenses + simplest-design"],
-  ["git-worker", "commits, push, PR the plan allows", "no"],
-  ["diagram-worker", "one assigned output folder", "no"],
-  ["live-validator", "its own test data only", "no"],
-  ["critics, reviewers, researchers", "nothing", "no"],
-];
-const colX = [0, 330, 720];
-rows.forEach((r, i) => {
-  const y = by + 50 + i * 32;
-  r.forEach((cell, j) => text(tx + colX[j], y, cell, i ? 16 : 14, { color: i ? "#1e1e1e" : "#868e96", font: SANS }));
-  arrow([[tx, y + 27], [tx + 1080, y + 27]], { endArrowhead: null, strokeWidth: 1, strokeColor: i ? "#dee2e6" : "#495057" });
-});
-const page1Bottom = by + 50 + rows.length * 32 + 40;
-const page1W = Math.max(treeW, tx + 1080 - X0);
-rect(X0 - 50, -50, page1W + 100, page1Bottom + 50 + 50, { strokeWidth: 1, strokeColor: "#ced4da" });
+  const tx = view === "full" ? X0 + 1250 : X0;  // the rules panel stacks the table under the rules
+  const ty = view === "full" ? by : by + 300;
+  text(tx, ty, "Who may write, and who may start workers", 28);
+  const rows = [
+    ["Agent", "Writes", "Starts workers"],
+    ["Root coordinator", "plans and private memory only", "yes: everything, via super-agent"],
+    ["coding-supervisor", "nothing", "one retained coder, plus review"],
+    ["coder", "product code inside the slice", "no"],
+    ["review-worker", "nothing", "lens specialists + strong reviewers"],
+    ["cleanup-worker", "nothing", "cleanup lenses + simplest-design"],
+    ["git-worker", "commits, push, PR the plan allows", "no"],
+    ["diagram-worker", "one assigned output folder", "no"],
+    ["live-validator", "its own test data only", "no"],
+    ["critics, reviewers, researchers", "nothing", "no"],
+  ];
+  const colX = [0, 330, 720];
+  rows.forEach((r, i) => {
+    const y = ty + 50 + i * 32;
+    r.forEach((cell, j) => text(tx + colX[j], y, cell, i ? 16 : 14, { color: i ? "#1e1e1e" : "#868e96", font: SANS }));
+    arrow([[tx, y + 27], [tx + 1080, y + 27]], { endArrowhead: null, strokeWidth: 1, strokeColor: i ? "#dee2e6" : "#495057" });
+  });
+  page1Bottom = ty + 50 + rows.length * 32 + 40;
+  if (view === "full") {
+    page1W = Math.max(treeW, tx + 1080 - X0);
+    rect(X0 - 50, -50, page1W + 100, page1Bottom + 50 + 50, { strokeWidth: 1, strokeColor: "#ced4da" });
+  }
+}
 
 // ---------- Page 2: the workflow for one slice ----------
-const WX = X0 + page1W + 160, SW = 430, NOTE_X = WX + 200 + SW + 30, NOTE_W = 760;
-text(WX, 0, "The workflow, step by step", 40);
-text(WX, 58, "Top to bottom. The colour of a step says who acts. Numbers are the workflow skill's stages.", 18, { color: "#868e96" });
-text(WX, 92, "Left-side arrows are loops back to the coder.", 18, { color: "#868e96" });
-const steps = [
-  ["sec", "Plan the wave"],
-  ["root", "1", "Root drafts the problem", "Current vs desired behaviour, scope, evidence and how each change will be live-tested. Facts first, then grills you on real decisions.", ["Code-blind proposer", "Researchers"]],
-  ["root", "2", "Root and you shape the plan", "A candidate wave: slices, dependencies, checks, review depth, live tests and their bounds.", ["diagram-worker"]],
-  ["critic", "3", "Two critics attack the plan", "Independent, read-only, one pass each. The planner gets one rebuttal, then $refine-plan writes the final plan.", ["$review-plan", "critic ×2", "$refine-plan"]],
-  ["human", "3", "You approve the wave", "Nothing is coded before this. The approval also covers each slice's live test set.", []],
-  ["sec", "Each slice"],
-  ["sup", "4", "Slice narrowed to today's code", "Root for small slices, coding-supervisor for large ones. New live tests run once on the base and must fail there.", ["coding-supervisor"]],
-  ["coder", "5", "Coder implements", "One retained writer. Runs only the plan's checks; live testing waits for the review round.", ["coder"]],
-  ["review", "5", "Review + live tests, every round", "Verified P0-P3 findings go back to the coder. Two failed rounds on the same problem, or a test still impossible after 3, goes to you.", ["$review --preset", "review-worker", "Verifier", "live-validator"]],
-  ["git", "6", "Checkpoint commit", "Records a hash so cleanup can compare the whole slice from its base.", ["$git", "git-worker"]],
-  ["cleanup", "6", "Cleanup audit", "Findings only. Accepted ones go back through step 5, then one closure check confirms them.", ["$cleanup", "cleanup-worker", "Closure check"]],
-  ["human", "7", "You accept the result", "Root shows the real result, evidence, checks and gaps. Feedback loops back to the coder.", []],
-  ["git", "8", "Ship", "Final commit, push and PR: only what the plan authorizes, only this slice's commits.", ["$git", "git-worker"]],
-  ["sec", "After the last slice"],
-  ["root", "9", "Close the wave", "Rerun every slice's live tests on the final head; record unfinished work and lessons.", []],
-];
-let sy = 150;
-const at = {};
-for (const s of steps) {
-  if (s[0] === "sec") { sy += 30; text(WX, sy, s[1], 28); sy += 60; continue; }
-  const [k, num, title, note, chips] = s;
-  const [stroke, bg] = C[k];
-  const h = 64;
-  const sx = WX + 200;
-  rect(sx, sy, SW, h, { strokeColor: stroke, backgroundColor: bg, strokeWidth: k === "human" ? 3 : 2 });
-  text(sx + 16, sy + 22, num, 17, { font: MONO, color: stroke });
-  text(sx + 48, sy + 20, title, 20);
-  const nt = wrap(note, 15, SANS, NOTE_W);
-  const nh = text(NOTE_X, sy + 2, nt, 15).h;
-  let cx = NOTE_X;
-  chips.forEach((c) => { cx += chip(cx, sy + nh + 10, c, c.startsWith("$") ? { stroke: "#9c36b5", bg: "#f3d9fa" } : {}) + 8; });
-  at[title] = { x: sx, y: sy, h };
-  const next = sy + Math.max(h, nh + (chips.length ? 44 : 0)) + 34;
-  if (steps[steps.indexOf(s) + 1]?.[0] !== "sec" && steps.indexOf(s) < steps.length - 1)
-    arrow([[sx + SW / 2, sy + h], [sx + SW / 2, next]], { strokeColor: "#343a40" });
-  sy = next;
+const WX = view === "full" ? X0 + page1W + 160 : X0, SW = 430, NOTE_X = WX + 200 + SW + 30, NOTE_W = 760;
+if (showFlow) {
+  text(WX, 0, "The workflow, step by step", 40);
+  text(WX, 58, "Top to bottom. The colour of a step says who acts. Numbers are the workflow skill's stages.", 18, { color: "#868e96" });
+  text(WX, 92, "Left-side arrows are loops back to the coder.", 18, { color: "#868e96" });
+  const steps = [
+    ["sec", "Plan the wave"],
+    ["root", "1", "Root drafts the problem", "Current vs desired behaviour, scope, evidence and how each change will be live-tested. Facts first, then grills you on real decisions.", ["Code-blind proposer", "Researchers"]],
+    ["root", "2", "Root and you shape the plan", "A candidate wave: slices, dependencies, checks, review depth, live tests and their bounds.", ["diagram-worker"]],
+    ["critic", "3", "Two critics attack the plan", "Independent, read-only, one pass each. The planner gets one rebuttal, then $refine-plan writes the final plan.", ["$review-plan", "critic ×2", "$refine-plan"]],
+    ["human", "3", "You approve the wave", "Nothing is coded before this. The approval also covers each slice's live test set.", []],
+    ["sec", "Each slice"],
+    ["sup", "4", "Slice narrowed to today's code", "Root for small slices, coding-supervisor for large ones. New live tests run once on the base and must fail there.", ["coding-supervisor"]],
+    ["coder", "5", "Coder implements", "One retained writer. Runs only the plan's checks; live testing waits for the review round.", ["coder"]],
+    ["review", "5", "Review + live tests, every round", "Verified P0-P3 findings go back to the coder. Two failed rounds on the same problem, or a test still impossible after 3, goes to you.", ["$review --preset", "review-worker", "Verifier", "live-validator"]],
+    ["git", "6", "Checkpoint commit", "Records a hash so cleanup can compare the whole slice from its base.", ["$git", "git-worker"]],
+    ["cleanup", "6", "Cleanup audit", "Findings only. Accepted ones go back through step 5, then one closure check confirms them.", ["$cleanup", "cleanup-worker", "Closure check"]],
+    ["human", "7", "You accept the result", "Root shows the real result, evidence, checks and gaps. Feedback loops back to the coder.", []],
+    ["git", "8", "Ship", "Final commit, push and PR: only what the plan authorizes, only this slice's commits.", ["$git", "git-worker"]],
+    ["sec", "After the last slice"],
+    ["root", "9", "Close the wave", "Rerun every slice's live tests on the final head; record unfinished work and lessons.", []],
+  ];
+  let sy = 150;
+  const at = {};
+  for (const s of steps) {
+    if (s[0] === "sec") { sy += 30; text(WX, sy, s[1], 28); sy += 60; continue; }
+    const [k, num, title, note, chips] = s;
+    const [stroke, bg] = C[k];
+    const h = 64;
+    const sx = WX + 200;
+    rect(sx, sy, SW, h, { strokeColor: stroke, backgroundColor: bg, strokeWidth: k === "human" ? 3 : 2 });
+    text(sx + 16, sy + 22, num, 17, { font: MONO, color: stroke });
+    text(sx + 48, sy + 20, title, 20);
+    const nt = wrap(note, 15, SANS, NOTE_W);
+    const nh = text(NOTE_X, sy + 2, nt, 15).h;
+    let cx = NOTE_X;
+    chips.forEach((c) => { cx += chip(cx, sy + nh + 10, c, c.startsWith("$") ? { stroke: "#9c36b5", bg: "#f3d9fa" } : {}) + 8; });
+    at[title] = { x: sx, y: sy, h };
+    const next = sy + Math.max(h, nh + (chips.length ? 44 : 0)) + 34;
+    if (steps[steps.indexOf(s) + 1]?.[0] !== "sec" && steps.indexOf(s) < steps.length - 1)
+      arrow([[sx + SW / 2, sy + h], [sx + SW / 2, next]], { strokeColor: "#343a40" });
+    sy = next;
+  }
+  const coder = at["Coder implements"];
+  [["Review + live tests, every round", 90, "fix round"], ["Cleanup audit", 150, "accepted cleanup"], ["You accept the result", 210, "feedback"]]
+    .forEach(([from, off, label]) => {
+      const f = at[from], lx = coder.x - off;
+      arrow([[f.x, f.y + f.h / 2], [lx, f.y + f.h / 2], [lx, coder.y + coder.h / 2], [coder.x, coder.y + coder.h / 2]],
+        { strokeColor: "#d9480f", strokeStyle: "dashed", strokeWidth: 2 });
+      text(f.x - measure(label, 12, MONO).w - 8, f.y + f.h / 2 - 20, label, 12, { font: MONO, color: "#d9480f" });
+    });
+  rect(WX - 50, -50, NOTE_X + NOTE_W - WX + 100, Math.max(sy, page1Bottom) + 100, { strokeWidth: 1, strokeColor: "#ced4da" });
 }
-const coder = at["Coder implements"];
-[["Review + live tests, every round", 90, "fix round"], ["Cleanup audit", 150, "accepted cleanup"], ["You accept the result", 210, "feedback"]]
-  .forEach(([from, off, label]) => {
-    const f = at[from], lx = coder.x - off;
-    arrow([[f.x, f.y + f.h / 2], [lx, f.y + f.h / 2], [lx, coder.y + coder.h / 2], [coder.x, coder.y + coder.h / 2]],
-      { strokeColor: "#d9480f", strokeStyle: "dashed", strokeWidth: 2 });
-    text(f.x - measure(label, 12, MONO).w - 8, f.y + f.h / 2 - 20, label, 12, { font: MONO, color: "#d9480f" });
-  });
-rect(WX - 50, -50, NOTE_X + NOTE_W - WX + 100, Math.max(sy, page1Bottom) + 100, { strokeWidth: 1, strokeColor: "#ced4da" });
 
 console.log(JSON.stringify({ type: "excalidraw", version: 2, source: "https://excalidraw.com",
   elements: els, appState: { viewBackgroundColor: "#ffffff", gridSize: null }, files: {} }));
