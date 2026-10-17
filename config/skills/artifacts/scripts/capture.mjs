@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Capture evidence of a running page: a PNG screenshot or a short video.
+// Capture evidence of a running page: a PNG screenshot, a short video or a PDF.
 // Headless Chrome records the page over the DevTools protocol; ffmpeg joins video frames.
 import { execFileSync, spawn } from "node:child_process"
 import { once } from "node:events"
@@ -9,12 +9,18 @@ import { delimiter, dirname, extname, join, resolve } from "node:path"
 import { parseArgs } from "node:util"
 
 const usage = "usage: node capture.mjs <url> --screenshot <file.png> [--width <px>]\n"
-  + "       node capture.mjs <url> --video <file.webm> [--seconds <n>] [--width <px>]"
+  + "       node capture.mjs <url> --video <file.webm> [--seconds <n>] [--width <px>]\n"
+  + "       node capture.mjs <url> --pdf <file.pdf>\n"
+  + "       add --theme light|dark to any mode to set the page's colour scheme"
 const VIEWPORT = { width: 1280, height: 720 }
 const CHROME_NAMES = ["google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "chrome"]
 const TIMEOUT_MS = 30_000
 const CHROME_STOP_GRACE_MS = 5_000
 const MAX_SECONDS = 120
+const THEMES = ["light", "dark"]
+const A4_INCHES = { width: 8.27, height: 11.69 }
+const GRAPH_SETTLE_MS = 1_500
+const FRAME_REDRAW_MS = 300
 
 async function withTimeout(promise, milliseconds, message) {
   let timer
@@ -122,7 +128,7 @@ async function connect(endpoint) {
   }
 
   return {
-    send: (method, params = {}, sessionId = undefined) => {
+    send: (method, params = {}, sessionId = undefined, timeoutMs = TIMEOUT_MS) => {
       if (failure) return Promise.reject(failure)
       lastId += 1
       const id = lastId
@@ -130,7 +136,7 @@ async function connect(endpoint) {
         pending.set(id, { resolveCall, reject })
         socket.send(JSON.stringify({ id, method, params, sessionId }))
       })
-      return withTimeout(reply, TIMEOUT_MS, `Chrome did not answer ${method}`)
+      return withTimeout(reply, timeoutMs, `Chrome did not answer ${method}`)
         .finally(() => pending.delete(id))
     },
     on: (method, listener) => listeners.set(method, listener),
@@ -139,13 +145,17 @@ async function connect(endpoint) {
   }
 }
 
+const colorSchemeFeatures = (theme) => theme ? [{ name: "prefers-color-scheme", value: theme }] : []
+
 // The emulated width is what the page lays out at; Chrome's --window-size cannot go below 500 px.
-async function openPage(cdp, url, width) {
+async function openPage(cdp, url, width, theme) {
   const { targetId } = await cdp.send("Target.createTarget", { url: "about:blank" })
   const { sessionId } = await cdp.send("Target.attachToTarget", { targetId, flatten: true })
-  const send = (method, params) => cdp.send(method, params, sessionId)
+  const send = (method, params, timeoutMs) => cdp.send(method, params, sessionId, timeoutMs)
   await send("Page.enable")
   await send("Emulation.setDeviceMetricsOverride", { ...VIEWPORT, width, deviceScaleFactor: 1, mobile: false })
+  // A fresh profile has no saved page theme, so the emulated system scheme decides.
+  if (theme) await send("Emulation.setEmulatedMedia", { features: colorSchemeFeatures(theme) })
 
   const loaded = cdp.once("Page.loadEventFired")
   const { errorText } = await send("Page.navigate", { url })
@@ -156,6 +166,71 @@ async function openPage(cdp, url, width) {
 
 async function saveScreenshot(send, file) {
   const { data } = await send("Page.captureScreenshot", { format: "png" })
+  writeFileSync(file, Buffer.from(data, "base64"))
+}
+
+// Chrome prints a frame's own page background only when that page asks for exact colours, so a dark graph would
+// print on white. The frames run in their own targets: once they load, each one is asked for exact colours.
+const FRAME_PRINT_COLORS = `document.head.insertAdjacentHTML("beforeend", "<style>html{print-color-adjust:exact}</style>")`
+
+// Collects the frame targets as they attach; the returned function styles the ones that are still alive.
+async function watchFrames(cdp, send) {
+  const sessions = []
+  cdp.on("Target.attachedToTarget", ({ sessionId, targetInfo }) => {
+    if (targetInfo.type === "iframe") sessions.push(sessionId)
+  })
+  await send("Target.setAutoAttach", { autoAttach: true, waitForDebuggerOnStart: false, flatten: true })
+  return () => Promise.allSettled(sessions.map((id) => cdp.send("Runtime.evaluate", { expression: FRAME_PRINT_COLORS }, id)))
+}
+
+// Opens every row, then reloads each frame and waits for it: a frame that already loaded does not fire
+// `load` again, and a lazy one off screen has not started.
+async function loadEverything(cdp, send) {
+  const styleFrames = await watchFrames(cdp, send)
+  const wait = send("Runtime.evaluate", {
+    awaitPromise: true,
+    expression: `(() => {
+      document.querySelectorAll("details").forEach((d) => { d.open = true; });
+      const loaded = [...document.querySelectorAll("iframe")].map((frame) => new Promise((resolve) => {
+        frame.addEventListener("load", resolve, { once: true });
+        frame.loading = "eager";
+        frame.src = frame.src;
+      }));
+      return Promise.all(loaded).then(() => undefined);
+    })()`,
+  })
+  await withTimeout(wait, TIMEOUT_MS, "the page's frames did not finish loading")
+  await styleFrames()
+}
+
+// Canvas graphs go blank when the page switches to print media and only redraw a moment later, and a frame off screen
+// does not redraw at all. Scrolling each frame into view lets every graph redraw before Chrome prints. The page keeps
+// its desktop layout (the window is wider than its 1060px): the page's own @page sizes the paper to fit that layout.
+async function layOutForPaper(send, theme) {
+  await send("Emulation.setEmulatedMedia", { media: "print", features: colorSchemeFeatures(theme) })
+  await new Promise((resolveWait) => setTimeout(resolveWait, GRAPH_SETTLE_MS))
+  const { result } = await send("Runtime.evaluate", { expression: `document.querySelectorAll("iframe").length`, returnByValue: true })
+  // One pause per frame, so the call may outlast the usual cap on a page with many frames.
+  await send("Runtime.evaluate", {
+    awaitPromise: true,
+    expression: `(async () => {
+      for (const frame of document.querySelectorAll("iframe")) {
+        frame.scrollIntoView({ block: "center" });
+        await new Promise((resolve) => setTimeout(resolve, ${FRAME_REDRAW_MS}));
+      }
+      scrollTo(0, 0);
+    })()`,
+  }, result.value * FRAME_REDRAW_MS + TIMEOUT_MS)
+}
+
+// The page owns its paper: `preferCSSPageSize` takes the sheet size and margins from its @page. A4 is only the fallback
+// for a page that sets none.
+async function savePdf(send, file, theme) {
+  await layOutForPaper(send, theme)
+  const { data } = await send("Page.printToPDF", {
+    printBackground: true, displayHeaderFooter: false, preferCSSPageSize: true,
+    paperWidth: A4_INCHES.width, paperHeight: A4_INCHES.height,
+  })
   writeFileSync(file, Buffer.from(data, "base64"))
 }
 
@@ -204,25 +279,31 @@ function parseOptions(argv) {
       screenshot: { type: "string" },
       video: { type: "string" },
       seconds: { type: "string", default: "5" },
-      width: { type: "string", default: String(VIEWPORT.width) },
+      width: { type: "string" },
+      pdf: { type: "string" },
+      theme: { type: "string" },
     },
   })
   const [url] = positionals
   if (positionals.length !== 1 || !/^https?:\/\//i.test(url)) throw new Error(`need one http or https URL\n${usage}`)
-  if (Boolean(values.screenshot) === Boolean(values.video)) throw new Error(`pass exactly one of --screenshot and --video\n${usage}`)
+  const modes = ["screenshot", "video", "pdf"].filter((mode) => values[mode])
+  if (modes.length !== 1) throw new Error(`pass exactly one of --screenshot, --video and --pdf\n${usage}`)
 
-  const output = resolve(values.screenshot ?? values.video)
-  const extension = values.screenshot ? ".png" : ".webm"
+  const [mode] = modes
+  const output = resolve(values[mode])
+  const extension = { screenshot: ".png", video: ".webm", pdf: ".pdf" }[mode]
   if (extname(output) !== extension) throw new Error(`output must end in ${extension}`)
   const seconds = Number(values.seconds)
   if (!(seconds > 0 && seconds <= MAX_SECONDS)) throw new Error(`--seconds must be between 0 and ${MAX_SECONDS}`)
-  const width = Number(values.width)
-  if (!Number.isInteger(width) || width < 1) throw new Error("--width must be a whole number of pixels")
-  return { url, output, video: Boolean(values.video), seconds, width }
+  const width = values.width === undefined ? undefined : Number(values.width)
+  if (width !== undefined && (!Number.isInteger(width) || width < 1)) throw new Error("--width must be a whole number of pixels")
+  if (mode === "pdf" && width !== undefined) console.error("capture: --width is ignored with --pdf: the page sets its own paper")
+  if (values.theme !== undefined && !THEMES.includes(values.theme)) throw new Error(`--theme must be ${THEMES.join(" or ")}`)
+  return { url, output, mode, seconds, width: mode === "pdf" ? undefined : width, theme: values.theme }
 }
 
 async function main() {
-  const { url, output, video, seconds, width } = parseOptions(process.argv.slice(2))
+  const { url, output, mode, seconds, width, theme } = parseOptions(process.argv.slice(2))
   const chromePath = findChrome()
   mkdirSync(dirname(output), { recursive: true })
   const work = mkdtempSync(join(tmpdir(), "capture-"))
@@ -233,11 +314,14 @@ async function main() {
     chrome = launched.chrome
     const endpoint = await withTimeout(launched.endpoint, TIMEOUT_MS, "Chrome did not start in time")
     cdp = await connect(endpoint)
-    const send = await openPage(cdp, url, width)
-    if (video) {
+    const send = await openPage(cdp, url, width ?? VIEWPORT.width, theme)
+    if (mode === "video") {
       const framesDirectory = join(work, "frames")
       mkdirSync(framesDirectory)
       encodeVideo(await recordFrames(cdp, send, seconds, framesDirectory), join(work, "frames.txt"), output)
+    } else if (mode === "pdf") {
+      await loadEverything(cdp, send)
+      await savePdf(send, output, theme)
     } else {
       await saveScreenshot(send, output)
     }

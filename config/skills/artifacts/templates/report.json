@@ -1,7 +1,7 @@
 {
   "eyebrow": "Audit · 2026-10-06",
   "title": "Login flow audit",
-  "subtitle": "Six checks against the expected behavior; two need attention.",
+  "subtitle": "Four checks against the expected behavior; two need attention.",
   "statuses": {
     "ok": {
       "label": "As expected",

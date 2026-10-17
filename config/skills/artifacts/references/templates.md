@@ -24,12 +24,18 @@ use any block.
 
 - **Lead with plain words.** The plain-first rule at the top of SKILL.md applies to every
   page; each entry below says where its two layers go.
+- **Keep chips to a word or two.** This covers a card's `status`, table cells, and matrix
+  chips: a short adjective, a verdict, or a score with its seed. The detail goes in the card's
+  `text` or `inset`, in the row's own cells, or in the chip's `title` (hover, focus, and tap
+  text). A card status over 24 characters gets hover text and is cut with an ellipsis at 16em; table and
+  matrix chips are not cut and stretch their column instead.
 - **Put an `id` on sections, findings, and decisions.** Ids keep section links and change
   marks stable when a title changes. Without one, a renamed title reads as one removed item
   plus one added.
 - **Fold long reference sections.** Every section folds on its heading. Set
   `collapsed: true` on one the reader rarely needs open, such as a long gallery or raw data;
   it still opens by itself when it changed, from a link to it, or with "Show only changes".
+  The sticky bar's "Collapse all" and "Expand all" buttons fold every section at once.
 - **Add new blocks at the end of a section.** Blocks match by position, so one inserted in
   the middle marks every block after it as changed.
 - **Keep table rows distinct.** A row has no `id`: its key is all its cell text, so a row
@@ -495,12 +501,14 @@ To add a Lucide icon the catalog lacks:
   together, not in sequence, take `"ordered": false`. A flow with branches or loops goes in
   a diagram.
 - **Use the terms the glossary defines.** Define a term once; do not rename it later.
-- **Three or more sections add a nav bar.** Section `id`s keep its links stable across
-  renames.
+- **Three or more sections add a Contents button.** It sits at the top left and opens a side
+  index of the sections and their block headings, closed by default. The same list also sits under
+  the subtitle with a reading time per section, and it is the one that prints. Section `id`s keep
+  its links stable across renames.
 
 ## slides.json
 
-The URL hash holds the slide number, so a link can open a given slide.
+The URL hash holds the slide's position counted from 0, so the title slide is `#0` and `#3` opens the fourth slide (counter "4 / 5"); a link can open a given slide.
 
 **Ships**
 - **A title slide** from `title`, `eyebrow`, and `subtitle`.
@@ -555,7 +563,7 @@ The URL hash holds the slide number, so a link can open a given slide.
 - **Set `layout: "slides"` at the top level.** Without it the sections stack as a page.
 - **A slide that overflows the screen scrolls.** Cut it, or put the long table in a report.
 - **Slide titles carry the point.** "Results update within one minute" beats "Update".
-- **The nav bar and "Show only changes" are off in slides.** A revision still lists its
+- **The Contents index and "Show only changes" are off in slides.** A revision still lists its
   changes at the top of the first slide.
 
 ## plan-review.json
@@ -566,3 +574,30 @@ fields, and the writing rules are in [plan-page.md](plan-page.md); start from
 
 **Pitfalls**
 - **Do not pass the brief to `fill.py`.** It has no `sections`, so the page shows only the title.
+
+## Markdown export
+
+One converter in `page.html` turns the data into Markdown for "Export Markdown", "Export zip",
+"Copy Markdown" and `fill.py --markdown`. File mode keeps paths and uses `<details>` rows; plain
+mode (Copy Markdown) has no paths and no HTML tags. A block `heading` becomes `###` above the
+block, one level deeper inside a row or inset. Collapsed sections are included.
+
+| Block | Markdown, in file mode (plain mode where it differs) |
+| --- | --- |
+| page | `# title`, then eyebrow and subtitle on one line; each section `## title`, its intro, its blocks |
+| `text` | The paragraphs as written (plain: `<u>` dropped, links to relative files become text) |
+| `callout` | Blockquote; first line is the tone and title in bold |
+| `list` | Nested bullet list, numbered when `ordered` |
+| `stats` | Table of Value and Label |
+| `cards` | `###` title, status in italics, text, inset as a blockquote |
+| `table` | Table; a chip is its text plus `(tone)`; the tick box is dropped; `\|` escaped; line breaks `<br>` (plain: a space) |
+| `matrix` | One table per group, the group title in bold above it; chips in a cell joined by ` / ` |
+| `steps` | Numbered list (bullets when `ordered: false`), title in bold |
+| `details` | `<details><summary>title</summary>`, body, `</details>` (plain: title in bold, body as a blockquote) |
+| `inset` | Blockquote around the converted blocks |
+| `findings` | `###` id, title and status label; `**label:** text` lines; quotes as blockquotes ending with their source |
+| `compare` | Table of options by criteria, then each option's pros and cons; the recommended option in bold |
+| `decisions` | `###` id and title, description, question, options (recommended marked), why; the reader's saved pick and note |
+| `code` | Fenced block, the fence longer than any backticks inside |
+| `figure`, gallery item | `![caption](src)`; an `.html` frame is `> [interactive figure: ...]`; a gallery item is a bullet, its fold-out nested under it (plain: `[figure: caption]`) |
+| `html` | `> [HTML block, not included in Markdown]` (plain: `[figure]`) |

@@ -67,5 +67,5 @@ them; never paste SVG markup. An unknown name stops the render and lists the val
 
 Branching flows and larger diagrams can use the existing `diagram-design` skill, and
 free-form or Excalidraw drawings `excalidraw-draw`. Follow
-[the workflow diagram guide](diagrams.md), keep labels readable, and include editable
+[the workflow diagram guide](../../workflow/references/diagrams.md), keep labels readable, and include editable
 sources where available.

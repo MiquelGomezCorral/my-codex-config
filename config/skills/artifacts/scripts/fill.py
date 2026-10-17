@@ -2,17 +2,23 @@
 """Write a self-contained artifact page from a JSON data file.
 
 Usage: python3 fill.py <data.json | -> <output.html> [--keep-baseline]
+       python3 fill.py --markdown <data.json | -> <output.md>
 
 Copies the skill's page.html, replaces its data block with the JSON (read from stdin for `-`),
 and copies in the icon catalog from icons.json. The page
 already at the output path counts as the version the user last saw: its data becomes
 `previous`, `version` goes up by one, and the page marks what changed. `--keep-baseline`
 re-renders without moving the baseline, for fixes made before the user sees the new version.
+
+`--markdown` writes the page's content as a Markdown file instead. The text comes from the converter
+script in page.html, run with Node, so it matches the page's "Export Markdown" button, except that it
+has no saved decision picks.
 """
 
 import argparse
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -21,6 +27,13 @@ PAGE = SKILL / "page.html"
 ICONS = SKILL / "icons.json"
 DATA_BLOCK = re.compile(r'(<script type="application/json" id="data">\n)(.*?)(\n</script>)', re.S)
 ICONS_BLOCK = re.compile(r'(<script type="application/json" id="icons">\n)(.*?)(\n</script>)', re.S)
+CONVERTER_BLOCK = re.compile(r'<script id="markdown-converter">\n(.*?)\n</script>', re.S)
+# Node runs the converter against the data on stdin and prints the Markdown.
+MARKDOWN_RUNNER = """
+let json = "";
+process.stdin.on("data", (chunk) => { json += chunk; });
+process.stdin.on("end", () => process.stdout.write(pageToMarkdown(JSON.parse(json))));
+"""
 HISTORY_KEYS = ("version", "previous")
 
 
@@ -92,18 +105,64 @@ def fill_block(page: str, block: re.Pattern, value: dict) -> str:
     return page
 
 
+def page_to_markdown(data: dict) -> str:
+    """Return the Markdown of a page's data, made by the converter script inside page.html.
+
+    Raises:
+        SystemExit: Node is missing, the converter is not in page.html, or it failed.
+    """
+    found = CONVERTER_BLOCK.search(PAGE.read_text(encoding="utf-8"))
+    if not found:
+        raise SystemExit(f"markdown converter script not found in {PAGE}")
+    try:
+        result = subprocess.run(
+            ["node", "-e", found[1] + MARKDOWN_RUNNER],
+            input=json.dumps(data), capture_output=True, text=True, encoding="utf-8",
+        )
+    except FileNotFoundError:
+        raise SystemExit("--markdown needs Node.js (the `node` command), which was not found") from None
+    if result.returncode:
+        raise SystemExit(f"markdown conversion failed:\n{result.stderr.strip()}")
+    return result.stdout
+
+
+def write_file(path: Path, text: str):
+    """Swap a finished file in: a reload during a plain write reads an empty or partial file.
+
+    The temp file sits beside the resolved path, so a symlinked path keeps its link, and a
+    failed write leaves nothing.
+    """
+    output = path.resolve()
+    output.parent.mkdir(parents=True, exist_ok=True)
+    temp = output.with_name(f".{output.name}.tmp")
+    try:
+        temp.write_text(text, encoding="utf-8")
+        temp.replace(output)
+    finally:
+        temp.unlink(missing_ok=True)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("data", help="JSON data file, usually started from templates/, or - for stdin")
-    parser.add_argument("output", type=Path, help="HTML file to write")
+    parser.add_argument("output", type=Path, help="HTML file to write, or the Markdown file with --markdown")
     parser.add_argument(
         "--keep-baseline",
         action="store_true",
         help="re-render without making the page now at the output path the new baseline",
     )
+    parser.add_argument(
+        "--markdown",
+        action="store_true",
+        help="write the page's content as Markdown instead of an HTML page (needs node)",
+    )
     args = parser.parse_args()
 
     source = sys.stdin.read() if args.data == "-" else Path(args.data).read_text(encoding="utf-8")
+    if args.markdown:
+        write_file(args.output, page_to_markdown(without_history(json.loads(source))))
+        print(args.output)
+        return
     data = with_history(json.loads(source), read_embedded_data(args.output), args.keep_baseline)
     icons = json.loads(ICONS.read_text(encoding="utf-8"))
     for name in sorted(unknown_icons(data, icons)):
@@ -116,17 +175,8 @@ def main():
     page = fill_block(PAGE.read_text(encoding="utf-8"), ICONS_BLOCK, icons)
     page = fill_block(page, DATA_BLOCK, data)
 
-    # Swap a finished file in: a reload during a plain write reads an empty or partial page, and a
-    # page cut off before its last script never starts its auto-refresh. The temp file sits beside
-    # the resolved output, so a symlinked output keeps its link, and a failed write leaves nothing.
-    output = args.output.resolve()
-    output.parent.mkdir(parents=True, exist_ok=True)
-    temp = output.with_name(f".{output.name}.tmp")
-    try:
-        temp.write_text(page, encoding="utf-8")
-        temp.replace(output)
-    finally:
-        temp.unlink(missing_ok=True)
+    # A page cut off before its last script never starts its auto-refresh, so it is swapped in whole.
+    write_file(args.output, page)
     print(args.output)
 
 
