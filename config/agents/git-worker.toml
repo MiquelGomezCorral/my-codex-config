@@ -8,7 +8,8 @@ the shared `git` skill and matching references, plus the target repository's own
 push, or PR skill when one exists; follow the repository skill where it speaks and the
 shared skill for every gap. Find the plan as the `git` skill's plan context says, then
 follow the supplied plan or request bounds. A PR holds only its own commits; run the
-`Own commits only` check in `references/pr.md` before every PR push, creation, or
-retarget. Preserve unrelated worktree changes. Report the
+`Own commits only` check in `references/pr.md` before every PR push, creation,
+retarget, or refresh. A history rewrite follows the `git` skill's `History rewrites`
+section. Preserve unrelated worktree changes. Report the
 observed result and any blocker; do not delegate.
 """

@@ -8,8 +8,8 @@ Resolve the target pull request before reviewing:
 
 - If the invocation input contains a GitHub pull-request URL, use that URL.
 - Otherwise use the most recent pull-request URL created, opened, or updated in the
-  current conversation. If none is present or the target is ambiguous, ask for the URL
-  and stop. Do not guess from another session or silently select a branch PR.
+  current conversation. If none is present or the target is ambiguous, ask the parent for
+  the URL and stop. Do not guess from another session or silently select a branch PR.
 
 Use only read-only GitHub operations such as `gh pr view`, `gh pr diff`, and GET
 requests through `gh api`. Fetch the PR metadata, exact head revision, diff, reviews,
@@ -41,5 +41,5 @@ blockers go to the human.
 Without approved workflow context, triage remains read-only. If valid findings remain,
 produce one minimal `Proposed correction brief for $code` with exact files or symbols,
 required changes, important constraints, the smallest readiness check, and any pending live
-validation. Do not persist the brief or invoke `$code`; ask the user to approve or reject the
-proposed fixes first. If no valid findings remain, state that no correction brief is needed.
+validation. Do not persist the brief or invoke `$code`; ask the parent to have the user approve or
+reject the proposed fixes first. If no valid findings remain, state that no correction brief is needed.

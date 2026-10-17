@@ -5,9 +5,16 @@ checked out; never switch to the base and merge the feature into it. Merging pre
 branches' commits exactly as they are; this workflow never rebases.
 
 Base branch resolution: an explicit branch argument is the base branch; otherwise the base
-branch is the local branch of the feature's PR target when the feature backs a PR, and local
-`main` when it does not. Merging any other base into a PR branch adds foreign commits. Do not
-fetch.
+branch is the local branch of the feature's PR target when the feature backs a PR, and the
+repository's default branch when it does not (`AGENTS.md` `## Git`, else
+`git symbolic-ref refs/remotes/<remote>/HEAD`; if neither resolves, ask the parent). Merging any other base into a PR branch adds
+foreign commits. Do not fetch for the merge itself; the read-only fetch in the `Own commits
+only` check is the one exception.
+
+When the feature backs a PR, run the `Own commits only` check in `pr.md` first. If the branch
+carries foreign commits, stop before merging and route to the `pr.md` rebuild: a merge commit
+in that range blocks the rebuild. Merge only after the rebuild, or when the human accepts the
+foreign commits.
 
 If `git status --porcelain` reports staged, unstaged, or untracked changes, commit them
 through `commit.md` only when the accepted plan or direct request also names that commit.
@@ -64,7 +71,7 @@ git diff <base-branch>...<feature-branch> --stat    # inspect the feature-only c
 If the ancestry check fails or the base-only log is non-empty, stop and report it. Confirm
 the diff contains only the feature work; do not clean up or push. A merge does not remove
 commits from a squash-merged or rebased predecessor. When `git log <base>..<feature>`
-still lists foreign commits, only report them; removing them is a separate, authorized PR
-action under `pr.md`'s `Own commits only` rule, never part of a merge turn.
+still lists foreign commits, only report them and stop; the rebuild is a separate,
+authorized PR action under `pr.md`'s `Own commits only` rule, never part of a merge turn.
 
 Do not push. Report the merge result, including the three verification outputs.

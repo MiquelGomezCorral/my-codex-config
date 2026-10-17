@@ -41,6 +41,7 @@ Types:
 |------|---------|
 | `feat` | New functionality |
 | `fix` | Bug fix |
+| `perf` | Performance improvement |
 | `docs` | Documentation only |
 | `style` | Formatting / whitespace (no logic change) |
 | `refactor` | Code change without behavior change |
@@ -92,8 +93,22 @@ revision.
    both counts match, and the merge list is empty. Otherwise do not fold; report the failed
    check so the parent can offer a new commit on top.
 2. Stage only the fix's paths, commit it with `git commit --fixup=<owning-sha>`, and
-   record the new `HEAD`.
-3. Fold it: `GIT_SEQUENCE_EDITOR=true git rebase -i --autosquash <wave-base>`. On a
-   conflict or stop, run `git rebase --abort`, never `git rebase --skip`, and report it.
-4. Verify `git diff --quiet <recorded-head> HEAD`: folding moves the fix into its owning
-   commit and never changes the final tree. Report the rewritten commit hashes.
+   record the new `HEAD` as `<old-head>`, a literal hash. Create the backup ref the skill's
+   `History rewrites` section describes.
+3. Fold it: `GIT_SEQUENCE_EDITOR=true git rebase -i --autosquash --no-update-refs
+   <wave-base>`. On a conflict or stop, run `git rebase --abort`, never `git rebase
+   --skip`, and report it.
+4. Verify:
+
+   ```sh
+   git diff --quiet <old-head> HEAD                       # same tree: folding never changes it
+   git rev-list --count <wave-base>..HEAD                 # old count minus one: the fixup is gone
+   git range-diff <wave-base>..<old-head> <wave-base>..HEAD   # readable record, see below
+   ```
+
+   Tree equality and the count are the gates. In the range-diff, every commit except the
+   owning one shows `=`. The owning commit shows `!` or a `<`/`>` pair, and the `fixup!`
+   commit shows as one `<` line.
+
+   Stop on any mismatch: report the old head, the backup ref, and what differed, and ask
+   the parent. Otherwise report the rewritten commit hashes.

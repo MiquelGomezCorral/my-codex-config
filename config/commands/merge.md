@@ -1,5 +1,5 @@
 ---
-description: Commit, rebase, and merge the current branch
+description: Merge the base branch into the current feature branch
 skill: git
 ---
 

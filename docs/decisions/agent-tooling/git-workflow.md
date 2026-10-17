@@ -36,8 +36,12 @@ triage have one owner per fact without losing the repository's own rules.
 - All five actions run through one `git-worker` role via `super-agent`; each Git turn loads
   the `git` skill and the matching reference. The role file names the skill and boundaries
   without duplicating the Git rules.
-- Procedures live in `references/` and load on demand; non-negotiable safety rules stay in
-  `SKILL.md`.
+- Procedures live in `references/`, each with the safety rules for its action, and every
+  action loads its reference. `SKILL.md` keeps the rules that apply to all of them: never
+  bypass or disable a repository gate, and one history-rewrite protocol for the two allowed
+  rebases.
+- When a PR still carries foreign commits, the merge stops and routes to the PR rebuild
+  first, because a merge commit in the range would block the rebuild afterwards.
 - Merging synchronizes a base branch into the current feature branch, never the feature
   branch into protected `main` or `staging`. It preserves existing commits and never
   rebases, squashes, or force-pushes.
@@ -69,6 +73,12 @@ triage have one owner per fact without losing the repository's own rules.
 - Repository git conventions override this skill's defaults, including any hook, check, or
   protected-branch requirement the repository adds.
 - A PR holds only its own commits unless the human accepts foreign ones.
+- Merges never rebase. A rebase runs in exactly two places: the `Own commits only` PR rebuild,
+  when the plan names it or the human approves it, and folding final-gate feedback into an
+  unpushed earlier commit, which needs the human's approval each time. Both keep a backup ref,
+  run with `--no-update-refs`, verify the commit count and a tree comparison (with `range-diff`
+  as the readable record), push with `--force-with-lease=<ref>:<sha>`, and stop and ask on any
+  mismatch.
 - No hook bypass, and no destructive git action without explicit approval.
 - Push, branch creation, and pull-request work must be named with exact bounds in the
   accepted plan or an explicit later user request; no second permission prompt is needed.
@@ -86,14 +96,16 @@ Seven overlapping git skills duplicated the conflict-resolution protocol, the
 rebase-onto-local-base rule, the hook-bypass prohibition, explicit-path staging, the
 push-only-when-asked rule, secret avoidance, and the Conventional Commit types across up to
 three places each. Consolidating to one skill with focused references gives each fact one
-owner, keeps non-negotiable safety rules always loaded, and pays only a small on-demand read
+owner, keeps each action's safety rules in the reference that action always loads, and pays only a small on-demand read
 cost for the procedures. Folding the standalone rebase and PR-preparation skills into the
 merge and PR references removes entry points the user never invokes directly. The merge
 workflow deliberately does not rebase: rebasing replaces a branch's own commits with new
 identities, which conflicts with preserving branch history, and the fetch-and-rebase target
 resolution it required is gone with it.
 
-A PR rebuild is the one place a rebase is allowed. Merging cannot remove a squash-merged or
+The user wants clean commits on every PR and has seen rebases break branches, so rebasing
+stays out of merges and is limited to two approval-gated rewrites: the PR rebuild below and
+the final-only fold recorded in the agentic-workflow record. Merging cannot remove a squash-merged or
 rebased predecessor's commits, so stacked child PRs kept showing other PRs' work. Rebuilding
 with `rebase --onto` gives the PR's own commits new identities, which is accepted for a clean
 PR. It runs only when the range holds exactly the own commits and no merge commits, and only
@@ -117,6 +129,8 @@ is never overwritten.
 
 ## History
 
+- 2026-10-16: Recorded the final-only fold as the second approval-gated rebase beside the PR
+  rebuild, with the same backup, `range-diff`, tree and lease checks; merges still never rebase.
 - 2026-10-08: A PR holds only its own commits unless the human accepts foreign ones. Added
   the `Own commits only` check and a guarded `rebase --onto` rebuild with
   `--force-with-lease`, after agent PRs kept predecessor commits once those were

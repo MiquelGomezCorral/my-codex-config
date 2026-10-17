@@ -64,11 +64,30 @@ plan is available or `Plan path: unavailable` otherwise. Also pass the repositor
 conventions already in private memory, such as the PR template path or template index and
 the repository's shipping skill, or `Git conventions: none recorded`.
 
-Preserve the existing explicit `--no-delegation` override for commits. Otherwise, do not
-run `merge` or `review-pr-comments` inline.
+`--no-delegation` makes the receiving agent run the `commit` itself with no worker, plus any
+`--push` or `--pr` that comes with it. It applies to `commit` only; never run `merge` or
+`review-pr-comments` inline.
 
 When workflow context is present, pass its exact plan path, slice, scope, exclusions, and
 named Git authorization bounds to the worker. Do not synthesize or widen authorization.
+
+## History rewrites
+
+Git work never rebases, and `merge` never rewrites history. Two rewrites are allowed: the PR rebuild under `pr.md`'s `Own commits only`, only when the accepted plan
+names it or the human approves it, and the fold in `commit.md`, only with the human's
+approval each time. Both follow this protocol:
+
+1. Before: record the old head as a literal hash and keep it reachable with a backup ref,
+   `git update-ref refs/agent-backup/<branch>-<old-head-short> <old-head>`.
+2. Rebase with `--no-update-refs`, so no other branch moves. Never `git rebase --skip`; on a
+   conflict or stop, `git rebase --abort`.
+3. After: the tree check and the commit count in the owning reference pass, and its
+   `git range-diff` matches the shape that reference describes.
+4. Push a pushed branch only with `--force-with-lease=<branch>:<pushed-sha>
+   --force-if-includes`, never plain `--force`.
+5. On any mismatch, stop. Do not push; report the old head, the backup ref, and what
+   differed, and ask the parent. Restore with `git reset --hard <backup-ref>` only when
+   the parent asks.
 
 ## Plan context
 

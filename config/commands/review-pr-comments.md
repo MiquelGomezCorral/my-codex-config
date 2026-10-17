@@ -1,5 +1,5 @@
 ---
-description: Assess Greptile PR comments and plan valid fixes
+description: Assess PR review comments and plan valid fixes
 skill: git
 ---
 

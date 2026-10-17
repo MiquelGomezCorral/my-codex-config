@@ -78,27 +78,33 @@ git rev-parse <push-remote>/<branch>                      # note this hash as <p
 git merge-base --is-ancestor <push-remote>/<branch> HEAD  # must succeed
 ```
 
-Note the old head (`git rev-parse HEAD`) and own count (`git rev-list --count
-<old-base>..HEAD`) as literal values in the report, not shell variables, then rebuild:
+Note the old head (`git rev-parse HEAD`), its tree (`git rev-parse HEAD^{tree}`), and the own
+count (`git rev-list --count <old-base>..HEAD`) as literal values in the report, not shell
+variables. Create the backup ref the skill's `History rewrites` section describes, then
+rebuild:
 
 ```bash
-git rebase --onto <remote>/<target> <old-base>
+git rebase --no-update-refs --onto <remote>/<target> <old-base>
 git rev-list --count <remote>/<target>..HEAD               # must equal the own count
 git range-diff <old-base>..<old-head> <remote>/<target>..HEAD   # every line must be `=`
 ```
 
 `range-diff` exits 0 even when a commit is missing, so read every line: a `<`, `>`, or `!`
-means a commit was lost, added, or changed. On a rebase conflict or stop, run
-`git rebase --abort`; never `git rebase --skip`, which drops an own commit. When the count
-or `range-diff` fails after the rebase finished, do not push. Either way, report the old
-head hash and what failed, and ask the parent.
+means a commit was lost, added, or changed. Then compare the content. When the target did
+not move under the own commits, `git rev-parse HEAD^{tree}` must equal the old tree.
+Otherwise the two cumulative patches must match: run `git diff <old-base> <old-head> |
+git patch-id --stable` and `git diff <remote>/<target> HEAD | git patch-id --stable`, and
+compare the first hash of each. A mismatch, a wrong count, or a `range-diff` line other
+than `=` means do not push: report the old head and backup ref, and ask the parent. On a
+rebase conflict or stop, run `git rebase --abort`; never `git rebase --skip`, which drops an
+own commit.
 
 Rerun the check and the affected repository checks afterwards. The rebuild rewrites
 history. A pushed branch then needs a lease pinned to the hash checked above, so a commit
 pushed after that check is never overwritten; never plain `--force`:
 
 ```bash
-git push --force-with-lease=<branch>:<pushed-sha> <push-remote> <branch>
+git push --force-with-lease=<branch>:<pushed-sha> --force-if-includes <push-remote> <branch>
 ```
 
 Run the rebuild only when the accepted plan names it or the human approves it. Otherwise
@@ -138,20 +144,20 @@ points that apply inside its sections and add nothing else.
 
 ## History cleanup
 
-Only rewrite history when the user asks for it or approves the plan. Before rewriting:
+Only rewrite history when the user asks for it or approves the plan, and follow the skill's
+`History rewrites` section. Before rewriting, note the head and its tree as literal values:
 
 ```bash
 gh pr view <PR> --json title,headRefName,baseRefName,state,commits
-git fetch origin <headRefName> <baseRefName>
-ORIGINAL_TREE=$(git rev-parse origin/<headRefName>^{tree})
+git fetch <push-remote> <headRefName>
+git rev-parse <push-remote>/<headRefName>^{tree}    # note as <original-tree>
 ```
 
-After rewriting, verify content identity:
+After rewriting, verify content identity against the noted value:
 
 ```bash
-echo "Original tree: $ORIGINAL_TREE"
-echo "Current tree:  $(git rev-parse HEAD^{tree})"
-git diff origin/<headRefName> --stat
+git rev-parse HEAD^{tree}                           # must equal <original-tree>
+git diff <push-remote>/<headRefName> --stat         # must be empty
 ```
 
 Do not push when the tree changed unintentionally. Preferred commit groupings follow
@@ -181,4 +187,5 @@ the reported source, re-stage only the intended files, and create a new commit.
 ## Guardrails
 
 - Never hide a meaningful behavior change inside "cleanup".
-- Do not rebase, amend, force-push, or rewrite history without explicit approval.
+- Do not rebase, amend, force-push, or rewrite history without explicit approval, and then
+  only through the skill's `History rewrites` protocol.
