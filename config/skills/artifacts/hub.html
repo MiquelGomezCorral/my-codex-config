@@ -34,15 +34,28 @@ h1{font-size:24px;margin:0 0 2px}
 .seg button b{font-weight:600;background:var(--mutedbg);color:var(--muted);border-radius:999px;padding:0 7px}
 .seg button.on{background:var(--mutedbg);color:var(--ink)}
 .seg button.on b{background:var(--card);color:var(--ink)}
-.layout{justify-self:end;display:inline-flex;gap:8px;border:1px solid var(--line);background:var(--card);border-radius:9px;padding:2px}
-.layout button{border:0;background:transparent;color:var(--muted);padding:6px 8px;border-radius:7px;cursor:pointer;display:inline-flex}
+.tools{justify-self:end;display:flex;align-items:center;gap:8px}
+.layout,.fold{display:inline-flex;gap:8px;border:1px solid var(--line);background:var(--card);border-radius:9px;padding:2px}
+.layout button,.fold button{border:0;background:transparent;color:var(--muted);padding:6px 8px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font:inherit}
 .layout button.on{background:var(--mutedbg);color:var(--ink)}
+.fold button:is(:hover,:focus-visible){background:var(--mutedbg);color:var(--ink)}
+/* on a phone the toolbar has room, so Collapse all and Expand all show their words instead of a tooltip */
+.fold .lbl{display:none}
 .repo{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:16px}
 .repo-h{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:10px 14px;border-bottom:1px solid var(--line)}
 .repo-h h2{font-size:20px;margin:0}
 .repo-h .path{color:var(--muted);font-size:12px}
 .repo-h .acts{margin-left:auto;display:flex;gap:8px}
 .wt{padding:6px 14px;font-size:12px;color:var(--muted);background:var(--bg);border-bottom:1px solid var(--line);display:flex;gap:6px;align-items:center}
+/* a branch group and its "N stopped" group fold with the same chevron, always the first thing on the line */
+.wt-group>summary,.stopped-group>summary{list-style:none;cursor:pointer}
+.wt-group>summary::-webkit-details-marker,.stopped-group>summary::-webkit-details-marker{display:none}
+.wt-group>summary:hover{color:var(--ink)}
+.wtn{min-width:0;overflow-wrap:anywhere}
+.wt .n{margin-left:auto;flex:none;white-space:nowrap}
+.chev{transition:transform .15s}
+details[open]>summary>.chev{transform:rotate(90deg)}
+.wt-group:last-child:not([open])>.wt{border-bottom:0;border-radius:0 0 11px 11px}
 .tipwrap{position:relative;display:inline-flex}
 .tip{position:absolute;bottom:calc(100% + 6px);right:0;z-index:3;width:max-content;max-width:min(260px,70vw);padding:4px 8px;border-radius:6px;background:var(--ink);color:var(--card);font-size:12px;line-height:1.5;pointer-events:none;visibility:hidden}
 .tipwrap:is(:hover,:focus-within):not(.dismissed) .tip{visibility:visible}
@@ -73,7 +86,7 @@ h1{font-size:24px;margin:0 0 2px}
 .busy .badge{background:var(--card);border:2px solid var(--info);border-right-color:transparent;animation:spin 1s linear infinite}
 .warn .badge{background:var(--warn);border-radius:2px;width:9px;height:9px;right:-2px;bottom:-2px;transform:rotate(45deg)}
 @keyframes spin{to{transform:rotate(1turn)}}
-@media (prefers-reduced-motion:reduce){.badge,.btn.act svg.i{animation:none!important}}
+@media (prefers-reduced-motion:reduce){.badge,.btn.act svg.i,.chev{animation:none!important;transition:none!important}}
 /* the legend names each badge once, under the toolbar */
 .legend{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;color:var(--muted);font-size:12px;margin:0 0 12px}
 .legend>span{display:inline-flex;align-items:center;gap:8px}
@@ -122,8 +135,8 @@ h1{font-size:24px;margin:0 0 2px}
 .row .hov{opacity:0}
 .row:is(:hover,:focus-within) .hov{opacity:1}
 @media (hover:none){.row .hov{opacity:1}}
-.stopped-group summary{padding:8px 14px;color:var(--muted);cursor:pointer;border-top:1px solid var(--line)}
-.wt+.stopped-group summary{border-top:0}
+.stopped-group>summary{padding:8px 14px;color:var(--muted);border-top:1px solid var(--line);display:flex;gap:6px;align-items:center}
+.wt+.stopped-group>summary{border-top:0}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;padding:12px 14px}
 /* cards: the tile beside the title, link and time on line 1 and the address on line 2; a thin line; then description, command, buttons */
 .card{min-width:0;border:1px solid var(--line);border-radius:10px;padding:11px 12px;display:flex;flex-direction:column;gap:8px}
@@ -151,7 +164,7 @@ h1{font-size:24px;margin:0 0 2px}
 .theme button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px;cursor:pointer;display:inline-flex}
 .empty{color:var(--muted);text-align:center;padding:48px 0}
 @media (max-width:760px){.toolbar{grid-template-columns:1fr}.search{max-width:none;order:3}.layout{display:none}
-.seg{overflow-x:auto}.seg button{padding:7px 6px;gap:4px}.seg button b{padding:0 5px}.seg .lbl{display:none}}
+.fold .lbl{display:inline}.fold .tip{display:none}.seg{display:grid;grid-template-columns:1fr 1fr}.seg button{justify-content:center}}
 </style>
 </head>
 <body>
@@ -167,9 +180,15 @@ h1{font-size:24px;margin:0 0 2px}
     <button data-f="stopped"><span data-i="pause"></span><span class="lbl">Stopped</span><b data-n="stopped">0</b></button>
     <button data-f="app"><span data-i="term"></span><span class="lbl">Apps</span><b data-n="app">0</b></button>
   </div>
-  <div class="layout" role="group" aria-label="Layout">
-    <span class="tipwrap"><button data-l="rows" aria-label="Rows" data-ui-tooltip="tip-rows"><span data-i="rows"></span></button><span class="tip" role="tooltip" id="tip-rows">Rows</span></span>
-    <span class="tipwrap"><button data-l="cards" aria-label="Cards" data-ui-tooltip="tip-cards"><span data-i="grid"></span></button><span class="tip" role="tooltip" id="tip-cards">Cards</span></span>
+  <div class="tools">
+    <div class="fold" role="group" aria-label="Branch groups">
+      <span class="tipwrap"><button id="collapse-all" aria-label="Collapse all" data-ui-tooltip="tip-collapse"><span data-i="collapse"></span><span class="lbl">Collapse all</span></button><span class="tip" role="tooltip" id="tip-collapse">Collapse all</span></span>
+      <span class="tipwrap"><button id="expand-all" aria-label="Expand all" data-ui-tooltip="tip-expand"><span data-i="expand"></span><span class="lbl">Expand all</span></button><span class="tip" role="tooltip" id="tip-expand">Expand all</span></span>
+    </div>
+    <div class="layout" role="group" aria-label="Layout">
+      <span class="tipwrap"><button data-l="rows" aria-label="Rows" data-ui-tooltip="tip-rows"><span data-i="rows"></span></button><span class="tip" role="tooltip" id="tip-rows">Rows</span></span>
+      <span class="tipwrap"><button data-l="cards" aria-label="Cards" data-ui-tooltip="tip-cards"><span data-i="grid"></span></button><span class="tip" role="tooltip" id="tip-cards">Cards</span></span>
+    </div>
   </div>
 </div>
 <div class="legend"><span class="live"><span class="badge"></span>Running</span><span class="off"><span class="badge"></span>Stopped</span><span class="busy"><span class="badge"></span>Starting</span><span class="warn"><span class="badge"></span>No page file</span></div>
@@ -202,9 +221,13 @@ const I = {
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
   loader: '<path d="M21 12a9 9 0 1 1-6.22-8.56"/>',
   filex: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m14.5 12.5-5 5"/><path d="m9.5 12.5 5 5"/>',
+  chevron: '<path d="m9 18 6-6-6-6"/>',
+  collapse: '<path d="m7 20 5-5 5 5"/><path d="m7 4 5 5 5-5"/>',
+  expand: '<path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/>',
   alert: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>'
 };
-const ic = (n) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${I[n]}</svg>`;
+const ic = (n, cls = "") => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${I[n]}</svg>`;
+const chevron = ic("chevron", "chev");
 // Harness marks, picked by the first word of an entry's "by" text. Codex: the cloud outline and ">_" of its mark in the Codex blue
 // gradient (#codex-blue at the top of body, sized to the icon so the flat "_" still paints).
 const LOGO = {
@@ -222,7 +245,11 @@ const store = (key, value) => { try { if (value === undefined) return localStora
 let data = { hub: "", repos: [] }, raw = "", index = new Map();
 let working = null; // { id, label }: the entry whose Start or Serve again request is running; it keeps its busy button through redraws
 let filter = "all", layout = store("hub:layout") === "cards" ? "cards" : "rows", query = "", pending = 0;
-const openGroups = new Set();
+// Fold state is kept in the browser: stopped groups the user opened, and branch groups the user collapsed.
+const savedSet = (key) => { try { return new Set(JSON.parse(store(key) || "[]")); } catch { return new Set(); } };
+const keepSet = (key, set) => store(key, JSON.stringify([...set]));
+const openGroups = savedSet("hub:open"), collapsed = savedSet("hub:collapsed");
+const groupKey = (repo, worktree) => repo.name + "/" + worktree;
 // On a phone the rows layout shows cards: a row's columns do not fit.
 const phone = matchMedia("(max-width:760px)");
 const FILTERS = {
@@ -262,11 +289,11 @@ const time = (it) => `<span class="tm">${esc(when(it.updated))}</span>`;
 // One state per entry: its badge tone and word, and the one button it shows.
 function status(it) {
   if (it.no_index) return { tone: "warn", word: "No page file", act: { label: "No page file", icon: "filex", disabled: true } };
-  if (it.state === "serving" || it.state === "running") return { tone: "live", word: "Running", act: { ask: "stop", label: "Stop", icon: "stop" } };
+  if (it.state === "serving" || it.state === "running") return { tone: "live", word: it.kind === "page" ? "Serving" : "Running", act: { ask: "stop", label: "Stop", icon: "stop" } };
   // A starting app is alive but not on its port yet, maybe never; Stop stays so it cannot get stuck.
   if (it.state === "starting") return { tone: "busy", word: "Starting", act: { ask: "stop", label: "Stop", icon: "stop" } };
   const start = it.kind === "app" ? { do: "start", label: "Start", icon: "play", busy: "Starting…" } : { do: "resume", label: "Serve again", icon: "again", busy: "Serving…" };
-  return { tone: "off", word: it.state === "dead" ? "Not running" : "Stopped", act: start };
+  return { tone: "off", word: "Stopped", act: start };
 }
 const tile = (it) => `<span class="tile" role="img" aria-label="${status(it).word}" title="${esc(it.by)}">${harness(it.by)}<span class="badge"></span></span>`;
 // Text that may be cut: the short form ends in "…"; when it is cut, resting on it opens the full text in a panel.
@@ -333,12 +360,13 @@ function repoHtml(repo) {
   const body = groupsOf(repo).map(([worktree, items]) => {
     const name = worktree || (repo.name === "_local" ? "outside any repo" : "main checkout");
     const branch = items[0].branch;
-    const wt = `<div class="wt">${ic("branch")} ${esc(name)}${branch ? ` · <span class="mono">${esc(branch)}</span>` : ""}</div>`;
+    const key = groupKey(repo, worktree);
+    const wt = `<summary class="wt">${chevron}${ic("branch")}<span class="wtn">${esc(name)}${branch ? ` · <span class="mono">${esc(branch)}</span>` : ""}</span><span class="n">${plural(items.length, "entry", "entries")}</span></summary>`;
     const list = (its) => !its.length ? "" : layout === "cards" || phone.matches ? `<div class="grid">${its.map(card).join("")}</div>` : its.map(row).join("");
     const live = items.filter((it) => it.state !== "stopped"), stopped = items.filter((it) => it.state === "stopped");
-    if (filter !== "all" || !stopped.length) return wt + list(items);
-    const key = repo.name + "/" + worktree;
-    return wt + list(live) + `<details class="stopped-group" data-key="${esc(key)}"${openGroups.has(key) ? " open" : ""}><summary>${stopped.length} stopped</summary>${list(stopped)}</details>`;
+    const inner = filter !== "all" || !stopped.length ? list(items)
+      : list(live) + `<details class="stopped-group" data-key="${esc(key)}"${openGroups.has(key) ? " open" : ""}><summary>${chevron}${stopped.length} stopped</summary>${list(stopped)}</details>`;
+    return `<details class="wt-group" data-wt="${esc(key)}"${collapsed.has(key) ? "" : " open"}>${wt}${inner}</details>`;
   }).join("");
   if (!body) return "";
   const running = repo.items.filter(isLive).length;
@@ -349,6 +377,8 @@ function repoHtml(repo) {
 }
 function render() {
   tips = 0;
+  const fold = document.activeElement?.closest?.("summary")?.parentElement;
+  const foldAttr = fold && ["data-wt", "data-key"].find((a) => fold.hasAttribute(a));
   const count = { all: 0, serving: 0, stopped: 0, app: 0 };
   for (const repo of data.repos) for (const it of repo.items) {
     if (!matches(repo, it)) continue;
@@ -357,6 +387,7 @@ function render() {
   document.querySelectorAll("[data-n]").forEach((b) => b.textContent = count[b.dataset.n]);
   const html = data.repos.map(repoHtml).join("");
   $("out").innerHTML = html || `<p class="empty">${esc(index.size ? "Nothing matches." : "Nothing here yet. Agents add their pages and apps when they publish them.")}</p>`;
+  if (foldAttr) $("out").querySelector(`[${foldAttr}="${CSS.escape(fold.getAttribute(foldAttr))}"]>summary`)?.focus({ preventScroll: true });
   markCut();
 }
 // Only text that is actually cut gets its panel.
@@ -507,8 +538,9 @@ document.addEventListener("click", async (e) => {
   }
 });
 $("out").addEventListener("toggle", (e) => {
-  const key = e.target.dataset?.key;
-  if (key) e.target.open ? openGroups.add(key) : openGroups.delete(key);
+  const { key, wt } = e.target.dataset ?? {};
+  if (key) { e.target.open ? openGroups.add(key) : openGroups.delete(key); keepSet("hub:open", openGroups); }
+  if (wt) { e.target.open ? collapsed.delete(wt) : collapsed.add(wt); keepSet("hub:collapsed", collapsed); }
   markCut(); // text in a closed group has no size until the group opens
 }, true);
 
@@ -523,6 +555,15 @@ function pick(selector, attribute, apply) {
 pick("[data-f]", "f", (value) => { filter = value; });
 pick("[data-l]", "l", (value) => { layout = value; store("hub:layout", value); });
 document.querySelectorAll("[data-l]").forEach((b) => b.classList.toggle("on", b.dataset.l === layout));
+// Collapse all and Expand all cover every branch group of every repo, whatever the filter or search shows.
+function foldAll(collapse) {
+  collapsed.clear();
+  if (collapse) for (const repo of data.repos) for (const it of repo.items) collapsed.add(groupKey(repo, it.worktree));
+  keepSet("hub:collapsed", collapsed);
+  render();
+}
+$("collapse-all").onclick = () => foldAll(true);
+$("expand-all").onclick = () => foldAll(false);
 $("query").oninput = (e) => { query = e.target.value.trim().toLowerCase(); render(); };
 const themeKey = "artifact:theme", root = document.documentElement, systemDark = matchMedia("(prefers-color-scheme: dark)");
 const saved = store(themeKey);

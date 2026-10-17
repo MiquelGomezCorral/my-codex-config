@@ -18,6 +18,10 @@ serves gets lost, keeps running unnoticed, or changes address.
   and Start act only after the hub confirms the process identity and port ownership.
 - The artifacts skill is the single owner of serving; workflow, skill-creator, and the global
   policy point to it. workflow-progress keeps its own live server and registers it as an app.
+- The artifacts folder `agent-memory/artifacts/<name>/` is the one home for durable pages,
+  diagrams, mockups and samples; other skills point to it instead of keeping their own.
+- `hub-ui-policy.json` governs the hub index only; its name keeps lintapple from picking it
+  up for artifact pages, which follow the page engine's own type scale.
 
 ## Protected invariants
 
@@ -44,5 +48,7 @@ rather than proxied pages so their own ports and protocols keep working.
 
 ## History
 
+- 2026-10-16: Made the artifacts folder the home for plan diagrams and samples too, and scoped
+  the UI policy file to the hub after it flagged every artifact page.
 - 2026-10-11: User approved the page hub on 3200 replacing per-page servers on 3100-3199, with
   Lavish removed and the eval viewer published as a static page.
