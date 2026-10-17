@@ -38,7 +38,7 @@ Defines the evals for a skill. Located at `evals/evals.json` within the skill di
 
 ## history.json
 
-Tracks version progression in Improve mode. Located at workspace root.
+Tracks version progression across skill iterations. Located at workspace root.
 
 ```json
 {
@@ -198,7 +198,7 @@ Output from the executor agent. Located at `<run-dir>/outputs/metrics.json`.
 
 Wall clock timing for a run. Located at `<run-dir>/timing.json`.
 
-**How to capture:** Save timing fields only when the active runner reports them. OpenCode `task` results do not currently include `total_tokens` or `duration_ms`; omit `timing.json` rather than inventing values.
+**How to capture:** Save timing fields only when the runner reports them. Some runners report no `total_tokens` or `duration_ms`; omit those fields, or the whole file, rather than inventing values.
 
 ```json
 {
@@ -218,7 +218,7 @@ Wall clock timing for a run. Located at `<run-dir>/timing.json`.
 
 ## benchmark.json
 
-Output from Benchmark mode. Located at `benchmarks/<timestamp>/benchmark.json`.
+Written by `scripts.aggregate_benchmark`. Located at `<workspace>/iteration-N/benchmark.json`.
 
 ```json
 {
@@ -290,16 +290,16 @@ Output from Benchmark mode. Located at `benchmarks/<timestamp>/benchmark.json`.
   - `skill_name`: Name of the skill
   - `timestamp`: When the benchmark was run
   - `evals_run`: List of eval names or IDs
-  - `runs_per_configuration`: Number of runs per config (e.g. 3)
+  - `runs_per_configuration`: Most runs of one eval in one configuration, counted from the loaded runs
 - `runs[]`: Individual run results
   - `eval_id`: Numeric eval identifier
   - `eval_name`: Human-readable eval name (used as section header in the viewer)
-  - `configuration`: Must be `"with_skill"` or `"without_skill"` (the viewer uses this exact string for grouping and color coding)
+  - `configuration`: One of `"with_skill"`, `"without_skill"`, `"new_skill"` or `"old_skill"` (the viewer matches these exact strings for grouping and color coding; `with_skill` and `new_skill` are the skill under test)
   - `run_number`: Integer run number (1, 2, 3...)
-  - `result`: Nested object with `pass_rate`, `passed`, `total`, `time_seconds`, `tokens`, `errors`
+  - `result`: Nested object with `pass_rate`, `passed`, `total`, `time_seconds`, `errors`, and `tokens` only when `timing.json` reported it
 - `run_summary`: Statistical aggregates per configuration
-  - `with_skill` / `without_skill`: Each contains `pass_rate`, `time_seconds`, `tokens` objects with `mean` and `stddev` fields
-  - `delta`: Difference strings like `"+0.50"`, `"+13.0"`, `"+1700"`
+  - One entry per configuration, skill under test first: each contains `pass_rate`, `time_seconds`, and `tokens` (only when reported) objects with `mean` and `stddev` fields
+  - `delta`: Skill under test minus baseline, as strings like `"+0.50"`, `"+13.0"`, `"+1700"` (`tokens` only when both sides reported it)
 - `notes`: Freeform observations from the analyzer
 
 **Important:** The viewer reads these field names exactly. Using `config` instead of `configuration`, or putting `pass_rate` at the top level of a run instead of nested under `result`, will cause the viewer to show empty/zero values. Always reference this schema when generating benchmark.json manually.

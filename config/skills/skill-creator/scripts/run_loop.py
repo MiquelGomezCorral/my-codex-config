@@ -4,15 +4,15 @@
 Combines run_eval.py and improve_description.py in a loop, tracking history
 and returning the best description found. Supports train/test split to prevent
 overfitting.
+
+Claude Code only: trigger runs and description rewrites go through the `claude` CLI.
 """
 
 import argparse
 import json
 import random
 import sys
-import tempfile
 import time
-import webbrowser
 from pathlib import Path
 
 from scripts.generate_report import generate_html
@@ -254,7 +254,7 @@ def main():
     parser.add_argument("--holdout", type=float, default=0.4, help="Fraction of eval set to hold out for testing (0 to disable)")
     parser.add_argument("--model", required=True, help="Model for improvement")
     parser.add_argument("--verbose", action="store_true", help="Print progress to stderr")
-    parser.add_argument("--report", default="auto", help="Generate HTML report at this path (default: 'auto' for temp file, 'none' to disable)")
+    parser.add_argument("--report", default="none", help="Write a live HTML report at this path, for example <hub dir>/index.html (default: 'none'). The script never opens it")
     parser.add_argument("--results-dir", default=None, help="Save all outputs (results.json, report.html, log.txt) to a timestamped subdirectory here")
     args = parser.parse_args()
 
@@ -269,14 +269,9 @@ def main():
 
     # Set up live report path
     if args.report != "none":
-        if args.report == "auto":
-            timestamp = time.strftime("%Y%m%d_%H%M%S")
-            live_report_path = Path(tempfile.gettempdir()) / f"skill_description_report_{skill_path.name}_{timestamp}.html"
-        else:
-            live_report_path = Path(args.report)
-        # Open the report immediately so the user can watch
+        live_report_path = Path(args.report)
+        live_report_path.parent.mkdir(parents=True, exist_ok=True)
         live_report_path.write_text("<html><body><h1>Starting optimization loop...</h1><meta http-equiv='refresh' content='5'></body></html>")
-        webbrowser.open(str(live_report_path))
     else:
         live_report_path = None
 

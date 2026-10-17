@@ -3,6 +3,9 @@
 
 Tests whether a skill's description causes Claude to trigger (read the skill)
 for a set of queries. Outputs results as JSON.
+
+Claude Code only: each query runs through the `claude` CLI (`claude -p`) with the
+skill registered as a project command, so it measures Claude Code, not other harnesses.
 """
 
 import argparse
@@ -17,6 +20,12 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
 from scripts.utils import parse_skill_md
+
+
+# Read-only discovery tools may run before the Skill call; any other tool ends the probe.
+# The same list is the only tool set `claude -p` gets, so nothing can write to the project.
+DISCOVERY_TOOLS = ("ToolSearch", "Read", "Glob", "Grep")
+PROBE_TOOLS = ("Skill", *DISCOVERY_TOOLS)
 
 
 def find_project_root() -> Path:
@@ -73,6 +82,8 @@ def run_single_query(
             "--output-format", "stream-json",
             "--verbose",
             "--include-partial-messages",
+            "--tools", ",".join(PROBE_TOOLS),
+            "--strict-mcp-config",
         ]
         if model:
             cmd.extend(["--model", model])
@@ -134,11 +145,10 @@ def run_single_query(
                             cb = se.get("content_block", {})
                             if cb.get("type") == "tool_use":
                                 tool_name = cb.get("name", "")
-                                if tool_name in ("Skill", "Read"):
-                                    pending_tool_name = tool_name
-                                    accumulated_json = ""
-                                else:
-                                    return False
+                                if tool_name not in PROBE_TOOLS:
+                                    return triggered
+                                pending_tool_name = tool_name if tool_name in ("Skill", "Read") else None
+                                accumulated_json = ""
 
                         elif se_type == "content_block_delta" and pending_tool_name:
                             delta = se.get("delta", {})
@@ -147,11 +157,8 @@ def run_single_query(
                                 if clean_name in accumulated_json:
                                     return True
 
-                        elif se_type in ("content_block_stop", "message_stop"):
-                            if pending_tool_name:
-                                return clean_name in accumulated_json
-                            if se_type == "message_stop":
-                                return False
+                        elif se_type == "content_block_stop":
+                            pending_tool_name = None
 
                     # Fallback: full assistant message
                     elif event.get("type") == "assistant":
@@ -161,11 +168,12 @@ def run_single_query(
                                 continue
                             tool_name = content_item.get("name", "")
                             tool_input = content_item.get("input", {})
+                            if tool_name not in PROBE_TOOLS:
+                                return triggered
                             if tool_name == "Skill" and clean_name in tool_input.get("skill", ""):
-                                triggered = True
-                            elif tool_name == "Read" and clean_name in tool_input.get("file_path", ""):
-                                triggered = True
-                            return triggered
+                                return True
+                            if tool_name == "Read" and clean_name in tool_input.get("file_path", ""):
+                                return True
 
                     elif event.get("type") == "result":
                         return triggered

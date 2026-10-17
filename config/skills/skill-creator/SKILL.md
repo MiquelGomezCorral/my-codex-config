@@ -49,18 +49,27 @@ Store outputs under a sibling workspace:
 <skill>-workspace/iteration-N/<eval-name>/
   eval_metadata.json
   with_skill/outputs/
+  with_skill/grading.json
   without_skill/outputs/   # or old_skill/outputs/
+  without_skill/grading.json
 ```
+
+Repeated runs of one configuration go in `with_skill/run-N/outputs/` with `grading.json`
+beside each `outputs/`.
 
 After runs start, write objective assertions where possible. Never invent timing or
 token data absent from the runner. Use `references/schemas.md` for exact JSON shapes;
 `grading.json` expectations require `text`, `passed`, and `evidence` fields.
 
-Grade with `agents/grader.md`, aggregate with:
+Grade with `agents/grader.md`. Run every `python3 -m scripts.<name>` command from this
+skill's directory, and aggregate with:
 
 ```bash
 python3 -m scripts.aggregate_benchmark <iteration-dir> --skill-name <name>
 ```
+
+It exits 1 when it finds no graded run. The skill under test must be `with_skill` (or
+`new_skill`) so the delta reads skill minus baseline.
 
 Then run the analyst guidance in `agents/analyzer.md` and generate the review UI with
 `eval-viewer/generate_review.py <workspace> --static <dir>/index.html`, where `<dir>` comes
@@ -83,8 +92,15 @@ used which skill.
 ## 5. Optimize Triggering
 
 After behavior is stable, build realistic positive and near-miss negative trigger
-queries. Review them with the user, then run `scripts.run_loop` with the current
-session model. Select the best description by held-out score, not training score.
+queries. Review them with the user, then run `scripts.run_loop`. Select the best
+description by held-out score, not training score.
+
+This step works only in Claude Code: the trigger runs and the description rewrites call the
+`claude` CLI. In another harness, skip it and review the description by hand. Pass
+`--model <model>`, `--results-dir` under the repository's `agent-memory/`, and
+`--report <dir>/index.html` with `<dir>` from `hub.py dir <name>` as in step 3. Publish it
+once the loop has started, and the page refreshes itself while the loop runs. The script
+never opens a browser or writes to `/tmp`.
 
 ## 6. Ship Safely
 

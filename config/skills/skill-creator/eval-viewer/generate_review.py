@@ -2,12 +2,13 @@
 """Generate and serve a review page for eval results.
 
 Reads the workspace directory, discovers runs (directories with outputs/),
-embeds all output data into a self-contained HTML page, and serves it via
-a tiny HTTP server. Feedback auto-saves to feedback.json in the workspace.
+embeds all output data into a self-contained HTML page, and either writes it
+with --static or serves it via a tiny HTTP server (which kills whatever holds
+its port). Server mode auto-saves feedback to feedback.json in the workspace.
 
 Usage:
-    python generate_review.py <workspace-path> [--port PORT] [--skill-name NAME]
-    python generate_review.py <workspace-path> --previous-feedback /path/to/old/feedback.json
+    python3 eval-viewer/generate_review.py <workspace-path> --static <dir>/index.html
+    python3 eval-viewer/generate_review.py <workspace-path> --previous-workspace <old-workspace>
 
 No dependencies beyond the Python stdlib are required.
 """
@@ -276,7 +277,8 @@ def generate_html(
     if benchmark:
         embedded["benchmark"] = benchmark
 
-    data_json = json.dumps(embedded)
+    # Escape markup characters so output text such as "</script>" cannot close the data block.
+    data_json = json.dumps(embedded).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
 
     return template.replace("/*__EMBEDDED_DATA__*/", f"const EMBEDDED_DATA = {data_json};")
 
