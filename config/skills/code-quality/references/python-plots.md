@@ -54,7 +54,10 @@ The page can be light or dark and the plot cannot ask which.
 - Background: `paper_bgcolor` and `plot_bgcolor` set to `"rgba(0,0,0,0)"`. The page draws its own
   card color behind the frame.
 - Text and axes: mid-gray (`#7c7c88`), grid lines `rgba(128,128,128,0.22)`. Default black text
-  vanishes on a dark page.
+  vanishes on a dark page. No single gray reaches `ui.md`'s 4.5:1 on both the white and
+  `#1d1d21` cards (`#7c7c88` gives 4.1:1, about the best one color can do), so plot text is
+  the one exception: keep it to short tick labels and axis titles, and put anything the
+  reader must read in the figure `caption`, which is page text.
 - Series: mid-tone colors with at least 3:1 contrast against white and `#1d1d21`, such as
   `#D96F00`, `#2A7FC4`, `#B03A9A`. Give a method the same color in every plot of a page.
 

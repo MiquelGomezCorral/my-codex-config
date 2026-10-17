@@ -47,7 +47,7 @@ app/
       __init__.py
     ...
   scripts/
-configs/
+config/
 data/
 notebooks/
 ```
@@ -88,7 +88,7 @@ Use `from src.module import ...` for `app/src/module.py`, relative imports withi
 package, and absolute imports across packages. Subpackages need `__init__.py`. Do not
 modify `sys.path` or depend on the working directory.
 
-Keep configuration standalone and expose one `Configurations` instance as `CONFIG`.
+Keep configuration standalone and expose one `Configuration` instance as `CONFIG`.
 Use `Path` for repository paths and keep user-adjustable paths and parameters
 in that project-owned configuration.
 
@@ -208,8 +208,6 @@ __all__ = [
 THIS IS RIGHT:
 ```python
 """Public ARM-FM reconstruction interfaces."""
-
-from importlib import import_module
 
 from .artifacts import ArtifactBundle, BundleManifest, BundleValidationError, load_bundle
 from .environments import labeling_api_for_domain, make_environment
@@ -515,7 +513,7 @@ repos:
 
 # Template
 
-We follow the [maikol-utils](https://github.com/MiquelGomezCorral/maikol-utils), so if you have to create a new project from scratch, create a repository using that as the template, clone it and then you can start coding. The template is already set up with the best practices and the structure that we want to follow.
+We follow the [Python-project-template-AI-TL](https://github.com/MiquelGomezCorral/Python-project-template-AI-TL), so if you have to create a new project from scratch, create a repository using that as the template, clone it and then you can start coding. The template is already set up with the best practices and the structure that we want to follow.
 
 File: `app/main.py` follow always this idea:
 
@@ -533,7 +531,7 @@ from maikol_utils.other_utils import args_to_dataclass
 
 def cmd_read_extract(args: argparse.Namespace):
     """Call read_extract_from_config_list with the given args."""
-    CONFIG: Configuration = args_to_dataclass(args)
+    CONFIG: Configuration = args_to_dataclass(args, Configuration)
     ...
 
 def cmd_test(args):
@@ -582,7 +580,7 @@ I want no clustering of independent scripts at a sigle file, each is owner of ea
 
 # Configuration
 
-Use the `./app/scr/config/config.py` file and the class `Configuration` to store all the parameters and paths that can be modified by the user. The `Configuration` class should be designed to read from environment variables, configuration files, or command-line arguments, providing a centralized way to manage settings across the project.
+Use the `./app/src/config/config.py` file and the class `Configuration` to store all the parameters and paths that can be modified by the user. The `Configuration` class should be designed to read from environment variables, configuration files, or command-line arguments, providing a centralized way to manage settings across the project.
 
 - DO ALWAYS INSTANCE THE CONFIGURATION CLASS AS UPPERCASE
 
@@ -661,26 +659,25 @@ class Configuration:
 
 ## Extend enum
 
-When you have different configurations that share some common values, you can use the `extend_enum` decorator to create a new enum that combines the values of the inherited enum with the new values. This is useful for maintaining a clear and organized set of configuration options.
+When you have different configurations that share some common values, use `aenum.extend_enum` to add members to an existing enum. aenum refuses to subclass an enum that already has members (`TypeError: cannot extend`), so `extend_enum` is a function call that adds the new values to the original enum. This is useful for maintaining a clear and organized set of configuration options.
 
-Use aenum instead of the standard enum module which supports real subclassing for static typecheking and better IDE support.
+Use aenum instead of the standard enum module for `extend_enum`.
 
 ```python
-from aenum import Enum
+from aenum import Enum, extend_enum
 
 class Cats(Enum):
     SIBERIAN = "siberian"
     SPHINX = "sphinx"
 
-class Animals(Cats):
-    LABRADOR = "labrador"
-    CORGI = "corgi"
+extend_enum(Cats, "LABRADOR", "labrador")
+extend_enum(Cats, "CORGI", "corgi")
 ```
 
 # Paths
 
 - Paths must be defined with Path to avoid issues with different OS.
-- The core paths, such as 'DATA', 'MODELS', 'LOGS'... must be defined in the config.py file and used everywhere with `CONFIG.DATA / "raw"` or `CONFIG.MODELS/  "model.pt"`. This will avoid issues with different OS and will make the code more readable.
+- The core paths, such as 'DATA', 'MODELS', 'LOGS'... must be defined in the config.py file and used everywhere with `CONFIG.DATA_PATH / "raw"` or `CONFIG.MODELS_PATH / "model.pt"`. This will avoid issues with different OS and will make the code more readable.
   - Since we are importing from ./app and the data, models and logs file are at ./data, ./models and ./logs, we define these paths as follows:
 
 ```python
@@ -714,21 +711,6 @@ Whether you're handling JSON files, managing the file system, cleaning up termin
 
 Developed by [Miquel Gómez](https://miquelgc.net) – Python developer.
 Hand-picked utilities from real-world scripting and automation tasks.
-
-# Structure
-
-```
-├── LICENSE
-├── README.md
-├── maikol-utils
-│   ├── __init__.py
-│   ├── file_utils.py
-│   ├── print_utils.py
-│   └── time_tracker.py
-├── pyproject.toml
-├── setup.py
-└── usage_examples.ipynb
-```
 
 # 🚀 Features
 

@@ -152,7 +152,8 @@ from weight and tone as much as size. The same role looks the same everywhere.
 - **Long titles wrap; they never move the actions.** The checker flags ellipsis truncation
 as clipping, so truncate only through an `exceptions` entry the user approved.
 - **Sentence case for new labels**, keeping names, acronyms and user content as written. No
-all-caps labels, no decorative eyebrow labels above headings.
+all-caps labels. An eyebrow above a heading is allowed only when it is informational (a
+date, a scope); decorative eyebrows stay banned.
 - **Buttons start with the verb.** Add the object when the button does not sit on it ("Stop"
 in a row, "Delete page" in the confirmation). The result reuses the word: Stop,
 "Stopping…", "Stopped".
@@ -291,7 +292,9 @@ layout error.
 
 Starter CSS that already satisfies these lives in the package at `examples/ui.css`
 (`.ui-stack`, `.ui-actions`, `.ui-panel`, `.ui-surface`); keep its values in agreement with
-`ui-policy.json`.
+`ui-policy.json`. The `artifacts` skill's hub policy is the exception: it lives in
+the `artifacts` skill's `hub-ui-policy.json`, covers `hub.html` only, and is loaded with
+`--config`.
 
 ## Where to look for inspiration and / or when these rules run out 
 
