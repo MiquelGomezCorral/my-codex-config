@@ -22,7 +22,8 @@ is no.
 
 `references/evidence.md` holds the measured results. In short: most published skills do not
 improve outcomes, curated skills help inconsistently, self-authored skills showed no benefit,
-and in a hard task a skill was loaded in only about one run in six. So:
+and Claude loaded a skill in only about one run in six in the hardest retrieval setting
+of one study. So:
 
 - Prefer a skill that already exists and has been used by outsiders over writing a new one.
 - Assume a random candidate will do nothing until the usefulness gate says otherwise.
@@ -66,7 +67,7 @@ judging overlap is the user's decision.
 Install location:
 
 - **Repo-local by default**: `.agents/skills/<name>/` inside the repository being worked on.
-- **The shared library** (`config/skills/`, installed at `~/.agents/skills`) only when
+- **The shared library** (`config/skills/`, installed into each harness's skill root) only when
   the user says the skill should apply in every repository. That is the catalog's job.
 
 Clone or copy, but do not install into an active location, execute, or trust a candidate

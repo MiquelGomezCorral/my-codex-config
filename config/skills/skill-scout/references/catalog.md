@@ -5,7 +5,8 @@ useful. Add an entry only after the user says yes, and only for a skill that was
 used, not merely vetted.
 
 Before searching anywhere else, read this file. If an entry already covers the need, install
-it instead of hunting for a replacement.
+it instead of hunting for a replacement. A lead (below) is not an entry: vet it first and
+install only after the user approves.
 
 ## How to add an entry
 
@@ -31,16 +32,19 @@ Do not merge or retire entries on your own.
 
 ---
 
-## UI principles
+## Leads
+
+Skills the user pointed at that are not vetted or used yet. Do not install a lead into an
+active location. Fetch it into a scratch directory, run `references/vetting.md`, and ask
+the user before installing. Once it has been used and the user says yes, move it above as
+an entry with an exact install command.
+
+### UI principles
 
 - **What it does:** Applies a structured design review to UI work so screens follow
   established visual and interaction principles instead of ad-hoc styling.
 - **Source:** <https://github.com/humbleteam/design-review>
-- **Install:** `git clone https://github.com/humbleteam/design-review .agents/skills/design-review`
-- **Scope:** project-agnostic — any repository with a user interface.
-- **Vetted:** not yet. Clone and run the vetting in `references/vetting.md` before relying
-  on it.
+- **Vetted:** not yet.
 - **Used in:** none recorded yet.
-- **Notes:** seeded from the user's example. Confirm the cloned directory actually contains
-  `SKILL.md` and that the frontmatter `name` matches, or the install location needs
-  adjusting.
+- **Notes:** seeded from the user's example. Confirm the repository contains `SKILL.md` and
+  that the frontmatter `name` (`design-review`) matches its directory.

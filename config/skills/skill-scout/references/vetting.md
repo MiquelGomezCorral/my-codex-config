@@ -51,7 +51,6 @@ A skill that is never loaded is worthless. Check all four:
    the directory name.
 2. **Frontmatter.** The description is present and its trigger phrasing matches how the user
    actually asks for the task, not just how the author phrased it.
-3. **Grant.** In a harness that renders a `skills:` allowlist, confirm the skill is granted
-   to the role that needs it. In this repository that means `bootstrap_pi.sh`; a skill in the
-   library that no role lists will never load there.
+3. **Grant.** In a harness that grants skills per role, confirm the skill is granted to the
+   role that needs it. No harness in this repository restricts skills per role today.
 4. **Cost.** State the lines it adds to context, and whether it is worth them.

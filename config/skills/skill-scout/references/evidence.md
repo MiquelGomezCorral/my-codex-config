@@ -20,7 +20,8 @@ to change nothing than to help, and it can multiply context cost. Every candidat
 ## SkillsBench
 
 *SkillsBench: Benchmarking How Well Agent Skills Work Across Diverse Tasks*
-<https://arxiv.org/abs/2605.31408>
+<https://arxiv.org/abs/2602.12670v1>. The self-generated finding is in version 1; the
+current version of the abstract no longer mentions it.
 
 - Curated skills help significantly but **inconsistently** across tasks.
 - **Self-generated skills gave no benefit.**
@@ -31,14 +32,16 @@ third-party skills are the ones with measured value.
 
 ## Loading rate
 
-A study of 34,000 real skills, reported by The Decoder, found that in the hardest setting the
-model loaded a skill in only **16% of runs**.
+A study of 34,000 real skills (<https://arxiv.org/abs/2604.04323>, reported by
+[The Decoder](https://the-decoder.com/agent-skills-look-great-in-benchmarks-but-fall-apart-under-realistic-conditions-researchers-find/))
+found that in the hardest retrieval setting Claude loaded a skill in only **16% of runs**.
+Other models differed: Kimi K2.5 loaded skills in 86% of runs in the curated setting.
 
 **What it means here:** a skill that is never loaded is worthless no matter how good its
 content is. That is why `vetting.md` includes a reachability check: the name and directory
-must match, the frontmatter must parse, the description must actually trigger on the user's
-phrasing, and in a harness that renders a `skills:` allowlist the skill must be granted to
-the role that needs it. A skill sitting in the library but granted to no role is dead weight.
+must match, the frontmatter must parse, and the description must actually trigger on the
+user's phrasing. In a harness that grants skills per role, a skill granted to no role is dead
+weight.
 
 ## How this changes a scout's behavior
 
