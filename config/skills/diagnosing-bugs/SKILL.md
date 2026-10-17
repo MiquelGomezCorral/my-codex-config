@@ -11,7 +11,7 @@ description: Diagnose hard bugs and performance regressions with a reproducible 
 2. Reproduce the user's actual failure and minimize the input or path while keeping it red.
 3. Rank a few falsifiable hypotheses. Test the cheapest discriminating prediction first and change one variable at a time.
 4. Instrument only boundaries that distinguish hypotheses. Tag temporary diagnostics so they can be removed reliably.
-5. Turn the minimized reproduction into a regression check at the closest correct seam, then apply the smallest root-cause fix.
+5. Turn the minimized reproduction into a regression check at the closest correct seam, then apply the smallest root-cause fix. Make it a unit test only when `test-audit`'s bar allows it (a reproduced regression the live flow cannot cover); otherwise the reproduction itself stays the live check.
 6. Rerun the original reproduction, the regression check, and relevant surrounding verification. Remove temporary diagnostics and artifacts.
 
 ## Guardrails

@@ -108,4 +108,5 @@ without a completion report is not evidence of success.
 Report the worker's stated outcome, changed paths, readiness results, blockers or gaps,
 and pending live `Flow`, `Expected`, and `Can run`. Attribute results to the worker;
 do not claim independent verification. Leave live validation pending user approval.
-Without workflow context, stop without starting review or follow-up work.
+Without workflow context, stop without starting review or follow-up work, and end the
+report by suggesting that the user run `$review` on the change. Never launch it from `$code`.

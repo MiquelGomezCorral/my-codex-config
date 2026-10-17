@@ -16,8 +16,8 @@ owns. Before starting one, read [references/campaign.md](references/campaign.md)
 
 Read the repository's own `AGENTS.md`, contributing guide, and testing instructions before
 judging any test, and follow the repository's test policy even where it differs from this
-skill. Where the repository is silent, use these defaults. In this repository,
-`AGENTS.md` settles the bar: prefer live validation of the real flow, treat unit tests as
+skill. Where the repository is silent, use these defaults, which come from the user's
+global policy: prefer live validation of the real flow, treat unit tests as
 secondary evidence, and keep unit tests to the minimum: add one only for a small algorithm,
 a critical deterministic contract, or a reproduced regression the live flow cannot cover —
 never for coverage or convention.
@@ -78,8 +78,9 @@ Tests justify their maintenance cost by protecting behavior, a credible regressi
 independently meaningful contract. In an audit, an existing test that must change for
 behavior-preserving source reorganization is suspect, not automatically deletable; the
 authoring gate still rejects new ones. A test must show its value; the audit does not have
-to prove it useless. When uncertain whether a test matters, recommend its deletion and state
-your confidence.
+to prove it useless. When uncertain whether a test matters, report it as a finding that
+recommends deletion and state your confidence; edit only once every field under
+[Candidate evidence](#candidate-evidence) is recorded.
 
 Before judging a candidate, read the complete test and production owner, its entry point,
 callers, callees, sibling implementations, overlapping tests, CI routing, and relevant
@@ -117,8 +118,8 @@ the independent contract; look for that contract before recommending its deletio
 
 ## Candidate evidence
 
-Record every field below before editing. A missing field means the candidate is not ready for
-deletion:
+Record every field below before editing. A missing field means the candidate stays a finding and is not
+ready to edit:
 
 - exact test name and location;
 - what failure it can actually detect;
@@ -153,8 +154,8 @@ Do not edit source or tests while the repository's test runner is active in the 
    its policy requires.
 5. Inspect `git diff --numstat` and report production and tooling separately from tests and
    test support.
-6. Run the repository's own review step before landing: `review` for a diff, `cleanup` when
-   the change is a simplification, and the `git` skill for commit, push, or pull request.
+6. Run the repository's own review step before landing: `review` for a diff, suggest `$cleanup`
+   to the user when the change is a simplification, and the `git` skill for commit, push, or pull request.
 
 ## Landing and continuation
 
