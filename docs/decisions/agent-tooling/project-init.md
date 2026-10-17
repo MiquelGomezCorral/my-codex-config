@@ -11,9 +11,10 @@ harness follows the same repository instructions.
   memory, code-quality references, decision records, CodeGraph, BTCA, repo-local skills,
   template-leftover checks, and one closing commit, reusing the skill that owns each step.
 - `AGENTS.md` is the instruction file for every agent. Harness files are not created; an existing
-  `CLAUDE.md` gains `@AGENTS.md`, because Claude Code reads `AGENTS.md` only when no
-  `CLAUDE.md` exists. The global policy says the same, so an
-  agent follows `AGENTS.md` even when its harness reads another file.
+  tracked `CLAUDE.md` or `.claude/CLAUDE.md` gains `@AGENTS.md`, because Claude Code skips
+  `AGENTS.md` whenever a `CLAUDE.md`, `.claude/CLAUDE.md` or `CLAUDE.local.md` exists in the
+  working directory or any parent. A `CLAUDE.local.md` is reported, not edited. The global
+  policy says the same, so an agent follows `AGENTS.md` even when its harness reads another file.
 - Repo-local skills live in `.agents/skills/` and are listed in `AGENTS.md`.
 - Default worktree model: independent workers use separate worktrees and branches, and the
   main agent combines them, unless the repository or the user says otherwise.
@@ -25,7 +26,8 @@ harness follows the same repository instructions.
 - Installs (BTCA sources, skills, checks) and template-value replacements wait for user
   approval.
 - The closing commit holds only files the run changed; never private memory, `.codegraph/`,
-  or secrets, and no push unless asked.
+  or secrets, and no push unless asked. Init adds `.codegraph/` to `.gitignore`, because
+  CodeGraph's own ignore file does not ignore itself.
 - Unclear Git rules are asked, not guessed.
 - Files already modified before the run stay out of its commits unless the user agrees.
 
@@ -43,5 +45,7 @@ checks that the `init` command routes to `project-init`.
 
 ## History
 
+- 2026-10-16: Covered `.claude/CLAUDE.md` and `CLAUDE.local.md`, which also stop Claude Code
+  from reading `AGENTS.md` (official memory docs).
 - 2026-10-07: the `init` command moved from `agents-memory` to the new `project-init` skill; `AGENTS.md`
   made the instruction file for every harness.

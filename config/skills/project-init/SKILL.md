@@ -20,7 +20,8 @@ over every default below.
 
 - **Git:** whether it is a repository, `git status --porcelain`, default branch, remotes,
   commit history and its message style, worktrees, PR template.
-- **Instruction files:** `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.cursor/rules/`,
+- **Instruction files:** `AGENTS.md`, `CLAUDE.md`, `.claude/CLAUDE.md`, `CLAUDE.local.md`,
+  `GEMINI.md`, `.cursor/rules/`,
   `.github/copilot-instructions.md`, `.agents/`, `docs/decisions/`.
 - **Stack:** manifests (`package.json`, `pyproject.toml`, `requirements.txt`, `go.mod`,
   `Cargo.toml`, and similar), main languages, existing lint, format, test, pre-commit, and
@@ -49,15 +50,17 @@ Skip a step that is already done; update one that is stale.
 1. **Git.** When there is no repository, run `git init` and keep the user's configured
    default branch. Never add a remote or push. Keep `.gitignore` current for the stack:
    `.env` and other secret files (keep `.env.example` or `example.env` tracked), build
-   output, caches, virtual environments, OS and editor files, and `.btca/` when BTCA keeps
-   local data. CodeGraph ignores its own `.codegraph/` contents. Add missing entries; never
-   remove one without asking. Never ignore `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`,
-   `.agents/`, `docs/decisions/`, or `btca.config.jsonc`; ask when an existing rule does.
+   output, caches, virtual environments, OS and editor files, `.codegraph/`, and `.btca/`
+   when BTCA keeps local data. Add missing entries; never remove one without asking. Never
+   ignore `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.agents/`, `docs/decisions/`, or
+   `btca.config.jsonc`; ask when an existing rule does.
 2. **One instruction file.** `AGENTS.md` is the instruction file for every agent. Create it
    from the `agents-memory` template when missing, or add only its missing sections. Codex,
    Pi, Antigravity, and Claude Code read `AGENTS.md` when their own file is absent, so
-   create no harness files. When `CLAUDE.md` exists, keep its content and add
-   `@AGENTS.md` near the top, because Claude Code then stops loading `AGENTS.md` on its own.
+   create no harness files. When `CLAUDE.md` or `.claude/CLAUDE.md` exists, keep its content
+   and add `@AGENTS.md` near the top, because Claude Code then stops loading `AGENTS.md` on
+   its own. A `CLAUDE.local.md` in the repository or any directory above it has the same
+   effect: it is personal, so report it and add `@AGENTS.md` only after the user agrees.
    When `GEMINI.md` exists, keep it; Antigravity reads both. Report rules that conflict with
    `AGENTS.md` and ask which one wins.
 3. **Git rules.** Fill `AGENTS.md` `## Git` with the default branch, the commit message
