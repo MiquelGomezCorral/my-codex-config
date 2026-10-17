@@ -29,13 +29,8 @@ Use these three labels to distinguish rules from preferences:
 - **LIGHT PREFERENCE** — context decides. Useful signal, not a rule.
 
 **When no label exists, assume `LIGHT PREFERENCE`.** Most of this document is unlabelled on
-purpose. The blank questions are interview material, not instructions. Explicit labels
-govern, including entries under "Never"; do not promote a labelled tendency or an interview
-example to a hard rule.
-
-**When no label exists, assume `LIGHT PREFERENCE`.** Explicit labels govern, including
-entries under “Never”; do not promote a labelled tendency or an interview example to a
-hard rule.
+purpose. Explicit labels govern, including entries under "Never"; do not promote a labelled
+tendency or an interview example to a hard rule.
 
 ## Anti-overfitting
 

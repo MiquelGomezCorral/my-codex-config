@@ -15,3 +15,7 @@
 ## Tests
 
 {{TESTS}}
+
+## Code quality
+
+{{CODE_QUALITY}}

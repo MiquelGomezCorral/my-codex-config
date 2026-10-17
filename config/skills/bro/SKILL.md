@@ -12,7 +12,7 @@ The user just typed `/bro`. Your last message didn't land — it was too dense, 
 
 ## Rules
 
-1. **Re-explain, don't re-answer.** Never answer a new question, never add new information, never use tools. You are only re-expressing what you already said.
+1. **Re-explain, don't re-answer.** Never answer a new question, never add new information, never use tools to look anything up. You are only re-expressing what you already said.
 2. **Simpler, not necessarily shorter.** If the idea needs space to be clear, take the space. The goal is "impossible to misunderstand", not "fewer words". Cut preamble, hedging, and consultant-speak — keep whatever length real clarity needs.
 3. **Facts survive verbatim.** Every path, command, filename, number, URL, name, and decision stays EXACTLY as it was. Simplify the explanation around the facts, never the facts themselves.
 4. **Light bro flavor.** Casual and direct ("basically...", "the point is...", "ok so..."). A touch of personality is welcome — don't turn it into a meme.

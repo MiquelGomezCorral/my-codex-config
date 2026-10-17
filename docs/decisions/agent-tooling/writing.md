@@ -9,10 +9,13 @@ academic material stranded in a skill that nothing else references.
 ## Current decisions
 
 - `writing` is the single skill for preparation, outlining, drafting, editing, and review,
-  with four references:
-  `natural-writing.md`, `voice-profile.md`, `academic.md`, and `latex.md`.
-- `natural-writing.md` and `voice-profile.md` are read at every prose stage. `academic.md`
-  and `latex.md` are explicitly opt-in and are read only for a paper, thesis, or formal report.
+  with five references:
+  `natural-writing.md`, `voice-profile.md`, `voice-interview.md`, `academic.md`, and `latex.md`.
+- `natural-writing.md` and `voice-profile.md` are read at every prose stage. `voice-profile.md`
+  is the compressed profile; `voice-interview.md` holds the full 100-question interview and is
+  read only when the profile does not cover a format or the reason behind a preference is
+  needed. `academic.md` and `latex.md` are explicitly opt-in and are read only for a paper,
+  thesis, or formal report.
 - `natural-writing.md` merges two upstream rulesets into one owner per pattern: the editing
   principles, voice-preservation rules, and pattern list of `petergyang/no-ai-slop` (MIT),
   and the rule identifiers, individual rule-reference impacts, coverage/no-new-patterns/genre
@@ -84,6 +87,8 @@ arrives as a second reference.
 
 ## History
 
+- 2026-10-16: Recorded the fifth reference: the full interview split out of the profile on
+  2026-09-28 (`voice-interview.md`), read only on demand.
 - 2026-09-27: Replaced `miquel-voice` and `objective-scholar` with one `writing` skill holding
   four references, made `natural-writing` and `voice-profile` always-read and the academic
   references opt-in, merged the two upstream natural-writing rulesets under one owner per

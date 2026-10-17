@@ -19,7 +19,7 @@ Every principle in this skill is traceable to one or more of these published sou
   - Just-in-time context retrieval
   - Long-horizon techniques: compaction, structured note-taking, sub-agent architectures
 
-- **Writing Effective Tools for AI Agents — Using AI Agents** — Ken Aizawa, Sep 2025.
+- **Writing effective tools for AI agents—using AI agents** — Ken Aizawa, Sep 2025.
   https://www.anthropic.com/engineering/writing-tools-for-agents
   - Choose few high-impact tools over wrapping every endpoint
   - Namespacing (e.g., `asana_search`, `jira_search`)
@@ -68,17 +68,18 @@ Every principle in this skill is traceable to one or more of these published sou
   - Agentic eagerness control
   - Cursor's tool-calling reliability patterns
 
-- **Prompt Guidance** (GPT-5.4/5.5).
-  https://developers.openai.com/api/docs/guides/prompt-guidance
-  - "Start with smallest prompt that passes evals; add blocks only when they fix a measured failure mode"
-  - Output contracts
-  - Citation gating
-  - Verification loops as cheaper than higher reasoning settings
+- **Latest model guide** (GPT-5.5 view; the old `prompt-guidance` URL redirects here).
+  https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.5
+  - "smallest prompt that preserves the product contract, then tune reasoning effort, verbosity, tool descriptions, and output format against representative examples"
+  - Not re-checked against the current page, kept from the earlier guide:
+    - Output contracts
+    - Citation gating
+    - Verification loops as cheaper than higher reasoning settings
 
 - **Realtime Prompting Guide**.
   https://developers.openai.com/cookbook/examples/realtime_prompting_guide
   - Section skeleton: Role & Objective, Personality & Tone, Context, Tools, Instructions, Conversation Flow, Safety & Escalation
-  - Prompt-critique meta-prompt (used in this skill's self-critique section)
+  - Prompt-critique meta-prompt (the basis of this skill's Pre-Ship Gate)
 
 - **Prompt Generation docs**.
   https://platform.openai.com/docs/guides/prompt-generation

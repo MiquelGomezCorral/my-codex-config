@@ -37,6 +37,7 @@ not copy it into the worktree or commit it. Product decisions stay in `docs/deci
 
 - Default branch: {{DEFAULT_BRANCH}}
 - Commit messages: {{COMMIT_STYLE}}
+- PR template: {{PR_TEMPLATE}}
 - Worktrees: {{WORKTREE_MODEL}}
 
 ## Repository skills

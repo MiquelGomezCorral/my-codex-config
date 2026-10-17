@@ -30,7 +30,7 @@ When the session ends, ask whether to keep or delete `teach-me.md`. If the user 
 
 To get a sense of where they're at, proactively have them restate their understanding first. Then help them fill in the gaps from there — they might ask you questions, or ask to eli5, eli14, or explain like they're an intern.
 
-Quiz them with open-ended or multiple-choice questions using the AskUserQuestion tool:
+Quiz them with open-ended or multiple-choice questions using the harness's structured question tool (`AskUserQuestion` in Claude Code), or plain numbered questions where there is none:
 
 - Vary the position of the correct answer across questions.
 - Do not reveal the answer until after they submit.
