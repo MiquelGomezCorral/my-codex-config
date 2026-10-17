@@ -76,7 +76,8 @@ btca ask -r <resource> -q "<focused question>"
 - Credentials come from the provider's environment variable, such as `OPENCODE_API_KEY`, or
   from the shared OpenCode auth store. Never write a key into a repository.
 - The OpenCode **Go** subscription is not usable here: it is a session-based endpoint on
-  `/zen/go/v1` that requires an `x-opencode-session` header, while btca speaks the plain
-  OpenAI-compatible `/zen/v1`.
+  `/zen/go/v1` (OpenCode now documents `https://opencode.ai/inference/go/v1`) that expects
+  an `x-opencode-session` header. btca cannot send it: its `opencode` provider is fixed to
+  Zen (`/zen/v1`), and `openai-compat` sets only the key and base URL.
 - For provider failures run `btca status`; connect only when user interaction is available.
   For unknown resources, inspect the catalog instead of guessing.
