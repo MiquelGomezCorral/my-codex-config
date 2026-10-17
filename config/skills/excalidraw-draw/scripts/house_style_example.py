@@ -22,11 +22,9 @@ def build():
     s.text(40, 82, "Read from the code on 2026-10-08. Each card names the model and what it holds.",
            size=16, color=SECONDARY)
 
-    # Legend: one chip per meaning, explained in plain text beside it.
-    s.chip(40, 124, "tool")
-    s.text(96, 127, "a tool the agent holds", size=14, color=SECONDARY)
-    s.chip(290, 124, "skill", role="violet")
-    s.text(354, 127, "a method for its task", size=14, color=SECONDARY)
+    # Legend: the chip as the drawing uses it (an arrow label), explained in plain text beside it.
+    s.chip(40, 124, "label")
+    s.text(106, 127, "a word on an arrow: what passes along it", size=14, color=SECONDARY)
 
     person = s.box(380, 170, 160, 48, "The person", size=18)
     runtime = s.box(40, 300, 220, 70, "The runtime\ncode, no model", dashed=True, size=14)

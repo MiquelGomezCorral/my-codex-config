@@ -44,8 +44,9 @@ MIN_FONT_SIZE = 14
 
 INK, SECONDARY, MUTED = "#1e1e1e", "#495057", "#6c757d"  # MUTED is the lightest grey that passes 4.5:1 on white
 NOTE = "#c92a2a"  # annotation red that passes 4.5:1 on white at 14 px
-# role -> (stroke, light fill, text), from Excalidraw's open-color palette. The text shade
-# keeps 4.5:1 on the fill and on white, so coloured titles stay readable.
+# role -> (stroke, light fill, text), from Excalidraw's open-color palette, with darker text
+# shades where needed for 4.5:1 on the fill and on white (green and orange are not open-color).
+# Coloured titles stay readable.
 ROLES = {
     "grey": ("#868e96", "#f1f3f5", "#495057"),
     "blue": ("#1971c2", "#e7f5ff", "#1864ab"),

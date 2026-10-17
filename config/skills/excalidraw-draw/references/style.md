@@ -38,7 +38,8 @@ such as `→` and `≥`; write words, or set them in the mono font. Avoid Helvet
 One role per colour, at most four in a drawing; neutral grey and white do not count. The
 stroke is the strong shade, the fill the lightest, and titles use the darker text shade,
 which keeps 4.5:1 contrast on the fill and on white (WCAG treats only 24 px and larger as
-large text). These are the `ROLES` in `scene.py`; pass `fill=` and `stroke=` to
+large text). The colours are open-color, except the green and orange text shades, which are
+darker to reach that contrast. These are the `ROLES` in `scene.py`; pass `fill=` and `stroke=` to
 `Scene.box()` for a one-off such as a dark primary button with white text.
 
 | Role | Stroke | Fill | Text |
@@ -76,7 +77,8 @@ large text). These are the `ROLES` in `scene.py`; pass `fill=` and `stroke=` to
 - **One parent, many children:** `Scene.fan_out()` draws a trunk with one branch per child,
   labelled and optionally dashed. Never stretch the parent box to span its children.
 - **Chip:** `Scene.chip()`: monospace 14 px label in a small grey box. Use it for tags,
-  tool names, legend keys, and arrow labels.
+  tool names, legend keys, and arrow labels. A legend explains only chips the drawing
+  shows.
 - **Edge label:** `Scene.arrow(..., label=...)` puts a chip on the arrow's midpoint. Keep
   labels to a word or two (12 characters or fewer); the lint warns when a label covers
   most of its arrow.
