@@ -5,7 +5,9 @@ Usage: python3 fill.py <data.json | -> <output.html> [--keep-baseline]
        python3 fill.py --markdown <data.json | -> <output.md>
 
 Copies the skill's page.html, replaces its data block with the JSON (read from stdin for `-`),
-and copies in the icon catalog from icons.json. The page
+and copies in the icon catalog from icons.json. When a figure or gallery item has a `mermaid`
+string, it also inlines the Pele engine and its drop-in from the `figures` skill; other pages
+stay without it. The page
 already at the output path counts as the version the user last saw: its data becomes
 `previous`, `version` goes up by one, and the page marks what changed. `--keep-baseline`
 re-renders without moving the baseline, for fixes made before the user sees the new version.
@@ -25,8 +27,11 @@ from pathlib import Path
 SKILL = Path(__file__).resolve().parent.parent
 PAGE = SKILL / "page.html"
 ICONS = SKILL / "icons.json"
+PELE = SKILL.parent / "figures" / "assets" / "pele"
+PELE_FILES = ("pele.global.js", "pele-embed.js")
 DATA_BLOCK = re.compile(r'(<script type="application/json" id="data">\n)(.*?)(\n</script>)', re.S)
 ICONS_BLOCK = re.compile(r'(<script type="application/json" id="icons">\n)(.*?)(\n</script>)', re.S)
+ENGINE_BLOCK = re.compile(r'(<script id="pele-engine">)(.*?)(</script>)', re.S)
 CONVERTER_BLOCK = re.compile(r'<script id="markdown-converter">\n(.*?)\n</script>', re.S)
 # Node runs the converter against the data on stdin and prints the Markdown.
 MARKDOWN_RUNNER = """
@@ -95,6 +100,46 @@ def script_json(value: dict) -> str:
     would keep it from closing at its own end tag.
     """
     return json.dumps(value, indent=2, ensure_ascii=False).replace("<", "\\u003c")
+
+
+def has_mermaid(value) -> bool:
+    """Return whether any figure or gallery item in the data carries a non-empty `mermaid` string.
+
+    Whitespace counts: the page draws a diagram for any truthy `mermaid`, and Pele reports an empty one.
+    """
+    if isinstance(value, list):
+        return any(has_mermaid(item) for item in value)
+    if not isinstance(value, dict):
+        return False
+    source = value.get("mermaid")
+    return (isinstance(source, str) and bool(source)) or any(has_mermaid(item) for item in value.values())
+
+
+def pele_engine() -> str:
+    """Return the Pele engine followed by its drop-in, ready to sit inside a script element.
+
+    Raises:
+        SystemExit: A file is missing (the `figures` skill is absent) or holds "</script",
+            which would end the element early.
+    """
+    parts = []
+    for name in PELE_FILES:
+        path = PELE / name
+        if not path.is_file():
+            raise SystemExit(f"{path} not found: a page with a mermaid figure needs the `figures` skill beside this one")
+        text = path.read_text(encoding="utf-8")
+        if "</script" in text.lower():
+            raise SystemExit(f"{path} contains '</script' and cannot be inlined")
+        parts.append(text)
+    return "\n".join(parts)
+
+
+def fill_engine(page: str, engine: str) -> str:
+    """Return the page with its empty engine block holding the given script text."""
+    page, count = ENGINE_BLOCK.subn(lambda m: m[1] + "\n" + engine + "\n" + m[3], page, count=1)
+    if count != 1:
+        raise SystemExit(f"engine script block not found in {PAGE}")
+    return page
 
 
 def fill_block(page: str, block: re.Pattern, value: dict) -> str:
@@ -171,8 +216,11 @@ def main():
             " add it (references/templates.md, Icons) or pick another",
             file=sys.stderr,
         )
-    # Icons first: the data block comes earlier in the page, so data text cannot fake the icons block.
-    page = fill_block(PAGE.read_text(encoding="utf-8"), ICONS_BLOCK, icons)
+    # Engine and icons first: the data block comes earlier in the page, so data text cannot fake their blocks.
+    page = PAGE.read_text(encoding="utf-8")
+    if has_mermaid(without_history(data)):
+        page = fill_engine(page, pele_engine())
+    page = fill_block(page, ICONS_BLOCK, icons)
     page = fill_block(page, DATA_BLOCK, data)
 
     # A page cut off before its last script never starts its auto-refresh, so it is swapped in whole.

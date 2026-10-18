@@ -226,6 +226,12 @@ figure{margin:10px 0}
 figure img,figure iframe,figure video{display:block;max-width:100%;border-radius:8px;border:1px solid var(--line);background:var(--card)}
 /* Light, like a document that sets no scheme: otherwise Chrome paints an opaque box behind a transparent plot on a dark page. */
 figure iframe{width:100%;color-scheme:light}
+/* A Mermaid figure is drawn in place by the engine, in the same frame as an image. */
+figure pre.mermaid{margin:0;padding:12px;border-radius:8px;overflow:hidden;white-space:normal}
+/* A figure with a dark image shows one image and one link at a time, whichever theme the page wears. */
+:root[data-theme="dark"] figure .light-only,:root[data-theme="light"] figure .dark-only{display:none}
+@media (prefers-color-scheme:dark){:root:not([data-theme]) figure .light-only{display:none}}
+@media not (prefers-color-scheme:dark){:root:not([data-theme]) figure .dark-only{display:none}}
 figcaption{color:var(--muted);font-size:13px;margin-top:4px}
 figcaption a{margin-left:8px;font-size:12px}
 .legend{color:var(--muted);font-size:13px;margin:6px 0}
@@ -303,7 +309,7 @@ thead{display:table-header-group}
 summary,h2,h3,h4{break-after:avoid}
 figure:has(>details){break-inside:auto}
 figure>details pre{break-inside:auto}
-figure>:is(img,iframe,video){break-after:avoid}
+figure>:is(img,iframe,video,pre.mermaid){break-after:avoid}
 /* Paper cannot scroll: code wraps instead of clipping. */
 pre,figure>details pre{max-height:none;overflow:visible;white-space:pre-wrap;overflow-wrap:anywhere}
 .scroll{overflow:visible}
@@ -338,6 +344,15 @@ const DEFAULT_STATUSES = {
   info: { label: "Info", tone: "info" },
 };
 
+// How a figure is shown: "mermaid" when it has Mermaid text, else by the extension of the `src` path without its
+// ?query or #hash. The renderer, referencedFiles() and the Markdown rules below all decide with this.
+function figureKind(f) {
+  if (f.mermaid) return "mermaid";
+  const path = String(f.src || "").split(/[?#]/)[0];
+  if (/\.(mp4|webm)$/i.test(path)) return "video";
+  return /\.html?$/i.test(path) ? "frame" : "image";
+}
+
 // The items of a stats block: its own, plus finding counts when `auto`.
 function statItems(data, block) {
   const items = [...(block.items || [])];
@@ -371,10 +386,10 @@ function pageToMarkdown(data, { plain = false, picks = {} } = {}) {
   // A list item: the marker, then every following line indented under it.
   const bullet = (md, marker = "- ") => marker + md.replace(/\n(?!\n|$)/g, "\n" + " ".repeat(marker.length));
   const heading = (level, text) => "#".repeat(Math.min(level, 6)) + " " + flat(prose(text));
-  const fence = (text) => {
+  const fence = (text, lang = "") => {
     const longest = Math.max(0, ...(String(text).match(/`+/g) || []).map((run) => run.length));
     const mark = "`".repeat(Math.max(3, longest + 1));
-    return `${mark}\n${String(text).replace(/\n+$/, "")}\n${mark}`;
+    return `${mark}${lang}\n${String(text).replace(/\n+$/, "")}\n${mark}`;
   };
   const target = (path) => String(path).replace(/[ ()]/g, (c) => "%" + c.charCodeAt(0).toString(16).toUpperCase());
   // <summary> holds HTML, so its text is escaped and only code, bold and italic survive.
@@ -408,7 +423,10 @@ function pageToMarkdown(data, { plain = false, picks = {} } = {}) {
     const caption = flat(prose(b.caption || b.alt));
     const fold = b.details && row({ title: b.details.title || "Details", text: b.details.text, blocks: b.details.code ? [{ type: "code", text: b.details.code }] : [] }, depth);
     let media = `[figure${caption && ": " + caption}]`;
-    if (!plain && /\.html?$/i.test(b.src || "")) media = `> [interactive figure${caption && ": " + caption} — file ${b.src}, not included in Markdown]`;
+    // GitHub and most Markdown viewers draw a mermaid fence, so the diagram travels as its text.
+    const kind = figureKind(b);
+    if (!plain && kind === "mermaid") media = [fence(b.mermaid, "mermaid"), caption].filter(Boolean).join("\n\n");
+    else if (!plain && kind === "frame") media = `> [interactive figure${caption && ": " + caption} — file ${b.src}, not included in Markdown]`;
     else if (!plain) media = `![${caption.replace(/[[\]]/g, "\\$&")}](${target(b.src ?? "")})`;
     const source = !plain && b.source ? `[Editable source](${target(b.source)})` : "";
     return [media, source, fold].filter(Boolean).join("\n\n");
@@ -501,6 +519,9 @@ function pageToMarkdown(data, { plain = false, picks = {} } = {}) {
   return [heading(1, data.title ?? ""), header, ...sections].filter(Boolean).join("\n\n") + "\n";
 }
 </script>
+<!-- The Pele engine and its drop-in theme; fill.py copies them in only when a figure has `mermaid`. It runs before the
+     script below, and the drop-in draws every pre.mermaid once the page has rendered. -->
+<script id="pele-engine"></script>
 <script>
 "use strict";
 const data = JSON.parse(document.getElementById("data").textContent);
@@ -737,11 +758,19 @@ const renderers = {
   figure: (b) => {
     const src = escapeHtml(b.src);
     const label = escapeHtml(b.alt || b.caption || "");
-    let media = `<img src="${src}" alt="${label}">`;
-    if (/\.(mp4|webm)$/i.test(b.src || "")) media = `<video src="${src}" aria-label="${label}" controls preload="metadata"></video>`;
+    const kind = figureKind(b);
+    // A `dark` image replaces `src` in the dark theme. Both are lazy, so the one the theme hides is not fetched.
+    const dark = b.dark && kind === "image" ? escapeHtml(b.dark) : "";
+    const image = (href, theme) => `<img src="${href}" alt="${label}"${theme ? ` class="${theme}-only" loading="lazy"` : ""}>`;
+    let media = dark ? image(src, "light") + image(dark, "dark") : image(src);
+    if (kind === "video") media = `<video src="${src}" aria-label="${label}" controls preload="metadata"></video>`;
     // HTML diagrams and mockups run in a sandbox without access to this page or its storage.
-    if (/\.html?$/i.test(b.src || "")) media = `<iframe src="${src}" title="${label}" style="height:${Number(b.height) || 420}px" loading="lazy" sandbox="allow-scripts"></iframe>`;
-    const links = `<a class="fig-link" href="${src}" target="_blank" rel="noopener">Open full size</a>${b.source ? `<a class="fig-link" href="${escapeHtml(b.source)}" target="_blank" rel="noopener">Editable source</a>` : ""}`;
+    if (kind === "frame") media = `<iframe src="${src}" title="${label}" style="height:${Number(b.height) || 420}px" loading="lazy" sandbox="allow-scripts"></iframe>`;
+    // Mermaid text is drawn in place by the Pele engine (see the pele-engine script); it has no file to open.
+    if (kind === "mermaid") media = `<pre class="mermaid">${escapeHtml(b.mermaid)}</pre>`;
+    const open = (href, theme) => `<a class="fig-link${theme ? ` ${theme}-only` : ""}" href="${href}" target="_blank" rel="noopener">Open full size</a>`;
+    const full = kind === "mermaid" ? "" : dark ? open(src, "light") + open(dark, "dark") : open(src);
+    const links = full + (b.source ? `<a class="fig-link" href="${escapeHtml(b.source)}" target="_blank" rel="noopener">Editable source</a>` : "");
     // An optional fold-out under the caption: one closed `details` row holding `text`, then `code` as monospace lines.
     const d = b.details;
     const fold = d ? renderers.details({ items: [{ title: d.title || "Details", text: d.text, blocks: d.code ? [{ type: "code", text: d.code }] : [] }] }) : "";
@@ -767,7 +796,7 @@ function renderBlock(block, headingId) {
 
 // fill.py embeds the version the user last saw as data.previous. The page compares the two and
 // marks what is added or changed. Sections match by id, else title; blocks by position in their
-// section; items by id, else title or name, else their own text or src. Matrix rows are items
+// section; items by the chain in itemKey (id first, so an edited item stays "changed"). Matrix rows are items
 // keyed by group title and label. `fields` are the block fields that hold items, which diffBlock sets
 // aside when it compares the block itself; itemsOf reads the first one, except for matrix rows and
 // grouped gallery items, which it lifts out of `groups`.
@@ -792,18 +821,18 @@ function same(a, b) {
 function itemKey(item) {
   if (typeof item === "string") return item;
   if (Array.isArray(item)) return item.map(cellText).join(" | ");
-  return String(item.id ?? item.title ?? item.name ?? item.text ?? item.src ?? JSON.stringify(item));
+  return String(item.id ?? item.title ?? item.name ?? item.text ?? item.src ?? item.mermaid ?? JSON.stringify(item));
 }
 
 function itemLabel(item) {
   const label = typeof item === "object" && !Array.isArray(item)
-    ? [item.id, item.title ?? item.name ?? item.question].filter(Boolean).join(" ") || item.text || item.caption || item.src || "item"
+    ? [item.id, item.title ?? item.name ?? item.question].filter(Boolean).join(" ") || item.text || item.caption || item.src || item.mermaid?.trim().split("\n")[0] || "item"
     : itemKey(item);
   return label.length > 80 ? label.slice(0, 77) + "..." : label;
 }
 
 // The items a block is diffed by. Matrix rows and grouped gallery items are lifted out of their
-// groups; a gallery item keeps its `src` key and notes its group, so a moved item reads as changed.
+// groups; a gallery item keeps its itemKey and notes its group, so a moved item reads as changed.
 function itemsOf(block) {
   if (block.type === "matrix") return (block.groups || []).flatMap((group) => (group.rows || []).map((row) => ({ ...row, id: [group.title, row.label].filter(Boolean).join(" › ") })));
   if (block.type === "gallery" && block.groups) return block.groups.flatMap((group) => (group.items || []).map((item) => ({ ...item, group: group.title, note: group.note })));
@@ -936,7 +965,7 @@ function renderChanges() {
 // section's id and its position among the headed blocks. Every id is unique on the page: an author's id wins over a
 // generated one ("s2", "plan--1"), the first section with an id keeps it, and any id that repeats or names a page-shell
 // element gets a "-2", "-3" suffix that skips every id an author wrote.
-const SHELL_IDS = ["data", "icons", "root", "bar", "toc", "pt-list", "markdown-converter"];
+const SHELL_IDS = ["data", "icons", "root", "bar", "toc", "pt-list", "markdown-converter", "pele-engine"];
 function buildOutlines(sections) {
   const used = new Set(SHELL_IDS);
   const written = new Set(sections.map((section) => section.id).filter(Boolean));
@@ -1072,6 +1101,8 @@ function openForPrint() {
   folded.forEach((el) => { el.hidden = false; });
   if (folded.length) undoPrint.push(() => folded.forEach((el) => { el.hidden = true; }));
   document.querySelectorAll('iframe[loading="lazy"]').forEach((f) => { f.loading = "eager"; });
+  // Diagrams in rows just opened, or laid out for another width, are drawn again for the width they print at.
+  window.peleEmbed?.refreshAll();
 }
 
 function restoreAfterPrint() {
@@ -1105,6 +1136,7 @@ async function exportPdf() {
     themeFrames("light");
     openForPrint();
     html.classList.add("print-layout");
+    window.peleEmbed?.refreshAll();
     const frames = [...document.querySelectorAll("iframe")];
     await Promise.all(frames.map(reloadFrame));
     for (const frame of frames) {
@@ -1149,11 +1181,15 @@ function figuresIn(blocks) {
   });
 }
 
-// Files the page shows, as paths relative to it: each figure's `src` and `source`, without a query or hash.
-// Absolute addresses and data: URIs are not files of the page.
+// Files the page shows, as paths relative to it: each figure's `src` (not a Mermaid figure's), `dark` (only an image's)
+// and `source`, without a query or hash. Absolute addresses and data: URIs are not files of the page.
 function referencedFiles() {
   const figures = (data.sections || []).flatMap((s) => figuresIn(s.blocks));
-  const paths = figures.flatMap((f) => [f.src, f.source]).filter((p) => typeof p === "string").map((p) => p.split(/[?#]/)[0]);
+  const shown = (f) => {
+    const kind = figureKind(f);
+    return [kind !== "mermaid" && f.src, kind === "image" && f.dark, f.source];
+  };
+  const paths = figures.flatMap(shown).filter((p) => typeof p === "string").map((p) => p.split(/[?#]/)[0]);
   return [...new Set(paths.filter((p) => p && !/^([a-z][a-z0-9+.-]*:|\/)/i.test(p)))];
 }
 
