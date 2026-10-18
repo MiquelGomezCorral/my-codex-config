@@ -217,7 +217,7 @@ Only make diagrams that clarify a real decision or flow. Follow `diagrams.md` fo
 brief, presentation, artifact, and validation contract. The deterministic renderer never delegates.
 A useful custom diagram may use `super-agent`: resolve the catalog `coder` role for an
 artifact-only worker and pin its harness, exact model, and thinking at dispatch. Give it the
-chosen project style or pass diagram-design's `Minimal dark` template explicitly.
+chosen project style or pass the style the `figures` skill gives for its tool explicitly.
 A required gate page that fails to render or publish is fixed or reported as a blocker,
 never skipped. For optional extras such as extra diagrams, a rendering failure is
 non-blocking: report it and always present the native plan and available artifacts.

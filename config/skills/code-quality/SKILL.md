@@ -21,8 +21,8 @@ Read `references/<language>.md` for the language of the file you are about to to
 universal rules apply first; the language reference narrows them for that language.
 
 - [Python](references/python.md)
-- [Python plots](references/python-plots.md): when the Python code draws a plot for a page,
-  notebook, or report
+- Python plots: when the Python code draws a plot for a page, notebook, or report, load the
+  `figures` skill and read its `references/plotly.md`
 - [UI](references/ui.md): when the change renders an interface (HTML, CSS, components);
   design rules for layout, actions, consistency, color and states, plus the `lintapple` check
 
