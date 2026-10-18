@@ -1,0 +1,90 @@
+{
+  "eyebrow": "figures skill",
+  "title": "Every figure tool, one page",
+  "subtitle": "Real output from each tool the figures skill routes to. Use the theme button at the bottom right, or open it on a phone: every figure follows the page.",
+  "sections": [
+    {
+      "id": "pele",
+      "title": "Pele: most diagrams and simple charts",
+      "intro": "Mermaid text drawn by the vendored Pele engine inside the page. No image file: the colours come from the page, so they switch with the theme, and the layout adapts to the width.",
+      "blocks": [
+        {
+          "type": "figure",
+          "mermaid": "flowchart LR\n  subgraph Client\n    UI[Web app]\n    Cache[(Local cache)]\n  end\n  subgraph Services\n    API[API gateway]\n    Auth[Auth service]\n    Orders[Order service]\n  end\n  subgraph Storage\n    DB[(Orders DB)]\n  end\n  UI --> API\n  UI --> Cache\n  API --> Auth\n  API --> Orders\n  Orders --> DB\n  Auth -. token .-> UI",
+          "caption": "Flowchart: a client, its services and storage. From references/pele/flowchart.md."
+        },
+        {
+          "type": "gallery",
+          "width": 480,
+          "items": [
+            {
+              "mermaid": "sequenceDiagram\n  autonumber\n  actor Customer\n  participant Web as Web app\n  participant API as API gateway\n  participant Bank\n  Customer->>Web: Place order\n  Web->>API: POST /orders\n  activate API\n  API->>Bank: Authorize payment\n  Bank-->>API: Approved\n  API-->>Web: 201 Created\n  deactivate API\n  Web-->>Customer: Order confirmed\n  Note over Customer,Bank: One order, one transaction",
+              "caption": "Sequence"
+            },
+            {
+              "mermaid": "gantt\n    title Git Issues - days since last update\n    dateFormat X\n    axisFormat %s\n    section Issue19062\n    71   : 0, 71\n    section Issue19401\n    36   : 0, 36\n    section Issue193\n    34   : 0, 34\n    section Issue7441\n    9    : 0, 9\n    section Issue1300\n    5    : 0, 5",
+              "caption": "Gantt"
+            },
+            {
+              "mermaid": "xychart\n    title \"Ocean Temperature\"\n    x-axis [jan, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec]\n    y-axis \"Temperature (in °F)\" 74 --> 82\n    bar [76.3, 75.9, 76.0, 76.7, 77.8, 78.9, 79.9, 80.7, 81.1, 80.5, 79.1, 77.4]\n    line [76.3, 75.9, 76.0, 76.7, 77.8, 78.9, 79.9, 80.7, 81.1, 80.5, 79.1, 77.4]",
+              "caption": "Bar and line (xychart)"
+            },
+            {
+              "mermaid": "pie title Fish caught by the crew\n    \"ʻAhi\" : 386\n    \"Mahimahi\" : 85\n    \"Ono\" : 15",
+              "caption": "Pie"
+            },
+            {
+              "mermaid": "mindmap\n  root((Hawaiʻi))\n    History\n      Old legends\n      ::icon(fa fa-book)\n      Voyaging\n        Polynesian navigators who sailed by the stars\n    Nature\n      Mountains<br/>and volcanoes\n      Ocean life\n        Reef\n            Sea turtles\n            Monk seals\n            Parrotfish\n    Culture\n      Hula and lei\n      ʻUkulele",
+              "caption": "Mind map"
+            },
+            {
+              "mermaid": "stateDiagram-v2\n  [*] --> Draft\n  Draft --> Submitted : submit\n  state Review {\n    [*] --> Screening\n    Screening --> Decision\n  }\n  Submitted --> Review\n  Review --> Published : approved\n  Review --> Draft : rejected\n  Published --> [*]",
+              "caption": "State"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dd",
+      "title": "diagram-design: when polish matters",
+      "intro": "An editorial architecture overview made with the artifacts profile. It comes as a light and a dark SVG, and the page shows the one that matches its theme.",
+      "blocks": [
+        {
+          "type": "figure",
+          "src": "architecture-overview.svg",
+          "dark": "architecture-overview-dark.svg",
+          "source": "architecture-overview.html",
+          "caption": "How each tool's output lands in a figure block."
+        }
+      ]
+    },
+    {
+      "id": "exc",
+      "title": "Excalidraw: drawings and open-ended visuals",
+      "intro": "A hand-drawn scene rendered with the official Excalidraw CLI: light, and with --theme dark --transparent for the dark page.",
+      "blocks": [
+        {
+          "type": "figure",
+          "src": "sketch.png",
+          "dark": "sketch-dark.png",
+          "source": "sketch.excalidraw",
+          "caption": "Who starts whom in the agent tree, drawn in the excalidraw-draw house style."
+        }
+      ]
+    },
+    {
+      "id": "plotly",
+      "title": "Plotly: precise data",
+      "intro": "An interactive HTML plot from references/plotly/example.py. The page passes ?theme= to its frame, so it recolours itself. This copy loads Plotly from its CDN, so it needs internet.",
+      "blocks": [
+        {
+          "type": "figure",
+          "src": "plots/recall.html",
+          "height": 460,
+          "caption": "Hover for exact values; the plot follows the page theme."
+        }
+      ]
+    }
+  ]
+}

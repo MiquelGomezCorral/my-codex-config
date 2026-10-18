@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 920 480" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="swimlane-flow-title swimlane-flow-desc" id="swimlane-flow-root">
+<title id="swimlane-flow-title">A figure from tool choice to a checked page</title>
+<desc id="swimlane-flow-desc">Swimlane diagram: the agent picks a tool and writes the source, the tool renders a light and a dark version, the agent checks four views and either fixes the source or hands the figure to the page.</desc>
+<defs>
+      <style>
+      #swimlane-flow-root { --color-paper:   #ffffff;
+      --color-ink:     #1d1d1f;
+      --color-muted:   #5b5b66;
+      --color-accent:  #2f5bd3;
+      --font-sans:     system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-serif:    system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono:     ui-monospace, SFMono-Regular, Menlo, monospace; }
+      #swimlane-flow-root { font-family: var(--font-sans); color: var(--color-ink); }
+      #swimlane-flow-root .diagram-container { width: 100%; overflow-x: auto; }
+      #swimlane-flow-root .diagram-container { overflow-x: visible; }</style>
+  <marker id="swimlane-flow-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#5b5b66"/></marker>
+  <marker id="swimlane-flow-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2f5bd3"/></marker>
+  <marker id="swimlane-flow-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#1b7f8c"/></marker>
+</defs>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<rect x="40" y="48" width="840" height="128" fill="#1d1d1f" fill-opacity="0.02" stroke="#1d1d1f" stroke-opacity="0.1" stroke-width="0.8"/>
+<text x="56" y="115" fill="#6b6b70" font-size="8" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" text-anchor="start" letter-spacing="0.18em">AGENT</text>
+<rect x="40" y="176" width="840" height="112" fill="#1d1d1f" fill-opacity="0.02" stroke="#1d1d1f" stroke-opacity="0.1" stroke-width="0.8"/>
+<text x="56" y="235" fill="#6b6b70" font-size="8" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" text-anchor="start" letter-spacing="0.18em">TOOL</text>
+<rect x="40" y="288" width="840" height="112" fill="#1d1d1f" fill-opacity="0.02" stroke="#1d1d1f" stroke-opacity="0.1" stroke-width="0.8"/>
+<text x="56" y="347" fill="#6b6b70" font-size="8" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" text-anchor="start" letter-spacing="0.18em">PAGE</text>
+<line x1="272" y1="128" x2="312" y2="128" stroke="#5b5b66" stroke-width="1.2" marker-end="url(#swimlane-flow-arrow)"/>
+<path d="M 424,128 H 436 Q 444,128 444,136 V 224 Q 444,232 452,232 H 464" fill="none" stroke="#5b5b66" stroke-width="1.2" marker-end="url(#swimlane-flow-arrow)"/>
+<line x1="576" y1="232" x2="616" y2="232" stroke="#5b5b66" stroke-width="1.2" marker-end="url(#swimlane-flow-arrow)"/>
+<path d="M 728,232 H 740 Q 748,232 748,224 V 136 Q 748,128 756,128 H 768" fill="none" stroke="#5b5b66" stroke-width="1.2" marker-end="url(#swimlane-flow-arrow)"/>
+<line x1="824" y1="160" x2="824" y2="312" stroke="#2f5bd3" stroke-width="1.4" marker-end="url(#swimlane-flow-arrow-accent)"/>
+<path d="M 824,96 V 80 Q 824,72 816,72 H 376 Q 368,72 368,80 V 96" fill="none" stroke="#5b5b66" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#swimlane-flow-arrow)"/>
+<rect x="578" y="53" width="36" height="12" rx="2" fill="#ffffff"/>
+<text x="596" y="62" fill="#5b5b66" font-size="8" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" text-anchor="middle" letter-spacing="0.08em">FIX</text>
+<rect x="834" y="229" width="36" height="12" rx="2" fill="#ffffff"/>
+<text x="852" y="238" fill="#2f5bd3" font-size="8" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" text-anchor="middle" letter-spacing="0.08em">PASS</text>
+<rect x="160" y="96" width="112" height="64" rx="6" fill="#ffffff"/>
+<rect x="160" y="96" width="112" height="64" rx="6" fill="#ffffff" stroke="#1d1d1f" stroke-width="1"/>
+<rect x="168" y="104" width="32" height="12" rx="2" fill="none" stroke="#1d1d1f" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="184" y="113" fill="#1d1d1f" font-size="7" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" text-anchor="middle" letter-spacing="0.08em">ASK</text>
+<text x="216" y="136" fill="#1d1d1f" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">Pick the tool</text>
+<text x="216" y="152" fill="#5b5b66" font-size="9" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" text-anchor="middle" >Pele first</text>
+<rect x="312" y="96" width="112" height="64" rx="6" fill="#ffffff"/>
+<rect x="312" y="96" width="112" height="64" rx="6" fill="#ffffff" stroke="#1d1d1f" stroke-width="1"/>
+<rect x="320" y="104" width="32" height="12" rx="2" fill="none" stroke="#1d1d1f" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="336" y="113" fill="#1d1d1f" font-size="7" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" text-anchor="middle" letter-spacing="0.08em">SRC</text>
+<text x="368" y="136" fill="#1d1d1f" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">Write source</text>
+<text x="368" y="152" fill="#5b5b66" font-size="9" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" text-anchor="middle" >text, spec or data</text>
+<rect x="464" y="200" width="112" height="64" rx="6" fill="#ffffff"/>
+<rect x="464" y="200" width="112" height="64" rx="6" fill="#ffffff" stroke="#1d1d1f" stroke-width="1"/>
+<rect x="472" y="208" width="32" height="12" rx="2" fill="none" stroke="#1d1d1f" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="488" y="217" fill="#1d1d1f" font-size="7" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" text-anchor="middle" letter-spacing="0.08em">OUT</text>
+<text x="520" y="240" fill="#1d1d1f" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">Render light</text>
+<text x="520" y="256" fill="#5b5b66" font-size="9" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" text-anchor="middle" >on #ffffff</text>
+<rect x="616" y="200" width="112" height="64" rx="6" fill="#ffffff"/>
+<rect x="616" y="200" width="112" height="64" rx="6" fill="#ffffff" stroke="#1d1d1f" stroke-width="1"/>
+<rect x="624" y="208" width="32" height="12" rx="2" fill="none" stroke="#1d1d1f" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="640" y="217" fill="#1d1d1f" font-size="7" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" text-anchor="middle" letter-spacing="0.08em">OUT</text>
+<text x="672" y="240" fill="#1d1d1f" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">Render dark</text>
+<text x="672" y="256" fill="#5b5b66" font-size="9" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" text-anchor="middle" >on #1d1d21</text>
+<rect x="768" y="96" width="112" height="64" rx="6" fill="#ffffff"/>
+<rect x="768" y="96" width="112" height="64" rx="6" fill="#2f5bd3" fill-opacity="0.08" stroke="#2f5bd3" stroke-width="1"/>
+<rect x="776" y="104" width="36" height="12" rx="2" fill="none" stroke="#2f5bd3" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="794" y="113" fill="#2f5bd3" font-size="7" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" text-anchor="middle" letter-spacing="0.08em">GATE</text>
+<text x="824" y="136" fill="#1d1d1f" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">Look at 4 views</text>
+<text x="824" y="152" fill="#5b5b66" font-size="9" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" text-anchor="middle" >2 themes · 2 widths</text>
+<rect x="768" y="312" width="112" height="64" rx="6" fill="#ffffff"/>
+<rect x="768" y="312" width="112" height="64" rx="6" fill="#1d1d1f" fill-opacity="0.05" stroke="#5b5b66" stroke-width="1"/>
+<rect x="776" y="320" width="36" height="12" rx="2" fill="none" stroke="#5b5b66" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="794" y="329" fill="#5b5b66" font-size="7" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" text-anchor="middle" letter-spacing="0.08em">PAGE</text>
+<text x="824" y="352" fill="#1d1d1f" font-size="12" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">Fill the page</text>
+<text x="824" y="368" fill="#5b5b66" font-size="9" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" text-anchor="middle" >figure + caption</text>
+<line x1="40" y1="416" x2="880" y2="416" stroke="#1d1d1f" stroke-opacity="0.12" stroke-width="0.8"/>
+<text x="40" y="432" fill="#5b5b66" font-size="8" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" text-anchor="start" letter-spacing="0.18em">LEGEND</text>
+<rect x="40" y="448" width="14" height="10" rx="2" fill="#2f5bd3" fill-opacity="0.08" stroke="#2f5bd3" stroke-width="1"/>
+<text x="60" y="456" fill="#5b5b66" font-size="8.5" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">Gate</text>
+<rect x="120" y="448" width="14" height="10" rx="2" fill="#ffffff" stroke="#1d1d1f" stroke-width="1"/>
+<text x="140" y="456" fill="#5b5b66" font-size="8.5" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">Step</text>
+<rect x="200" y="448" width="14" height="10" rx="2" fill="#1d1d1f" fill-opacity="0.05" stroke="#5b5b66" stroke-width="1"/>
+<text x="220" y="456" fill="#5b5b66" font-size="8.5" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">Result</text>
+<line x1="288" y1="453" x2="316" y2="453" stroke="#2f5bd3" stroke-width="1.4" marker-end="url(#swimlane-flow-arrow-accent)"/>
+<text x="324" y="456" fill="#5b5b66" font-size="8.5" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">Handoff to the page</text>
+<line x1="452" y1="453" x2="480" y2="453" stroke="#5b5b66" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#swimlane-flow-arrow)"/>
+<text x="488" y="456" fill="#5b5b66" font-size="8.5" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">Back to the source</text>
+</svg>

@@ -6,16 +6,16 @@ plan remains authoritative; a diagram never proves a behavior or grants approval
 
 ## Worker brief
 
-Before dispatch, apply the [super-agent route availability policy](../../super-agent/SKILL.md#select-the-route)
-to verify the chosen drawing skill is available on the selected route: `diagram-design`,
-or `excalidraw-draw` for Excalidraw and free-form drawings. If not, report the optional
+The [`figures` skill](../../figures/SKILL.md) picks the drawing tool: load it and use its order and
+catalog. Before dispatch, apply the [super-agent route availability policy](../../super-agent/SKILL.md#select-the-route)
+to verify the tool it picks is available on the selected route. If not, report the optional
 artifact gap and continue with the written plan; do not install it or switch harnesses.
 
 Give the worker one concrete question to answer, the subject and scope,
 the audience, verified facts with their evidence, proposed changes, alternatives, unknowns,
 material dependencies and risks, and the output directory. Resolve style first: use the
-chosen project style, or pass one explicitly when there is none: `Minimal dark` for
-`diagram-design`, the house style for `excalidraw-draw`.
+chosen project style, or pass one explicitly when there is none: the style `figures` gives
+for the tool it picked.
 Include only relevant evidence. The worker may create or revise assigned artifacts; it
 cannot edit product files, browse unrelated private memory, use Git, install tools, publish,
 or delegate.

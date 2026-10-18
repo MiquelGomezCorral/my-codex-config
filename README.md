@@ -316,6 +316,12 @@ The artifacts skill bundles selected [Lucide](https://github.com/lucide-icons/lu
 SVGs in `config/skills/artifacts/icons.json`. Lucide's ISC notice, which also names the
 Feather portions it carries, is in `config/skills/artifacts/licenses/lucide.LICENSE`.
 
+The `figures` skill vendors [Pele](https://github.com/obsidianmd/pele) 1.6.0 (MIT, Copyright (c) 2026 kepano), the
+Mermaid renderer, as `config/skills/figures/assets/pele/pele.global.js`, unmodified. Its license is
+kept beside it at `config/skills/figures/assets/pele/LICENSE`. The Mermaid snippets in
+`config/skills/figures/references/pele/` come from the [pele.run examples](https://pele.run/examples)
+(MIT).
+
 The `skill-creator` skill is adapted from
 [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/skill-creator)
 (Apache-2.0, modified). Its license is kept at `config/skills/skill-creator/LICENSE.txt`.

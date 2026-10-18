@@ -12,3 +12,4 @@ Records are grouped by capability and stable concern so agents can read the smal
 - [Project initialization](agent-tooling/project-init.md) — One `init` command that sets up or repairs a repository for agents, with `AGENTS.md` followed by every harness.
 - [Harness portability](agent-tooling/harness-portability.md) — One shared configuration source and installer, with four native bootstraps and preserved local state.
 - [Artifact pages](agent-tooling/artifact-pages.md) — One page hub on port 3200 that serves and lists every agent page and app, owned by the artifacts skill.
+- [Figures](agent-tooling/figures.md) — One `figures` skill that routes Pele, diagram-design, Excalidraw and Plotly, with figures that match the artifact page themes.
