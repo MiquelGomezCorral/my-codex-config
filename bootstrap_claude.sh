@@ -54,6 +54,14 @@ install_mcp() {
   done
 }
 
+install_plugins() {
+  local plugin
+  claude plugin marketplace add midudev/better-claude --scope user >/dev/null
+  for plugin in image-preview sub-meter; do
+    claude plugin install "$plugin@better-claude" --scope user >/dev/null
+  done
+}
+
 install_assets() {
   local source
   common_ensure_directory "$CLAUDE_CONFIG_ROOT"
@@ -87,6 +95,7 @@ main() {
   common_install_shared "${common_args[@]}"
   install_assets
   install_mcp
+  install_plugins
   printf 'Installed Claude Code configuration. Restart Claude Code after reviewing generated assets.\n'
 }
 
