@@ -65,7 +65,6 @@ The artifacts skill owns the icon catalog, `icons.json`; its keys are the icon n
 (`workflow`, `shield-check`, `triangle-alert`, ...). In `review.json`, set `icon` to one of
 them; never paste SVG markup. An unknown name stops the render and lists the valid ones.
 
-Branching flows and larger diagrams can use the existing `diagram-design` skill, and
-free-form or Excalidraw drawings `excalidraw-draw`. Follow
+Branching flows and larger diagrams: the `figures` skill picks the tool. Follow
 [the workflow diagram guide](../../workflow/references/diagrams.md), keep labels readable, and include editable
 sources where available.

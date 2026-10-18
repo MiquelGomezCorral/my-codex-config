@@ -122,8 +122,9 @@ Pass `--keep-baseline` to fix a page before the user has seen it. The version an
 stay as they were, so the page still compares against what the user last saw.
 
 Sections match by `id`, else title; blocks by position inside their section; items by `id`,
-else title or name, else their own text; gallery items by `src` (moving one to another group reads as changed), matrix rows
-by group title and label. A removed item is listed by title only.
+else title or name, else their own text; gallery items by `src`, else their `mermaid` text (moving one to another group reads as changed), matrix rows
+by group title and label. Give a gallery item an optional `id` to keep its identity when its `src` or
+`mermaid` text changes: an edited diagram then reads as changed, not as added plus removed. A removed item is listed by title only.
 
 Write the text with the `writing` skill. Keep quotes verbatim and claims backed by what
 was actually observed.
@@ -164,8 +165,8 @@ is one of `ok`, `bad`, `warn`, `info`, or `muted`.
 | `compare` | `options` (`name`, `summary`, `pros`, `cons`), `criteria` (`name`, `values` per option), `recommended` |
 | `decisions` | `items` (`id`, `title`, `description`, `question`, `options`, `recommended`, `why`, optional `technical`; older items with only `question` and `context` still render) |
 | `code` | `text` |
-| `figure` | `src` (a file next to the page: image, `.html`, or `.mp4`/`.webm` video), `caption`, `alt`, `source` (editable file or URL), `height` for HTML, optional `details` (`title`, `text`, `code`: a closed fold-out under the caption, as in a gallery item) |
-| `gallery` | `items` (`src`, `caption`, `alt`: images, GIFs, videos, or `.html` plots with a `height`; each opens full size; optional `details` (`title`, `text`, `code`) folds out under the caption, closed, with `code` as monospace lines that scroll inside the card) or `groups` (`title`, optional `note`, `items`: one titled row with a divider line per method or experiment), `width` (card width in px, default 320; cards keep it and never stretch, so it sets how many share a row on a full-width page: up to 334 for 3, 335 to 508 for 2, more for 1; phones show 1), `pixelated` (crisp upscaled pixel art) |
+| `figure` | `src` (a file next to the page: image, `.html`, or `.mp4`/`.webm` video) or `mermaid` (Mermaid text, drawn on the page; no file), `dark` (an image shown instead of `src` in the dark theme), `caption`, `alt`, `source` (editable file or URL), `height` for HTML, optional `details` (`title`, `text`, `code`: a closed fold-out under the caption, as in a gallery item) |
+| `gallery` | `items` (`src` or `mermaid`, `dark`, `caption`, `alt`: images, GIFs, videos, Mermaid diagrams, or `.html` plots with a `height`; each file opens full size; optional `details` (`title`, `text`, `code`) folds out under the caption, closed, with `code` as monospace lines that scroll inside the card) or `groups` (`title`, optional `note`, `items`: one titled row with a divider line per method or experiment), `width` (card width in px, default 320; cards keep it and never stretch, so it sets how many share a row on a full-width page: up to 334 for 3, 335 to 508 for 2, more for 1; phones show 1), `pixelated` (crisp upscaled pixel art) |
 | `html` | `html`, only for a hand-drawn SVG or markup no other block covers |
 
 An `icon` is a key of `icons.json`, the skill's Lucide catalog of 100 icons, and draws on cards, steps, details rows, and
@@ -204,12 +205,14 @@ graph, use "Export PDF" below, or `capture.mjs --pdf` (see [Live evidence](#live
 Every page has four buttons at the right of its sticky bar at the top, apart from the section index:
 
 - **Export PDF** prepares the page, then opens the print dialog: light theme, every section and row
-  open, every graph loaded and drawn at the desktop layout width, the same sheet as Ctrl+P. Afterwards the page goes back as it was.
+  open, every graph and Mermaid diagram loaded and drawn at the desktop layout width, the same sheet as Ctrl+P. Afterwards the page goes back as it was.
 - **Export Markdown** downloads `<title-slug>.md` with the whole page as text. Image and graph
-  paths stay as the page writes them, and each row is a foldable `<details>`.
+  paths stay as the page writes them, a Mermaid figure becomes a ```` ```mermaid ```` fence (GitHub draws it) with its caption below, and each row is a foldable `<details>`.
 - **Export zip** downloads `<title-slug>.zip`: that `.md`, every file the page shows (figure and
-  gallery `src` and `source`, with their relative paths) and `data.json`. A file that cannot be
-  fetched is left out and the page says how many.
+  gallery `src`, `dark` and `source`, with their relative paths) and `data.json`. A file that cannot be
+  fetched is left out and the page says how many. A framed `.html` figure's own files are not
+  collected, so a plot that must travel in the zip or open from disk should be self-contained
+  (Plotly: `include_plotlyjs=True`).
 - **Copy Markdown** copies a plain version for a chat: no paths, no HTML, each figure one
   `[figure: caption]` line, each row a bold title over a quote.
 
@@ -221,21 +224,25 @@ browser and without the reader's saved picks, run `python3 <skill>/scripts/fill.
 
 ## Diagrams and illustrations
 
-A `figure` shows any diagram, chart, sketch, mockup, or screenshot saved next to the page.
-SVG, PNG, JPEG, WebP, and GIF files show as images; an `.html` file runs in a sandboxed
-frame, and the page adds `?theme=light` or `?theme=dark` to its address (also on "Open full
-size") so a graph can follow the page theme; an `.mp4` or `.webm` file plays with controls. Make the file with the skill that fits,
-then point `src` at it:
+A `figure` shows any diagram, chart, sketch, mockup, or screenshot. The `figures` skill picks
+the tool and makes the file; this section holds what the page does with it.
 
-| Need | Make it with | Put in `src` / `source` |
-| --- | --- | --- |
-| Architecture, flowchart, sequence, state, ER, timeline, or chart | `diagram-design` | its SVG export (`scripts/export_svg.py`); its HTML pages do not shrink to fit |
-| Whiteboard-style sketch the user may keep editing | `excalidraw` | the preview SVG; the `.excalidraw` file or web link as `source` |
-| Clean or free-form drawing no template covers: wireframe, slides, illustration, icon-rich visual | `excalidraw-draw` | its rendered PNG; the `.excalidraw` file as `source` |
-| Plot from Python | plotly: `fig.write_html(...)`, as `code-quality`'s `python-plots.md` sets out (other languages: a library with an embeddable HTML export) | the HTML file, with a `height`; a saved PNG goes in as an image only when no HTML export exists |
-| UI mockup or clickable prototype | a small standalone HTML file | the HTML file, with a `height` |
-| A short linear flow | no file: use a `steps` block | - |
-| A tiny one-off drawing | inline SVG in an `html` block | - |
+- **A file next to the page.** SVG, PNG, JPEG, WebP, and GIF files show as images; an `.html`
+  file runs in a sandboxed frame, and the page adds `?theme=light` or `?theme=dark` to its
+  address (also on "Open full size") so a graph can follow the page theme; an `.mp4` or `.webm`
+  file plays with controls. The kind comes from the path before any `?query` or `#hash`.
+- **`mermaid` instead of `src`.** Mermaid text is drawn on the page with the Pele engine, in the
+  page's colours, and follows the light and dark toggle without a reload. It has no file and no
+  "Open full size" link, and it works anywhere a figure does: galleries, split sections, rows,
+  insets, decks. A text Pele cannot draw, empty text included, shows its error in place and leaves
+  the page working. The engine comes from the `figures` skill, which must be installed beside
+  `artifacts` (the bootstraps install every skill together). `fill.py` inlines it (about 0.7 MB)
+  only into a page that has a `mermaid` figure and stops with a message when that skill is
+  missing. Check the text with the `figures` skill before filling.
+- **`dark` beside `src`.** An image for the dark theme: the page shows one of the two, following
+  the toggle, and "Open full size" opens the shown one. The hidden one loads only when needed.
+- **Other kinds.** A short linear flow is a `steps` block; a tiny one-off drawing is inline SVG in
+  an `html` block.
 
 Give every figure a caption that states its takeaway. A diagram explains; it is not evidence
 that the behavior it shows exists. Open the page and check that labels fit and nothing is

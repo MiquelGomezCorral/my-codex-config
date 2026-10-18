@@ -199,8 +199,8 @@ To add a Lucide icon the catalog lacks:
   and `tone` say pass, fail, or running, and the text holds the score and the seed. The
   `legend` is a list of the same chips, each with its meaning as its text.
 - **One line per run is a `table`.** Its status cell is the same chip.
-- **A plot is a `figure`.** The plot row in [SKILL.md](../SKILL.md#diagrams-and-illustrations)
-  says how to make it and what goes in `src`.
+- **A plot is a `figure`.** The `figures` skill says how to make it; [SKILL.md](../SKILL.md#diagrams-and-illustrations)
+  says what the page does with it.
 - **GIFs and videos are a `gallery`.** With several methods or experiments, use `groups`, one
   per method: each gets a title, a divider line, and its own wrapping row, so runs of
   different methods never mix. Plots of several experiments can use the same groups: give
@@ -448,7 +448,8 @@ To add a Lucide icon the catalog lacks:
 - **Three to six steps in order are `steps`.** Each has a short title and a short text; when
   every text is short and the width allows, the page draws a row.
 - **Depth goes in `details`.** The title is the reader's question.
-- **Branching flows and architecture are figures** made with `diagram-design`, not `steps`.
+- **Branching flows and architecture are figures**, not `steps`: a `figure` with `mermaid` for
+  most, else the file the `figures` skill makes.
 
 ```json
 {
@@ -494,6 +495,22 @@ To add a Lucide icon the catalog lacks:
   ]
 }
 ```
+
+A Mermaid figure has no file; the page draws it in its own colours, light and dark. The caption
+states the takeaway and `details.code` can hold the text for readers who want to copy it:
+
+```json
+{
+  "type": "figure",
+  "mermaid": "flowchart LR\n  API[API] --> J[(jobs table)]\n  W[Worker] --> J",
+  "caption": "The API and the workers meet only at the jobs table.",
+  "details": { "title": "Mermaid text", "code": "flowchart LR\n  API[API] --> J[(jobs table)]\n  W[Worker] --> J" }
+}
+```
+
+Give a gallery item an optional `id` (`"id": "jobs-flow"`) when you will edit its `mermaid` or `src`
+between versions (a standalone figure is matched by its position, so it needs none): the page matches items by `id` first, so the edit reads as changed instead of
+added plus removed. The change list labels a Mermaid item by its caption, else the first line of its text.
 
 **Pitfalls**
 - **The TL;DR must stand alone.** A reader who stops there should still know the answer.
@@ -600,4 +617,5 @@ block, one level deeper inside a row or inset. Collapsed sections are included.
 | `decisions` | `###` id and title, description, question, options (recommended marked), why; the reader's saved pick and note |
 | `code` | Fenced block, the fence longer than any backticks inside |
 | `figure`, gallery item | `![caption](src)`; an `.html` frame is `> [interactive figure: ...]`; a gallery item is a bullet, its fold-out nested under it (plain: `[figure: caption]`) |
+| `figure`, gallery item with `mermaid` | a ```` ```mermaid ```` fence, then the caption (plain: `[figure: caption]`); `src` and `dark` are ignored |
 | `html` | `> [HTML block, not included in Markdown]` (plain: `[figure]`) |
