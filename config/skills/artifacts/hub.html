@@ -18,7 +18,7 @@
 [hidden]{display:none!important}
 html{background:var(--bg);scrollbar-gutter:stable}
 body{margin:0;color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-main{max-width:1120px;margin:0 auto;padding:22px 16px 80px}
+main{max-width:1120px;margin:0 auto;padding:22px 16px calc(80px + var(--bar-h,0px))}
 svg.i{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
 code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--code)}
 h1{font-size:24px;margin:0 0 2px}
@@ -53,6 +53,13 @@ h1{font-size:24px;margin:0 0 2px}
 .wt-group>summary:hover{color:var(--ink)}
 .wtn{min-width:0;overflow-wrap:anywhere}
 .wt .n{margin-left:auto;flex:none;white-space:nowrap}
+/* a worktree's Stop all and Delete all sit at the line's right end; they show on the line's hover or focus, always on touch */
+.wt .wt-acts{display:inline-flex;gap:8px;align-items:center;flex:none;opacity:0}
+.wt:is(:hover,:focus-within) .wt-acts{opacity:1}
+@media (hover:none){.wt .wt-acts{opacity:1}}
+.wt-acts .btn{min-height:28px;padding:0 8px;font-size:14px}
+/* the worktree tooltips wrap narrower, so one that opens under a button stays on a phone's screen */
+.wt-acts .tip{max-width:200px}
 .chev{transition:transform .15s}
 details[open]>summary>.chev{transform:rotate(90deg)}
 .wt-group:last-child:not([open])>.wt{border-bottom:0;border-radius:0 0 11px 11px}
@@ -126,22 +133,28 @@ details[open]>summary>.chev{transform:rotate(90deg)}
 .cmd{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:1px 1px 1px 8px;min-width:0}
 .cmd>.more{flex:1}
 .cmd .pop{left:-9px}
-/* rows: [action] [tile] [title / address] [command] [description] [time] [trash] */
+/* rows: [select] [action] [tile] [title / address] [command] [description] [time] [trash] */
 /* min-height: the height of a row whose description fills two lines, so every row is the same height */
-.row{display:grid;grid-template-columns:var(--actw) 32px minmax(0,1.4fr) 32px minmax(0,1fr) 64px 32px;align-items:center;gap:6px 16px;padding:8px 14px;min-height:59px;border-bottom:1px solid var(--line)}
+.row{display:grid;grid-template-columns:28px var(--actw) 32px minmax(0,1.4fr) 32px minmax(0,1fr) 64px 32px;align-items:center;gap:6px 16px;padding:8px 14px;min-height:59px;border-bottom:1px solid var(--line)}
 .row:last-child{border-bottom:0}
 .row .tm{text-align:right}
 /* link, address copy and trash appear at once on row hover or focus; they stay focusable, and touch screens always show them */
 .row .hov{opacity:0}
 .row:is(:hover,:focus-within) .hov{opacity:1}
 @media (hover:none){.row .hov{opacity:1}}
+/* the selection box: a fixed first column, hidden until its row or card is hovered or focused, shown on every row while anything is selected, always on touch */
+.pick{display:flex;align-items:center;justify-content:center;width:28px;height:28px;margin:0;cursor:pointer;opacity:0}
+.pick input{width:16px;height:16px;margin:0;font:inherit;accent-color:var(--acc);cursor:pointer}
+.row:is(:hover,:focus-within) .pick,.card:is(:hover,:focus-within) .pick,body.picking .pick{opacity:1}
+@media (hover:none){.pick{opacity:1}}
 .stopped-group>summary{padding:8px 14px;color:var(--muted);border-top:1px solid var(--line);display:flex;gap:6px;align-items:center}
 .wt+.stopped-group>summary{border-top:0}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;padding:12px 14px}
 /* cards: the tile beside the title, link and time on line 1 and the address on line 2; a thin line; then description, command, buttons */
 .card{min-width:0;border:1px solid var(--line);border-radius:10px;padding:11px 12px;display:flex;flex-direction:column;gap:8px}
-.card .top{display:grid;grid-template-columns:32px minmax(0,1fr);gap:0 10px;align-items:center}
-.card .top .tile{grid-row:1/3}
+.card .top{display:grid;grid-template-columns:28px 32px minmax(0,1fr);gap:0 10px;align-items:center}
+.card .top .pick{grid-column:1;grid-row:1/3}
+.card .top .tile{grid-column:2;grid-row:1/3}
 .card .head .tm{margin-left:auto;padding-left:4px}
 .card .sep{border-top:1px solid var(--line);margin:2px -12px 0}
 .card .acts{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -161,6 +174,12 @@ details[open]>summary>.chev{transform:rotate(90deg)}
 /* the filled confirm carries white text, so its fill is its own token; --bad stays for red text and icons */
 .box .confirm{background:var(--badfill);border-color:var(--badfill);color:#fff;padding:0 14px}
 .box .confirm.neutral{background:var(--ink);border-color:var(--ink);color:var(--card)}
+/* the selection bar: bottom centre, shown only while something is selected; on a phone it lifts above the theme button */
+.bar{position:fixed;left:0;right:0;bottom:18px;margin:0 auto;width:max-content;max-width:calc(100vw - 32px);z-index:4;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;padding:8px 10px;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 6px 16px var(--lift)}
+.bar-n{padding:0 4px;font-weight:600;font-variant-numeric:tabular-nums}
+@media (max-width:760px){.bar{bottom:68px}}
+/* on a phone the worktree buttons take their own line, so the worktree name keeps its width */
+@media (max-width:760px){.wt{flex-wrap:wrap}.wt .wt-acts{width:100%;justify-content:flex-end}}
 .theme{position:fixed;right:18px;bottom:18px}
 .theme button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px;cursor:pointer;display:inline-flex}
 .empty{color:var(--muted);text-align:center;padding:48px 0}
@@ -196,6 +215,14 @@ details[open]>summary>.chev{transform:rotate(90deg)}
 <div id="out"><p class="empty">Loading…</p></div>
 </main>
 <span class="tipwrap theme"><button id="theme" aria-label="Switch light or dark theme" data-ui-tooltip="tip-theme"><span data-i="sun"></span></button><span class="tip" role="tooltip" id="tip-theme">Switch light or dark theme</span></span>
+<div class="bar" id="bar" role="group" aria-label="Selected entries" hidden>
+  <span class="bar-n" id="bar-n" aria-live="polite"></span>
+  <span class="tipwrap"><button class="btn" id="bar-start" data-bulk="start" aria-describedby="bar-start-tip"><span data-i="play"></span>Start</button><span class="tip" role="tooltip" id="bar-start-tip"></span></span>
+  <span class="tipwrap"><button class="btn" id="bar-stop" data-bulk="stop" aria-describedby="bar-stop-tip"><span data-i="stop"></span>Stop</button><span class="tip" role="tooltip" id="bar-stop-tip"></span></span>
+  <span class="tipwrap"><button class="btn danger" id="bar-delete" data-bulk="delete" aria-describedby="bar-delete-tip"><span data-i="trash"></span>Delete</button><span class="tip" role="tooltip" id="bar-delete-tip"></span></span>
+  <button class="btn" data-bulk="all"><span data-i="layers"></span>Select all shown</button>
+  <button class="btn" data-bulk="clear"><span data-i="close"></span>Clear</button>
+</div>
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="m-title"><div class="box">
   <h3 id="m-title"><span id="m-icon"></span><span id="m-text"></span></h3><p id="m-body"></p><p id="m-extra" class="mono"></p><p id="m-err" class="err"></p>
   <div class="row-btns"><button class="btn" id="m-cancel">Cancel</button><button class="btn confirm" id="m-ok"></button></div>
@@ -208,6 +235,7 @@ const I = {
   again: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
   copy: '<rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2"/>',
   check: '<path d="M20 6 9 17l-5-5"/>',
+  close: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
   play: '<polygon points="6 3 20 12 6 21 6 3"/>',
   branch: '<line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/>',
   term: '<polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/>',
@@ -245,6 +273,8 @@ const store = (key, value) => { try { if (value === undefined) return localStora
 // ---- state ----
 let data = { hub: "", repos: [] }, raw = "", index = new Map();
 let working = null; // { id, label }: the entry whose Start or Serve again request is running; it keeps its busy button through redraws
+const selected = new Set(); // ids ticked for the selection bar; kept across the 5 s redraws, pruned when an entry goes
+let batchRunning = false; // a Start, Stop or Delete over several entries is going; its buttons wait until it ends
 let filter = "all", layout = store("hub:layout") === "cards" ? "cards" : "rows", query = "", pending = 0;
 // Fold state is kept in the browser: stopped groups the user opened, and branch groups the user collapsed.
 const savedSet = (key) => { try { return new Set(JSON.parse(store(key) || "[]")); } catch { return new Set(); } };
@@ -305,6 +335,11 @@ function iconButton(cls, attrs, icon, name) {
   const id = `tip${++tips}`;
   return `<span class="tipwrap"><button class="${cls}" ${attrs} aria-label="${esc(name)}" data-ui-tooltip="${id}">${ic(icon)}</button><span class="tip" role="tooltip" id="${id}">${esc(name)}</span></span>`;
 }
+// A labeled button with its tooltip; a disabled one says why in the tooltip.
+function tipButton(cls, attrs, inner, tip) {
+  const id = `tip${++tips}`;
+  return `<span class="tipwrap"><button class="${cls}" ${attrs} aria-describedby="${id}" data-ui-tooltip="${id}">${inner}</button><span class="tip" role="tooltip" id="${id}">${esc(tip)}</span></span>`;
+}
 // "hov" controls appear on row hover or focus; cards show them always.
 function head(it, extra = "") {
   const url = openUrl(it);
@@ -343,8 +378,10 @@ function action(it) {
   return `<button class="btn act" ${attrs} data-id="${esc(it.id)}" aria-label="${act.label} ${esc(it.title)}">${ic(act.icon)}${act.label}</button>`;
 }
 const stateClass = (it) => `${status(it).tone} ${it.state === "stopped" && !it.no_index ? "stopped" : ""}`;
-const row = (it) => `<div class="row ${stateClass(it)}">${action(it)}${tile(it)}<div class="body">${head(it)}${addrLine(it)}</div>${cmdCell(it)}${desc(it)}${time(it)}${del(it, "")}</div>`;
-const card = (it) => `<div class="card ${stateClass(it)}"><div class="top">${tile(it)}${head(it, time(it))}${addrLine(it)}</div>
+// The selection box leads every row and card; its label is the hit area and its name is the entry's title.
+const selectBox = (it) => `<label class="pick"><input type="checkbox" data-pick="${esc(it.id)}" aria-label="Select ${esc(it.title)}"${selected.has(it.id) ? " checked" : ""}></label>`;
+const row = (it) => `<div class="row ${stateClass(it)}">${selectBox(it)}${action(it)}${tile(it)}<div class="body">${head(it)}${addrLine(it)}</div>${cmdCell(it)}${desc(it)}${time(it)}${del(it, "")}</div>`;
+const card = (it) => `<div class="card ${stateClass(it)}"><div class="top">${selectBox(it)}${tile(it)}${head(it, time(it))}${addrLine(it)}</div>
   <div class="sep"></div>${descText(it) ? desc(it) : ""}${cmdBox(it)}<div class="acts">${action(it)}${del(it, "Delete")}</div></div>`;
 
 // ---- the page ----
@@ -357,12 +394,22 @@ function groupsOf(repo) {
   }
   return [...groups].sort(([a], [b]) => a === b ? 0 : a === "" ? -1 : b === "" ? 1 : a.localeCompare(b));
 }
+// One worktree of a repo, with every entry of it whatever the filter or search shows.
+const wtName = (repoName, worktree) => worktree || (repoName === "_local" ? "outside any repo" : "main checkout");
+const worktreeOf = (repo, worktree) => ({ repo, worktree, name: wtName(repo.name, worktree), items: repo.items.filter((it) => it.worktree === worktree) });
+// Stop all and Delete all for one worktree, at the line's right end. Their clicks never fold the line (see the click handler).
+function wtActions(group) {
+  const attrs = `data-repo="${esc(group.repo.name)}" data-worktree="${esc(group.worktree)}"`;
+  const live = group.items.some(isLive);
+  return `<span class="wt-acts">${tipButton("btn", `data-ask="stop-wt" ${attrs}${live ? "" : " disabled"}`, `${ic("stop")}Stop all`, live ? "Stop every running or serving entry of this worktree" : "Nothing in this worktree is running or serving")}${tipButton("btn danger", `data-ask="delete-wt" ${attrs}`, `${ic("trash")}Delete all`, "Delete every entry of this worktree")}</span>`;
+}
 function repoHtml(repo) {
   const body = groupsOf(repo).map(([worktree, items]) => {
-    const name = worktree || (repo.name === "_local" ? "outside any repo" : "main checkout");
+    const group = worktreeOf(repo, worktree);
+    const name = group.name;
     const branch = items[0].branch;
     const key = groupKey(repo, worktree);
-    const wt = `<summary class="wt">${chevron}${ic("branch")}<span class="wtn">${esc(name)}${branch ? ` · <span class="mono">${esc(branch)}</span>` : ""}</span><span class="n">${plural(items.length, "entry", "entries")}</span></summary>`;
+    const wt = `<summary class="wt">${chevron}${ic("branch")}<span class="wtn">${esc(name)}${branch ? ` · <span class="mono">${esc(branch)}</span>` : ""}</span><span class="n">${plural(items.length, "entry", "entries")}</span>${wtActions(group)}</summary>`;
     const list = (its) => !its.length ? "" : layout === "cards" || phone.matches ? `<div class="grid">${its.map(card).join("")}</div>` : its.map(row).join("");
     const live = items.filter((it) => it.state !== "stopped"), stopped = items.filter((it) => it.state === "stopped");
     const inner = filter !== "all" || !stopped.length ? list(items)
@@ -374,12 +421,17 @@ function repoHtml(repo) {
   const name = esc(repo.name);
   return `<section class="repo"><div class="repo-h">${ic("folder")}<h2>${name}</h2><span class="path mono">${esc(repo.path)}</span>
     <span class="path">${running} running · ${repo.items.length} total</span>
-    <span class="acts"><button class="btn danger" data-ask="delete-repo" data-repo="${name}">${ic("trash")}Delete all</button><button class="btn" data-ask="stop-repo" data-repo="${name}"${running ? "" : " disabled"}>${ic("stop")}Stop all</button></span></div>${body}</section>`;
+    <span class="acts"><button class="btn" data-ask="stop-repo" data-repo="${name}"${running ? "" : " disabled"}>${ic("stop")}Stop all</button><button class="btn danger" data-ask="delete-repo" data-repo="${name}">${ic("trash")}Delete all</button></span></div>${body}</section>`;
 }
+// The data attributes that name a list control: its element is replaced on each redraw, its attributes are not.
+const CONTROL_ATTRS = ["data-ask", "data-do", "data-copy", "data-id", "data-repo", "data-worktree", "data-pick"];
+const controlKey = (el) => JSON.stringify(CONTROL_ATTRS.map((a) => el.getAttribute(a)));
 function render() {
   tips = 0;
-  const fold = document.activeElement?.closest?.("summary")?.parentElement;
+  const active = document.activeElement;
+  const fold = active?.tagName === "SUMMARY" ? active.parentElement : null;
   const foldAttr = fold && ["data-wt", "data-key"].find((a) => fold.hasAttribute(a));
+  const controlId = active?.closest?.("#out") && !fold ? controlKey(active) : null;
   const count = { all: 0, serving: 0, stopped: 0, app: 0 };
   for (const repo of data.repos) for (const it of repo.items) {
     if (!matches(repo, it)) continue;
@@ -389,7 +441,9 @@ function render() {
   const html = data.repos.map(repoHtml).join("");
   $("out").innerHTML = html || `<p class="empty">${esc(index.size ? "Nothing matches." : "Nothing here yet. Agents add their pages and apps when they publish them.")}</p>`;
   if (foldAttr) $("out").querySelector(`[${foldAttr}="${CSS.escape(fold.getAttribute(foldAttr))}"]>summary`)?.focus({ preventScroll: true });
+  if (controlId) [...$("out").querySelectorAll("[data-ask],[data-do],[data-copy],[data-pick]")].find((el) => controlKey(el) === controlId)?.focus({ preventScroll: true });
   markCut();
+  updateBar();
 }
 // Only text that is actually cut gets its panel.
 function markCut() {
@@ -399,11 +453,13 @@ function markCut() {
   }
 }
 addEventListener("resize", markCut);
+addEventListener("resize", () => updateBar());
 phone.addEventListener("change", render);
 function load(text) {
   raw = text;
   data = JSON.parse(text);
   index = new Map(data.repos.flatMap((repo) => repo.items.map((it) => [it.id, { repo, it }])));
+  for (const id of selected) if (!index.has(id)) selected.delete(id);
   try { $("host").textContent = new URL(data.hub).host; } catch {}
   render();
 }
@@ -452,7 +508,10 @@ $("m-cancel").onclick = closeDialog;
 modal.onclick = (e) => { if (e.target === modal) closeDialog(); };
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
+  const dialogOpen = modal.classList.contains("on");
   closeDialog();
+  const typing = e.target.matches?.("input:not([type=checkbox]), textarea, [contenteditable]");
+  if (!dialogOpen && !typing && selected.size) { selected.clear(); render(); }
   document.querySelectorAll(".tipwrap:is(:hover,:focus-within)").forEach((t) => t.classList.add("dismissed"));
 });
 // A tooltip closed with Escape comes back after the pointer or focus leaves and returns.
@@ -462,10 +521,15 @@ $("m-ok").onclick = async () => {
   busy = true;
   okButton.disabled = true;
   $("m-cancel").disabled = true;
-  const { error } = await task();
+  const { error, retry } = await task();
   busy = false;
   $("m-cancel").disabled = false;
-  if (error) { $("m-err").textContent = error; okButton.disabled = false; return; }
+  if (error) {
+    $("m-err").textContent = error;
+    if (retry) { $("m-text").textContent = retry.title; $("m-body").textContent = retry.body; okButton.textContent = retry.ok; }
+    okButton.disabled = false;
+    return;
+  }
   closeDialog();
   refresh(true);
 };
@@ -498,8 +562,102 @@ const ASK = {
       body: `${plural(n, "serving or running entry stops", "serving or running entries stop")}. Files stay.`,
       run: () => post({ action: "stop-repo", repo: repo.name })
     };
-  }
+  },
+  "stop-wt": (group) => batchConfig(group.items.filter(isLive), {
+    ...STOP, ok: "Stop all",
+    ask: (n) => ({ title: `Stop all ${plural(n, "live entry", "live entries")} of ${group.name}?`, body: stopBody(n) })
+  }),
+  "delete-wt": (group) => batchConfig(group.items, {
+    ...DELETE, ok: "Delete all",
+    ask: (n) => ({ title: `Delete all ${plural(n, "entry", "entries")} of ${group.name}?`, body: DELETE_WT })
+  })
 };
+// ---- several entries at once ----
+const STOP = { act: () => "stop", verb: "Stopped" };
+const DELETE = { act: () => "delete", verb: "Deleted", warn: true, danger: true };
+const START = { act: (it) => status(it).act.do, verb: "Started or served", label: (it) => status(it).act.busy };
+const stopBody = (n) => `${plural(n, "serving or running entry stops", "serving or running entries stop")}. Files stay.`;
+const DELETE_WT = "Every page folder of this worktree is removed and its apps are stopped and unlisted. It cannot be undone.";
+const DELETE_SEL = "Each selected page folder is removed and each selected app is stopped and unlisted. It cannot be undone.";
+const selectedItems = () => [...selected].map((id) => index.get(id)?.it).filter(Boolean);
+const canStart = (it) => !isLive(it) && !it.no_index;
+// What the page shows for the current filter and search, so Select all shown never ticks what is folded away:
+// entries of collapsed worktree lines, and under All the stopped entries until their "N stopped" fold is open.
+function shownItems() {
+  return data.repos.flatMap((repo) => repo.items.filter((it) => {
+    const key = groupKey(repo, it.worktree);
+    return matches(repo, it) && FILTERS[filter](it) && !collapsed.has(key) && (filter !== "all" || it.state !== "stopped" || openGroups.has(key));
+  }));
+}
+// A confirm for the entries of one batch; spec.ask(n) words it for n entries still to act on.
+const batchConfig = (left, spec) => ({ ...spec.ask(left.length), warn: spec.warn, ok: spec.ok, danger: spec.danger, run: () => runEach(left, spec) });
+// One request per entry, one after another; a failure never stops the rest. Entries that succeed leave `left` and the
+// selection, so a retry repeats only the failures. Resolves to { error, notice, retry }: "" when all went.
+async function runEach(left, spec) {
+  const total = left.length, failed = [], notice = [];
+  batchRunning = true;
+  updateBar();
+  try {
+    for (const it of [...left]) {
+      if (spec.label) { working = { id: it.id, label: spec.label(it) }; render(); }
+      const { error, message } = await post({ action: spec.act(it), id: it.id });
+      if (error) failed.push(`${it.title} (${error})`);
+      else {
+        left.splice(left.indexOf(it), 1);
+        selected.delete(it.id);
+        if (message.includes("not listening yet")) notice.push(message);
+      }
+    }
+  } finally {
+    working = null;
+    batchRunning = false;
+    updateBar();
+    refresh(true);
+  }
+  const noticeText = notice.join(" ");
+  if (!failed.length) return { error: "", notice: noticeText };
+  return {
+    error: `${spec.verb} ${total - failed.length} of ${total}; failed: ${failed.join("; ")}`,
+    notice: noticeText,
+    retry: spec.ask && { ...spec.ask(left.length), ok: `Retry ${left.length} failed` }
+  };
+}
+async function bulkStart() {
+  const { error, notice } = await runEach(selectedItems().filter(canStart), START);
+  if (error) dialog({ title: "Not every entry started or served", warn: true, body: [error, notice].filter(Boolean).join(" ") });
+  else if (notice) dialog({ title: "Some entries are still starting", body: notice });
+}
+function bulkStop() {
+  dialog(batchConfig(selectedItems().filter(isLive), {
+    ...STOP, ok: "Stop",
+    ask: (n) => ({ title: `Stop ${plural(n, "selected entry", "selected entries")}?`, body: stopBody(n) })
+  }));
+}
+function bulkDelete() {
+  dialog(batchConfig(selectedItems(), {
+    ...DELETE, ok: "Delete",
+    ask: (n) => ({ title: `Delete ${plural(n, "selected entry", "selected entries")}?`, body: DELETE_SEL })
+  }));
+}
+// The selection bar shows while anything is selected. Each action is off when no selected entry can take it, and says why.
+function setBarAction(id, count, reason, tip) {
+  $(id).disabled = batchRunning || !count;
+  $(`${id}-tip`).textContent = batchRunning ? "An action is still running" : count ? tip : reason;
+}
+function updateBar() {
+  const picking = selected.size > 0, bar = $("bar");
+  document.body.classList.toggle("picking", picking);
+  // A hidden bar takes its focus with it: the focus goes to the search box instead.
+  if (!picking && bar.contains(document.activeElement)) $("query").focus({ preventScroll: true });
+  bar.hidden = !picking;
+  document.documentElement.style.setProperty("--bar-h", picking ? `${bar.offsetHeight + parseFloat(getComputedStyle(bar).bottom)}px` : "0px");
+  if (!picking) return;
+  const items = selectedItems();
+  $("bar-n").textContent = `${selected.size} selected`;
+  setBarAction("bar-start", items.filter(canStart).length, "None of the selected entries is stopped", "Start the stopped entries: apps start, pages serve again");
+  setBarAction("bar-stop", items.filter(isLive).length, "None of the selected entries is running or serving", "Stop the running or serving entries; their files stay");
+  setBarAction("bar-delete", items.length, "", "Delete the selected entries");
+}
 async function copyText(text) {
   try { await navigator.clipboard.writeText(text); return true; } catch { /* clipboard needs HTTPS or localhost; fall back below */ }
   const area = document.createElement("textarea");
@@ -516,10 +674,12 @@ async function copyText(text) {
 document.addEventListener("click", async (e) => {
   const b = e.target.closest("button[data-ask], button[data-do], button[data-copy]");
   if (!b) return;
+  if (b.closest("summary")) e.preventDefault(); // a worktree's buttons sit in its fold line; a click there must not fold it
   const found = index.get(b.dataset.id);
-  if (pending && !b.dataset.copy) return; // one action at a time, so a late answer never lands on a newer dialog
+  if ((pending || batchRunning) && !b.dataset.copy) return; // one action at a time, so a late answer never lands on a newer dialog
   if (b.dataset.ask) {
-    const target = b.dataset.repo ? data.repos.find((r) => r.name === b.dataset.repo) : found;
+    const repo = b.dataset.repo ? data.repos.find((r) => r.name === b.dataset.repo) : null;
+    const target = repo && b.dataset.worktree !== undefined ? worktreeOf(repo, b.dataset.worktree) : repo || found;
     if (target) dialog(ASK[b.dataset.ask](target));
   } else if (b.dataset.do && found) {
     working = { id: found.it.id, label: b.dataset.busy };
@@ -544,6 +704,23 @@ $("out").addEventListener("toggle", (e) => {
   if (wt) { e.target.open ? collapsed.delete(wt) : collapsed.add(wt); keepSet("hub:collapsed", collapsed); }
   markCut(); // text in a closed group has no size until the group opens
 }, true);
+// A tick changes the selection only: the list is not redrawn, so the box keeps its focus.
+$("out").addEventListener("change", (e) => {
+  const id = e.target.dataset?.pick;
+  if (!id) return;
+  if (e.target.checked) selected.add(id); else selected.delete(id);
+  updateBar();
+});
+$("bar").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-bulk]");
+  if (!b || b.disabled || pending || batchRunning) return;
+  const action = b.dataset.bulk;
+  if (action === "start") bulkStart();
+  else if (action === "stop") bulkStop();
+  else if (action === "delete") bulkDelete();
+  else if (action === "all") { for (const it of shownItems()) selected.add(it.id); render(); }
+  else { selected.clear(); render(); }
+});
 
 // ---- toolbar and theme ----
 function pick(selector, attribute, apply) {
