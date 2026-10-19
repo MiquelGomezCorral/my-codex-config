@@ -431,6 +431,42 @@ install_config() {
   common_link_managed "$ROOT/config/plugins/vault-context" "$CODEX_TARGET/vault-context"
 }
 
+report_hook_review() {
+  # Codex owns hook trust: ask it which user and plugin hooks wait for review (a repo's own hooks are not checked).
+  python3 - "$HOME" 2>/dev/null <<'PY' || printf 'Could not ask Codex which hooks need review.\n' >&2
+import json
+import signal
+import subprocess
+import sys
+
+signal.signal(signal.SIGALRM, lambda *_: sys.exit(1))
+signal.alarm(30)
+server = subprocess.Popen(["codex", "app-server"], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                          stderr=subprocess.DEVNULL, text=True)
+try:
+    for message in (
+        {"id": 1, "method": "initialize", "params": {"clientInfo": {"name": "my-codex-config", "version": "1"}}},
+        {"method": "initialized"},
+        {"id": 2, "method": "hooks/list", "params": {"cwds": [sys.argv[1]]}},
+    ):
+        server.stdin.write(json.dumps({"jsonrpc": "2.0", **message}) + "\n")
+    server.stdin.flush()
+    reply = next(reply for reply in map(json.loads, server.stdout) if reply.get("id") == 2)
+finally:
+    server.kill()
+    server.wait()
+pending = [
+    f'  {hook.get("pluginId") or hook["sourcePath"]} {hook["eventName"]} ({hook["trustStatus"]})'
+    for entry in reply["result"]["data"]
+    for hook in entry["hooks"]
+    if hook["enabled"] and hook["trustStatus"] in ("untrusted", "modified")
+]
+if pending:
+    print("\nCodex hooks need review:", *pending,
+          "Open Codex and trust them; until then every new Codex session stops on that prompt.", sep="\n")
+PY
+}
+
 cleanup() {
   [[ -z "$TEMP_DIR" ]] || rm -rf "$TEMP_DIR"
 }
@@ -446,6 +482,7 @@ main() {
   common_install_shared "${common_args[@]}"
   install_config
   printf '\nInstalled Codex configuration. Restart Codex after reviewing generated assets.\n'
+  report_hook_review
 }
 
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then

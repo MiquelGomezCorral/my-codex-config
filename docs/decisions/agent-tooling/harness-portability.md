@@ -31,6 +31,10 @@ links shared assets and renders only the native files that differ.
   Codex hook (the command dispatcher) and merges it into the native hooks file;
   wrapper hooks and the wrapper's own installed skills are never shipped,
   replaced or deleted.
+- Trusting Codex hooks stays the user's choice. The Codex bootstrap never writes hook
+  trust or passes Codex's bypass flag; at the end it asks Codex which user and plugin
+  hooks wait for review and lists them, and the agent asks the user to trust them in
+  Codex. A repository's own Codex hooks are not checked.
 - The managed SearXNG service gets a per-machine secret at deploy time; the
   repository settings file carries none.
 - Skill and role text never hard-codes a harness skill root or a user home path;
@@ -50,6 +54,7 @@ links shared assets and renders only the native files that differ.
 - Native tool access never grants edit/Git/publish/nesting authority by itself.
 - A bootstrap never removes or rewrites native entries it does not own, including
   wrapper hooks and wrapper-installed skills, and re-runs leave them unchanged.
+- No bootstrap or agent trusts Codex hooks for the user or bypasses hook trust.
 
 ## Rationale and tradeoffs
 
@@ -58,6 +63,9 @@ One common installer avoids repeated dependency setup; separate bootstraps keep
 native formats clear. Mutable native files still need safe merging rather than
 whole-directory symlinks. Full tools simplify setup while read-only tasks remain
 instruction constraints.
+Trusted hooks run outside the sandbox, so Codex's per-run bypass flag and
+bootstrap-written trust hashes were rejected; the cost is one trust step in Codex
+after a hook or a plugin with hooks changes.
 
 ## Enforcement
 
@@ -66,8 +74,15 @@ instruction constraints.
   retired MCP entries and unrelated-state preservation.
 - Review-only: fresh Codex/Claude/Pi/AGY sessions establish actual discovery and MCP
   access; static checks cannot prove those runtime behaviors.
+- Review-only: the hook review list reads live Codex trust state, so only a real
+  bootstrap run shows it; the repository `AGENTS.md` tells agents to pass it on. Review
+  also checks that no bootstrap writes hook trust or passes the bypass flag.
 
 ## History
+
+- 2026-10-19: The Codex bootstrap now lists hooks waiting for trust, because Codex
+  sessions and Orca workers kept stopping on the review prompt after a plugin update;
+  bypassing hook trust was rejected.
 
 - 2026-10-16: Stopped shipping the wrapper's hooks and its own skills after each Codex
   bootstrap and the wrapper kept overwriting each other; added the per-machine SearXNG
