@@ -180,7 +180,10 @@ live test of the real app, tool, or flow, never unit tests alone; "testing a mod
 evaluation meaning. Define the live test before code (flow, samples, expected result), make the
 thing runnable first, then test it live from broad checks on simple mock data to precise ones
 on real data. Test as a user would: talk to an agent or chatbot through `agent-tests-agent`,
-and run non-deterministic behavior 3 times, where mixed results count as unclear. Write almost
+and run non-deterministic behavior 3 times, where mixed results count as unclear. Talking to
+the real agent through a local harness without the UI also counts as a live test. Where a
+repository's agent memory names such a harness, use it for agent behaviour and keep the app
+for what that memory says needs it. Write almost
 no unit tests: add one only for a small algorithm, a critical deterministic contract, or a
 reproduced regression the live flow cannot cover, never for coverage, convention, or
 completeness. Run independent tests in parallel: as many at once as makes sense for the
