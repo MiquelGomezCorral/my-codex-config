@@ -83,21 +83,22 @@ adversarial:
   - harness: codex
     model: gpt-6.1-sol
     thinking: xhigh
-  - harness: claude
-    model: claude-fable-5-1
-    thinking: high
+  - harness: pi
+    model:
+      - opencode-go/deepseek-v4.1-flash
+      - opencode-go/glm-5.3-flash
+    thinking: max
+    note: "use several of these, like 3 of each model. Ask each for something slightly different so they do not all give the same answer"
+#  - harness: claude
+#    model: claude-fable-5-1
+#    thinking: high
 
 # reviewer-fast and swarms (further below) run on the harness of the agent doing the launch,
 # using that harness's by_harness entry, or its `low` tier above when that model is unavailable.
 reviewer-fast:
   harness: current
+  note: "use first the first ones listed, then if more agents needed or ran out of quota use the next one"
   by_harness:
-    claude:
-      model: claude-haiku-5-5
-      thinking: max
-    codex:
-      model: gpt-6-luna
-      thinking: max
     agy:
       model: gemini-3.8-flash-high
       thinking: high
@@ -106,14 +107,29 @@ reviewer-fast:
         - opencode-go/deepseek-v4.1-flash
         - opencode-go/glm-5.3-flash
       thinking: max
+    codex:
+      model: gpt-6-luna
+      thinking: xhigh
+    claude:
+      model: claude-haiku-5-5
+      thinking: xhigh
 
 reviewer-high:
   - harness: codex
     model: gpt-6.1-sol
     thinking: xhigh
-  - harness: claude
-    model: claude-opus-5-5
+  - harness: pi
+    model:
+      - opencode-go/deepseek-v4.1-flash
+      - opencode-go/glm-5.3-flash
+    thinking: max
+    note: "use several of these, like 3 of each model. Ask each for something slightly different so they do not all give the same answer"
+  - harness: agy
+    model: gemini-3.8-flash-high
     thinking: high
+#  - harness: claude
+#    model: claude-opus-5-5
+#    thinking: high
 
 swarms:
   harness: current
