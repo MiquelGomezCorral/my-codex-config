@@ -31,6 +31,9 @@ context from that agent and report memory suggestions back; they do not use
   private memories, installation IDs, plugin caches, or machine-specific absolute paths
   to tracked repository files. Keep new agent memory in the Git common directory above.
 - Do not commit, push, publish, create branches, or create worktrees for this migration.
+- After `./bootstrap_codex.sh`, read its last lines. If it prints `Codex hooks need review`,
+  tell the user to open Codex and trust the listed hooks. If it could not ask Codex, tell
+  the user the hook check did not run. Never answer that prompt or bypass hook trust yourself.
 
 ## Commands
 
