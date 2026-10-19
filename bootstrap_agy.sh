@@ -97,22 +97,18 @@ install_assets() {
 
   python3 "$ROOT/config/bin/harness-assets.py" install-skills \
     --source "$SKILLS_SOURCE" --target "$HOME/.agents/skills" --backup "$BACKUP_ROOT" \
-    --portable "$COMMON_PORTABLE_ROOT/ponytail/skills" \
     --portable "$COMMON_PORTABLE_ROOT/diagram-design/skills" \
     --portable "$COMMON_PORTABLE_ROOT/excalidraw/skill"
   python3 "$ROOT/config/bin/harness-assets.py" install-skills \
     --source "$SKILLS_SOURCE" --target "$AGY_CLI_ROOT/skills" --backup "$BACKUP_ROOT" \
-    --portable "$COMMON_PORTABLE_ROOT/ponytail/skills" \
     --portable "$COMMON_PORTABLE_ROOT/diagram-design/skills" \
     --portable "$COMMON_PORTABLE_ROOT/excalidraw/skill"
   python3 "$ROOT/config/bin/harness-assets.py" install-skills \
     --source "$SKILLS_SOURCE" --target "$AGY_CONFIG_ROOT/skills" --backup "$BACKUP_ROOT" \
-    --portable "$COMMON_PORTABLE_ROOT/ponytail/skills" \
     --portable "$COMMON_PORTABLE_ROOT/diagram-design/skills" \
     --portable "$COMMON_PORTABLE_ROOT/excalidraw/skill"
   python3 "$ROOT/config/bin/harness-assets.py" install-skills \
     --source "$SKILLS_SOURCE" --target "$AGY_PLUGIN_TARGET/skills" --backup "$BACKUP_ROOT" \
-    --portable "$COMMON_PORTABLE_ROOT/ponytail/skills" \
     --portable "$COMMON_PORTABLE_ROOT/diagram-design/skills" \
     --portable "$COMMON_PORTABLE_ROOT/excalidraw/skill"
 

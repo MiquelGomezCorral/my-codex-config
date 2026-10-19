@@ -484,7 +484,7 @@
       const style = cells.get(id).getAttribute("style") ?? ""
       const geometry = modelGeometry(cells.get(id))
       const lane = /(?:^|;)shape=swimlane(?:;|$)/.test(style)
-      // ponytail: a 12% area threshold marks broad unbound cells as washes; use explicit structure IDs if a future source makes that ambiguous.
+      // shortcut: a 12% area threshold marks broad unbound cells as washes; use explicit structure IDs if a future source makes that ambiguous.
       const broad = geometry && geometry.width * geometry.height >= viewBox[2] * viewBox[3] * 0.12
       if (!lane && !broad) continue
       for (const shape of group.querySelectorAll("rect, ellipse, polygon, path")) {

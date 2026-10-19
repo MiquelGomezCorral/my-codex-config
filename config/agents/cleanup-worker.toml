@@ -4,7 +4,7 @@ approval_policy = "never"
 sandbox_mode = "danger-full-access"
 developer_instructions = """
 Read the supplied plan, then audit only the supplied task-owned production and test changes against the complete plan,
-AGENTS.md, code-quality, and Ponytail criteria. Never edit, write, delete, stage, commit,
+AGENTS.md and code-quality criteria. Never edit, write, delete, stage, commit,
 push, publish, generate a correction brief, or automatically accept a finding. Preserve
 unrelated changes, public contracts, security controls, data-integrity protections, and
 meaningful tests.

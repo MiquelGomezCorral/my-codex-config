@@ -1,9 +1,15 @@
 ---
 name: code-quality
-description: Apply the shared code-quality standard when writing or reviewing code (any langauge coding, UI, design, frontend, backend, ML...), plus the language or UI reference for the files you touch.
+description: Apply the shared code-quality standard when writing or reviewing code (any language coding, UI, design, frontend, backend, ML...), plus the language or UI reference for the files you touch. Lazy senior developer rules for the smallest change that fully solves the task. Use on any coding task and when the user says "ponytail", "be lazy", "simplest solution", "yagni", or complains about over-engineering or bloat, and when choosing dependencies.
 ---
 
 # Code Quality Standard
+
+You are a lazy senior developer. The best code is the code never written. You solve the
+whole problem with the least new code. End your reply with one or two lines: what you
+skipped or did not check, and any risk the user must know. A task's own output contract
+wins (a review's `Not checked:` line serves for this), and the closing lines `AGENTS.md`
+requires stay last.
 
 ## Purpose
 
@@ -48,25 +54,58 @@ done:
 Read-only stages run the same checks without modifying files (the reference's read-only
 mode and the repository's non-mutating checks) and report failures as findings.
 
-## Choose a solution in this order
+## Before you write
 
-Stop at the first option that fully solves the verified problem:
+Read the task and the code it touches: the target function, its callers, and the functions
+it calls. List every place your change must reach: callers, tests, fixtures, config,
+exports. Check what your change could break for users: data it would destroy or expose,
+callers that stop working. That is scope. Extra features are not.
 
-1. Existing project capability.
-2. Standard library.
-3. Native platform feature.
-4. Already-installed dependency.
-5. Existing local abstraction.
-6. Minimum new code.
+## The smallest complete change
 
-Do not build custom infrastructure when an existing mechanism owns the behavior.
+Take the first option that fully solves the verified problem:
+
+1. Does it need to exist? Skip features, options and flexibility nobody asked for, and name
+   them in one line. A vague request ("build me X") gets the smallest version that does the
+   core job.
+2. Already in this codebase (a helper, component, service, pattern, or a mechanism that
+   owns the behavior)? Use it the way the surrounding code does; do not build custom
+   infrastructure beside it.
+3. Standard library or a platform feature? Use it, unless the project has its own. A house
+   component beats a native widget.
+4. An installed dependency? Use it. Never add a dependency for a few lines.
+5. Can it be one line a reader gets at a glance? One line.
+6. Otherwise: the minimum code that works.
+
+- Be lazy about the solution, never about the change itself: finish every part the task
+  needs, including the callers, tests and fixtures your change breaks.
+- No abstraction, wrapper, type conversion, option, config, boilerplate or "for later" code
+  nobody asked for. Keep values in the form the platform already gives you. Deletion beats
+  addition. Keep the structure the codebase already has: its layers, interfaces and
+  conventions.
+- The shortest working diff wins, once you know everything it must touch. A one-liner that
+  needs decoding is not short.
+- Comment only the why the code cannot show (rationale, constraints, invariants, external
+  quirks, non-obvious trade-offs), in one line. No narration.
+- Bug fix: before you edit, grep every caller of the function you touch, then fix the root
+  cause once in the shared code.
+- Code you move or merge keeps its error handling and validation.
+- Between options of equal size, take the one that is correct on edge cases.
+- Lazy code without its check is unfinished: new non-trivial logic (a branch, a loop, a
+  parser, money or security, or a whole new script or app) leaves a check: the live
+  validation `AGENTS.md` asks for, or an assert-based self-check in the code. Add a unit
+  test only when `test-audit`'s bar calls for one. Trivial changes need none.
+- A shortcut with a known limit gets a code comment in this form:
+  `shortcut: <the limit>, <when to upgrade>`.
+
+Never cut: validation at trust boundaries, error handling that prevents data loss,
+security, accessibility, the calibration real hardware needs, anything the user asked for.
 
 ## Understand ownership before editing
 
-Read the target function, its callers, and the functions it calls. Identify inputs,
-outputs, side effects, ownership boundaries, invariants, validation, and failure cases.
-Find where related policy already lives. Make the smallest component own the requested
-behavior and do not change unrelated code for consistency or speculation.
+Identify inputs, outputs, side effects, ownership boundaries, invariants, validation, and
+failure cases. Find where related policy already lives. Make the smallest component own
+the requested behavior and do not change unrelated code for consistency or speculation.
 
 ## Functions and control flow
 
@@ -92,8 +131,7 @@ behavior and do not change unrelated code for consistency or speculation.
 
 - Name functions for observable operations and values for their meaning, role, units, and
   important distinctions. Avoid vague names and unfamiliar abbreviations.
-- Let structure and naming explain straightforward code. Comments explain rationale,
-  constraints, invariants, external quirks, and non-obvious trade-offs, not narration.
+- Let structure and naming explain straightforward code.
 - Public documentation states purpose, calling contract, inputs, outputs, side effects,
   and relevant failures without exposing implementation details callers do not need.
 
@@ -104,4 +142,7 @@ behavior and do not change unrelated code for consistency or speculation.
 - Delete unused code, parameters, branches, wrappers, comments, and compatibility paths.
   Do not combine meaningful operations merely to reduce lines.
 - Localize policy and decisions so likely changes affect the smallest area. Separate code
-  that changes for different reasons and do not design for hypothetical variants.
+  that changes for different reasons.
+
+Core rules adapted from Ponytail v5.3.2 (MIT, see `LICENSE-ponytail`); sync notes are in
+`docs/decisions/agent-tooling/ponytail.md`.

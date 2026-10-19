@@ -54,10 +54,6 @@ repository=$4
 destination=$5
 mkdir -p "$destination"
 case "$repository" in
-  *ponytail.git)
-    mkdir -p "$destination/skills/ponytail"
-    printf '%s\n' '---' 'name: ponytail' 'description: fixture' '---' > "$destination/skills/ponytail/SKILL.md"
-    ;;
   *diagram-design.git)
     mkdir -p "$destination/skills/diagram-design"
     printf '%s\n' '---' 'name: diagram-design' 'description: fixture' '---' > "$destination/skills/diagram-design/SKILL.md"
@@ -214,8 +210,8 @@ CODEX_TARGET="$CODEX_HOME"
 BACKUP_ROOT="$TEST_ROOT/backups"
 REUSED_PI_ROOT="$TEST_ROOT/reused-pi"
 mkdir -p "$CODEX_TARGET/agents"
-mkdir -p "$REUSED_PI_ROOT/skills/ponytail"
-printf '%s\n' '---' 'name: ponytail' 'description: existing native skill' '---' > "$REUSED_PI_ROOT/skills/ponytail/SKILL.md"
+mkdir -p "$REUSED_PI_ROOT/skills/diagram-design"
+printf '%s\n' '---' 'name: diagram-design' 'description: existing native skill' '---' > "$REUSED_PI_ROOT/skills/diagram-design/SKILL.md"
 mkdir -p "$REUSED_PI_ROOT/npm/node_modules/mcp-searxng" "$REUSED_PI_ROOT/npm/node_modules/.bin"
 printf '{"name":"mcp-searxng","version":"1.11.1"}\n' > "$REUSED_PI_ROOT/npm/node_modules/mcp-searxng/package.json"
 printf '#!/usr/bin/env bash\nexit 0\n' > "$REUSED_PI_ROOT/npm/node_modules/mcp-searxng/cli.js"
@@ -292,11 +288,11 @@ assert (backup / ".codex/agents/coder.toml").read_text() == "user-owned role\n"
 PY
 [[ "$(<"$CODEX_TARGET/auth.json")" == '{"auth":"preserve"}' ]]
 [[ -L "$CODEX_HOME_ROOT/.agents/skills/writing" ]]
-[[ -L "$CODEX_HOME_ROOT/.agents/skills/ponytail" ]]
+[[ -L "$CODEX_HOME_ROOT/.agents/skills/diagram-design" ]]
 [[ -f "$CODEX_HOME_ROOT/.agents/skills/user-skill/SKILL.md" ]]
-[[ "$(find "$CODEX_HOME_ROOT/.agents/skills" -maxdepth 1 -type l | wc -l)" -eq 36 ]]
-[[ ! -L "$CODEX_HOME_ROOT/.local/share/my-codex-config/external-skills/ponytail/skills/ponytail" ]]
-[[ "$(grep -c '^git clone' "$STUB_LOG")" -eq 3 ]]
+[[ "$(find "$CODEX_HOME_ROOT/.agents/skills" -maxdepth 1 -type l | wc -l)" -eq 35 ]]
+[[ -L "$CODEX_HOME_ROOT/.local/share/my-codex-config/external-skills/diagram-design/skills/diagram-design" ]]
+[[ "$(grep -c '^git clone' "$STUB_LOG")" -eq 1 ]]
 [[ -L "$CODEX_TARGET/commands" ]]
 [[ "$(find -L "$CODEX_TARGET/commands" -maxdepth 1 -type f -name '*.md' | wc -l)" -eq 13 ]]
 [[ "$(find "$CODEX_TARGET/agents" -maxdepth 1 -type f -name '*.toml' | wc -l)" -eq 12 ]]
@@ -335,16 +331,16 @@ grep -q 'npm install --global lintapple@0.1.20' "$STUB_LOG"
 [[ "$(grep -c 'npm install --global mcp-searxng@1.11.1' "$STUB_LOG")" -eq 1 ]]
 
 INCOMPLETE_HOME="$TEST_ROOT/incomplete-home"
-INCOMPLETE_SKILL="$INCOMPLETE_HOME/.local/share/my-codex-config/external-skills/ponytail"
+INCOMPLETE_SKILL="$INCOMPLETE_HOME/.local/share/my-codex-config/external-skills/diagram-design"
 INCOMPLETE_BACKUPS="$TEST_ROOT/incomplete-backups"
 mkdir -p "$INCOMPLETE_SKILL"
 printf 'stale source\n' > "$INCOMPLETE_SKILL/partial.txt"
 env -u CODEX_HOME -u XDG_DATA_HOME -u XDG_STATE_HOME HOME="$INCOMPLETE_HOME" \
   BACKUP_ROOT="$INCOMPLETE_BACKUPS" "$REPO_ROOT/bootstrap_codex.sh" \
   --no-searxng --no-searxng-mcp > "$TEST_ROOT/incomplete.out" 2> "$TEST_ROOT/incomplete.err"
-[[ -f "$INCOMPLETE_SKILL/skills/ponytail/SKILL.md" ]]
-[[ "$(<"$INCOMPLETE_BACKUPS/.local/share/my-codex-config/external-skills/ponytail/partial.txt")" == 'stale source' ]]
-[[ "$(grep -c '^git clone' "$STUB_LOG")" -eq 6 ]]
+[[ -f "$INCOMPLETE_SKILL/skills/diagram-design/SKILL.md" ]]
+[[ "$(<"$INCOMPLETE_BACKUPS/.local/share/my-codex-config/external-skills/diagram-design/partial.txt")" == 'stale source' ]]
+[[ "$(grep -c '^git clone' "$STUB_LOG")" -eq 3 ]]
 
 cp "$CODEX_TARGET/config.toml" "$TEST_ROOT/codex-before-rerun.toml"
 cp "$CODEX_TARGET/hooks.json" "$TEST_ROOT/codex-hooks-before-rerun.json"
@@ -531,7 +527,7 @@ assert "User AGY instructions" in (home / ".gemini/GEMINI.md").read_text()
 agy_skills = home / ".gemini/config/skills"
 assert (agy_skills / "writing").is_symlink()
 assert (agy_skills / "user-skill/SKILL.md").is_file()
-assert len(list(agy_skills.glob("*"))) == 37
+assert len(list(agy_skills.glob("*"))) == 36
 cli = home / ".gemini/antigravity-cli"
 plugin = cli / "plugins/my-codex-config"
 assert len(list((cli / "agents").glob("*.md"))) == 12

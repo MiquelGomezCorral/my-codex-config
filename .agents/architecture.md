@@ -49,8 +49,8 @@ and host evidence.
 `bootstrap_codex.sh` checks (`--check`) and installs the Codex configuration; the Claude, Pi,
 and AGY bootstraps do the same for their harnesses. All share one skill source,
 `config/skills`. The explicit Vault adapter is
-`config/plugins/vault-context/bin/search.mjs`. Ponytail's six portable skills are
-installed; its native plugin hooks are not, and `config/codex-hooks.json` holds only the
+`config/plugins/vault-context/bin/search.mjs`. Ponytail is not installed; its rules are
+copied into `code-quality` and `review`. `config/codex-hooks.json` holds only the
 command-dispatcher hook, merged into `~/.codex/hooks.json` by `merge-hooks`.
 `$workflow` is the single opt-in planning-to-delivery entry point; `$code`,
 `$review`, `$cleanup`, and `$git` remain usable on their own.

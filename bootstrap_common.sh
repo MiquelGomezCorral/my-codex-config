@@ -147,27 +147,23 @@ common_install_searxng_connector() {
   common_has_pinned_searxng_connector || common_die 'SearXNG connector installation completed without a shared pinned executable on PATH.'
 }
 
-# A fourth argument of "clone" skips reusing another harness's copy: a reused folder links
-# only the one skill it holds, so multi-skill sources must be cloned whole.
 common_clone_portable() {
-  local name=$1 repository=$2 required=$3 reuse=${4:-reuse} destination temporary root source portable_name skip
+  local name=$1 repository=$2 required=$3 destination temporary root source portable_name skip
   local -a roots=() names=()
   destination="$COMMON_PORTABLE_ROOT/$name"
 
-  if [[ -f "$destination/$required/SKILL.md" ]] && { [[ "$reuse" != clone ]] || [[ ! -L "$destination/$required" ]]; }; then
+  if [[ -f "$destination/$required/SKILL.md" ]]; then
     return 0
   fi
   if [[ -e "$destination" || -L "$destination" ]]; then
     common_backup_existing "$destination"
   fi
 
-  if [[ "$reuse" != clone ]]; then
-    roots=("$HOME/.agents/skills" "$HOME/.codex/skills" "$HOME/.claude/skills")
-    roots+=("${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/skills")
-    roots+=("${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills")
-    roots+=("${AGY_CLI_ROOT:-$HOME/.gemini/antigravity-cli}/skills")
-    roots+=("${AGY_CONFIG_ROOT:-$HOME/.gemini/config}/plugins/my-codex-config/skills")
-  fi
+  roots=("$HOME/.agents/skills" "$HOME/.codex/skills" "$HOME/.claude/skills")
+  roots+=("${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/skills")
+  roots+=("${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills")
+  roots+=("${AGY_CLI_ROOT:-$HOME/.gemini/antigravity-cli}/skills")
+  roots+=("${AGY_CONFIG_ROOT:-$HOME/.gemini/config}/plugins/my-codex-config/skills")
   names=("$name")
   if [[ "$name" == excalidraw ]]; then
     names+=(skill)
@@ -208,7 +204,6 @@ common_clone_portable() {
 }
 
 common_prepare_portable_skills() {
-  common_clone_portable ponytail https://github.com/DietrichGebert/ponytail.git skills/ponytail clone
   common_clone_portable diagram-design https://github.com/cathrynlavery/diagram-design.git skills/diagram-design
   common_clone_portable excalidraw https://github.com/fabricioartur/codex-excalidraw-skill.git skill
 }
