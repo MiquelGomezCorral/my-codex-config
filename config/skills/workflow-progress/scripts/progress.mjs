@@ -480,7 +480,7 @@ function saveState(state) {
   if (readOnly) {
     throw new Error(`run ${state.run.id} is read-only at ${directory}; copy it into the repository with: migrate --run ${state.run.id}`)
   }
-  // ponytail: one coordinator writes each run; add locking if updates ever become concurrent.
+  // shortcut: one coordinator writes each run; add locking if updates ever become concurrent.
   atomicWrite(statePath(state.run.id), `${JSON.stringify(state, null, 2)}\n`)
 }
 

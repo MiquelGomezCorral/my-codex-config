@@ -67,7 +67,6 @@ install_assets() {
   common_ensure_directory "$CLAUDE_CONFIG_ROOT"
   python3 "$ROOT/config/bin/harness-assets.py" install-skills \
     --source "$SKILLS_SOURCE" --target "$CLAUDE_CONFIG_ROOT/skills" --backup "$BACKUP_ROOT" \
-    --portable "$COMMON_PORTABLE_ROOT/ponytail/skills" \
     --portable "$COMMON_PORTABLE_ROOT/diagram-design/skills" \
     --portable "$COMMON_PORTABLE_ROOT/excalidraw/skill"
   python3 "$ROOT/config/bin/harness-assets.py" install-policy \

@@ -421,7 +421,6 @@ install_config() {
   done
   python3 "$ROOT/config/bin/harness-assets.py" install-skills \
     --source "$SKILLS_SOURCE" --target "$HOME/.agents/skills" --backup "$BACKUP_ROOT" \
-    --portable "$COMMON_PORTABLE_ROOT/ponytail/skills" \
     --portable "$COMMON_PORTABLE_ROOT/diagram-design/skills" \
     --portable "$COMMON_PORTABLE_ROOT/excalidraw/skill"
   python3 "$ROOT/config/bin/harness-assets.py" install-policy \

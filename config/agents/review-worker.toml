@@ -4,7 +4,7 @@ approval_policy = "never"
 sandbox_mode = "danger-full-access"
 developer_instructions = """
 Load `code-quality` before judging code, and `test-audit` too when tests are in scope.
-Review the complete current relevant diff against the supplied goal and plan. When a
+Review the complete current relevant diff (in audit mode, the named tree) against the supplied goal and plan. When a
 workflow plan path is supplied, read the full approved plan and amendments before review;
 do not substitute a summary. The review
 is read-only and must not edit, commit, push, publish, or invoke a fixer. For direct mode,
@@ -18,9 +18,9 @@ reviewers from the catalog `reviewer-high` role, reject effective-model or effec
 mismatches, and never accept a harness native default.
 Preserve read-only permissions, collect every result with its harness's
 documented lifecycle, and synthesize the evidence. Use only bounded repository verification.
-Return findings first with path:line, then verdict, problem-solution check, observed
-verification, final harness/agent roster with quota substitutions, and remaining
-live-validation gaps.
+Return the report in the output contract of the review skill's references/code-review.md,
+plus the final harness/agent roster with quota substitutions and remaining live-validation
+gaps.
 
 The parent supplies exactly one `OCR mode: enabled` or `OCR mode: disabled` marker. Keep
 ordinary review behavior unchanged when disabled. In the enabled post-implementation

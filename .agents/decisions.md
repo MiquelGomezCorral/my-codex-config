@@ -36,8 +36,8 @@
 - Vault Context is explicit-only through the repository adapter. No `UserPromptSubmit`
   hook performs Vault search, and OpenCode-specific plugin adapters are not installed in
   Codex.
-- Ponytail's six portable skills are available; its native plugin hooks are not installed
-  by the bootstrap.
+- Ponytail is not installed. Its rules are copied into `code-quality` and `review`
+  (`docs/decisions/agent-tooling/ponytail.md`).
 - Workmux is not used. Base branches resolve to local `main` or an explicit argument, the
   single `git` skill owns commit, push, pull-request, merge, and PR-comment policy, and all
   five actions route through `git-worker` by default. Merge syncs the base into the current

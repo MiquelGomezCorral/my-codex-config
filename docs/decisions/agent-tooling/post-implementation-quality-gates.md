@@ -14,8 +14,9 @@ Post-implementation quality gates expose unnecessary production and test complex
 - An explicitly approved complete workflow may invoke that findings-only audit and route
   verified in-scope simplifications to the implementation worker; the auditor never edits
   or automatically accepts findings. Standalone cleanup retains its stopping behavior.
-- It assesses task-owned production and test changes against the `code-quality` standard,
-  its language references for the touched files, and Ponytail principles.
+- It assesses task-owned production and test changes against the `code-quality` standard
+  and its language references for the touched files. Ponytail's rules are part of that
+  standard ([Ponytail core](ponytail.md)).
 - The repository's own required checks always gate code work. The `code-quality` language
   checks add to them when the project configures them. The editing agent runs both, fixes
   the code, and reruns; the same rule failing on the same code after three attempts goes to
@@ -64,6 +65,8 @@ Separating diagnosis from correction lets the user choose which simplifications 
 
 ## History
 
+- 2026-10-19: Ponytail's rules moved into the `code-quality` and review standards, so cleanup no longer names
+  Ponytail as a separate criterion ([Ponytail core](ponytail.md)).
 - 2026-10-14: Cleanup judges tests through `test-audit`, and an uncertain test is now recommended for deletion instead of kept, because coders kept landing low-value unit tests.
 - 2026-10-07: Replaced the optional two-helper cleanup audit with an always-on swarm plus simplest-design reviewers, a no-demonstrated-need finding rule, recorded accept/reject outcomes, and a closure check, because single-agent cleanup left overengineering in place.
 - 2026-10-05: Made repository checks plus configured `code-quality` language checks a gate

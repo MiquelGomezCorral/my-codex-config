@@ -1,6 +1,6 @@
 ---
 name: review
-description: Own review — the shared review standard (workflow, findings, P0-P3 severity, output contract) and `$review` orchestration for ordinary, staff-level, and swarm review gates. Use for any code review; the standard is in references/code-review.md.
+description: Own review — the shared review standard (workflow, findings, P0-P3 severity, output contract) and `$review` orchestration for ordinary, staff-level, and swarm review gates. Use for any code review, including "is this over-engineered", and for whole-repo audits ("audit this codebase", "review the whole repo", "find bloat", "what can I delete"); the standard is in references/code-review.md.
 ---
 
 # Review Gate
@@ -28,6 +28,10 @@ The modes are the worker-packet markers `Review mode: direct` and `Review mode: 
 which [references/orchestration.md](references/orchestration.md) sets. A preset (`flash`,
 `swarm`, `swarm-smart`, `full`) selects a mode and more; `full` names only the preset.
 
+Audit mode: `$review audit [path]`, or a request such as "audit this codebase", reviews a
+tree (the named path, or the whole repo), not a diff. The workflow and output are the
+"Whole-repo audit" section of [references/code-review.md](references/code-review.md).
+
 ## Route
 
 | Need | Reference |
@@ -40,3 +44,6 @@ which [references/orchestration.md](references/orchestration.md) sets. A preset 
 
 A specialist reviewer performs the review and must not launch or orchestrate further
 reviewers; only the coordinator routes.
+
+Core rules adapted from Ponytail v5.3.2 (MIT, see `LICENSE-ponytail`); sync notes are in
+`docs/decisions/agent-tooling/ponytail.md`.

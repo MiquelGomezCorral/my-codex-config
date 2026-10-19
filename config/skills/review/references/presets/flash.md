@@ -1,7 +1,7 @@
 # Flash preset
 
 Resolve the catalog role `reviewer-fast` through `super-agent` and use one fresh reviewer
-(native agent role `reviewer-quick`), with the goal, relevant diff, full
+(native agent role `reviewer-quick`), with the goal, relevant diff (or the audit tree), full
 approved plan and amendments in workflow context, scope, exclusions, inspected head, and
 relevant base. It performs one brief,
 read-only direct pass: include `Review mode: direct` and omit `Swarm models`. Follow the

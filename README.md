@@ -105,7 +105,7 @@ cd ~/code/my-codex-config
 Each dedicated bootstrap calls `bootstrap_common.sh`. It checks for CodeGraph, BTCA, the
 pinned SearXNG connector, the portable skill sources, and the SearXNG service; it installs
 or starts only what is missing. It never installs a harness CLI, Docker, or authentication.
-Portable Ponytail, diagram-design, and Excalidraw skills do not require Codex login. The four
+Portable diagram-design and Excalidraw skills do not require Codex login. The four
 scripts can also run separately.
 
 Use `--no-searxng` to skip only the shared Docker service or `--no-searxng-mcp` to skip the
@@ -271,11 +271,12 @@ ocr --version
 
 From any repository, run `ocr-go review --preview` and then `ocr-go review`.
 
-The shared installer shallow-clones the public Ponytail, diagram-design, and Excalidraw
+The shared installer shallow-clones the public diagram-design and Excalidraw
 repositories into a cache outside this repository (the XDG data directory), then links only
-their skill folders into each harness. Ponytail holds six skills, so it is always cloned
-whole and never reused from another harness's folder. Native plugin hooks are not copied
-or translated. Bootstrap links the review helper as `ocr-go` on `PATH` for every harness.
+their skill folders into each harness. Native plugin hooks are not copied
+or translated. Older bootstraps also linked Ponytail; remove its leftover links with the
+command in `docs/decisions/agent-tooling/ponytail.md`. Bootstrap links the review helper as
+`ocr-go` on `PATH` for every harness.
 The repository's `excalidraw-draw` skill renders with the official Excalidraw CLI, which
 bootstrap does not install: run `npm install -g @excalidraw/cli` to enable it.
 
@@ -311,6 +312,9 @@ The `test-audit` skill adapts [OpenClaw's `test-audit`](https://github.com/openc
 (MIT, OpenClaw Foundation). Its value bar, junk patterns, retention bar, candidate evidence,
 edit shape, and campaign phases are kept. Its OpenClaw-specific skill names, Vitest scripts,
 and PR flow are replaced by this repository's own test commands and the `git` skill.
+
+The `code-quality` and `review` skills adapt their core rules from [Ponytail](https://github.com/DietrichGebert/ponytail)
+v5.3.2 by Dietrich Gebert (MIT). The license copy sits in each skill as `LICENSE-ponytail`.
 
 The artifacts skill bundles selected [Lucide](https://github.com/lucide-icons/lucide)
 SVGs in `config/skills/artifacts/icons.json`. Lucide's ISC notice, which also names the

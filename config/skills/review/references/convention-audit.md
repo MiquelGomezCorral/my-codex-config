@@ -8,8 +8,7 @@ code. Load a reference only when the diff touches its domain:
 - [Legacy cleanup](legacy-checks.md)
 - [Effect](effect-checks.md)
 
-Report findings first by the P0-P3 severity and scope classification in
-`references/code-review.md`,
-then the verdict, inspected head/base, open evidence gaps, and performed verification.
+Report in the output contract of `references/code-review.md` (P0-P3 severity, scope,
+verdict, inspected head/base, open evidence gaps, and performed verification).
 Label convention findings by category. Do not edit in review-only mode; workflow correction
 stays in `$workflow` and requires verified in-scope evidence.

@@ -13,7 +13,8 @@ current working-tree change, including staged, unstaged, and untracked files. In
 workflow context, also review everything from the recorded slice base through the current
 head, so committed checkpoint changes are not missed. Specialists
 may inspect surrounding code as evidence but may report findings only against the reviewed
-change. The entire workflow is read-only: no edits, fixes, coder or fixer calls, accepted
+change. In audit mode the reviewed change is the named tree: `Scope` and `Diff basis` name
+it, and findings may cite any file in it. The entire workflow is read-only: no edits, fixes, coder or fixer calls, accepted
 findings, commits, pushes, or publication. Only the coordinator launches the selected
 specialists; specialists never delegate further.
 
@@ -66,14 +67,14 @@ Give every selected specialist the same packet, changing only its lens:
 
 ```text
 Goal: the observable review outcome
-Scope: the complete current diff and these changed files: <list>
-Diff basis: slice base..head plus task-owned worktree changes in workflow context; otherwise staged, unstaged, and untracked changes in the current worktree
+Scope: the complete current diff and these changed files: <list> (audit mode: the named tree)
+Diff basis: slice base..head plus task-owned worktree changes in workflow context; otherwise staged, unstaged, and untracked changes in the current worktree (audit mode: the named tree)
 Base/head: the recorded slice base revision and inspected head (workflow context only)
 Task-owned paths: the explicit path list to review (workflow context only)
 Context: complete approved plan and amendments when in workflow; otherwise persisted plan path when available
 Workflow context: slice, stage, local progress path, scope, exclusions, and named authorizations
 Decision records: applicable record paths and protected constraints
-Exclusions: unrelated files, pre-existing defects, fixes, publication, and delegation
+Exclusions: unrelated files, pre-existing defects (audit mode: none, the named tree is in scope), fixes, publication, and delegation
 Allowed actions: read-only inspection and bounded repository-defined verification
 Catalog role: the role the coordinator routed through `super-agent`
 Harness/model/thinking: the resolved harness, exact model, and thinking level
@@ -104,8 +105,8 @@ issues that describe the same failure. Apply the P0-P3, scope, evidence, and
 blocked/unverified contract from `references/code-review.md`. A workflow context does not
 authorize fixes, live testing, or publication.
 
-Return findings first with `path:line`, followed by the verdict and output contract in
-`references/code-review.md`, the inspected head and relevant base, the problem-solution
-check, observed bounded verification, and blocked/unverified evidence. Include missing
+Return the report in the output contract of `references/code-review.md`: findings with
+`path:line`, the verdict, the inspected head and relevant base, the problem-solution check,
+observed bounded verification, and blocked/unverified evidence. Include missing
 specialist coverage when applicable, but never forward raw reviewer claims. Stop before
 live validation and wait for explicit bounded authorization.
