@@ -14,8 +14,8 @@ plain flow or sequence.
 
 **Phone width.** The SVG is a fixed canvas (about 920 px). On a 390 px phone it shows at about 40 %,
 so names and sublabels are unreadable there. Keep the diagram to what the caption needs, say the
-takeaway in the caption (page text), and rely on "Open full size" for detail; if the reader must
-read the labels on a phone, choose Pele.
+takeaway in the caption (page text), and rely on the page's viewer to zoom in for detail; if the
+reader must read the labels on a phone, choose Pele.
 
 ## Use the `artifacts` profile
 

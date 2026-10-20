@@ -62,18 +62,18 @@ not a frame's own files, so a `"directory"` plot loses its `plotly.min.js` there
 
 ## Match the light and dark themes
 
-The page adds `?theme=light` or `?theme=dark` to the address of a framed `.html` figure (also on
-"Open full size") and reloads the frame when the reader toggles the theme. So the plot reads the
-parameter once, when it loads, and applies the page palette. Opened alone it has no parameter and
-follows `prefers-color-scheme`.
+The page adds `?theme=light` or `?theme=dark` to the address of a framed `.html` figure and
+reloads the frame when the reader toggles the theme; the maximize button over the frame opens it
+full screen with the theme it opened in. So the plot reads the parameter once, when it loads, and
+applies the page palette. Opened alone it has no parameter and follows `prefers-color-scheme`.
 
 `THEME_SCRIPT` in `example.py` does this in a `post_script`, and needs no edit beyond the layout it
 sets:
 
 - Backgrounds: `paper_bgcolor` and `plot_bgcolor` stay `rgba(0,0,0,0)`, and the script paints the
   document in the card colour (`#ffffff` light, `#1d1d21` dark), the same colour the page draws
-  behind the frame. Without it, "Open full size" or a file opened alone in the dark theme shows
-  pale text on a white browser canvas.
+  behind the frame. Without it, the full-screen view or a file opened alone in the dark theme
+  shows pale text on a white browser canvas.
 - Text: `--pele-fg`, `#1d1d1f` light and `#ececf0` dark, through `font.color`.
 - Grid, zero line, axis line and ticks: the line colour (`#5b5b66` light, `#b9b9c4` dark) at 25 %
   opacity.
