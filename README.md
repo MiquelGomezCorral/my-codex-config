@@ -147,7 +147,7 @@ flow.
 
 ## What gets installed where
 
-All 32 repository skills, 12 focused roles, and 13 command intents share the sources under
+All 32 repository skills, 13 focused roles, and 13 command intents share the sources under
 `config/`. Native adapters load each command's owning skill and forward its arguments.
 Skills are linked one entry at a time, so unrelated user skills remain available. Native
 mutable config is merged; malformed files are left untouched and managed conflicts receive
@@ -200,7 +200,8 @@ half their workers, rounded up, on the current harness when no catalog role, har
 preference, or roster fixes a worker's harness. Explicit AGY/Pi rosters stay exact, review presets keep
 their shapes, and live end-to-end validation stays on its bounded route. The active adapter
 owns launch mechanics only. Outside a wrapper, another harness
-requires an explicit documented one-shot adapter; missing coverage remains visible.
+requires an explicit documented one-shot adapter, except the read-only `explore` command;
+missing coverage remains visible.
 
 Workflow stages use harness-native planning, coding, and findings-only review routes where
 available. The compact route and limitation matrix is

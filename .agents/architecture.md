@@ -9,7 +9,7 @@ Node.js adapters, shared by Codex, Claude Code, Pi, and AGY.
 
 - `config/codex.toml` and `config/codex-hooks.json` own the Codex native sources.
 - `bootstrap_codex.sh`, `bootstrap_claude.sh`, `bootstrap_pi.sh`, and `bootstrap_agy.sh` are
-  independent; none calls another. The twelve role sources in `config/agents/*.toml` render
+  independent; none calls another. The thirteen role sources in `config/agents/*.toml` render
   for all four harnesses, and the rendered role files are never committed.
 - The per-entry install map, target by target, lives in `README.md` under
   "What gets installed where". That table is the owner of those facts; do not restate it

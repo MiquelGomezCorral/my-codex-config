@@ -65,8 +65,8 @@ commands = root / "commands"
 skill_paths = sorted(path for path in skills.iterdir() if (path / "SKILL.md").is_file())
 agent_paths = sorted(agents.glob("*.toml"))
 command_paths = sorted(commands.glob("*.md"))
-if len(skill_paths) != 33 or len(agent_paths) != 12 or len(command_paths) != 13:
-    raise SystemExit("Expected 33 skills, 12 roles, and 13 command intents")
+if len(skill_paths) != 33 or len(agent_paths) != 13 or len(command_paths) != 13:
+    raise SystemExit("Expected 33 skills, 13 roles, and 13 command intents")
 
 for path in skill_paths:
     text = (path / "SKILL.md").read_text(encoding="utf-8")
@@ -110,7 +110,7 @@ check_source() {
     config/plugins/vault-context/vault-context.schema.json
     config/plugins/vault-context/stopwords/en.json
     config/plugins/vault-context/stopwords/es.json
-    config/bin/update-codex config/skills/review/scripts/ocr-opencode-go
+    config/bin/update-codex config/skills/review/scripts/ocr-opencode-go config/bin/explore.py
     config/skills/super-agent/references/model-catalog.yaml
     config/plugins/vault-context config/searxng/settings.yml
     bootstrap_pi.sh bootstrap_agy.sh

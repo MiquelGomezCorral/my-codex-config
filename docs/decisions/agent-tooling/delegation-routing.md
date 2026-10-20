@@ -16,9 +16,9 @@ Workflows resolve each role's harness, model, and thinking from one frequently e
   one-writer, and observable-lifecycle bounds. Claude's documented one-shot adapter is
   available only when explicitly selected; it is neither an automatic fallback nor a
   retained supervised session.
-- Outside a wrapper, another harness is eligible only when the user names it explicitly, using its documented one-shot direct adapter. The one exception is `explorer`'s pi candidate, which runs read-only through the pi one-shot adapter without a request.
+- Outside a wrapper, another harness is eligible only when the user names it explicitly, using its documented one-shot direct adapter. The one exception is the `explore` command, which runs the `explorer` candidates read-only through their one-shot adapters without a request.
 - Each plan slice carries `Size: small|medium|large`, proposed by the planner and approved by the user with the plan; without a plan, the agent proposes size and route and waits for approval. `small` goes straight to one coder; `medium` and `large` get a coding supervisor. The size picks the supervisor and coder entries.
-- The super agent does lookups itself with CodeGraph plus about three targeted file reads; more reading goes to `explorer`, which returns a brief of 20 lines or fewer with `file:line` references. Most super-agent context came from its own file reading, not from helper reports.
+- The super agent does lookups itself with CodeGraph plus about three targeted file reads; more reading goes to `explorer`, which returns a brief of 20 lines or fewer with `file:line` references. Most super-agent context came from its own file reading, not from helper reports. The `explore` command launches it without loading `super-agent`, because loading that skill to start one cheap reader cost more main-agent context than the reader saved; the explorer agent file owns the brief contract.
 - Coordinators wait on workers with one blocking wait and never poll; every wait is bounded, so a stalled worker is noticed, nudged once, then stopped and reported. The Orca adapter reference owns the commands.
 - On Claude, a hook installed by the bootstrap blocks helper launches on Opus or Fable outside the roles listed in the catalog's `model_guard`; `AGENT_MODEL_GUARD=off` disables it for one session. Helpers launched without a model get the catalog's Claude `medium` model through the bootstrap's default-helper-model setting, because agent files carry no model line.
 - Every dispatch rereads the applicable role entry. Role settings override generic tier preferences, wrapper defaults, and agent-file model metadata; explicit user instructions remain authoritative. List order defines fallback. When a skill asks for more workers than can run, the stage continues with those that ran and the user is told about the reduced coverage. Only a role with no runnable entry is a blocker.
@@ -37,7 +37,7 @@ Workflows resolve each role's harness, model, and thinking from one frequently e
 - Class is relative: every agent is a delegate toward its parent and a root over its own children, and only a parent grants nesting. A missing class means delegate, a missing delegation grant means forbidden, and a missing depth means one.
 - Every delegating role has catalog access, so a role that may launch workers can pin a cataloged model.
 - Delegation policy contains no vendor names; vendor mechanics stay in the policy's references.
-- Automatic routing never crosses to another harness outside a wrapper, except `explorer`'s read-only pi candidate.
+- Automatic routing never crosses to another harness outside a wrapper, except the read-only `explore` command.
 - Claude helpers run on Opus or Fable only in roles the catalog's `model_guard` lists, unless the user turned the guard off for the session.
 - Explicit preset requests stay within that preset, and explicit harness/model requests remain exact.
 - Catalog identifiers are secret-free and have one authoritative owner.
@@ -60,6 +60,7 @@ Role defaults change often. Keeping their harness, model, and thinking in one ca
 
 ## History
 
+- 2026-10-20: A live test showed the super agent delegating reading but loading `super-agent` to do it and getting briefs of 34 and ~147 lines. The user approved an explorer agent file and one `explore` command, pi first, that reads the catalog itself. The user also sized `git-worker` in the catalog and asked the `git` skill to take that size from the user or plan, or ask for it. The code-blind proposal moved to `adversarial` (it designs a solution and needs strong, independent judgement); planning web research and bug-evidence checks moved to `swarms` (cheap search and summary); code facts go to `explore`. Skill files stopped counting toward the reading budget, so loading a skill never pushes reading to the explorer.
 - 2026-10-19: A token-burn audit showed the super agent's own file reading, polling turns, and Opus helpers drove most use. The user made catalog lists ordered fallbacks with counts owned by skills, sized `sub_orchestrator` and `coder` by user-approved slice size, added `explorer`, a Claude model guard with a one-session off switch, a Sonnet default for helpers launched without a model, and blocking, stall-aware waits.
 
 - 2026-10-16: After Pi became unavailable and left direct review and specialists without a route, the user made `reviewer-fast` and `swarms` follow the current harness's cheap model with its `low` tier as fallback, confirmed local routes stay off, and asked that the environment's own tools come first without the repository overriding them.

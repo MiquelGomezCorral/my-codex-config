@@ -93,10 +93,9 @@ Pi, Codex, AGY, Claude, and OpenCode (`--variant`, its provider-specific reasoni
 effort) accept the thinking option shown. A model that rejects the value is an unavailable
 pin: report it instead of inventing a flag. For an AGY model alias that already encodes its thinking level, pass the catalog's matching value.
 
-The one exception is the `explorer` role's Pi candidate: it may run through the Pi
-one-shot adapter without an explicit user request, because its work is read-only. Launch
-it in the background so its exit wakes the caller. When it fails or is out of quota, take
-the role's next candidate.
+The one exception is the `explorer` role. Launch `explore "<question>" [paths]` in the
+foreground instead of a harness adapter. The command reads the catalog's explorer candidates
+itself and runs them in order; it needs no explicit user request because its work is read-only.
 
 Pass `prompt` and `catalog_model` as separate arguments. Never concatenate catalog values into shell code;
 never invoke `eval` or execute a catalog field as a command. These adapters do not own a
