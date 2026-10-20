@@ -10,8 +10,8 @@
 //   done
 const view = process.argv[2] ?? "full";
 const treeKids = {
-  "tree-planning": ["Code-blind proposer", "Researchers", "diagram-worker", "critic ×2"],
-  "tree-build": ["coding-supervisor"],
+  "tree-planning": ["Code-blind proposer", "Researchers", "explorer", "diagram-worker", "critic ×2"],
+  "tree-build": ["coder", "coding-supervisor"],
   "tree-finish": ["cleanup-worker", "Closure check", "git-worker"],
 };
 const panelName = { "tree-planning": "planning side", "tree-build": "building a slice", "tree-finish": "cleanup and Git" };
@@ -109,39 +109,41 @@ const cardH = (node, w = BW) => {
 
 const N = (k, t, m, b, kids = [], edge = "", dashed = false) => ({ k, t, m, b, kids, edge, dashed });
 const tree = N("human", "Human", "the person", "Decides, approves the wave and its live tests, accepts the result, authorizes shipping", [
-  N("root", "Root coordinator", "super_agent · Opus 5.5 · xhigh", "The agent you talk to. Plans with you, alone holds private memory, launches every worker through super-agent, never edits product code. Also presents the result and closes the wave.", [
-    N("plan", "Code-blind proposer", "swarms · cheap model\non the current harness", "Gets only problem facts, never the code, and proposes a fix on its own", [], "delegate"),
-    N("plan", "Researchers", "swarms · cheap model\non the current harness", "Read-only research: sources, code facts, bug-evidence checks", [], "delegate"),
-    N("diagram", "diagram-worker", "coder · Sonnet 5.5", "Draws planning diagrams and mockups, only inside one assigned folder", [], "delegate"),
-    N("critic", "critic ×2", "adversarial · GPT-6.1 Sol\n+ Fable 5.1", "Two independent read-only critiques of the plan, one pass each", [], "$review-plan"),
-    N("sup", "coding-supervisor", "sub_orchestrator · Opus 5.5", "Large slices only; for small ones the root does this job. Read-only: narrows the slice, directs one coder, runs review, routes verified fixes", [
-      N("coder", "coder", "coder · Sonnet 5.5", "The only writer in a slice. Implements the plan, then applies accepted fixes", [], "retained"),
-      N("review", "review-worker", "sub_orchestrator · Opus 5.5", "Swarm review lead: picks lenses, verifies and dedupes. The flash preset uses one reviewer-quick instead", [
+  N("root", "Root coordinator", "super_agent · Opus 5.5 · xhigh", "The agent you talk to. Plans with you, alone holds private memory, launches every worker through super-agent. Makes only very small, simple edits itself and hands everything bigger to workers. Also presents the result and closes the wave.", [
+    N("plan", "Code-blind proposer", "adversarial · GPT-6.1 Sol\nthen DeepSeek / GLM (pi)", "Gets only problem facts, never the code, and proposes a fix on its own", [], "delegate"),
+    N("plan", "Researchers", "swarms · cheap model\non the current harness", "Web sources and bug-evidence checks; code facts go to explore", [], "delegate"),
+    N("plan", "explorer", "explorer · read-only\nexplore \"<question>\" [paths]\nno super-agent load\nfirst: DeepSeek 4.1 Flash (pi)\nthen: Haiku 5.5 (claude)", "The root reads at most three files itself (CodeGraph calls do not count). More reading goes here; the root waits for its brief of 20 lines or fewer, with file:line.", [], "explore", true),
+    N("diagram", "diagram-worker", "coder · sized\nHaiku 5.5 when medium", "Draws planning diagrams and mockups, only inside one assigned folder", [], "delegate"),
+    N("critic", "critic ×2", "adversarial · GPT-6.1 Sol\nthen DeepSeek 4.1 Flash (pi)\nthen GLM 5.3 Flash (pi)", "Two independent read-only critiques, one pass each. Each takes the next runnable entry; a pi entry runs 3 angles per model.", [], "$review-plan"),
+    N("coder", "coder", "coder · sized by slice\nsmall: DeepSeek 4.1 Flash · max\nmedium: Haiku 5.5 · max\nlarge: Sonnet 5.5 · xhigh", "The only writer in a slice. Retained for the slice: implements the plan, then applies accepted fixes.", [], "small slice, no supervisor", true),
+    N("sup", "coding-supervisor", "sub_orchestrator · sized by slice\nmedium: Sonnet 5.5 · high\nlarge: Opus 5.5 · high", "Medium and large slices only; small ones have none. Read-only: narrows the slice, directs one coder, runs review, routes verified fixes", [
+      N("review", "review-worker", "sub_orchestrator · sized by slice\nlarge: Opus 5.5 · high\nmedium: Sonnet 5.5 · high\nonly while it coordinates", "Swarm review lead: picks lenses, verifies and dedupes. The flash preset uses one reviewer-quick instead", [
         N("review", "Lens specialists", "swarms · cheap model\non the current harness", "reviewer-quick, -reasoning, -arch, -e2e: only the lenses the diff needs", [], "lenses"),
-        N("review", "Strong reviewers 1-2", "reviewer-high · Sol / Opus", "Review the whole change; two when it touches security, data or contracts", [], "1-2 slots"),
+        N("review", "Strong reviewers 1-2", "reviewer-high · GPT-6.1 Sol", "Review the whole change; two when it touches security, data or contracts", [], "1-2 reviewers"),
       ], "$review"),
       N("review", "Verifier", "reviewer-fast · cheap model\non the current harness", "A fresh review-worker that re-checks every finding against the source", [], "swarm-smart, full", true),
       N("live", "live-validator ×N", "reviewer-fast · cheap model\non the current harness", "Runs the approved live tests on the real app and reports evidence", [], "full preset", true),
-    ], "large slice", true),
-    N("cleanup", "cleanup-worker", "sub_orchestrator · Opus 5.5", "Read-only deslop audit of the slice diff. Findings only; the root accepts or rejects each", [
+    ], "medium or large slice", true),
+    N("cleanup", "cleanup-worker", "sub_orchestrator · sized by slice\nlarge: Opus 5.5 · high\nmedium: Sonnet 5.5 · high\nonly while it coordinates", "Read-only deslop audit of the slice diff. Findings only; the root accepts or rejects each", [
       N("cleanup", "Cleanup lenses ≥2", "swarms · cheap model\non the current harness", "Dead code, duplication, indirection, test value", [], "lenses"),
-      N("cleanup", "Simplest-design 1-2", "reviewer-high · Sol / Opus", "Sketch the simplest design first, then flag what the diff adds beyond it", [], "1-2 slots"),
+      N("cleanup", "Simplest-design 1-2", "reviewer-high · GPT-6.1 Sol", "Sketch the simplest design first, then flag what the diff adds beyond it", [], "1-2 reviewers"),
     ], "$cleanup"),
-    N("cleanup", "Closure check", "reviewer-high · 1 slot", "Confirms accepted simplifications landed and nothing new crept in", [], "after fixes"),
-    N("git", "git-worker", "coder · Sonnet 5.5", "Checkpoint commit before cleanup; after you accept: final commit, push, PR", [], "$git"),
+    N("cleanup", "Closure check", "reviewer-high · 1 reviewer", "Confirms accepted simplifications landed and nothing new crept in", [], "after fixes"),
+    N("git", "git-worker", "git-worker · sized by slice\nlarge: Sonnet 5.5 · xhigh\nmedium: Haiku 5.5 · max\nsmall: DeepSeek 4.1 Flash · max", "Checkpoint commit before cleanup; after you accept: final commit, push, PR", [], "$git"),
   ], "chat"),
 ]);
 
 if (view in treeKids) tree.kids[0].kids = tree.kids[0].kids.filter((c) => treeKids[view].includes(c.t));
 
 const HG = 28, VG = 110, X0 = 0, Y0 = 260;
+const gapBefore = { "coding-supervisor": 150 };  // room for the "directs" arrow from the supervisor to the coder
 let nextX = X0;
 const levelH = [];
 const place = (node, depth, w) => {
   node.w = node.k === "root" || node.k === "human" ? 420 : BW;
   levelH[depth] = Math.max(levelH[depth] ?? 0, cardH(node, node.w));
   if (!node.kids.length) { node.x = nextX; nextX += node.w + HG; return; }
-  node.kids.forEach((c, i) => { if (depth === 1 && i) nextX += 24; place(c, depth + 1); });
+  node.kids.forEach((c, i) => { if (depth === 1 && i) nextX += gapBefore[c.t] ?? 24; place(c, depth + 1); });
   const a = node.kids[0], b = node.kids.at(-1);
   node.x = (a.x + b.x + b.w) / 2 - node.w / 2;
 };
@@ -172,14 +174,35 @@ const draw = (node, depth) => {
 
 if (showTree) {
   text(X0, 0, `The agent tree${panelName[view] ? `, ${panelName[view]}` : ""}: who starts whom, and what each one does`, 40);
-  text(X0, 58, "Read from config/agents/*.toml, super-agent's model-catalog.yaml and the workflow skill on branch consolidate-agent-skills, 2026-10-16.", 18, { color: "#868e96" });
-  text(X0, 92, "Each card: name · catalog role · model · job. The arrow label says what starts the child. Models checked against model-catalog.yaml 2026-10-16.", 18, { color: "#868e96" });
+  text(X0, 58, "Read from config/agents/*.toml, super-agent's model-catalog.yaml and the workflow skill on branch consolidate-agent-skills, 2026-10-20.", 18, { color: "#868e96" });
+  text(X0, 92, "Each card: name · catalog role · model · job. The arrow label says what starts the child. Models checked against model-catalog.yaml 2026-10-20.", 18, { color: "#868e96" });
   arrow([[X0, 140], [X0 + 70, 140]], { endArrowhead: null, strokeColor: "#343a40" });
   text(X0 + 82, 128, "Always runs in its stage", 16);
   arrow([[X0 + 320, 140], [X0 + 390, 140]], { endArrowhead: null, strokeColor: "#868e96", strokeStyle: "dashed" });
-  text(X0 + 402, 128, "Only when the slice size or review preset calls for it", 16);
+  text(X0 + 402, 128, "Only when a size, review preset or reading need calls for it", 16);
   drawLegend(X0, 176);
+  text(X0, 212, "Sizes: the planner tags each slice small, medium or large; you approve them with the wave.", 16);
+  text(X0, 234, "Without a plan, the root proposes size and route in one line and waits for your OK.", 16);
   draw(tree, 0);
+  // Medium and large slices: the supervisor directs the coder, which sits beside it under the root
+  const sup = tree.kids[0].kids.find((c) => c.t === "coding-supervisor"), coder = tree.kids[0].kids.find((c) => c.t === "coder");
+  if (sup && coder) {
+    const yA = sup.y + 60, x0 = coder.x + coder.w, x1 = sup.x;
+    arrow([[x1 - 6, yA], [x0 + 6, yA]], { strokeColor: C.sup[0], strokeStyle: "dashed" });
+    chip((x0 + x1 - measure("directs", 13, MONO).w - 14) / 2, yA - 34, "directs", { stroke: C.sup[0], bg: C.sup[1] });
+  }
+  if (view === "tree-build") {
+    const sy = levelY.at(-1) + levelH.at(-1) + 90, sizeX = [0, 140, 620];
+    text(X0, sy, "Slice size decides who starts the coder", 28);
+    [["Size", "Supervisor", "Coder"],
+      ["small", "none: the root starts the coder", "DeepSeek 4.1 Flash · max (pi)"],
+      ["medium", "coding-supervisor · Sonnet 5.5 · high", "Haiku 5.5 · max"],
+      ["large", "coding-supervisor · Opus 5.5 · high", "Sonnet 5.5 · xhigh"]].forEach((r, i) => {
+      const y = sy + 50 + i * 32;
+      r.forEach((cell, j) => text(X0 + sizeX[j], y, cell, i ? 16 : 14, { color: i ? "#1e1e1e" : "#868e96" }));
+      arrow([[X0, y + 27], [X0 + 1000, y + 27]], { endArrowhead: null, strokeWidth: 1, strokeColor: i ? "#dee2e6" : "#495057" });
+    });
+  }
 }
 
 // Whole-tree rules and the write/start table, under the tree
@@ -188,22 +211,31 @@ let page1Bottom = 0, page1W = 0;
 if (showRules) {
   text(X0, by, "Rules for the whole tree", 28);
   const rules = [
-    "One writer per slice: only the coder edits product code. diagram-worker and git-worker write only in their own lane.",
-    "Every launch goes through super-agent: stage → catalog role → exact harness, model and thinking. No harness defaults.",
+    "One writer per slice: only the coder edits product code; the root may make very small edits outside a slice.",
+    "diagram-worker and git-worker write only in their own lane.",
+    "Every launch goes through super-agent: stage → catalog role → exact harness, model and thinking, except explore.",
+    "No harness defaults.",
     "Nesting needs the parent's Delegation grant; a child never widens its own budget. A missing grant means forbidden.",
     "Workers get the plan, never private memory. Each report ends with \"Memory candidates\" for the root to save.",
-    "A slot that can't run is skipped and reported as reduced coverage. Only a role with no runnable slot blocks the stage.",
+    "Catalog lists are ordered fallbacks: launch the first runnable entry; next on failure or out of quota.",
+    "Several workers of one role only where the skill states the count, each on the next runnable entry.",
+    "A role with no runnable entry is a blocker; a swarm lens with no route is missing coverage.",
+    "Model guard: Opus only for super_agent, sub_orchestrator, reviewer-high; Fable only for adversarial, reviewer-high.",
+    "The guard covers Claude helper launches only; AGENT_MODEL_GUARD=off skips it for one session.",
+    "A Claude helper launched without a model runs on the default helper model (Sonnet 5.5).",
     "Retained workers live only inside their loop; a fresh session starts each new stage or slice.",
+    "Coordinators wait with one blocking wait plus a stall watch; never sleep loops or repeated status reads.",
+    "A stalled worker gets one nudge, then is stopped and reported or relaunched.",
   ];
   rules.forEach((r, i) => { rect(X0, by + 52 + i * 30, 12, 12, { strokeWidth: 1.5 }); text(X0 + 24, by + 46 + i * 30, r, 17); });
 
   const tx = view === "full" ? X0 + 1250 : X0;  // the rules panel stacks the table under the rules
-  const ty = view === "full" ? by : by + 300;
+  const ty = view === "full" ? by : by + 52 + rules.length * 30 + 30;
   text(tx, ty, "Who may write, and who may start workers", 28);
   const rows = [
     ["Agent", "Writes", "Starts workers"],
-    ["Root coordinator", "plans and private memory only", "yes: everything, via super-agent"],
-    ["coding-supervisor", "nothing", "one retained coder, plus review"],
+    ["Root coordinator", "plans, private memory, very small edits", "yes: super-agent, or explore for reading"],
+    ["coding-supervisor", "nothing", "medium and large: one coder, plus review"],
     ["coder", "product code inside the slice", "no"],
     ["review-worker", "nothing", "lens specialists + strong reviewers"],
     ["cleanup-worker", "nothing", "cleanup lenses + simplest-design"],
@@ -211,6 +243,7 @@ if (showRules) {
     ["diagram-worker", "one assigned output folder", "no"],
     ["live-validator", "its own test data only", "no"],
     ["critics, reviewers, researchers", "nothing", "no"],
+    ["explorer", "nothing", "no"],
   ];
   const colX = [0, 330, 720];
   rows.forEach((r, i) => {
@@ -218,7 +251,7 @@ if (showRules) {
     r.forEach((cell, j) => text(tx + colX[j], y, cell, i ? 16 : 14, { color: i ? "#1e1e1e" : "#868e96", font: SANS }));
     arrow([[tx, y + 27], [tx + 1080, y + 27]], { endArrowhead: null, strokeWidth: 1, strokeColor: i ? "#dee2e6" : "#495057" });
   });
-  page1Bottom = ty + 50 + rows.length * 32 + 40;
+  page1Bottom = Math.max(ty + 50 + rows.length * 32 - 5, by + 52 + rules.length * 30 - 15) + 45;
   if (view === "full") {
     page1W = Math.max(treeW, tx + 1080 - X0);
     rect(X0 - 50, -50, page1W + 100, page1Bottom + 50 + 50, { strokeWidth: 1, strokeColor: "#ced4da" });
@@ -233,12 +266,12 @@ if (showFlow) {
   text(WX, 92, "Left-side arrows are loops back to the coder.", 18, { color: "#868e96" });
   const steps = [
     ["sec", "Plan the wave"],
-    ["root", "1", "Root drafts the problem", "Current vs desired behaviour, scope, evidence and how each change will be live-tested. Facts first, then grills you on real decisions.", ["Code-blind proposer", "Researchers"]],
-    ["root", "2", "Root and you shape the plan", "A candidate wave: slices, dependencies, checks, review depth, live tests and their bounds.", ["diagram-worker"]],
+    ["root", "1", "Root drafts the problem", "Current vs desired behaviour, scope, evidence and how each change will be live-tested. Facts first, then grills you on real decisions.", ["Code-blind proposer", "Researchers", "explorer"]],
+    ["root", "2", "Root and you shape the plan", "A candidate wave: slices with a size each (small, medium or large), dependencies, checks, review depth, live tests and their bounds.", ["diagram-worker"]],
     ["critic", "3", "Two critics attack the plan", "Independent, read-only, one pass each. The planner gets one rebuttal, then $refine-plan writes the final plan.", ["$review-plan", "critic ×2", "$refine-plan"]],
-    ["human", "3", "You approve the wave", "Nothing is coded before this. The approval also covers each slice's live test set.", []],
+    ["human", "3", "You approve the wave", "Nothing is coded before this. The approval covers each slice's size and live test set.", []],
     ["sec", "Each slice"],
-    ["sup", "4", "Slice narrowed to today's code", "Root for small slices, coding-supervisor for large ones. New live tests run once on the base and must fail there.", ["coding-supervisor"]],
+    ["sup", "4", "Slice narrowed to today's code", "Root for small slices, coding-supervisor for medium and large ones. New live tests run once on the base and must fail there.", ["coding-supervisor"]],
     ["coder", "5", "Coder implements", "One retained writer. Runs only the plan's checks; live testing waits for the review round.", ["coder"]],
     ["review", "5", "Review + live tests, every round", "Verified P0-P3 findings go back to the coder. Two failed rounds on the same problem, or a test still impossible after 3, goes to you.", ["$review --preset", "review-worker", "Verifier", "live-validator"]],
     ["git", "6", "Checkpoint commit", "Records a hash so cleanup can compare the whole slice from its base.", ["$git", "git-worker"]],
