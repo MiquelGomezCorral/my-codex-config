@@ -343,6 +343,7 @@ common_install_shared() {
   fi
   common_prepare_portable_skills
   common_link_ocr
+  common_link_managed "$COMMON_ROOT/config/bin/explore.py" "$HOME/.local/bin/explore"
   if $searxng_enabled; then
     common_install_searxng
   fi

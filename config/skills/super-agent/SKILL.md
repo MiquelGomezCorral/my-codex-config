@@ -43,7 +43,8 @@ Resolve the environment's own lifecycle before choosing anything else:
   standing model choice, so pass them through the options the guide documents. Never edit,
   regenerate, or work around files, hooks, or settings the environment owns.
 - Otherwise use the current harness's native subagent tooling.
-- Cross to another harness only through an explicitly requested documented one-shot adapter.
+- Cross to another harness only through an explicitly requested documented one-shot adapter,
+  or the read-only `explore` command.
 
 ## Delegate or not
 
@@ -84,6 +85,8 @@ automatic launch. A stage maps to exactly one role:
 | Strong reviewer in a review swarm or cleanup audit, or cleanup closure check | `reviewer-high` |
 | Direct review, verifier, or live validator | `reviewer-fast` |
 | Review-swarm or cleanup-swarm specialist | `swarms` |
+
+`explorer` launches through `explore "<question>" [paths]`, run in the foreground. The command reads the explorer candidates from the catalog itself and tries them in order.
 
 `reviewer-fast` and `swarms` follow the current harness instead of naming one. The current
 harness is the harness of the agent doing the launch (a delegate's own harness, not the

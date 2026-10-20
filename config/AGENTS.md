@@ -92,7 +92,7 @@ academic text — load `writing` and read its `natural-writing` and `voice-profi
 references.
 - Before writing or editing code, load `code-quality` and read the reference for the
 language of the files you touch. The standard is mandatory, not advisory.
-- All agents, including nested workers, must load `super-agent` before delegating.
+- All agents, including nested workers, must load `super-agent` before delegating, except to run `explore`.
 For workflow intake and every worker dispatch, resolve the role's harness, model, and
 thinking from that skill's `references/model-catalog.yaml`; its stage mapping owns the
 defaults. Explicit user overrides take precedence. Do not substitute agent-file or
@@ -100,7 +100,7 @@ harness defaults when the selected catalog route cannot run.
 A proven active wrapper owns agent launch, messaging, waiting, resume, and cleanup;
 without one, use the current harness's native lifecycle. Do not bypass an active wrapper
 with direct harness launches, and use another harness only through an explicit
-documented one-shot adapter.
+documented one-shot adapter or `explore`.
 - Apply focused patches: change only necessary lines or sections, and never rewrite a
 whole file when a narrower edit achieves the approved result.
 - Before non-trivial edits, identify the goal, completion condition, and what must remain
@@ -134,11 +134,12 @@ to the user, and assessing plan-critique findings and decision records stay with
 
 - **Do it yourself:** quick questions, a short answer, one read-only command, a small scoped edit, a
   lookup, all within the reading budget. Keep it small and bounded.
-- **Reading budget:** per task, read at most three files yourself; CodeGraph calls do not
-  count. When a question, plan, or check needs more reading, launch one `explorer` through
-  `super-agent` with the question and paths; it returns a brief of 20 lines or fewer with
-  `file:line` references. Questions follow this rule too.
-- **Hand it off:** multi-file implementation, research sweeps, reading beyond the budget,
+- **Reading budget:** per task, read at most three files yourself; CodeGraph calls and skill
+  files (a skill and its references) do not count. When a question, plan, or check needs more reading, run `explore "<question>" [paths]`
+  in the foreground with a 10-minute timeout; it returns a brief of 20 lines or fewer with
+  `file:line` references. Trust the brief and do not re-read what it covers; a file you open
+  to check a claim counts toward the three. Questions follow this rule too.
+- **Hand it off:** multi-file implementation, research sweeps,
   reviews, long runs, live tests, browsing, anything slow or open-ended. Route it through
   `super-agent`.
 - **Give a complete task:** goal, scope, exclusions, deliverable, evidence, and stop
