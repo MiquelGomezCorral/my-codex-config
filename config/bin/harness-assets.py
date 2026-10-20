@@ -336,7 +336,7 @@ def merge_claude_settings(args: argparse.Namespace) -> None:
 
     guard = {
         "matcher": "Agent|Task",
-        "hooks": [{"type": "command", "command": f"python3 {shlex.quote(args.guard)}"}],
+        "hooks": [{"type": "command", "command": f"test ! -f {shlex.quote(args.guard)} || python3 {shlex.quote(args.guard)}"}],
     }
     model = catalog_model(pathlib.Path(args.catalog), "claude", "medium")
     merged = {
