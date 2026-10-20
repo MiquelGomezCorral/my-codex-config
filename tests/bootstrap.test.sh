@@ -105,10 +105,6 @@ if [[ "$1" == install && "$2" == npm:pi-subagents@0.79.1 ]]; then
   mkdir -p "$PI_CODING_AGENT_DIR/npm/node_modules/pi-subagents"
   printf '{"name":"pi-subagents","version":"0.79.1"}\n' > "$PI_CODING_AGENT_DIR/npm/node_modules/pi-subagents/package.json"
 fi
-if [[ "$1" == install && "$2" == npm:pi-mcp-adapter@5.3.2 ]]; then
-  mkdir -p "$PI_CODING_AGENT_DIR/npm/node_modules/pi-mcp-adapter"
-  printf '{"name":"pi-mcp-adapter","version":"5.3.2"}\n' > "$PI_CODING_AGENT_DIR/npm/node_modules/pi-mcp-adapter/package.json"
-fi
 SH
 cat > "$STUB_BIN/sleep" <<'SH'
 #!/usr/bin/env bash
@@ -429,10 +425,8 @@ assert config["settings"]["hostConfigDiscovery"] == "off"
 assert set(config["mcpServers"]) == {"keep", "codegraph", "searxng", "btca"}
 assert config["mcpServers"]["searxng"]["command"] == str(root / "npm/node_modules/.bin/mcp-searxng")
 assert config["mcpServers"]["searxng"]["env"]["SEARXNG_URL"] == "http://localhost:8080"
-assert config["mcpServers"]["searxng"]["lifecycle"] == "lazy"
-assert config["mcpServers"]["searxng"]["directTools"] is True
-assert config["mcpServers"]["searxng"]["toolPrefix"] == "none"
-assert "toolPrefix" not in config["mcpServers"]["codegraph"]
+assert config["mcpServers"]["searxng"]["exposure"] == "direct"
+assert config["mcpServers"]["codegraph"]["exposure"] == "direct"
 role = (root / "agents/coder.md").read_text(encoding="utf-8")
 assert "systemPromptMode: append" in role
 assert "inheritGlobalContext: true" in role and "inheritSkills: true" in role
@@ -459,7 +453,7 @@ cmp -s "$TEST_ROOT/pi-before-rerun.json" "$PI_AGENT_ROOT/mcp.json"
 
 NO_MCP_PI="$TEST_ROOT/pi-no-mcp"
 mkdir -p "$NO_MCP_PI"
-printf '%s\n' '{"mcpServers":{"keep":{"command":"keep"},"searxng":{"command":"mcp-searxng","env":{"SEARXNG_URL":"http://localhost:8080"},"lifecycle":"lazy","directTools":true}}}' > "$NO_MCP_PI/mcp.json"
+printf '%s\n' '{"mcpServers":{"keep":{"command":"keep"},"searxng":{"command":"mcp-searxng","env":{"SEARXNG_URL":"http://localhost:8080"},"exposure":"direct"}}}' > "$NO_MCP_PI/mcp.json"
 HOME="$TEST_ROOT/pi-no-mcp-home" PI_CODING_AGENT_DIR="$NO_MCP_PI" BACKUP_ROOT="$TEST_ROOT/no-mcp-backups" \
   "$REPO_ROOT/bootstrap_pi.sh" --no-searxng --no-searxng-mcp > "$TEST_ROOT/no-mcp.out" 2> "$TEST_ROOT/no-mcp.err"
 python3 - "$NO_MCP_PI/mcp.json" <<'PY'
@@ -473,7 +467,7 @@ PY
 
 CUSTOM_SEARXNG="$TEST_ROOT/pi-custom-searxng.json"
 CUSTOM_SEARXNG_OUTPUT="$TEST_ROOT/pi-custom-searxng-output.json"
-printf '%s\n' '{"mcpServers":{"searxng":{"command":"mcp-searxng","args":["--custom"],"env":{"SEARXNG_URL":"http://localhost:8080"},"lifecycle":"lazy","directTools":true,"description":"user server"}}}' > "$CUSTOM_SEARXNG"
+printf '%s\n' '{"mcpServers":{"searxng":{"command":"mcp-searxng","args":["--custom"],"env":{"SEARXNG_URL":"http://localhost:8080"},"exposure":"direct","description":"user server"}}}' > "$CUSTOM_SEARXNG"
 python3 "$REPO_ROOT/config/bin/mcp-config.py" merge-json --mode pi \
   --source "$REPO_ROOT/config/mcp.json" --target "$CUSTOM_SEARXNG" \
   --output "$CUSTOM_SEARXNG_OUTPUT" --no-searxng-mcp
