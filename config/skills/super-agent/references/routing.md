@@ -43,8 +43,8 @@ launching a worker.
 Include these fields in every worker packet:
 
 ```text
-Catalog role: super_agent | sub_orchestrator | coder | explorer | adversarial | reviewer-high | reviewer-fast | swarms
-Size: small | medium | large (sub_orchestrator and coder only)
+Catalog role: super_agent | sub_orchestrator | coder | git-worker | explorer | adversarial | reviewer-high | reviewer-fast | swarms
+Size: small | medium | large (sub_orchestrator, coder and git-worker only)
 Harness: the role entry's harness, or an explicit user override
 Model: the resolved exact model
 Thinking: the resolved thinking level
