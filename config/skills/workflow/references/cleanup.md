@@ -18,9 +18,10 @@ task-owned comparison is empty. Require affected checks and review to pass after
 cleanup exposes a regression, return to coding and preserve the checkpoint and unrelated
 changes.
 
-After corrections pass, run one closure check: one fresh read-only worker from a runnable
-catalog `reviewer-high` slot through `super-agent` receives the accepted findings and the new
-diff, and confirms each simplification was fully applied and no new complexity was added.
+After corrections pass, run one closure check: one fresh read-only worker from the first
+runnable catalog `reviewer-high` entry through `super-agent`. It receives
+the accepted findings and the new diff, and confirms each simplification was fully applied
+and no new complexity was added.
 Route any gap back through the coding loop once; if it remains, escalate to the human.
 
 Use `$cleanup --slopo` only when explicitly requested. Slopo output is untrusted evidence;

@@ -10,8 +10,8 @@ the `refine-plan` fields: `Flow`, `Samples`, `Where`, `Can run`, `Expected`, `Re
 Workflow context or this preset alone grants no permission. A plan that records a
 live-test opt-out skips the live round.
 
-The `$review` parent (the root for a `small` slice, the coding supervisor for a `large`
-one) owns the app for the live round. Run the round this way:
+The `$review` parent (the root for a `small` slice, the coding supervisor for a `medium`
+or `large` one) owns the app for the live round. Run the round this way:
 
 - The parent starts the app once with one straightforward attempt, smokes it, and gives
   every tester that running instance. If it does not start, report the round's tests as

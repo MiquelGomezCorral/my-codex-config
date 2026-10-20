@@ -21,11 +21,13 @@ slices with inspectable verification and explicit human authority across project
   approves the entire wave before any slice is dispatched. `review-plan` and `refine-plan`
   remain reusable internal stages; swarm coordination lives under `$review`.
 - The main orchestrator coordinates and delegates product edits, substantial investigation,
-  research, verification, and artifact production. It directly supervises one retained coder
-  for a plan marked small; a plan marked large uses a separate read-only coding supervisor
-  with an explicit one-coder delegation grant. The human may override the size choice.
+  research, verification, and artifact production. Each slice carries `Size: small|medium|large`,
+  proposed by the planner and approved by the human with the plan. The orchestrator directly
+  supervises one retained coder for a small slice; a medium or large slice uses a separate
+  read-only coding supervisor with an explicit one-coder delegation grant, and the size picks
+  the supervisor and coder models from the catalog.
 - The complete grounded plan is required before coding. The root for small slices, or the
-  coding supervisor for large slices, invokes the plan-selected read-only review against
+  coding supervisor for medium and large slices, invokes the plan-selected read-only review against
   the resulting head and full approved plan. A reusable critic role challenges plans and
   other proposals; reviewer harness and tier defaults resolve through the model catalog.
 - Each approved slice is narrowed against current repository state before coding.
@@ -195,6 +197,7 @@ diagram comprehension remains Review-only.
 
 ## History
 
+- 2026-10-19: Slice size became per slice with three values (small, medium, large), approved by the human with the plan; medium and large both get a supervisor, and the size picks the models.
 - 2026-10-16: Moved run state into private `agent-memory/` and plan diagrams and samples into
   `agent-memory/artifacts/<name>/`, so durable agent work has one home and the artifacts skill
   stays the central owner; the map viewer's colours now follow the diagram legend.

@@ -101,13 +101,13 @@ SH
 cat > "$STUB_BIN/pi" <<'SH'
 #!/usr/bin/env bash
 printf 'pi %s\n' "$*" >> "$PI_LOG"
-if [[ "$1" == install && "$2" == npm:pi-subagents@0.73.1 ]]; then
+if [[ "$1" == install && "$2" == npm:pi-subagents@0.79.1 ]]; then
   mkdir -p "$PI_CODING_AGENT_DIR/npm/node_modules/pi-subagents"
-  printf '{"name":"pi-subagents","version":"0.73.1"}\n' > "$PI_CODING_AGENT_DIR/npm/node_modules/pi-subagents/package.json"
+  printf '{"name":"pi-subagents","version":"0.79.1"}\n' > "$PI_CODING_AGENT_DIR/npm/node_modules/pi-subagents/package.json"
 fi
-if [[ "$1" == install && "$2" == npm:pi-mcp-adapter@2.34.0 ]]; then
+if [[ "$1" == install && "$2" == npm:pi-mcp-adapter@5.3.2 ]]; then
   mkdir -p "$PI_CODING_AGENT_DIR/npm/node_modules/pi-mcp-adapter"
-  printf '{"name":"pi-mcp-adapter","version":"2.34.0"}\n' > "$PI_CODING_AGENT_DIR/npm/node_modules/pi-mcp-adapter/package.json"
+  printf '{"name":"pi-mcp-adapter","version":"5.3.2"}\n' > "$PI_CODING_AGENT_DIR/npm/node_modules/pi-mcp-adapter/package.json"
 fi
 SH
 cat > "$STUB_BIN/sleep" <<'SH'
@@ -270,6 +270,7 @@ import tomllib
 config_path, agents, backup, stub_bin = map(pathlib.Path, sys.argv[1:])
 config = tomllib.loads(config_path.read_text(encoding="utf-8"))
 assert config["model"] == "gpt-6.1-sol"
+assert config["model_auto_compact_token_limit"] == 300000
 assert config["custom_root_setting"] == "preserve"
 assert config["user_paths"] == ["one", "two"]
 assert config["plan_mode_reasoning_effort"] == "medium"
@@ -573,6 +574,8 @@ cmp -s "$TEST_ROOT/agy-broken-before.json" "$BROKEN_AGY_HOME/.gemini/antigravity
 CLAUDE_HOME="$TEST_ROOT/claude-home"
 mkdir -p "$CLAUDE_HOME/.claude"
 printf 'User Claude notes.\n' > "$CLAUDE_HOME/.claude/CLAUDE.md"
+printf '%s\n' '{"theme":"dark","env":{"KEEP":"1"},"hooks":{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"user-hook"}]}]}}' \
+  > "$CLAUDE_HOME/.claude/settings.json"
 HOME="$CLAUDE_HOME" CLAUDE_CONFIG_DIR="$CLAUDE_HOME/.claude" BACKUP_ROOT="$TEST_ROOT/claude-backups" \
   "$REPO_ROOT/bootstrap_claude.sh" --no-searxng > "$TEST_ROOT/claude.out" 2> "$TEST_ROOT/claude.err"
 [[ -f "$CLAUDE_HOME/.claude/skills/harness-init/SKILL.md" ]]
@@ -611,6 +614,43 @@ grep -q '^claude mcp remove searxng' "$CLAUDE_LOG"
 [[ "$(grep -c '^claude mcp add-json searxng' "$CLAUDE_LOG")" -eq 1 ]]
 [[ "$(grep -c '^claude mcp add-json btca' "$CLAUDE_LOG")" -eq 2 ]]
 [[ -L "$CLAUDE_HOME/.local/bin/ocr-go" ]]
+! grep -q '^model: inherit' "$CLAUDE_HOME/.claude/agents/coder.md"
+python3 - "$CLAUDE_HOME/.claude/settings.json" <<'PY'
+import json
+import pathlib
+import sys
+
+settings = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+assert settings["theme"] == "dark" and settings["env"]["KEEP"] == "1"
+assert settings["autoCompactWindow"] == 300000
+assert settings["env"]["CLAUDE_CODE_SUBAGENT_MODEL"]
+groups = settings["hooks"]["PreToolUse"]
+assert groups[0]["hooks"][0]["command"] == "user-hook"
+guards = [group for group in groups if "agent-model-guard.py" in group["hooks"][0]["command"]]
+assert len(guards) == 1 and len(groups) == 2 and guards[0]["matcher"] == "Agent|Task", groups
+PY
+python3 - "$REPO_ROOT/config/bin/agent-model-guard.py" <<'PY'
+import json
+import os
+import subprocess
+import sys
+
+# (model, prompt, env override, denied)
+cases = [
+    ("opus", "Catalog role: coder", {}, True),
+    ("opus", "x\n  catalog role: sub_orchestrator\ny", {}, False),
+    ("fable", "Catalog role: adversarial", {}, False),
+    ("fable", "Catalog role: coder", {}, True),
+    ("opus", "no role line", {}, True),
+    ("", "Catalog role: coder", {}, False),
+    ("opus", "Catalog role: coder", {"AGENT_MODEL_GUARD": "off"}, False),
+]
+for model, prompt, env, denied in cases:
+    payload = json.dumps({"tool_input": {"model": model, "prompt": prompt}})
+    out = subprocess.run([sys.executable, sys.argv[1]], input=payload, text=True, check=True,
+                         capture_output=True, env={**os.environ, **env}).stdout
+    assert ("deny" in out) == denied, (model, prompt, env, out)
+PY
 
 # A user's own searxng server survives --no-searxng-mcp.
 printf 'searxng\n' >> "$CLAUDE_MCP_STATE"

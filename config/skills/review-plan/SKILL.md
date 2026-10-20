@@ -19,11 +19,14 @@ and exact bounded authorizations. Plan review does not itself authorize implemen
 live testing, or Git actions; report missing or conflicting approval requirements.
 
 Load `super-agent` without restarting planning. Route two fresh `critic` workers
-concurrently, one per slot of the catalog `adversarial` role entry. Pass the planner's
-effective model and family to `super-agent`, using the runtime-reported model when
-available, otherwise its configured model; `super-agent` owns the family preference and
-what happens when a provider is unavailable. Preserve an explicit human harness or model
-choice. `super-agent` reads
+concurrently from the catalog `adversarial` role: the first critic takes the first entry
+that can run and the second the next one, each asked for a slightly different angle so
+they do not return the same answer. When a critic's entry is a `pi` entry, it launches
+three workers per listed pi model, each asked for a slightly different angle so they do not
+all give the same answer; those workers count as that one critic. Prefer at least one critic from a model family other
+than the planner's: pass the planner's effective model and family to `super-agent`, using
+the runtime-reported model when available, otherwise its configured model. Preserve an
+explicit human harness or model choice. `super-agent` reads
 `super-agent/references/model-catalog.yaml` and pins the exact harness, model, and thinking
 for each launch. Give each critic the same complete planning context from the main agent: the user's request and corrections, every decision and answered question, unresolved questions,
 alternatives considered and why they were rejected, repository evidence, applicable
@@ -39,7 +42,8 @@ merge and deduplicate their findings, and rebut the merged critique once. The ma
 assesses findings against source evidence, resolves them or asks the user, and returns the
 finalized plan. Launch no third critic and no second round for the same adversarial phase.
 If a critic cannot run, or no critic differs in family from the planner, finalize with
-the critiques you have and tell the user which coverage was missing.
+the critiques you have and tell the user which coverage was missing; the stage still
+passes.
 
 Assume requirements were clarified before this command, often through `grill-me`, but
 never manufacture a missing answer. If a remaining ambiguity would change behavior,

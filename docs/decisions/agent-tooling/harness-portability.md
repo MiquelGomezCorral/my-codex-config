@@ -21,6 +21,10 @@ links shared assets and renders only the native files that differ.
   already installed compatible packages. No profiles or duplicate inventories.
 - Shared portable assets use symlinks. Native format rendering and safe merging
   preserve mutable settings/MCP/auth state and unrelated user configuration.
+- Claude and Codex compact their context at 300k tokens, set by their bootstraps
+  (Claude `autoCompactWindow` merged into settings, Codex
+  `model_auto_compact_token_limit` in `config/codex.toml`). The Claude bootstrap owns only
+  that key, its default-helper-model env key and its model-guard hook in settings.
 - Full tool access is available; focused role/task instructions govern authority.
   Native main agents keep their normal prompts. Skills load when needed.
 - Installation uses normal client folders. Existing custom roots continue to work
@@ -80,6 +84,7 @@ after a hook or a plugin with hooks changes.
 
 ## History
 
+- 2026-10-19: The user set compaction at 300k for Claude and Codex to cut context re-reading; they raise it if sessions compact too often.
 - 2026-10-19: The Codex bootstrap now lists hooks waiting for trust, because Codex
   sessions and Orca workers kept stopping on the review prompt after a plugin update;
   bypassing hook trust was rejected.

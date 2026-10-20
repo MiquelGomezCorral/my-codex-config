@@ -71,6 +71,10 @@ install_assets() {
     --portable "$COMMON_PORTABLE_ROOT/excalidraw/skill"
   python3 "$ROOT/config/bin/harness-assets.py" install-policy \
     --source "$ROOT/config/AGENTS.md" --target "$CLAUDE_CONFIG_ROOT/CLAUDE.md" --backup "$BACKUP_ROOT"
+  python3 "$ROOT/config/bin/harness-assets.py" merge-claude-settings \
+    --target "$CLAUDE_CONFIG_ROOT/settings.json" --backup "$BACKUP_ROOT" \
+    --catalog "$SKILLS_SOURCE/super-agent/references/model-catalog.yaml" \
+    --guard "$ROOT/config/bin/agent-model-guard.py"
   common_ensure_directory "$CLAUDE_CONFIG_ROOT/agents"
   for source in "$ROOT"/config/agents/*.toml; do
     python3 "$ROOT/config/bin/harness-assets.py" render-agent --format claude \

@@ -7,11 +7,12 @@ planner's, the full evidence and plan, and one rebuttal. Do not substitute nativ
 
 Run `$review-plan` once for this phase; it routes two independent, read-only `critic`
 workers concurrently through `super-agent`'s catalog `adversarial` role to challenge
-necessity, feasibility, scope, assumptions, evidence, and acceptance conditions. Pass the
-planner's effective model and family to `super-agent`, using the runtime-reported model
-when available, otherwise its configured model; `super-agent` owns the family preference
-and what happens when a provider is unavailable. Preserve an explicit human harness or
-model choice. Never substitute an uncataloged model or fall back to a generic tier.
+necessity, feasibility, scope, assumptions, evidence, and acceptance conditions.
+`$review-plan` owns the critic count (including its `pi` entry rule), the family
+preference, and what happens when a provider is unavailable. Pass the planner's effective model and family to it, using the
+runtime-reported model when available, otherwise its configured model. Preserve an
+explicit human harness or model choice. Never substitute an uncataloged model or fall back
+to a generic tier.
 Launch no third critic and no further round. Give each critic the complete candidate plan, claims, cited sources, bug
 evidence, user requirements, and exclusions; require source checks for consequential
 claims rather than a summary verdict. The critics work independently and do not see each

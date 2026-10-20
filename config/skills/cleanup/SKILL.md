@@ -59,7 +59,11 @@ The coordinator audits production and tests and runs the read-only checks
 `code-quality` requires, reporting each failure as a finding. It always runs the cleanup
 swarm that the `cleanup-worker` role defines: `swarms` lens specialists, using reviewers
 such as `reviewer-arch` and `reviewer-reasoning`, plus `reviewer-high` simplest-design
-reviewers. Its return ends with the roster of launched and self-covered lenses.
+reviewers: one, or two under the risk condition of the review swarm (security, data,
+public contracts, migrations, or a large or multi-module change; see
+[swarm coordination](../review/references/swarm-coordination.md), which also owns the
+`pi` entry rule of three workers per listed pi model). Its return ends with
+the roster of launched and self-covered lenses.
 
 ## Optional Slopo evidence
 

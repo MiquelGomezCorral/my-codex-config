@@ -8,9 +8,9 @@ remain pending separate authorization.
 
 - **Setup:** one reproducible, narrow bug; one slice; brief planning is explicitly
   appropriate; no live action is needed.
-- **Expected:** keep the plan short, record `small` in the approved plan, send the work
-  directly to one retained coder, implement and verify one slice, then present the result
-  before any named shipping action.
+- **Expected:** keep the plan short, record `Size: small` for the slice in the approved
+  plan, send the work directly to one retained coder, implement and verify one slice, then
+  present the result before any named shipping action.
 - **Must not:** infer live validation, create a worktree without authorization, skip review
   evidence because the task is small, or claim completion from unit tests alone.
 

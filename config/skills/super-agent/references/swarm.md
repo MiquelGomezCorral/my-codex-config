@@ -20,7 +20,8 @@ Use a swarm only when:
 Prefer one agent for a small task, a dependency chain, one slow external operation,
 or work that repeatedly mutates the same state. Launch only workers with distinct
 responsibilities and honor the runtime concurrency limit across the whole agent tree.
-Duplicate prompts only for intentional independent voting.
+Duplicate prompts only for intentional independent voting. Launch several workers of one
+catalog role only when the invoking skill states the count and the condition.
 
 ## Isolated tasks
 
@@ -64,7 +65,8 @@ Goal: observable outcome
 Scope: owned files or question
 Exclusions: adjacent work and non-goals
 Context: relevant decisions and paths
-Catalog role: super_agent | sub_orchestrator | coder | adversarial | reviewer-high | reviewer-fast | swarms
+Catalog role: super_agent | sub_orchestrator | coder | explorer | adversarial | reviewer-high | reviewer-fast | swarms
+Size: small | medium | large (sub_orchestrator and coder only)
 Harness: the role entry's harness, or an explicit user override
 Model: the resolved exact model
 Thinking: the resolved thinking level
