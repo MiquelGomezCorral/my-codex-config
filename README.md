@@ -123,8 +123,10 @@ CodeGraph does not index projects automatically. In each project where semantic 
 needed, run `codegraph init` and `codegraph index`, then restart the harness so its MCP
 tools are discovered. Pi keeps its configured-root connector-path repair and continues to
 use local SearXNG search without paid-search or Codex-search fallback.
-Pi registers the `searxng` tools without a server prefix. Pi also pins `pi-subagents@0.79.1` and `pi-mcp-adapter@5.3.2`, and installs the
-diagram-design Pi extension when missing.
+Pi's built-in MCP names the SearXNG tools `mcp__searxng__searxng_web_search` and
+`mcp__searxng__web_url_read`. Pi pins `pi-subagents@0.79.1`, removes the `pi-mcp-adapter`
+package when present, turns built-in MCP on, and installs the diagram-design Pi extension
+when missing.
 `config/bin/update-codex` remains an explicit, opt-in updater; bootstrap never runs it.
 
 Retired MCP entries are removed from managed native configuration when a harness bootstrap

@@ -49,9 +49,41 @@ install_pi_package() {
   pi install "$specification"
 }
 
+remove_pi_mcp_adapter() {
+  # An installed adapter takes over /mcp; Pi's built-in MCP serves mcp.json instead.
+  local adapter
+  adapter=$(pi list 2>/dev/null | grep -o 'npm:pi-mcp-adapter[^[:space:]]*' | head -n 1 || true)
+  [[ -z "$adapter" ]] || pi remove "$adapter"
+}
+
+enable_builtin_mcp() {
+  # The adapter needed "-builtin:mcp" to turn Pi's built-in MCP off; drop that entry.
+  local settings="$PI_AGENT_ROOT/settings.json" temporary
+  grep -Fq '"-builtin:mcp"' "$settings" 2>/dev/null || return 0
+  temporary=$(mktemp "$PI_AGENT_ROOT/settings.json.XXXXXX")
+  if ! python3 - "$settings" "$temporary" <<'PY'
+import json
+import pathlib
+import shutil
+import sys
+
+source, output = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
+data = json.loads(source.read_text(encoding="utf-8"))
+data["extensions"] = [name for name in data.get("extensions", []) if name != "-builtin:mcp"]
+output.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+shutil.copymode(source, output)
+PY
+  then
+    rm -f "$temporary"
+    return 1
+  fi
+  common_backup_existing "$settings"
+  mv "$temporary" "$settings"
+}
+
 install_pi_extensions() {
   install_pi_package pi-subagents npm:pi-subagents@0.79.1 0.79.1
-  install_pi_package pi-mcp-adapter npm:pi-mcp-adapter@5.3.2 5.3.2
+  remove_pi_mcp_adapter
   if ! pi list 2>/dev/null | grep -Fq 'cathrynlavery/diagram-design'; then
     pi install https://github.com/cathrynlavery/diagram-design
   fi
@@ -138,6 +170,7 @@ main() {
   common_install_shared "${common_args[@]}"
   install_assets
   install_pi_extensions
+  enable_builtin_mcp
   printf 'Installed Pi configuration. Restart Pi after reviewing generated assets.\n'
 }
 

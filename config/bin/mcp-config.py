@@ -67,10 +67,8 @@ def native_entry(name: str, source: dict, mode: str, pi_extension_bin: str | Non
     else:
         entry["command"] = command_path(entry["command"])
     if mode == "pi":
-        entry.update(lifecycle="lazy", directTools=True)
-        if name == "searxng":
-            # The web-search skill names the tools searxng_web_search and web_url_read.
-            entry["toolPrefix"] = "none"
+        # Pi's default codemode exposure would keep these tools away from the model.
+        entry["exposure"] = "direct"
     elif mode == "claude":
         entry["type"] = "stdio"
     return entry
@@ -87,14 +85,9 @@ def managed_searxng(entry: object, mode: str) -> bool:
     if entry.get("args", []) != [] or entry.get("env") != {"SEARXNG_URL": "http://localhost:8080"}:
         return False
     if mode == "pi":
-        expected.update({"lifecycle", "directTools"})
-        if entry.get("lifecycle") != "lazy" or entry.get("directTools") is not True:
+        expected.add("exposure")
+        if entry.get("exposure") != "direct":
             return False
-        # Entries written before the prefix was set still count as managed.
-        if "toolPrefix" in entry:
-            expected.add("toolPrefix")
-            if entry["toolPrefix"] != "none":
-                return False
     return set(entry) == expected
 
 
