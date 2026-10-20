@@ -36,7 +36,7 @@ result), so this filter does not apply there.
 | Template | Use for |
 | --- | --- |
 | `templates/report.json` | Findings from tests, audits, or reviews, with live evidence |
-| `templates/results.json` | Experiment, benchmark, or training results: run grid, plots, GIFs |
+| `templates/results.json` | Experiment, benchmark, or training results: run grid, plots, GIFs; without the run sections it is a gallery page |
 | `templates/decisions.json` | Questions the user must answer, with saved picks and "Copy my decisions" |
 | `templates/comparison.json` | Two to four approaches side by side, with a recommendation |
 | `templates/explainer.json` | How a system or concept works: TL;DR, flow, FAQ, glossary |
@@ -166,7 +166,7 @@ is one of `ok`, `bad`, `warn`, `info`, or `muted`.
 | `decisions` | `items` (`id`, `title`, `description`, `question`, `options`, `recommended`, `why`, optional `technical`; older items with only `question` and `context` still render) |
 | `code` | `text` |
 | `figure` | `src` (a file next to the page: image, `.html`, or `.mp4`/`.webm` video) or `mermaid` (Mermaid text, drawn on the page; no file), `dark` (an image shown instead of `src` in the dark theme), `caption`, `alt`, `source` (editable file or URL), `height` for HTML, optional `details` (`title`, `text`, `code`: a closed fold-out under the caption, as in a gallery item) |
-| `gallery` | `items` (`src` or `mermaid`, `dark`, `caption`, `alt`: images, GIFs, videos, Mermaid diagrams, or `.html` plots with a `height`; each file opens full size; optional `details` (`title`, `text`, `code`) folds out under the caption, closed, with `code` as monospace lines that scroll inside the card) or `groups` (`title`, optional `note`, `items`: one titled row with a divider line per method or experiment), `width` (card width in px, default 320; cards keep it and never stretch, so it sets how many share a row on a full-width page: up to 334 for 3, 335 to 508 for 2, more for 1; phones show 1), `pixelated` (crisp upscaled pixel art) |
+| `gallery` | `items` (`src` or `mermaid`, `dark`, `caption`, `alt`: images, GIFs, videos, Mermaid diagrams, or `.html` plots with a `height`; each figure's media opens in the page's viewer (a plot from its maximize button; a video keeps its player); optional `details` (`title`, `text`, `code`) folds out under the caption, closed, with `code` as monospace lines that scroll inside the card) or `groups` (`title`, optional `note`, `items`: one titled row with a divider line per method or experiment), `width` (card width in px, default 320; cards keep it and never stretch, so it sets how many share a row on a full-width page: up to 334 for 3, 335 to 508 for 2, more for 1; phones show 1), `pixelated` (crisp upscaled pixel art) |
 | `html` | `html`, only for a hand-drawn SVG or markup no other block covers |
 
 An `icon` is a key of `icons.json`, the skill's Lucide catalog of 100 icons, and draws on cards, steps, details rows, and
@@ -229,18 +229,26 @@ the tool and makes the file; this section holds what the page does with it.
 
 - **A file next to the page.** SVG, PNG, JPEG, WebP, and GIF files show as images; an `.html`
   file runs in a sandboxed frame, and the page adds `?theme=light` or `?theme=dark` to its
-  address (also on "Open full size") so a graph can follow the page theme; an `.mp4` or `.webm`
-  file plays with controls. The kind comes from the path before any `?query` or `#hash`.
+  address so a graph can follow the page theme; an `.mp4` or `.webm` file plays with controls.
+  The kind comes from the path before any `?query` or `#hash`.
+- **Click a figure to open it.** The page's own viewer fits it to the screen; the wheel, a pinch,
+  `+`/`-` or the zoom buttons go up to 20x, a drag moves it, `0` or a double-click fits it again,
+  and the arrows step through the gallery the figure sits in. A `.html` plot opens from the
+  maximize button over its corner and keeps its own hover and zoom; a video keeps its player and
+  never opens the viewer. Only the media opens it, never the caption or a link. Inside a full-screen
+  plot, Esc works only before you click the plot; after that, close with the button or a click
+  outside it.
 - **`mermaid` instead of `src`.** Mermaid text is drawn on the page with the Pele engine, in the
-  page's colours, and follows the light and dark toggle without a reload. It has no file and no
-  "Open full size" link, and it works anywhere a figure does: galleries, split sections, rows,
-  insets, decks. A text Pele cannot draw, empty text included, shows its error in place and leaves
-  the page working. The engine comes from the `figures` skill, which must be installed beside
-  `artifacts` (the bootstraps install every skill together). `fill.py` inlines it (about 0.7 MB)
-  only into a page that has a `mermaid` figure and stops with a message when that skill is
-  missing. Check the text with the `figures` skill before filling.
+  page's colours, and follows the light and dark toggle without a reload. It has no file, and it
+  works anywhere a figure does: galleries, split sections, rows, insets, decks, and the viewer,
+  where it zooms and keeps its colours. A text Pele cannot draw, empty text included, shows its
+  error in place and leaves the page working. The engine comes from the `figures` skill, which
+  must be installed beside `artifacts` (the bootstraps install every skill together). `fill.py`
+  inlines it (about 0.7 MB) only into a page that has a `mermaid` figure and stops with a message
+  when that skill is missing. Check the text with the `figures` skill before filling.
 - **`dark` beside `src`.** An image for the dark theme: the page shows one of the two, following
-  the toggle, and "Open full size" opens the shown one. The hidden one loads only when needed.
+  the toggle, and the viewer opens the shown one and swaps it if the theme changes while it is
+  open. The hidden one loads only when needed.
 - **Other kinds.** A short linear flow is a `steps` block; a tiny one-off drawing is inline SVG in
   an `html` block.
 

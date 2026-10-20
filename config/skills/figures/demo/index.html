@@ -815,6 +815,11 @@ figure img,figure iframe,figure video{display:block;max-width:100%;border-radius
 figure iframe{width:100%;color-scheme:light}
 /* A Mermaid figure is drawn in place by the engine, in the same frame as an image. */
 figure pre.mermaid{margin:0;padding:12px;border-radius:8px;overflow:hidden;white-space:normal}
+/* A plot frame opens full screen from a button over its corner; a figure's own media opens the viewer. */
+figure[data-kind="frame"]{position:relative}
+.frame-max{position:absolute;top:6px;right:6px;min-width:28px;padding:2px 6px;line-height:1.2;border-color:var(--line);color:var(--muted);background:var(--card)}
+.frame-max:hover{color:var(--ink)}
+figure[data-kind="image"]>img,figure[data-kind="mermaid"]>pre.mermaid>svg,.block[data-type="html"]>svg{cursor:zoom-in}
 /* A figure with a dark image shows one image and one link at a time, whichever theme the page wears. */
 :root[data-theme="dark"] figure .light-only,:root[data-theme="light"] figure .dark-only{display:none}
 @media (prefers-color-scheme:dark){:root:not([data-theme]) figure .light-only{display:none}}
@@ -842,6 +847,28 @@ figure>details pre{margin:0;max-height:420px}
 .gallery-group h4{display:flex;align-items:center;gap:12px;margin:0 0 4px;font-size:15px}
 .gallery-group h4::after{content:"";flex:1;height:1px;background:color-mix(in srgb,var(--muted) 40%,transparent)}
 .gallery-group .gallery{margin-top:8px}
+/* The viewer: the figure's own elements moved into a full-screen dialog, so a GIF keeps animating and a diagram keeps
+   its colours. One transform on the media does the zoom and the pan. */
+#viewer{position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;background:var(--bg);color:var(--ink);overflow:hidden;overscroll-behavior:contain}
+/* The page behind does not scroll under the viewer, and its scrollbar does not sit over the close button. */
+body:has(#viewer[open]){overflow:hidden}
+/* The stage is exactly the viewport: its single grid track is 1fr of it, so 100% caps a tall or wide figure. */
+#viewer-stage{position:absolute;inset:0;display:grid;grid-template:minmax(0,1fr) / minmax(0,1fr);place-items:center;overflow:hidden;touch-action:none;cursor:zoom-in}
+#viewer-stage.zoomed{cursor:grab}
+#viewer-stage.zoomed:active{cursor:grabbing}
+#viewer-stage>*,#viewer-stage svg{max-width:100%;max-height:100%;transform-box:border-box;transform-origin:center}
+#viewer-stage img{display:block;max-width:100%;max-height:100%;width:auto;height:auto}
+#viewer-stage svg{height:auto}
+#viewer-stage .viewer-pele{display:contents}
+#viewer-stage iframe{width:100%;height:calc(100% - 24px);border:0;background:var(--card)}
+#viewer.plot #viewer-stage{cursor:default}
+.viewer-tools{position:absolute;top:12px;right:12px;display:flex;gap:8px;z-index:1}
+.viewer-tools button,.viewer-step{min-width:36px;border-color:var(--line);color:var(--ink);background:var(--card)}
+.viewer-step{position:absolute;top:50%;margin-top:-20px;z-index:1;min-width:40px;height:40px;padding:0;font-size:22px;line-height:1}
+.viewer-step[data-viewer="prev"]{left:12px}
+.viewer-step[data-viewer="next"]{right:12px}
+.viewer-step:disabled,.viewer-tools button:disabled{opacity:.35;cursor:default}
+#viewer.plot .viewer-tools [data-viewer="in"],#viewer.plot .viewer-tools [data-viewer="out"]{display:none}
 .split{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:20px;align-items:start}
 @media screen and (max-width:760px){html:not(.print-layout) .split{grid-template-columns:1fr}} /* paper, and Export PDF laying out for it, keeps two columns */
 body.slides main{max-width:none;padding:0}
@@ -885,7 +912,7 @@ body.only-changes :is(.toc,.pagetoc) li[data-unchanged]{display:none}
 @media print{
 @page{size:316.6mm 447.8mm;margin:18.1mm}
 html,body{print-color-adjust:exact;-webkit-print-color-adjust:exact}
-.toolbar,.bar,.toc,.toc-scrim,.change-tools,.copy-bar,figcaption .fig-link{display:none}
+.toolbar,.bar,.toc,.toc-scrim,.change-tools,.copy-bar,figcaption .fig-link,#viewer,.frame-max{display:none}
 /* The in-page contents prints whole; its chevrons are controls, so they go and their column stays for the numbers. */
 .pagetoc :is(.tw,.pt-head)::before{visibility:hidden}
 .pagetoc li{break-inside:avoid}
@@ -914,12 +941,20 @@ body.slides .slide:not(:last-child){break-after:page}
 /* Export PDF lays the screen out at the paper's 1060px layout width before printing, so frames draw at the size they
    print at even from a narrow window; a deck shows every slide for the same reason. */
 html.print-layout main{width:var(--page-w)}
-html.print-layout :is(.bar,.toc,.toc-scrim){display:none}
+html.print-layout :is(.bar,.toc,.toc-scrim,#viewer,.frame-max){display:none}
 html.print-layout body.slides .slide{display:block;min-height:0}
 </style>
 </head>
 <body>
 <main id="root"></main>
+<!-- The viewer: a figure's own media, moved in and zoomed. Closed until a figure opens it; a plot's maximize button
+     opens a fresh copy of its frame instead. -->
+<dialog id="viewer" aria-label="Figure viewer">
+<div id="viewer-stage"></div>
+<div class="viewer-tools"><button type="button" data-viewer="out" title="Zoom out" aria-label="Zoom out">−</button><button type="button" data-viewer="in" title="Zoom in" aria-label="Zoom in">+</button><button type="button" data-viewer="close" title="Close" aria-label="Close">✕</button></div>
+<button type="button" class="viewer-step" data-viewer="prev" title="Previous figure" aria-label="Previous figure">‹</button>
+<button type="button" class="viewer-step" data-viewer="next" title="Next figure" aria-label="Next figure">›</button>
+</dialog>
 <!-- Page data to Markdown. It reads no DOM and shares nothing with the script below except these globals, so
      fill.py --markdown runs this script alone in Node and gets the same text as the page's export buttons. -->
 <script id="markdown-converter">
@@ -1580,23 +1615,21 @@ const renderers = {
     let media = dark ? image(src, "light") + image(dark, "dark") : image(src);
     if (kind === "video") media = `<video src="${src}" aria-label="${label}" controls preload="metadata"></video>`;
     // HTML diagrams and mockups run in a sandbox without access to this page or its storage.
-    if (kind === "frame") media = `<iframe src="${src}" title="${label}" style="height:${Number(b.height) || 420}px" loading="lazy" sandbox="allow-scripts"></iframe>`;
+    if (kind === "frame") media = `<iframe src="${src}" title="${label}" style="height:${Number(b.height) || 420}px" loading="lazy" sandbox="allow-scripts"></iframe><button type="button" class="frame-max" data-frame-max title="Open full screen" aria-label="Open full screen">⤢</button>`;
     // Mermaid text is drawn in place by the Pele engine (see the pele-engine script); it has no file to open.
     if (kind === "mermaid") media = `<pre class="mermaid">${escapeHtml(b.mermaid)}</pre>`;
-    const open = (href, theme) => `<a class="fig-link${theme ? ` ${theme}-only` : ""}" href="${href}" target="_blank" rel="noopener">Open full size</a>`;
-    const full = kind === "mermaid" ? "" : dark ? open(src, "light") + open(dark, "dark") : open(src);
-    const links = full + (b.source ? `<a class="fig-link" href="${escapeHtml(b.source)}" target="_blank" rel="noopener">Editable source</a>` : "");
+    const links = b.source ? `<a class="fig-link" href="${escapeHtml(b.source)}" target="_blank" rel="noopener">Editable source</a>` : "";
     // An optional fold-out under the caption: one closed `details` row holding `text`, then `code` as monospace lines.
     const d = b.details;
     const fold = d ? renderers.details({ items: [{ title: d.title || "Details", text: d.text, blocks: d.code ? [{ type: "code", text: d.code }] : [] }] }) : "";
-    return `<figure>${media}<figcaption>${inline(b.caption || "")}${links}</figcaption>${fold}</figure>`;
+    return `<figure data-kind="${kind}">${media}<figcaption>${inline(b.caption || "")}${links}</figcaption>${fold}</figure>`;
   },
   // `groups` split the items by method or experiment: a title with a divider line, an optional note,
-  // then the group's own wrapping row.
+  // then the group's own wrapping row. All of it sits in one block, which is the gallery the viewer steps through.
   gallery: (b) => {
     const row = (items) => `<div class="gallery${b.pixelated ? " pixelated" : ""}" style="--w:${Number(b.width) || 320}px">${(items || []).map((i) => renderers.figure(i)).join("")}</div>`;
     const group = (g) => `<div class="gallery-group">${g.title ? `<h4>${inline(g.title)}</h4>` : ""}${g.note ? `<p class="legend">${inline(g.note)}</p>` : ""}${row(g.items)}</div>`;
-    return b.groups ? b.groups.map(group).join("") : row(b.items);
+    return `<div class="gallery-block">${b.groups ? b.groups.map(group).join("") : row(b.items)}</div>`;
   },
   // Escape hatch for hand-drawn SVG or markup no block covers; content is trusted agent output.
   html: (b) => b.html || "",
@@ -1780,7 +1813,7 @@ function renderChanges() {
 // section's id and its position among the headed blocks. Every id is unique on the page: an author's id wins over a
 // generated one ("s2", "plan--1"), the first section with an id keeps it, and any id that repeats or names a page-shell
 // element gets a "-2", "-3" suffix that skips every id an author wrote.
-const SHELL_IDS = ["data", "icons", "root", "bar", "toc", "pt-list", "markdown-converter", "pele-engine"];
+const SHELL_IDS = ["data", "icons", "root", "bar", "toc", "pt-list", "markdown-converter", "pele-engine", "viewer", "viewer-stage"];
 function buildOutlines(sections) {
   const used = new Set(SHELL_IDS);
   const written = new Set(sections.map((section) => section.id).filter(Boolean));
@@ -1908,6 +1941,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const undoPrint = [];
 
 function openForPrint() {
+  closeViewer(); // a moved figure would print an empty spot, and print shows no viewer
   const shut = [...document.querySelectorAll("details:not([open])")];
   shut.forEach((d) => { d.open = true; });
   if (shut.length) undoPrint.push(() => shut.forEach((d) => { d.open = false; }));
@@ -2336,27 +2370,308 @@ function wireContents() {
   setOpen(wasOpen);
 }
 
-// An embedded .html figure gets ?theme=light|dark, on its frame and on its "Open full size" link, so a graph can
-// follow the page. Other query parameters and the hash stay; a frame that ignores the parameter is unaffected.
+// A frame's address with the page's theme in `?theme=`, so a graph can follow the page. Other query parameters and
+// the hash stay; a frame that ignores the parameter is unaffected.
+function withTheme(src, theme) {
+  const [, path, query = "", hash = ""] = String(src).match(/^([^?#]*)(?:\?([^#]*))?(#.*)?$/);
+  const params = new URLSearchParams(query);
+  params.set("theme", theme);
+  return `${path}?${params}${hash}`;
+}
+
+// Only the renderer's own frames; a frame in an `html` block is the author's.
 function themeFrames(theme) {
-  const withTheme = (src) => {
-    const [, path, query = "", hash = ""] = src.match(/^([^?#]*)(?:\?([^#]*))?(#.*)?$/);
-    const params = new URLSearchParams(query);
-    params.set("theme", theme);
-    return `${path}?${params}${hash}`;
-  };
-  // Only figures the renderer made; a frame in an `html` block is the author's own.
-  for (const figure of document.querySelectorAll("figure:has(> iframe[src]):has(> figcaption > .fig-link)")) {
-    const frame = figure.querySelector(":scope > iframe");
-    const link = figure.querySelector(":scope > figcaption > .fig-link");
-    const src = withTheme(frame.getAttribute("src"));
+  for (const frame of document.querySelectorAll('figure[data-kind="frame"] > iframe[src]')) {
+    const src = withTheme(frame.getAttribute("src"), theme);
     if (frame.getAttribute("src") !== src) frame.setAttribute("src", src);
-    link.setAttribute("href", withTheme(link.getAttribute("href")));
   }
 }
 
 function currentTheme() {
   return document.documentElement.dataset.theme || (systemDark.matches ? "dark" : "light");
+}
+
+// The viewer: a click on a figure's media, or on a plot's maximize button, opens the page's own lightbox with zoom,
+// pan and the gallery the figure came from. Native <dialog>, no library.
+const VIEWER_MEDIA = 'figure[data-kind="image"] > img, figure[data-kind="mermaid"] > pre.mermaid > svg, .block[data-type="html"] > svg';
+const VIEWER_OPENERS = `${VIEWER_MEDIA}, [data-frame-max]`;
+const VIEWER_ITEMS = `${VIEWER_MEDIA}, figure[data-kind="frame"] > iframe`;
+const ZOOM_MAX = 20;
+
+const viewerDialog = document.getElementById("viewer");
+const viewerStage = document.getElementById("viewer-stage");
+const viewer = { items: [], index: 0, opener: null, pair: null, media: null, scale: 1, tx: 0, ty: 0, drag: null };
+const viewerPointers = new Map();
+let viewerPinch = null;
+let viewerBackdrop = false;
+
+// The element a click opens: the media itself, or the frame a maximize button sits over.
+function viewerTarget(opener) {
+  const button = opener.closest("[data-frame-max]");
+  return button ? button.closest("figure").querySelector(":scope > iframe") : opener;
+}
+
+// A dark pair shows the twin the page's theme wears; both are already in the page, so a switch loads nothing.
+function viewerPair(item) {
+  const figure = item.parentElement;
+  if (item.tagName !== "IMG" || !figure?.matches("figure")) return null;
+  const light = figure.querySelector(":scope > img.light-only");
+  const dark = figure.querySelector(":scope > img.dark-only");
+  return light && dark ? { light, dark } : null;
+}
+
+function viewerThemed(item) {
+  if (!viewer.pair) return item;
+  return currentTheme() === "dark" ? viewer.pair.dark : viewer.pair.light;
+}
+
+// The stage holds the page's own element, so a GIF keeps animating and a diagram keeps its colours. A plot gets a
+// fresh frame that reloads with the theme the viewer opened in, and keeps its own interaction.
+function mountViewerMedia(element) {
+  viewer.media = { element, parent: element.parentNode, next: element.nextSibling, copy: null };
+  if (element.tagName === "IFRAME") {
+    const copy = document.createElement("iframe");
+    copy.src = withTheme(element.getAttribute("src"), currentTheme());
+    copy.title = element.title;
+    copy.setAttribute("sandbox", "allow-scripts");
+    viewer.media.copy = copy;
+    viewerStage.append(copy);
+  } else if (element.closest("pre.mermaid")) {
+    const wrapper = document.createElement("div");
+    // Pele's stylesheet themes `.pele` (the diagram's own svg wears it too), so the copy follows a theme switch.
+    wrapper.className = "viewer-pele pele";
+    wrapper.append(element);
+    viewerStage.append(wrapper);
+  } else {
+    viewerStage.append(element);
+  }
+}
+
+function unmountViewerMedia() {
+  const media = viewer.media;
+  viewer.media = null;
+  if (!media) return;
+  media.element.style.transform = "";
+  if (!media.copy && media.parent) media.parent.insertBefore(media.element, media.next);
+  viewerStage.replaceChildren();
+  viewerStage.classList.remove("zoomed");
+}
+
+function applyViewerTransform() {
+  const media = viewer.media;
+  if (!media || media.copy) return;
+  const moved = viewer.scale !== 1 || viewer.tx || viewer.ty;
+  media.element.style.transform = moved ? `translate(${viewer.tx}px, ${viewer.ty}px) scale(${viewer.scale})` : "";
+  viewerStage.classList.toggle("zoomed", viewer.scale > 1);
+}
+
+// The media never leaves the stage: a zoomed edge stops at the viewport edge.
+function clampViewerPan() {
+  if (!viewer.media || viewer.media.copy || viewer.scale <= 1) { viewer.tx = 0; viewer.ty = 0; return; }
+  const box = viewerStage.getBoundingClientRect();
+  const drawn = viewer.media.element.getBoundingClientRect();
+  const room = (side, view) => Math.max(0, (side - view) / 2);
+  viewer.tx = Math.max(-room(drawn.width, box.width), Math.min(room(drawn.width, box.width), viewer.tx));
+  viewer.ty = Math.max(-room(drawn.height, box.height), Math.min(room(drawn.height, box.height), viewer.ty));
+}
+
+// Zoom keeps the point under the cursor, or between two fingers, still; x and y are measured from the stage middle.
+function zoomViewer(next, x = 0, y = 0) {
+  if (!viewer.media || viewer.media.copy) return;
+  const scale = Math.min(ZOOM_MAX, Math.max(1, next));
+  if (scale === viewer.scale) return;
+  const ratio = scale / viewer.scale;
+  viewer.tx = x - ratio * (x - viewer.tx);
+  viewer.ty = y - ratio * (y - viewer.ty);
+  viewer.scale = scale;
+  // Clamping reads the drawn box, so the new scale has to be on the element before it runs.
+  applyViewerTransform();
+  clampViewerPan();
+  applyViewerTransform();
+}
+
+function resetViewerZoom() {
+  viewer.scale = 1;
+  viewer.tx = 0;
+  viewer.ty = 0;
+  applyViewerTransform();
+}
+
+function showViewerItem(index) {
+  unmountViewerMedia();
+  const item = viewer.items[index];
+  viewer.index = index;
+  viewer.scale = 1;
+  viewer.tx = 0;
+  viewer.ty = 0;
+  viewer.pair = viewerPair(item);
+  mountViewerMedia(viewerThemed(item));
+  applyViewerTransform();
+  viewerDialog.classList.toggle("plot", item.tagName === "IFRAME");
+  const lone = viewer.items.length < 2;
+  for (const [name, atEnd] of [["prev", index === 0], ["next", index === viewer.items.length - 1]]) {
+    const arrow = viewerDialog.querySelector(`[data-viewer="${name}"]`);
+    arrow.hidden = lone;
+    arrow.disabled = lone || atEnd;
+  }
+}
+
+function stepViewer(delta) {
+  const index = viewer.index + delta;
+  if (index >= 0 && index < viewer.items.length) showViewerItem(index);
+}
+
+function openViewer(opener) {
+  const target = viewerTarget(opener);
+  if (!target || viewerDialog.open) return;
+  // The step list is the gallery the item sits in; a figure outside one is alone, with no arrows.
+  const block = opener.closest(".gallery-block");
+  const items = block ? [...block.querySelectorAll(VIEWER_ITEMS)].filter((el) => el.getClientRects().length) : [target];
+  viewer.items = items.includes(target) ? items : [target];
+  viewer.opener = opener;
+  viewerDialog.showModal();
+  showViewerItem(Math.max(0, viewer.items.indexOf(target)));
+}
+
+function closeViewer() {
+  viewerDialog.close();
+}
+
+// A dark pair swaps while it is open, whatever changed the theme: the toggle, the system, or Export PDF's light run.
+// An open plot keeps the theme it opened with.
+function rethemeViewer() {
+  if (!viewerDialog.open || !viewer.pair) return;
+  unmountViewerMedia();
+  viewer.scale = 1;
+  viewer.tx = 0;
+  viewer.ty = 0;
+  mountViewerMedia(viewerThemed(viewer.items[viewer.index]));
+  applyViewerTransform();
+}
+
+// A pointer's place in the stage, measured from its middle, where the media is centred.
+function viewerPoint(x, y) {
+  const box = viewerStage.getBoundingClientRect();
+  return { x: x - box.left - box.width / 2, y: y - box.top - box.height / 2 };
+}
+
+function viewerPinchInfo() {
+  const [a, b] = [...viewerPointers.values()];
+  return { distance: Math.hypot(a.x - b.x, a.y - b.y), x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+}
+
+function wireViewer() {
+  // Media is reachable by keyboard, so Enter or Space does what a click does. Mermaid draws after this script runs.
+  const linkMedia = () => document.querySelectorAll(VIEWER_MEDIA).forEach((el) => { el.tabIndex = 0; });
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", linkMedia); else linkMedia();
+
+  document.addEventListener("click", (e) => {
+    const opener = e.target.closest?.(VIEWER_OPENERS);
+    if (opener) openViewer(opener);
+  });
+  // Capture, so the keys a figure opens with and the viewer's own keys never reach the deck.
+  document.addEventListener("keydown", (e) => {
+    if (viewerDialog.open) {
+      const actions = {
+        ArrowLeft: () => stepViewer(-1),
+        ArrowRight: () => stepViewer(1),
+        "+": () => zoomViewer(viewer.scale * 1.5),
+        "=": () => zoomViewer(viewer.scale * 1.5),
+        "-": () => zoomViewer(viewer.scale / 1.5),
+        "_": () => zoomViewer(viewer.scale / 1.5),
+        "0": resetViewerZoom,
+      };
+      if (!actions[e.key]) return;
+      e.preventDefault();
+      e.stopPropagation();
+      actions[e.key]();
+      return;
+    }
+    if (!["Enter", " "].includes(e.key)) return;
+    const opener = e.target.closest?.(VIEWER_OPENERS);
+    if (!opener) return;
+    e.preventDefault();
+    e.stopPropagation();
+    openViewer(opener);
+  }, true);
+
+  // Every wheel over the viewer belongs to the viewer, so the page behind never scrolls; a plot keeps its own.
+  viewerDialog.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    const point = viewerPoint(e.clientX, e.clientY);
+    zoomViewer(viewer.scale * Math.exp(-e.deltaY / 300), point.x, point.y);
+  }, { passive: false });
+
+  viewerDialog.addEventListener("pointerdown", (e) => {
+    viewerBackdrop = e.target === viewerDialog || e.target === viewerStage;
+    // A press on the media drags it; a press anywhere else is a close or a control.
+    if (viewerBackdrop || !viewer.media?.element.contains(e.target) || viewer.media.copy) return;
+    viewerPointers.set(e.pointerId, viewerPoint(e.clientX, e.clientY));
+    viewerDialog.setPointerCapture(e.pointerId);
+    if (viewerPointers.size === 2) viewerPinch = viewerPinchInfo();
+    viewer.drag = viewerPointers.size === 1 ? viewerPoint(e.clientX, e.clientY) : null;
+  });
+  viewerDialog.addEventListener("pointermove", (e) => {
+    if (!viewerPointers.has(e.pointerId)) return;
+    const point = viewerPoint(e.clientX, e.clientY);
+    viewerPointers.set(e.pointerId, point);
+    if (viewerPointers.size > 1) {
+      const pinch = viewerPinchInfo();
+      if (viewerPinch?.distance) {
+        viewer.tx += pinch.x - viewerPinch.x;
+        viewer.ty += pinch.y - viewerPinch.y;
+        zoomViewer(viewer.scale * (pinch.distance / viewerPinch.distance), pinch.x, pinch.y);
+      }
+      viewerPinch = pinch;
+      return;
+    }
+    if (viewer.drag && viewer.scale > 1) {
+      viewer.tx += point.x - viewer.drag.x;
+      viewer.ty += point.y - viewer.drag.y;
+      clampViewerPan();
+      applyViewerTransform();
+    }
+    if (viewer.drag) viewer.drag = point;
+  });
+  // A press and a release both on the backdrop closes; a drag that merely ends there does not.
+  const endPointer = (e) => {
+    viewerPointers.delete(e.pointerId);
+    if (viewerPointers.size < 2) viewerPinch = null;
+    viewer.drag = viewerPointers.size === 1 ? [...viewerPointers.values()][0] : null;
+  };
+  viewerDialog.addEventListener("pointerup", (e) => {
+    endPointer(e);
+    if (viewerBackdrop && (e.target === viewerDialog || e.target === viewerStage)) closeViewer();
+    viewerBackdrop = false;
+  });
+  viewerDialog.addEventListener("pointercancel", endPointer);
+  // An image is natively draggable, and the capture would turn a drag into a cancelled pointer.
+  viewerStage.addEventListener("dragstart", (e) => e.preventDefault());
+  // The capture sends the gesture's double-click to the dialog, so the reset listens there and skips its own buttons.
+  viewerDialog.addEventListener("dblclick", (e) => { if (!e.target.closest("[data-viewer]")) resetViewerZoom(); });
+
+  viewerDialog.addEventListener("click", (e) => {
+    const action = e.target.closest?.("[data-viewer]")?.dataset.viewer;
+    if (action === "close") closeViewer();
+    else if (action === "prev") stepViewer(-1);
+    else if (action === "next") stepViewer(1);
+    else if (action === "in") zoomViewer(viewer.scale * 1.5);
+    else if (action === "out") zoomViewer(viewer.scale / 1.5);
+  });
+  viewerDialog.addEventListener("close", () => {
+    unmountViewerMedia();
+    viewer.items = [];
+    viewer.pair = null;
+    viewerPointers.clear();
+    viewerPinch = null;
+    viewer.drag = null;
+    viewerBackdrop = false;
+    viewer.opener?.focus({ preventScroll: true });
+    viewer.opener = null;
+  });
+
+  new MutationObserver(rethemeViewer).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  systemDark.addEventListener("change", rethemeViewer);
 }
 
 // The saved choice applies to every artifact; without one the page follows the system theme.
@@ -2398,6 +2713,7 @@ function wireSlides(bar) {
   };
   bar.addEventListener("click", (e) => { if (e.target.dataset.step) show(current + Number(e.target.dataset.step)); });
   document.addEventListener("keydown", (e) => {
+    if (viewerDialog.open) return; // the viewer owns the keys while it is open
     if (e.target.matches("textarea, input") || (e.key === " " && e.target.closest("button"))) return;
     if (["ArrowRight", "PageDown", " "].includes(e.key)) { e.preventDefault(); show(current + 1); }
     if (["ArrowLeft", "PageUp"].includes(e.key)) { e.preventDefault(); show(current - 1); }
@@ -2454,6 +2770,7 @@ wireExports();
 wireDecisions();
 wireChipTips();
 wireSteps();
+wireViewer();
 wireContents();
 if (data.layout === "slides") wireSlides(toolbar);
 // A page rewritten during a long run reloads itself, at most daily. A reload would undo what the
@@ -2463,6 +2780,7 @@ const refreshSeconds = Number(data.refresh);
 if (refreshSeconds >= 10) {
   const openAtLoad = new Set(document.querySelectorAll("details[open]"));
   const readerIsBusy = () => document.body.classList.contains("only-changes")
+    || viewerDialog.open
     || document.activeElement?.matches("textarea")
     || document.documentElement.classList.contains("print-layout")
     || [...document.querySelectorAll("video")].some((v) => !v.paused)

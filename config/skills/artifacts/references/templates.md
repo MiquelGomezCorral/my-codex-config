@@ -11,6 +11,7 @@ that renders as written.
 | --- | --- | --- |
 | Judge findings from a test, audit, or review, each with a verdict and evidence | [`report.json`](#reportjson) | `results.json`: that is a grid of runs. `decisions.json`: that asks questions |
 | Read pass/fail results of many runs, with plots and GIFs, and watch them fill in | [`results.json`](#resultsjson) | `report.json`: its rows are findings, not runs |
+| Browse images, GIFs and plots in one gallery | [`results.json`](#resultsjson), with the header and `gallery` blocks only | `report.json`: it is a report around each figure |
 | Answer questions and send the picks back | [`decisions.json`](#decisionsjson) | `comparison.json`: it shows trade-offs but saves no picks |
 | Choose between two to four approaches | [`comparison.json`](#comparisonjson) | `decisions.json`: it saves picks but explains no trade-offs |
 | Understand how a system or concept works | [`explainer.json`](#explainerjson) | `slides.json`: one screen at a time, for presenting |
@@ -215,6 +216,9 @@ To add a Lucide icon the catalog lacks:
   starts closed and keeps to the card's width; a separate `details` block would lose which text
   goes with which picture.
 - **A page rewritten during a long run sets `refresh`.** Drop it once the runs are done.
+- **Without the run sections it is a gallery page.** Keep the header and the section titles and
+  fill the body with `gallery` blocks: each figure opens in the page's viewer, and the arrows
+  step through its gallery.
 
 ```json
 {
