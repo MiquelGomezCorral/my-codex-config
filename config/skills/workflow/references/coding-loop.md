@@ -9,9 +9,9 @@ The retained writer uses the harness's normal native coding capability; see
    current repository. Confirm the goal, observed current behavior and sources, scope,
    exclusions, checks, samples, usable tools, acceptance evidence, and review preset.
    Stop before coding if required grounding or the planned validation route is missing.
-   Read the approved plan's size.
-   For `small`, the root directs one retained `coder` through `super-agent`. For `large`,
-   assign a read-only `coding-supervisor` with an explicit grant to direct exactly one
+   Read the slice's `Size:` in the approved plan.
+   For `small`, the root directs one retained `coder` through `super-agent`. For `large`
+   or `medium`, assign a read-only `coding-supervisor` with an explicit grant to direct exactly one
    retained coder and coordinate the selected read-only review within the slice's scope,
    exclusions, and checks. The supervisor never edits product source or delegates other
    implementation work.
@@ -21,7 +21,7 @@ The retained writer uses the harness's normal native coding capability; see
    slice's full live test set; a fix round reruns only tests that failed or were not
    possible. A recorded opt-out skips the live tests, never the review.
 4. Run the review and the live tests. The root for `small`, or the coding supervisor for
-   `large`, invokes `$review --preset <approved preset>` on the resulting head; the
+   `medium` or `large`, invokes `$review --preset <approved preset>` on the resulting head; the
    [`full` preset](../../review/references/presets/full.md) runs the live round. Give the
    reviewer the complete approved plan and amendments, current slice, goal, exclusions,
    head/base diff, changed paths, checks, live test set, and observed results.

@@ -271,7 +271,7 @@ test("local search setup keeps service and connector ownership separate", () => 
   match(common, /127\.0\.0\.1:8080:8080/)
   match(common, /--restart unless-stopped/)
   match(common, /Docker is unavailable/)
-  match(piBootstrap, /install_pi_package pi-mcp-adapter npm:pi-mcp-adapter@2\.34\.0 2\.34\.0/)
+  match(piBootstrap, /install_pi_package pi-mcp-adapter npm:pi-mcp-adapter@5\.3\.2 5\.3\.2/)
   match(common, /npm install --global mcp-searxng@1\.11\.1/)
   match(mcpConfig, /SEARXNG_URL.*http:\/\/localhost:8080/)
   match(piBootstrap, /npm\/node_modules\/\.bin\/mcp-searxng/)

@@ -50,8 +50,8 @@ install_pi_package() {
 }
 
 install_pi_extensions() {
-  install_pi_package pi-subagents npm:pi-subagents@0.73.1 0.73.1
-  install_pi_package pi-mcp-adapter npm:pi-mcp-adapter@2.34.0 2.34.0
+  install_pi_package pi-subagents npm:pi-subagents@0.79.1 0.79.1
+  install_pi_package pi-mcp-adapter npm:pi-mcp-adapter@5.3.2 5.3.2
   if ! pi list 2>/dev/null | grep -Fq 'cathrynlavery/diagram-design'; then
     pi install https://github.com/cathrynlavery/diagram-design
   fi

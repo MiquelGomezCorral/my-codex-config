@@ -6,6 +6,7 @@ import json
 import os
 import pathlib
 import re
+import shlex
 import sys
 import tomllib
 
@@ -18,6 +19,8 @@ POLICY_START = "<!-- BEGIN my-harness-config policy -->"
 POLICY_END = "<!-- END my-harness-config policy -->"
 LEGACY_POLICY_MARKER = MARKERS[1]
 HOOK_OWNER = "codex-command-dispatch.mjs"
+GUARD_OWNER = "agent-model-guard.py"
+COMPACT_WINDOW = 300000
 
 
 def backup(target: pathlib.Path, backup_root: pathlib.Path) -> None:
@@ -105,9 +108,7 @@ def render_agent(args: argparse.Namespace) -> None:
     if name != source.stem:
         raise SystemExit(f"Agent name does not match filename: {source}")
     fields = ["---", f"name: {name}", f"description: {json.dumps(data['description'])}"]
-    if args.format == "claude":
-        fields.append("model: inherit")
-    elif args.format == "pi":
+    if args.format == "pi":
         fields.extend((
             "systemPromptMode: append",
             "inheritProjectContext: true",
@@ -242,12 +243,12 @@ def install_policy(args: argparse.Namespace) -> None:
     managed_file(target, output, pathlib.Path(args.backup), force_backup=replace_legacy)
 
 
-def owns_hook(hook: dict) -> bool:
+def owns_hook(hook: dict, owner: str = HOOK_OWNER) -> bool:
     command = hook.get("command")
-    return isinstance(command, str) and HOOK_OWNER in command
+    return isinstance(command, str) and owner in command
 
 
-def merge_event(event: str, existing: list, groups: list) -> list:
+def merge_event(event: str, existing: list, groups: list, owner: str = HOOK_OWNER) -> list:
     """Replace this repository's hook entries with `groups`, keeping every user hook and its order.
 
     The new groups take the place of the first owned entry, even inside a shared group; later owned
@@ -257,10 +258,10 @@ def merge_event(event: str, existing: list, groups: list) -> list:
     for group in existing:
         hooks = group.get("hooks") if isinstance(group, dict) else None
         if not isinstance(hooks, list) or not all(isinstance(hook, dict) for hook in hooks):
-            raise SystemExit(f"Codex hooks event {event} must hold groups with a list of hook objects")
+            raise SystemExit(f"Hooks event {event} must hold groups with a list of hook objects")
         run = []
         for hook in hooks:
-            if not owns_hook(hook):
+            if not owns_hook(hook, owner):
                 run.append(hook)
             elif not placed:
                 if run:
@@ -300,6 +301,56 @@ def merge_hooks(args: argparse.Namespace) -> None:
     managed_file(target, json.dumps(merged, indent=2) + "\n", pathlib.Path(args.backup), force_backup=True)
 
 
+def catalog_model(catalog: pathlib.Path, harness: str, size: str) -> str:
+    """Read `<harness>: <size>: model:` from the model catalog; the catalog owns every model id."""
+    in_harness = in_size = False
+    for line in catalog.read_text(encoding="utf-8").splitlines():
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        if not line[0].isspace():
+            in_harness, in_size = line.rstrip() == f"{harness}:", False
+        elif in_harness and re.match(r" {2}\S", line):
+            in_size = line.strip() == f"{size}:"
+        elif in_harness and in_size:
+            match = re.match(r"\s+model:\s*(\S+)\s*$", line)
+            if match:
+                return match.group(1).strip("'\"")
+    raise SystemExit(f"No {harness} {size} model in {catalog}")
+
+
+def merge_claude_settings(args: argparse.Namespace) -> None:
+    """Set the Claude settings keys this repository owns, leaving every other key and hook as is."""
+    target = pathlib.Path(args.target)
+    try:
+        current = json.loads(target.read_text(encoding="utf-8")) if target.exists() else {}
+    except (OSError, ValueError) as error:
+        raise SystemExit(f"Cannot safely parse Claude settings at {target}: {error}")
+    if not isinstance(current, dict):
+        raise SystemExit(f"Claude settings must be a JSON object: {target}")
+    hooks, env = current.get("hooks", {}), current.get("env", {})
+    if not isinstance(hooks, dict) or not isinstance(env, dict):
+        raise SystemExit(f"Claude settings hooks and env must be objects: {target}")
+    existing = hooks.get("PreToolUse", [])
+    if not isinstance(existing, list):
+        raise SystemExit("Claude hooks event must be a list: PreToolUse")
+
+    guard = {
+        "matcher": "Agent|Task",
+        "hooks": [{"type": "command", "command": f"python3 {shlex.quote(args.guard)}"}],
+    }
+    model = catalog_model(pathlib.Path(args.catalog), "claude", "medium")
+    merged = {
+        **current,
+        "autoCompactWindow": COMPACT_WINDOW,
+        "env": {**env, "CLAUDE_CODE_SUBAGENT_MODEL": model},
+        "hooks": {**hooks, "PreToolUse": merge_event("PreToolUse", existing, [guard], GUARD_OWNER)},
+    }
+    if merged == current:
+        return
+    body = json.dumps(merged, indent=2, ensure_ascii=False) + "\n"
+    managed_file(target, body, pathlib.Path(args.backup), force_backup=True)
+
+
 def parser() -> argparse.ArgumentParser:
     root = argparse.ArgumentParser()
     commands = root.add_subparsers(dest="action", required=True)
@@ -336,6 +387,13 @@ def parser() -> argparse.ArgumentParser:
     hooks.add_argument("--target", required=True)
     hooks.add_argument("--backup", required=True)
     hooks.set_defaults(run=merge_hooks)
+
+    settings = commands.add_parser("merge-claude-settings")
+    settings.add_argument("--target", required=True)
+    settings.add_argument("--catalog", required=True)
+    settings.add_argument("--guard", required=True)
+    settings.add_argument("--backup", required=True)
+    settings.set_defaults(run=merge_claude_settings)
     return root
 
 

@@ -58,8 +58,8 @@ conflict instead of changing its identity.
 
 Launch or resume exactly one first-tier worker through `super-agent`. Standalone `$code`
 uses the configured implementation role (`coder` in Codex). For approved workflow context,
-read `Coding size` from the human-approved plan: `small` goes directly to one retained
-`coder`; `large` goes to the read-only `coding-supervisor`, with a bounded grant to direct
+read the slice's `Size:` from the human-approved plan: `small` goes directly to one retained
+`coder`; `medium` and `large` go to the read-only `coding-supervisor`, with a bounded grant to direct
 exactly one retained coder and coordinate the plan-selected read-only review within the
 approved slice. Stop if size is missing or conflicts
 with the plan. Keep one product-code writer at a time.
@@ -72,7 +72,7 @@ with the plan. Keep one product-code writer at a time.
   concise report of completion, partial completion, or failure; changed paths; readiness
   check results; blockers or unchecked requirements; and pending live validation. Keep
   implementation inspection and checks in the worker; do not return diffs, file contents,
-  or raw logs unless needed to explain a concrete blocker. In large-plan workflow context,
+  or raw logs unless needed to explain a concrete blocker. In medium- or large-slice workflow context,
   the supervisor verifies correction scope and evidence but does not edit product source.
 - When supplied, pass the exact approved workflow context, slice outcome, scope, exclusions,
   progress path, and authorization bounds. Do not derive new permission from them.

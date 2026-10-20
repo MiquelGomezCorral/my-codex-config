@@ -142,8 +142,8 @@ When no material branch remains unresolved, present one proportional approval pa
 - Implementation outline, readiness check, and the per-slice live test set required by
   the live-test rule above.
 - Candidate wave map: proposed PR-sized slices, dependencies, scope/exclusions,
-  per-slice validation, review preset (`full` by default), artifacts, and exact action
-  bounds or none.
+  per-slice `Size:` (the user approves it with the plan), per-slice validation, review
+  preset (`full` by default), artifacts, and exact action bounds or none.
 - Exact private agent-memory updates for the main agent, or state that no project
   memory should change.
 
@@ -191,7 +191,7 @@ Include only applicable sections from:
 - `Main-agent memory updates` with exact paths and facts; these are not coder tasks.
 - The slice map, following the approved shipping layout (`each-slice`: one PR per slice;
   `final-only`: workflow stages 7-9), with dependencies, order, owners, approved scope and
-  exclusions, per-slice coding size, checks, samples, tool availability, review preset,
+  exclusions, per-slice `Size: small|medium|large`, checks, samples, tool availability, review preset,
   artifacts, human gates, and exact bounded Git/live authorizations or none.
 
 Do not turn unanswered choices into assumptions. Resolve the Git common directory through

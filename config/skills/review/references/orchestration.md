@@ -51,7 +51,7 @@ vendor review instructions into this orchestration guide.
    language. Treat one model associated with swarm intent as a request for every compatible
    reviewer. Otherwise use configured roles from the selected harnesses. Resolve the
    default harness, model, and thinking from the catalog role; outside Orca, follow the
-   current-harness route when the role leaves a slot open.
+   current-harness route when the role leaves the harness open.
    Preserve an explicit AGY/Pi roster exactly, without adding or substituting reviewers.
 4. Remove tokens consumed as preset, coordinator, swarm, harness, or roster intent. Preserve
    all other text as review context. Treat `audit [path]`, or wording such as "audit this

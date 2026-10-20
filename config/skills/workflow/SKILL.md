@@ -52,7 +52,7 @@ Stage: <current stage>
 Progress path: <path printed by workflow-progress `path --run <id>`>
 Scope: <approved paths and behavior>
 Exclusions: <explicit boundaries>
-Coding size: <small|large, as recorded in the approved plan>
+Size: <small|medium|large, as recorded for the slice in the approved plan>
 Authorizations: <exact action and bounds, or none>
 ```
 
@@ -85,7 +85,7 @@ context conflicts or a non-Git action's bounds are missing.
 3. **Adversarial review and wave approval:** once the human accepts the candidate, run the
    planning reference's third mandatory step (the slice-gate question), then run
    `$review-plan` once. It routes two concurrent `critic` workers through `super-agent`'s
-   catalog `adversarial` role, which owns the family preference and what happens when a
+   catalog `adversarial` role and owns the family preference and what happens when a
    provider is unavailable. Preserve an explicit user route. Verify consequential claims and
    bug evidence, allow one planner rebuttal, and escalate remaining disputes. `$review-plan`
    calls `$refine-plan`. Persist the complete wave Markdown plan and render its reviewable HTML
@@ -97,14 +97,15 @@ context conflicts or a non-Git action's bounds are missing.
    *Live validation*), and fixes the wave's `Slice gates` mode.
 4. **Slice preparation:** refine and narrow each approved slice against current repository
    state before dispatch. The root does this for `small`; a read-only `coding-supervisor`
-   can do it for `large` under a bounded grant. Refinement may change technical steps
+   can do it for `medium` or `large` under a bounded grant. Refinement may change technical steps
    within the approved outcome and scope; report amendments. Escalate changed behavior,
    scope, dependencies, validation method, or authority to the human, except that the
    coordinator may adjust live tests within their approved bounds and report each change;
    widening a test's environment or side-effect bounds still needs approval. Record its
-   result, owner, coding size, checks, samples, tools, review preset, artifacts, and exact
+   result, owner, `Size:`, checks, samples, tools, review preset, artifacts, and exact
    slice base revision before coding. The
-   human-approved plan records `small` or `large`, with any human override. The wave
+   human-approved plan records each slice's `Size: small|medium|large`, proposed by the
+   planner and approved with the plan, with any human override. The wave
    approval covers its exact implementation and worktree bounds; ask for missing live
    authorization before that action. Apply only the exact approved decision-record
    changes once through their owning skill before coding; never delegate those writes
@@ -119,10 +120,11 @@ context conflicts or a non-Git action's bounds are missing.
    Stop if required evidence or a usable validation route is missing.
 5. **Coding loop:** send a small plan directly to one retained coder. The writer uses the
    harness's normal native coding capability, as routed in
-   [native capabilities](references/native-capabilities.md). For a large plan, use
+   [native capabilities](references/native-capabilities.md). For a medium or large plan, use
    a read-only `coding-supervisor` with a bounded grant to direct one retained coder and
-   coordinate the selected review within the approved slice. The small-slice coordinator
-   or large-slice supervisor invokes `$review --preset <approved preset>` with the complete
+   coordinate the selected review within the approved slice; `super-agent` takes the
+   supervisor and coder models from the catalog's sized entries. The root for a small
+   slice, or the supervisor for a medium or large one, invokes `$review --preset <approved preset>` with the complete
    approved plan, amendments, checks, and slice context. In workflow context, the review
    basis includes changes from the recorded slice base through the inspected head plus
    every task-owned staged, unstaged, and untracked change. Pass the base, head, and

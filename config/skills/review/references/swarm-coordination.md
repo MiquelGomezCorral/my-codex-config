@@ -38,10 +38,16 @@ between two and four specialists by default. When the user requests five, add an
 independent adversarial pass over the highest-risk selected lens. Lens specialists use the
 catalog `swarms` role.
 
-Every swarm also launches one or two strong reviewers from the catalog `reviewer-high`
-role; `super-agent` owns how many. They are not lens specialists: each reviews the complete
-change on its own against the goal and plan, covering correctness, design, and whether the
-change is simpler than it needs to be. They run concurrently with the lens specialists,
+Every swarm also launches strong reviewers from the catalog `reviewer-high` role: one by
+default, two when the change touches security, data, public contracts, or migrations, or
+is large or spans several modules. The first takes the first entry that can run and the
+second the next one (the same entry when only one can run), each asked for a slightly
+different angle so they do not return the same answer. When the selected entry is a `pi`
+entry, it launches three workers per listed pi model instead of one, each asked for a
+slightly different angle so they do not all give the same answer; they count as that one
+strong reviewer. They are not lens specialists: each
+reviews the complete change on its own against the goal and plan, covering correctness,
+design, and whether the change is simpler than it needs to be. They run concurrently with the lens specialists,
 receive the same packet with `Lens: complete change`, and their findings go through the
 same synthesis. When a strong reviewer cannot run, the review continues and its report
 tells the user about the reduced coverage. An explicit user roster wins: do not add strong
@@ -50,7 +56,7 @@ reviewers to it, and report the skipped strong review as missing coverage.
 When Codex is selected, map these lenses to `reviewer-quick`, `reviewer-reasoning`,
 `reviewer-arch`, and `reviewer-e2e`. For another harness, select its actual configured
 reviewer whose description best matches the lens. When no catalog role, roster, or harness
-preference fixes a slot's harness, allocate at least half of the specialists,
+preference fixes a worker's harness, allocate at least half of the specialists,
 rounded up, to the current harness and
 use other available harnesses for the remainder. Preserve any explicit or review-preset
 preference, including an exact AGY/Pi roster.

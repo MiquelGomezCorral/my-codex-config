@@ -79,10 +79,11 @@ automatic launch. A stage maps to exactly one role:
 | Human root, planning, or intake | `super_agent` |
 | Delegated coordinator, coding supervisor, cleanup coordinator, or review coordinator while nesting | `sub_orchestrator` |
 | Implementation, Git, or artifact writer | `coder` |
+| Reading files for the super agent | `explorer` |
 | Adversarial plan critic | `adversarial` |
 | Strong reviewer in a review swarm or cleanup audit, or cleanup closure check | `reviewer-high` |
 | Direct review, verifier, or live validator | `reviewer-fast` |
-| Supporting read-only investigation, review-swarm or cleanup-swarm specialist | `swarms` |
+| Review-swarm or cleanup-swarm specialist | `swarms` |
 
 `reviewer-fast` and `swarms` follow the current harness instead of naming one. The current
 harness is the harness of the agent doing the launch (a delegate's own harness, not the
@@ -94,23 +95,20 @@ entry is a blocker.
 A cleanup or review worker uses `sub_orchestrator` only while it coordinates assigned
 workers under a matching nesting grant; its own work keeps the role above.
 
-A role entry written as a list holds slots. Each slot has its own harness, model or
-ordered candidates, and thinking, and each launched slot is a separate worker; slots
-are not fallbacks for each other. The fan-out a stage requires (both critics, strong
-reviewers, the cleanup swarm) is justified by that stage.
+`sub_orchestrator` and `coder` are sized: they list `large`, `medium`, and `small`
+entries (`small: none` means no such worker), and a launch takes the entry for the slice's
+`Size:`. A plan slice carries `Size: small|medium|large`, approved with the plan. With no
+plan, propose the size and route in one line and wait for the user's OK.
 
-Launch only slots that can run. When a provider or route is unavailable, skip its slot,
-continue with the others, and tell the user the stage ran with reduced coverage; the stage
-can still pass. Only a role with no runnable slot is a blocker. Slot counts:
+A role entry written as a list is an ordered fallback. Launch the first entry that can run,
+with its own harness, model or ordered candidates, and thinking; move to the next when it
+fails or is out of quota. Launch several workers of one role only when the invoking skill
+states the count and the condition. Each such worker takes the next runnable entry in list
+order, and the skill says what a shortfall means. A role with no runnable entry is a
+blocker.
 
-- `adversarial`: launch every runnable slot. Prefer at least one critic from a model
-  family other than the planner's. When none is available, the stage still passes; tell
-  the user it ran without a different-family critic.
-- `reviewer-high`: launch the first runnable slot by default, and two when the change
-  touches security, data, public contracts, or migrations, or is large or spans several
-  modules. A cleanup closure check launches one.
-- `swarms`: a lens whose route cannot run is reported as missing coverage; a cleanup
-  coordinator may cover that lens itself and lists it in its roster.
+For `swarms`, a lens whose route cannot run is reported as missing coverage; a cleanup
+coordinator may cover that lens itself and lists it in its roster.
 
 Every automatic launch rereads the mapped role entry and resolves its harness, exact model
 or ordered candidate list, and thinking, then pins every option the launcher supports. Role
@@ -140,22 +138,24 @@ Catalog rules:
 - When the user explicitly routes by tier, prefer the cheapest adequate tier and an
   adequate local route first. `max_local_concurrency` is shared across the whole tree.
   Count a cataloged local orchestrator against it, and serialize or take an adequate
-  online route while the slot is occupied. A value of `0`, or `local_models:
+  online route while the limit is reached. A value of `0`, or `local_models:
   not-available`, means skip local routes and take an online route.
 - Try only compatible remaining entries in list order from the role entry when the
   preferred candidate is unavailable.
+- `model_guard` names the only roles a restricted Claude model may run; never launch that
+  model for another role.
 - Never let a wrapper or harness choose an uncataloged default model; report the blocker
   when compatible entries are exhausted.
 - Keep at least `ceil(N / 2)` workers on the current harness only when no catalog role,
-  roster, or harness preference fixes that slot's harness.
+  roster, or harness preference fixes that worker's harness.
 - Select each harness's real configured role by its description; never translate a role name
   across harnesses. Use a general agent only when that harness exposes no role catalog.
 
 ## Dispatch contract
 
-Every automatic launch packet names `Catalog role`, `Harness`, `Model`, and `Thinking`,
-plus the task's native agent role, scope, exclusions, deliverable, evidence, stop
-conditions, and nesting authority. When the worker must explore code, the packet names
+Every automatic launch packet names `Catalog role`, `Size` (sized roles), `Harness`,
+`Model`, and `Thinking`, plus the task's native agent role, scope, exclusions,
+deliverable, evidence, stop conditions, and nesting authority. When the worker must explore code, the packet names
 every worktree path and requires CodeGraph first. Every packet requires the report to end
 with `Memory candidates:` or `none`. Verify the effective model and thinking whenever the
 runtime reports them; report an unverified effort or unavailable pinning option instead of
@@ -183,7 +183,7 @@ silently discarding it.
 ## Report
 
 Report the catalog role, harness, exact model, thinking, and effective values for every
-slot, plus every fallback, local serialization, missing coverage, and verification gap. Distinguish
+worker, plus every fallback, local serialization, missing coverage, and verification gap. Distinguish
 unattempted work from failed work. Never create hidden fallback chains or queues.
 
 ## References

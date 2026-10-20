@@ -123,7 +123,7 @@ CodeGraph does not index projects automatically. In each project where semantic 
 needed, run `codegraph init` and `codegraph index`, then restart the harness so its MCP
 tools are discovered. Pi keeps its configured-root connector-path repair and continues to
 use local SearXNG search without paid-search or Codex-search fallback.
-Pi registers the `searxng` tools without a server prefix. Pi also pins `pi-subagents@0.73.1` and `pi-mcp-adapter@2.34.0`, and installs the
+Pi registers the `searxng` tools without a server prefix. Pi also pins `pi-subagents@0.79.1` and `pi-mcp-adapter@5.3.2`, and installs the
 diagram-design Pi extension when missing.
 `config/bin/update-codex` remains an explicit, opt-in updater; bootstrap never runs it.
 
@@ -197,7 +197,7 @@ fall back to that harness's `low` tier. A proven active wrapper such as Orca own
 worker lifecycle and exposes eligible harnesses; without a wrapper, delegation stays on
 the current harness and uses its native worker tools. Generic mixed swarms keep at least
 half their workers, rounded up, on the current harness when no catalog role, harness
-preference, or roster fixes a slot. Explicit AGY/Pi rosters stay exact, review presets keep
+preference, or roster fixes a worker's harness. Explicit AGY/Pi rosters stay exact, review presets keep
 their shapes, and live end-to-end validation stays on its bounded route. The active adapter
 owns launch mechanics only. Outside a wrapper, another harness
 requires an explicit documented one-shot adapter; missing coverage remains visible.
@@ -212,7 +212,8 @@ Central routing lives only in
 `config/skills/super-agent/references/model-catalog.yaml`: edit a role once to change the
 harness, exact model or ordered candidate list, and thinking used for every automatic
 launch. A model list is fallback order, never random distribution; a role written as a list
-of slots launches separate workers, as `super-agent` describes. Role settings win over
+of entries is an ordered fallback too, and several workers of one role launch only when a
+skill states the count, as `super-agent` describes. Role settings win over
 generic tiers, invoking-skill or wrapper preferences, and inherited defaults. The generic
 `low`, `medium`, `high`, and `local` tiers remain only for an explicit tier or harness
 override against the stage-to-role mapping in `super-agent`. An exhausted role candidate

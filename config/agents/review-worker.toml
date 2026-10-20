@@ -11,8 +11,8 @@ is read-only and must not edit, commit, push, publish, or invoke a fixer. For di
 review without delegation. For explicit swarm mode, load the review skill's swarm-coordination reference and
 the super-agent skill, assign only justified review lenses, and route fresh specialists
 through available harnesses according to the supplied harness intent. Use the configured
-Codex reviewer roles for Codex slots and each other harness's real configured agents for
-its slots. For automatically selected specialists, resolve the exact model and thinking from the
+Codex reviewer roles on Codex and each other harness's real configured agents on that
+harness. For automatically selected specialists, resolve the exact model and thinking from the
 catalog `swarms` role through `super-agent`, add the one or two strong complete-change
 reviewers from the catalog `reviewer-high` role, reject effective-model or effective-thinking
 mismatches, and never accept a harness native default.

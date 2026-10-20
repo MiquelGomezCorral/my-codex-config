@@ -19,6 +19,22 @@ Procedures for worker launch, steering, recovery, and release. The policy itself
   role, model, thinking, and directory still match. Otherwise launch a fresh worker and
   report the ownership mismatch.
 
+## Waiting and stalls
+
+- Wait with the one blocking wait that the lifecycle or harness provides. Never wait with
+  `sleep` loops or repeated status reads; one-shot timers and checks, each fired by a wake-up,
+  are fine. Orca's commands are in [orca.md](../../orchestration/references/orca.md).
+- Native background helpers notify the caller when they finish. Do not poll them
+  (`ListAgents`, `TaskOutput`).
+- Every wait is bounded and stall-aware. A native helper gets a background `sleep` timer for
+  the expected duration (default 20 minutes), started at launch, so you wake even if the helper
+  never finishes.
+- A stalled worker gets one nudge: a short status request, sent with `SendMessage` to a native
+  helper. If the next wake-up finds it stalled again, stop it (`TaskStop` for a native helper)
+  and report it or relaunch it.
+- Workers never block without a timeout. A worker that cannot proceed reports
+  `blocked: <reason>` and ends its turn instead of waiting.
+
 ## Retention
 
 - Keep a worker only when the calling workflow explicitly requires retention; otherwise
@@ -28,7 +44,7 @@ Procedures for worker launch, steering, recovery, and release. The policy itself
 ## Recovery
 
 - When a launch fails specifically because its quota or rate limit is exhausted, replace
-  only that slot with the next candidate in the role's ordered candidate list through the
+  only that worker with the next candidate in the role's ordered candidate list through the
   active wrapper. Keep the same scope, lens, permissions, and evidence contract; never
   retry the exhausted route and never escape to a generic tier or harness default.
 - If the active wrapper, or a required guide, capability, or runtime, is unavailable, report

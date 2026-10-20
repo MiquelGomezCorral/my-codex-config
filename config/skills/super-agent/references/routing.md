@@ -21,6 +21,9 @@ launching a worker.
   harness of the agent doing the launch) and the model and thinking come from the role's
   `by_harness` entry, or from that harness's `low` tier when the entry's model is
   unavailable.
+- For a sized role (`sub_orchestrator`, `coder`), use the entry for the slice's `Size:`.
+  A plan slice carries it, approved with the plan; with no plan, propose size and route in
+  one line and wait for the user's OK.
 - The parent pins the resolved harness, model, and thinking in the launch before invoking
   any worker prompt.
 - Role settings win over generic tiers, invoking-skill or wrapper model preferences,
@@ -40,7 +43,8 @@ launching a worker.
 Include these fields in every worker packet:
 
 ```text
-Catalog role: super_agent | sub_orchestrator | coder | adversarial | reviewer-high | reviewer-fast | swarms
+Catalog role: super_agent | sub_orchestrator | coder | explorer | adversarial | reviewer-high | reviewer-fast | swarms
+Size: small | medium | large (sub_orchestrator and coder only)
 Harness: the role entry's harness, or an explicit user override
 Model: the resolved exact model
 Thinking: the resolved thinking level
@@ -88,6 +92,11 @@ user-selected Claude one-shot route are:
 Pi, Codex, AGY, Claude, and OpenCode (`--variant`, its provider-specific reasoning
 effort) accept the thinking option shown. A model that rejects the value is an unavailable
 pin: report it instead of inventing a flag. For an AGY model alias that already encodes its thinking level, pass the catalog's matching value.
+
+The one exception is the `explorer` role's Pi candidate: it may run through the Pi
+one-shot adapter without an explicit user request, because its work is read-only. Launch
+it in the background so its exit wakes the caller. When it fails or is out of quota, take
+the role's next candidate.
 
 Pass `prompt` and `catalog_model` as separate arguments. Never concatenate catalog values into shell code;
 never invoke `eval` or execute a catalog field as a command. These adapters do not own a

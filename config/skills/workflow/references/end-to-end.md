@@ -9,9 +9,9 @@
 4. Narrow one approved slice against current repository state, escalate changes, obtain
    missing live authorization, and run the live tests on the slice base, as workflow
    stage 4 describes.
-5. Record the slice base before coding. Route `small` plans directly to one retained coder
-   and `large` plans through a read-only coding supervisor with a bounded one-coder grant.
-   The root for `small`, or supervisor for `large`, runs the plan-selected `$review` preset
+5. Record the slice base before coding. Route `small` slices directly to one retained coder
+   and `medium` or `large` slices through a read-only coding supervisor with a bounded
+   one-coder grant. The root for `small`, or supervisor for `medium` or `large`, runs the plan-selected `$review` preset
    against the full slice: base-to-head changes plus task-owned staged, unstaged, and
    untracked changes. The reviewer reports the inspected revisions. Each round also runs
    the slice's live tests ([coding loop](coding-loop.md)). Verify required checks and

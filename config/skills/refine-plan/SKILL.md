@@ -90,7 +90,8 @@ record/index changes. The main orchestrator owns those approved document changes
 execution; coders receive them as constraints and report conflicts.
 
 ## Workflow and authorizations (complete workflow only)
-Record slice order, dependencies, per-slice scope and exclusions, coding size, owners,
+Record slice order, dependencies, per-slice scope and exclusions, `Size: small|medium|large`
+(approved with the plan; it picks the coder and supervisor route), owners,
 checks, samples, tool availability, review preset, acceptance evidence, required
 artifacts with editable source and preview paths, human gates, and known starting
 revisions; for later slices state the accepted-predecessor-head rule instead. Record
