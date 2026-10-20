@@ -629,27 +629,37 @@ assert groups[0]["hooks"][0]["command"] == "user-hook"
 guards = [group for group in groups if "agent-model-guard.py" in group["hooks"][0]["command"]]
 assert len(guards) == 1 and len(groups) == 2 and guards[0]["matcher"] == "Agent|Task", groups
 PY
-python3 - "$REPO_ROOT/config/bin/agent-model-guard.py" <<'PY'
+GUARD_HOME="$TEST_ROOT/agent-model-guard-home"
+GUARD_CWD="$TEST_ROOT/agent-model-guard-cwd"
+mkdir -p "$GUARD_HOME/.claude/agents" "$GUARD_CWD"
+: > "$GUARD_HOME/.claude/agents/coder.md"
+python3 - "$REPO_ROOT/config/bin/agent-model-guard.py" "$GUARD_HOME" "$GUARD_CWD" <<'PY'
 import json
 import os
 import subprocess
 import sys
 
-# (model, prompt, env override, denied)
+script, home, cwd = sys.argv[1:4]
+# (model, prompt, subagent_type, env override, denied)
 cases = [
-    ("opus", "Catalog role: coder", {}, True),
-    ("opus", "x\n  catalog role: sub_orchestrator\ny", {}, False),
-    ("fable", "Catalog role: adversarial", {}, False),
-    ("fable", "Catalog role: coder", {}, True),
-    ("opus", "no role line", {}, True),
-    ("", "Catalog role: coder", {}, False),
-    ("opus", "Catalog role: coder", {"AGENT_MODEL_GUARD": "off"}, False),
+    ("opus", "Catalog role: coder", "", {}, True),
+    ("opus", "x\n  catalog role: sub_orchestrator\ny", "", {}, False),
+    ("fable", "Catalog role: adversarial", "", {}, False),
+    ("fable", "Catalog role: coder", "", {}, True),
+    ("opus", "no role line", "", {}, True),
+    ("opus", "Catalog role: coder", "", {"AGENT_MODEL_GUARD": "off"}, False),
+    ("", "", "", {"HOME": home}, True),
+    ("", "", "Plan", {"HOME": home}, True),
+    ("", "", "coder", {"HOME": home}, False),
+    ("", "", "fork", {"HOME": home}, False),
+    ("", "", "Plan", {"HOME": home, "AGENT_MODEL_GUARD": "off"}, False),
 ]
-for model, prompt, env, denied in cases:
-    payload = json.dumps({"tool_input": {"model": model, "prompt": prompt}})
-    out = subprocess.run([sys.executable, sys.argv[1]], input=payload, text=True, check=True,
+for model, prompt, subagent_type, env, denied in cases:
+    payload = json.dumps({"cwd": cwd, "tool_input": {
+        "model": model, "prompt": prompt, "subagent_type": subagent_type}})
+    out = subprocess.run([sys.executable, script], input=payload, text=True, check=True,
                          capture_output=True, env={**os.environ, **env}).stdout
-    assert ("deny" in out) == denied, (model, prompt, env, out)
+    assert ("deny" in out) == denied, (model, prompt, subagent_type, env, out)
 PY
 
 # A user's own searxng server survives --no-searxng-mcp.

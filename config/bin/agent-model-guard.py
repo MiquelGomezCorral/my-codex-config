@@ -2,9 +2,10 @@
 """Claude Code PreToolUse hook: block helper launches of restricted models for roles not allowed.
 
 Reads the `model_guard` block of the model catalog (model id -> allowed roles) and the
-`Catalog role:` line of the launch prompt. Set AGENT_MODEL_GUARD=off to skip the guard.
-Any problem reading the hook input or the catalog allows the launch: a broken guard must
-never stop all helpers.
+`Catalog role:` line of the launch prompt. A launch without a `model` is blocked unless
+the agent is `fork` or has an agent file of ours, because Claude's built-in agents inherit
+the parent model. Set AGENT_MODEL_GUARD=off to skip the guard. Any problem reading the
+hook input or the catalog allows the launch: a broken guard must never stop all helpers.
 """
 
 import json
@@ -46,14 +47,32 @@ def denial(prompt: str, model: str) -> str | None:
     return None
 
 
+def no_model_denial(agent_type: str, cwd: str) -> str | None:
+    """Return the reason to block a model-less launch, or None to allow it."""
+    if agent_type == "fork":
+        return None
+    for base in (pathlib.Path.home(), pathlib.Path(cwd)):
+        if (base / ".claude" / "agents" / f"{agent_type}.md").is_file():
+            return None
+    return (
+        f"Agent {agent_type} inherits the parent model when no model is given. "
+        "Pass the catalog model for the role, or ask the user."
+    )
+
+
 def main() -> None:
     if os.environ.get("AGENT_MODEL_GUARD") == "off":
         return
-    tool_input = json.load(sys.stdin).get("tool_input") or {}
+    payload = json.load(sys.stdin)
+    tool_input = payload.get("tool_input") or {}
     model = str(tool_input.get("model") or "").strip().lower()
-    if not model:
-        return
-    reason = denial(str(tool_input.get("prompt") or ""), model)
+    if model:
+        reason = denial(str(tool_input.get("prompt") or ""), model)
+    else:
+        reason = no_model_denial(
+            str(tool_input.get("subagent_type") or "general-purpose"),
+            str(payload.get("cwd") or os.getcwd()),
+        )
     if reason:
         print(json.dumps({"hookSpecificOutput": {
             "hookEventName": "PreToolUse",
