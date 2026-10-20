@@ -56,8 +56,10 @@ names. Repository rules and any required approval for destructive recovery still
 All five actions — `commit`, `push`, `pr`, `merge`, and `review-pr-comments` — go through
 exactly one worker via `super-agent`; in Codex, use `git-worker`. The Git skill stays the
 sole owner of Git policy. `super-agent` owns harness, role, model, and thinking selection;
-include the resolved `coder` role, harness, model, and thinking in the packet and treat
-missing `coder` role coverage as a blocker. The worker prompt carries the current user
+the worker uses the sized catalog role `git-worker`. Take the size the user or the approved
+plan already gave; otherwise ask the user for small, medium, or large, with your suggestion,
+before launching. Include the resolved `git-worker` role, size, harness, model, and thinking
+in the packet and treat missing `git-worker` coverage as a blocker. The worker prompt carries the current user
 request, every user option, any
 `--ignore <path-or-glob>` value unchanged, and `Plan path: <exact path>` when a persisted
 plan is available or `Plan path: unavailable` otherwise. Also pass the repository Git

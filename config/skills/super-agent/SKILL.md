@@ -79,12 +79,13 @@ automatic launch. A stage maps to exactly one role:
 | --- | --- |
 | Human root, planning, or intake | `super_agent` |
 | Delegated coordinator, coding supervisor, cleanup coordinator, or review coordinator while nesting | `sub_orchestrator` |
-| Implementation, Git, or artifact writer | `coder` |
+| Implementation or artifact writer | `coder` |
+| Git worker | `git-worker` |
 | Reading files for the super agent | `explorer` |
-| Adversarial plan critic | `adversarial` |
+| Adversarial plan critic, or the code-blind independent proposal in planning | `adversarial` |
 | Strong reviewer in a review swarm or cleanup audit, or cleanup closure check | `reviewer-high` |
 | Direct review, verifier, or live validator | `reviewer-fast` |
-| Review-swarm or cleanup-swarm specialist | `swarms` |
+| Review-swarm or cleanup-swarm specialist, or planning web research and bug-evidence checks | `swarms` |
 
 `explorer` launches through `explore "<question>" [paths]`, run in the foreground. The command reads the explorer candidates from the catalog itself and tries them in order.
 
@@ -98,9 +99,9 @@ entry is a blocker.
 A cleanup or review worker uses `sub_orchestrator` only while it coordinates assigned
 workers under a matching nesting grant; its own work keeps the role above.
 
-`sub_orchestrator` and `coder` are sized: they list `large`, `medium`, and `small`
+`sub_orchestrator`, `coder`, and `git-worker` are sized: they list `large`, `medium`, and `small`
 entries (`small: none` means no such worker), and a launch takes the entry for the slice's
-`Size:`. A plan slice carries `Size: small|medium|large`, approved with the plan. With no
+`Size:` (the `git` skill sets the Git worker's size). A plan slice carries `Size: small|medium|large`, approved with the plan. With no
 plan, propose the size and route in one line and wait for the user's OK.
 
 A role entry written as a list is an ordered fallback. Launch the first entry that can run,
