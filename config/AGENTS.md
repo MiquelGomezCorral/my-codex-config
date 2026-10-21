@@ -6,6 +6,8 @@ not weaken security or explicit user constraints.
 ## Communication
 
 - Use English unless asked otherwise, including code, comments, commits, and issues.
+- When a task needs the current time, read it from the machine with `TZ=Europe/Madrid date`
+  instead of assuming it: Spain is UTC+1 (CET) in winter, UTC+2 (CEST) in summer, never UTC+3.
 - Be concise and direct; omit pleasantries, tool narration, and redundant summaries.
   - Read `writing` references `natural-writing` and `voice-profile` to write better.
   - Goal: the most information, most understandable, in the least text.
