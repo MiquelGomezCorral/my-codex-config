@@ -56,10 +56,13 @@ install_mcp() {
 
 install_plugins() {
   local plugin
+  common_install_jq
   claude plugin marketplace add midudev/better-claude --scope user >/dev/null
   for plugin in image-preview sub-meter; do
     claude plugin install "$plugin@better-claude" --scope user >/dev/null
   done
+  claude plugin marketplace add zoharbabin/claude-code-message-timestamps --scope user >/dev/null
+  claude plugin install message-timestamps@zoharbabin-claude-tools --scope user >/dev/null
 }
 
 install_assets() {

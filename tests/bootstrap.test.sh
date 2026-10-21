@@ -75,7 +75,7 @@ printf 'agy %s\n' "$*" >> "$STUB_LOG"
 SH
 cat > "$STUB_BIN/claude" <<'SH'
 #!/usr/bin/env bash
-printf 'claude %s %s %s\n' "$1" "$2" "$3" >> "$CLAUDE_LOG"
+printf 'claude %s\n' "$*" >> "$CLAUDE_LOG"
 if [[ "$1" == mcp && "$2" == remove ]]; then
   name=$3
   grep -Fxq "$name" "$CLAUDE_MCP_STATE" || exit 1
@@ -601,6 +601,8 @@ done
 for name in codegraph searxng btca; do
   grep -q "^claude mcp add-json $name" "$CLAUDE_LOG"
 done
+grep -q '^claude plugin marketplace add zoharbabin/claude-code-message-timestamps' "$CLAUDE_LOG"
+grep -q '^claude plugin install message-timestamps@zoharbabin-claude-tools' "$CLAUDE_LOG"
 HOME="$CLAUDE_HOME" CLAUDE_CONFIG_DIR="$CLAUDE_HOME/.claude" BACKUP_ROOT="$TEST_ROOT/claude-backups" \
   "$REPO_ROOT/bootstrap_claude.sh" --no-searxng --no-searxng-mcp > "$TEST_ROOT/claude-no-mcp.out" 2> "$TEST_ROOT/claude-no-mcp.err"
 grep -q '^claude mcp remove searxng' "$CLAUDE_LOG"
@@ -618,6 +620,10 @@ import sys
 settings = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
 assert settings["theme"] == "dark" and settings["env"]["KEEP"] == "1"
 assert settings["autoCompactWindow"] == 300000
+assert settings["timeZone"] == "Europe/Madrid"
+assert settings["timeFormat"] == "24-hour"
+assert settings["env"]["CLAUDE_TIMESTAMPS_TZ"] == "Europe/Madrid"
+assert settings["env"]["CLAUDE_TIMESTAMPS_INJECT_CONTEXT"] == "false"
 assert settings["env"]["CLAUDE_CODE_SUBAGENT_MODEL"]
 groups = settings["hooks"]["PreToolUse"]
 assert groups[0]["hooks"][0]["command"] == "user-hook"

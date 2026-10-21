@@ -21,6 +21,7 @@ LEGACY_POLICY_MARKER = MARKERS[1]
 HOOK_OWNER = "codex-command-dispatch.mjs"
 GUARD_OWNER = "agent-model-guard.py"
 COMPACT_WINDOW = 300000
+LOCAL_TZ = "Europe/Madrid"
 
 
 def backup(target: pathlib.Path, backup_root: pathlib.Path) -> None:
@@ -342,7 +343,14 @@ def merge_claude_settings(args: argparse.Namespace) -> None:
     merged = {
         **current,
         "autoCompactWindow": COMPACT_WINDOW,
-        "env": {**env, "CLAUDE_CODE_SUBAGENT_MODEL": model},
+        "timeFormat": "24-hour",
+        "timeZone": LOCAL_TZ,
+        "env": {
+            **env,
+            "CLAUDE_CODE_SUBAGENT_MODEL": model,
+            "CLAUDE_TIMESTAMPS_TZ": LOCAL_TZ,
+            "CLAUDE_TIMESTAMPS_INJECT_CONTEXT": "false",
+        },
         "hooks": {**hooks, "PreToolUse": merge_event("PreToolUse", existing, [guard], GUARD_OWNER)},
     }
     if merged == current:

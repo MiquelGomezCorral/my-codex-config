@@ -101,6 +101,45 @@ common_install_lintapple() {
   command -v lintapple >/dev/null 2>&1 || common_die 'lintapple installation completed but lintapple is not on PATH.'
 }
 
+common_install_jq() {
+  local version=1.8.2 os arch target temp
+
+  if command -v jq >/dev/null 2>&1; then
+    return 0
+  fi
+  case "$(uname -s)" in
+    Linux) os=linux ;;
+    Darwin) os=macos ;;
+    *) common_warn 'jq is missing; message timestamps stay off. Install jq manually on this OS.'; return 0 ;;
+  esac
+  case "$(uname -m)" in
+    x86_64|amd64) arch=amd64 ;;
+    arm64|aarch64) arch=arm64 ;;
+    *) common_warn 'jq is missing; message timestamps stay off. Install jq manually for this CPU.'; return 0 ;;
+  esac
+  command -v curl >/dev/null 2>&1 || {
+    common_warn 'jq is missing and curl is unavailable; message timestamps stay off.'
+    return 0
+  }
+  common_ensure_directory "$HOME/.local/bin"
+  target="$HOME/.local/bin/jq"
+  temp=$(mktemp)
+  printf 'Installing jq %s...\n' "$version"
+  if curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-$version/jq-$os-$arch" -o "$temp" &&
+    chmod 755 "$temp" &&
+    "$temp" --version >/dev/null 2>&1 &&
+    mv -f "$temp" "$target" &&
+    "$target" --version >/dev/null 2>&1; then
+    case ":$PATH:" in
+      *":$HOME/.local/bin:"*) ;;
+      *) common_warn "jq is installed at $target but $HOME/.local/bin is not on PATH." ;;
+    esac
+    return 0
+  fi
+  rm -f "$temp"
+  common_warn 'jq installation failed; message timestamps stay off until jq is on PATH.'
+}
+
 common_has_pinned_searxng_connector() {
   local path_entry connector
   local -a path_entries=()
