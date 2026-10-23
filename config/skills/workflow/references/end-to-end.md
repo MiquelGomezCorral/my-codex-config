@@ -17,20 +17,20 @@
    the slice's live tests ([coding loop](coding-loop.md)). Verify required checks and
    review findings; correct every verified in-scope P0-P3 finding in priority order.
 6. After coding gates pass, make the plan-authorized local checkpoint and record its hash.
-   Audit the complete task-owned comparison from slice base through the checkpoint and later
-   worktree changes. Skip cleanup only when this full comparison is empty; route verified
-   in-scope simplifications through the same coding loop and rerun affected checks,
-   review, and the live test set.
-7. Present the observed result only after cleanup corrections pass their affected gates.
+   The first audit covers the complete task-owned comparison from slice base through the
+   checkpoint and later worktree changes; skip cleanup only when this full comparison is
+   empty. Workflow stage 6 owns the later rounds.
+7. Present the observed result only after stage 6 ends.
    Wait for human acceptance.
 8. After result acceptance, the Git worker inspects remaining changes against the approved
    scope and accepted result, stages explicit task-owned deliverables, and commits only when
    needed. Exclude private memory, progress files, temporary agent artifacts, and unrelated
-   changes. Verify the final tree matches the accepted result, record the final commit hash,
-   then run only Git actions named by the plan. Resolve merge conflicts
-   through the Git worker, rerun affected checks/review, and re-present changed or uncertain
-   behavior. Inspect required CI and
-   review, then prepare the next slice from this accepted PR head after all gates pass.
+   changes. Verify the final tree matches the accepted result; a merge-conflict or CI fix
+   that leaves behavior unchanged is the only exception. Record the final commit hash,
+   then run only Git actions named by the plan. Resolve merge conflicts through the Git
+   worker, then steps 5-6, and re-present changed or uncertain behavior. CI fixes that
+   change code take steps 5-6 too, as workflow stage 8 says. Inspect required CI and review,
+   then prepare the next slice from this accepted PR head after all gates pass.
 9. Reconcile progress at interruptions. Run the wave regression (workflow stage 9), then
    close the wave with completed work, open decisions, deferred observations, and lessons.
 

@@ -83,7 +83,7 @@ automatic launch. A stage maps to exactly one role:
 | Git worker | `git-worker` |
 | Reading files for the super agent | `explorer` |
 | Adversarial plan critic, or the code-blind independent proposal in planning | `adversarial` |
-| Strong reviewer in a review swarm or cleanup audit, or cleanup closure check | `reviewer-high` |
+| Strong reviewer in a review swarm or cleanup audit | `reviewer-high` |
 | Direct review, verifier, or live validator | `reviewer-fast` |
 | Review-swarm or cleanup-swarm specialist, or planning web research and bug-evidence checks | `swarms` |
 

@@ -12,7 +12,7 @@ const view = process.argv[2] ?? "full";
 const treeKids = {
   "tree-planning": ["Code-blind proposer", "Researchers", "explorer", "diagram-worker", "critic ×2"],
   "tree-build": ["coder", "coding-supervisor"],
-  "tree-finish": ["cleanup-worker", "Closure check", "git-worker"],
+  "tree-finish": ["cleanup-worker", "git-worker"],
 };
 const panelName = { "tree-planning": "planning side", "tree-build": "building a slice", "tree-finish": "cleanup and Git" };
 const showTree = view === "full" || view in treeKids;
@@ -128,7 +128,6 @@ const tree = N("human", "Human", "the person", "Decides, approves the wave and i
       N("cleanup", "Cleanup lenses ≥2", "swarms · cheap model\non the current harness", "Dead code, duplication, indirection, test value", [], "lenses"),
       N("cleanup", "Simplest-design 1-2", "reviewer-high · GPT-6.1 Sol", "Sketch the simplest design first, then flag what the diff adds beyond it", [], "1-2 reviewers"),
     ], "$cleanup"),
-    N("cleanup", "Closure check", "reviewer-high · 1 reviewer", "Confirms accepted simplifications landed and nothing new crept in", [], "after fixes"),
     N("git", "git-worker", "git-worker · sized by slice\nlarge: Sonnet 5.5 · xhigh\nmedium: Haiku 5.5 · max\nsmall: DeepSeek 4.1 Flash · max", "Checkpoint commit before cleanup; after you accept: final commit, push, PR", [], "$git"),
   ], "chat"),
 ]);
@@ -174,7 +173,7 @@ const draw = (node, depth) => {
 
 if (showTree) {
   text(X0, 0, `The agent tree${panelName[view] ? `, ${panelName[view]}` : ""}: who starts whom, and what each one does`, 40);
-  text(X0, 58, "Read from config/agents/*.toml, super-agent's model-catalog.yaml and the workflow skill on branch consolidate-agent-skills, 2026-10-20.", 18, { color: "#868e96" });
+  text(X0, 58, "Read from config/agents/*.toml, super-agent's model-catalog.yaml and the workflow skill on branch consolidate-agent-skills, 2026-10-23.", 18, { color: "#868e96" });
   text(X0, 92, "Each card: name · catalog role · model · job. The arrow label says what starts the child. Models checked against model-catalog.yaml 2026-10-20.", 18, { color: "#868e96" });
   arrow([[X0, 140], [X0 + 70, 140]], { endArrowhead: null, strokeColor: "#343a40" });
   text(X0 + 82, 128, "Always runs in its stage", 16);
@@ -274,9 +273,9 @@ if (showFlow) {
     ["sup", "4", "Slice narrowed to today's code", "Root for small slices, coding-supervisor for medium and large ones. New live tests run once on the base and must fail there.", ["coding-supervisor"]],
     ["coder", "5", "Coder implements", "One retained writer. Runs only the plan's checks; live testing waits for the review round.", ["coder"]],
     ["review", "5", "Review + live tests, every round", "Verified P0-P3 findings go back to the coder. Two failed rounds on the same problem, or a test still impossible after 3, goes to you.", ["$review --preset", "review-worker", "Verifier", "live-validator"]],
-    ["git", "6", "Checkpoint commit", "Records a hash so cleanup can compare the whole slice from its base.", ["$git", "git-worker"]],
-    ["cleanup", "6", "Cleanup audit", "Findings only. Accepted ones go back through step 5, then one closure check confirms them.", ["$cleanup", "cleanup-worker", "Closure check"]],
-    ["human", "7", "You accept the result", "Root shows the real result, evidence, checks and gaps. Feedback loops back to the coder.", []],
+    ["git", "6", "Checkpoint commit", "Records a hash so the first cleanup round compares the whole slice from its base, and later rounds from the previous round's checkpoint.", ["$git", "git-worker"]],
+    ["cleanup", "6", "Cleanup audit", "Findings only. Accepted ones go back through step 5, and cleanup runs again until a round accepts nothing; after three rounds, you can accept the rest as recorded risk.", ["$cleanup", "cleanup-worker"]],
+    ["human", "7", "You accept the result", "Shows the real result, evidence, checks and gaps. Feedback goes back through steps 5 and 6.", []],
     ["git", "8", "Ship", "Final commit, push and PR: only what the plan authorizes, only this slice's commits.", ["$git", "git-worker"]],
     ["sec", "After the last slice"],
     ["root", "9", "Close the wave", "Rerun every slice's live tests on the final head; record unfinished work and lessons.", []],

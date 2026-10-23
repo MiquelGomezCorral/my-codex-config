@@ -41,11 +41,13 @@ remain pending separate authorization.
   reviews, live tests, and cleanup pass, commit A locally without presenting it, mark A's
   `human-validation.*` steps skipped, and start B on the same branch; after the wave
   regression, present one result page with a section per slice; for each feedback item, ask
-  whether to fold the fix into the owning slice's commit or add a new commit on top, then
-  rerun the affected live tests and the regression; push once after acceptance.
+  whether to fold the fix into the owning slice's commit or add a new commit on top, take
+  the fix through coding, review, and cleanup until clean, then rerun the affected live
+  tests and the regression; push once after acceptance.
 - **Must not:** present, push, or open a PR between slices; continue past a red check, a
-  blocking finding, or missing evidence; fold a fix into a pushed commit or without asking;
-  or save `final-only` as a preference in private agent memory.
+  blocking finding, or missing evidence; present a feedback fix that skipped cleanup; fold a
+  fix into a pushed commit or without asking; or save `final-only` as a preference in private
+  agent memory.
 
 ## Interrupted slice with mixed findings
 
