@@ -273,7 +273,7 @@ if (showFlow) {
     ["sup", "4", "Slice narrowed to today's code", "Root for small slices, coding-supervisor for medium and large ones. New live tests run once on the base and must fail there.", ["coding-supervisor"]],
     ["coder", "5", "Coder implements", "One retained writer. Runs only the plan's checks; live testing waits for the review round.", ["coder"]],
     ["review", "5", "Review + live tests, every round", "Verified P0-P3 findings go back to the coder. Two failed rounds on the same problem, or a test still impossible after 3, goes to you.", ["$review --preset", "review-worker", "Verifier", "live-validator"]],
-    ["git", "6", "Checkpoint commit", "Round 1 of cleanup audits the whole slice from its base; later rounds start at the previous round's checkpoint.", ["$git", "git-worker"]],
+    ["git", "6", "Checkpoint commit", "The first cleanup audits the whole slice; later rounds and later changes start at the last audited checkpoint.", ["$git", "git-worker"]],
     ["cleanup", "6", "Cleanup audit", "Findings only. Accepted ones go back through step 5 and cleanup repeats until a round accepts nothing; after three rounds, you decide.", ["$cleanup", "cleanup-worker"]],
     ["human", "7", "You accept the result", "Root shows the result, evidence, checks and gaps. Feedback that changes code goes back through steps 5 and 6.", []],
     ["git", "8", "Ship", "Final commit, push and PR: only what the plan authorizes, only this slice's commits.", ["$git", "git-worker"]],
