@@ -1,12 +1,12 @@
 ---
 name: writing
-description: Shape ideas, outline, draft, edit, and review prose for a reader — messages, docs, explainers, posts, and academic text. Read the natural-writing and voice-profile references at every writing stage; use the academic and LaTeX references only for papers and theses.
+description: Shape ideas, outline, draft, edit, and review prose for a reader — messages, docs, explainers, posts, academic text, and agent system prompts. Read the natural-writing and voice-profile references at every writing stage; use the academic and LaTeX references only for papers and theses.
 ---
 
 # Writing
 
 One skill owns prose: the natural-writing rules, Miquel's voice profile, Caveman
-concision, and the academic and LaTeX material.
+concision, and the academic, LaTeX, and agent-prompt material.
 
 ## Read these two first
 
@@ -77,6 +77,7 @@ patterns, and the optional score report.
 | The reason behind a voice preference, or a format the compressed profile does not cover | `references/voice-interview.md` |
 | Paper, thesis, or formal report | `references/academic.md` (plus the two above) |
 | LaTeX figures, tables, plots, or bibliography | `references/latex.md` |
+| System prompt for an autonomous or tool-using agent, subagent, MCP assistant, or orchestrator; not a one-shot classification or generation prompt | `references/agent-prompts.md` (plus the two above); its sources are in `references/agent-prompt-sources.md` |
 
 ## Output
 

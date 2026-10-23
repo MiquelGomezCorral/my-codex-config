@@ -13,13 +13,13 @@ the need, install that instead of searching.
 
 | Source | How |
 | --- | --- |
-| skills.sh | `npx skills find [query] [--owner <owner>]`; browse the leaderboard at <https://skills.sh/> |
-| agenticskills.io | <https://agenticskills.io/skills/find-skills>; its `find-skills` flow is a discovery helper, not a vetting step |
+| skills.sh | `npx skills find [query] [--owner <owner>]`; browse the leaderboard at <https://skills.sh/>; a skill's page is `https://skills.sh/<owner>/<repo>/<skill>` |
+| agenticskills.io | <https://agenticskills.io/>; a discovery aid, not a vetting step |
 | autoskills.sh | <https://www.autoskills.sh/> |
 | MCP Market | <https://mcpmarket.com/tools/skills> |
 
-`npx skills` also manages the lifecycle once something is chosen:
-`npx skills add <package>`, `npx skills check`, `npx skills update`.
+`npx skills` also manages the lifecycle: `npx skills add <owner/repo@skill>`, `npx skills check`,
+`npx skills update`. Run `add` only after the candidate passed vetting and the user approved it.
 
 ## 3. Awesome lists and curated collections
 

@@ -1,6 +1,6 @@
 ---
 name: skill-scout
-description: Find, vet, and install agent skills for a repository, and keep a catalog of the project-agnostic ones worth reusing. Use when the user asks to find a skill for something, wants a capability that may already exist as a skill, or brings a skill, repository, archive, or SKILL.md to add or audit. Verifies security, real usefulness, and real usage evidence before anything is installed.
+description: Find, vet, and install agent skills for a repository, and keep a catalog of the project-agnostic ones worth reusing. Use when the user asks to find a skill for something ("is there a skill that...", "how do I do X" when a skill may exist), wants a capability that may already exist as a skill, or brings a skill, repository, archive, or SKILL.md to add or audit. Verifies security, real usefulness, and real usage evidence before anything is installed.
 ---
 
 # Skill Scout
@@ -15,6 +15,7 @@ is no.
 | --- | --- |
 | `references/evidence.md` | Before judging whether skills help at all |
 | `references/sources.md` | Before searching |
+| `references/discovery.md` | When turning a request into queries, and when a search finds nothing |
 | `references/vetting.md` | Before installing anything |
 | `references/catalog.md` | Before searching, and when a skill proves useful |
 
@@ -32,9 +33,10 @@ of one study. So:
 
 ## Search
 
-Use `references/sources.md`. Search the user's catalog first, then the registries, then the
-awesome lists, then GitHub. A listing is a lead, not evidence, and a ranking by installs or
-stars is a discovery aid only.
+Use `references/sources.md` for where to look and `references/discovery.md` for how to
+query. Search the user's catalog first, then the registries, then the awesome lists, then
+GitHub. A listing is a lead, not evidence, and a ranking by installs or stars is a
+discovery aid only.
 
 ## The usefulness gate
 
@@ -83,7 +85,7 @@ lines, and the reachability check. Report real concerns and false positives sepa
 
 After vetting, present:
 
-- what was pulled, with source and install command;
+- what was pulled, with source, install command, and registry page link;
 - what was skipped and why — the gate answer, not just a name;
 - **the overlap list**: which pulled skills overlap, which specific rules or behaviors
   collide, and the options (keep both, keep one, combine them).

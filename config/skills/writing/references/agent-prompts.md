@@ -1,8 +1,3 @@
----
-name: agent-prompt-writing
-description: Write or revise system prompts for autonomous or tool-using agents, subagents, MCP assistants, and orchestrators. Do not use for one-shot classification or generation prompts.
----
-
 # Agent Prompt Writing
 
 Every token competes for attention. Use the smallest prompt that prevents observed
@@ -67,4 +62,4 @@ the contract. Every remaining line must prevent a failure, encode a hard require
 or generalize a useful example.
 
 Test on realistic traces. Add prompt text only when it fixes an observed failure.
-Primary source citations live in `references/sources.md`.
+Primary source citations live in `agent-prompt-sources.md`.

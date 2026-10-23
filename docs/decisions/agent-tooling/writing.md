@@ -9,8 +9,12 @@ academic material stranded in a skill that nothing else references.
 ## Current decisions
 
 - `writing` is the single skill for preparation, outlining, drafting, editing, and review,
-  with five references:
+  with five prose references:
   `natural-writing.md`, `voice-profile.md`, `voice-interview.md`, `academic.md`, and `latex.md`.
+- `writing` also owns system prompts for autonomous or tool-using agents, subagents, MCP
+  assistants, and orchestrators, through `references/agent-prompts.md` and its sources in
+  `references/agent-prompt-sources.md`. One-shot classification or generation prompts are out of
+  scope. The standalone `agent-prompt-writing` skill is removed, not aliased.
 - `natural-writing.md` and `voice-profile.md` are read at every prose stage. `voice-profile.md`
   is the compressed profile; `voice-interview.md` holds the full 100-question interview and is
   read only when the profile does not cover a format or the reason behind a preference is
@@ -87,6 +91,9 @@ arrives as a second reference.
 
 ## History
 
+- 2026-10-22: Folded the standalone `agent-prompt-writing` skill into `writing` as
+  `references/agent-prompts.md` plus `references/agent-prompt-sources.md`, to give agent-prompt
+  guidance one entry point beside the other writing rules instead of a second skill to choose.
 - 2026-10-16: Recorded the fifth reference: the full interview split out of the profile on
   2026-09-28 (`voice-interview.md`), read only on demand.
 - 2026-09-27: Replaced `miquel-voice` and `objective-scholar` with one `writing` skill holding

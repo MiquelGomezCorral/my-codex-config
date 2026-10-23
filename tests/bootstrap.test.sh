@@ -215,6 +215,12 @@ chmod +x "$REUSED_PI_ROOT/npm/node_modules/mcp-searxng/cli.js"
 ln -s "$REUSED_PI_ROOT/npm/node_modules/mcp-searxng/cli.js" "$REUSED_PI_ROOT/npm/node_modules/.bin/mcp-searxng"
 mkdir -p "$CODEX_HOME_ROOT/.agents/skills/user-skill"
 printf '%s\n' 'name: user-skill' > "$CODEX_HOME_ROOT/.agents/skills/user-skill/SKILL.md"
+ln -s "$REPO_ROOT/config/skills/retired-skill" "$CODEX_HOME_ROOT/.agents/skills/retired-skill"
+# Relative link that reaches the skills folder through a symlinked alias, so only resolving from the
+# link's own folder (symlinks before `..`) lands it in the managed source.
+ln -s "$REPO_ROOT/config/skills" "$TEST_ROOT/repo-skills"
+ln -s ../../../repo-skills/relative-retired-skill "$CODEX_HOME_ROOT/.agents/skills/relative-retired-skill"
+ln -s ../../elsewhere/foreign-skill "$CODEX_HOME_ROOT/.agents/skills/foreign-skill"
 printf 'User Codex instructions.\n' > "$CODEX_TARGET/AGENTS.md"
 cat > "$CODEX_TARGET/hooks.json" <<'JSON'
 {"hooks":{"UserPromptSubmit":[{"hooks":[{"type":"command","command":": orca-agent-hook-form=1; orca","timeout":10}]}],"Stop":[{"hooks":[{"type":"command","command":"user-stop-hook"}]}]},"extra":"keep"}
@@ -287,11 +293,14 @@ PY
 [[ -L "$CODEX_HOME_ROOT/.agents/skills/writing" ]]
 [[ -L "$CODEX_HOME_ROOT/.agents/skills/diagram-design" ]]
 [[ -f "$CODEX_HOME_ROOT/.agents/skills/user-skill/SKILL.md" ]]
-[[ "$(find "$CODEX_HOME_ROOT/.agents/skills" -maxdepth 1 -type l | wc -l)" -eq 35 ]]
+[[ ! -e "$CODEX_HOME_ROOT/.agents/skills/retired-skill" && ! -L "$CODEX_HOME_ROOT/.agents/skills/retired-skill" ]]
+[[ ! -L "$CODEX_HOME_ROOT/.agents/skills/relative-retired-skill" ]]
+[[ -L "$CODEX_HOME_ROOT/.agents/skills/foreign-skill" ]]
+[[ "$(find "$CODEX_HOME_ROOT/.agents/skills" -maxdepth 1 -type l | wc -l)" -eq 33 ]]
 [[ -L "$CODEX_HOME_ROOT/.local/share/my-codex-config/external-skills/diagram-design/skills/diagram-design" ]]
 [[ "$(grep -c '^git clone' "$STUB_LOG")" -eq 1 ]]
 [[ -L "$CODEX_TARGET/commands" ]]
-[[ "$(find -L "$CODEX_TARGET/commands" -maxdepth 1 -type f -name '*.md' | wc -l)" -eq 13 ]]
+[[ "$(find -L "$CODEX_TARGET/commands" -maxdepth 1 -type f -name '*.md' | wc -l)" -eq 12 ]]
 [[ "$(find "$CODEX_TARGET/agents" -maxdepth 1 -type f -name '*.toml' | wc -l)" -eq 13 ]]
 python3 - "$CODEX_TARGET/hooks.json" <<'PY'
 import json
@@ -439,7 +448,7 @@ assert (root / "skills/writing").is_symlink()
 assert (root / "skills/diagram-design").is_symlink()
 assert "User Pi instructions" in (root / "AGENTS.md").read_text(encoding="utf-8")
 assert len(list((root / "agents").glob("*.md"))) == 13
-assert len(list((root / "prompts").glob("*.md"))) == 13
+assert len(list((root / "prompts").glob("*.md"))) == 12
 for path in (root / "agents").glob("*.md"):
     assert "\ntools:" not in path.read_text(encoding="utf-8"), path
 for path in (root / "prompts").glob("*.md"):
@@ -523,13 +532,13 @@ assert "User AGY instructions" in (home / ".gemini/GEMINI.md").read_text()
 agy_skills = home / ".gemini/config/skills"
 assert (agy_skills / "writing").is_symlink()
 assert (agy_skills / "user-skill/SKILL.md").is_file()
-assert len(list(agy_skills.glob("*"))) == 36
+assert len(list(agy_skills.glob("*"))) == 33
 cli = home / ".gemini/antigravity-cli"
 plugin = cli / "plugins/my-codex-config"
 assert len(list((cli / "agents").glob("*.md"))) == 13
-assert len(list((cli / "commands").glob("*.toml"))) == 13
+assert len(list((cli / "commands").glob("*.toml"))) == 12
 assert len(list((home / ".gemini/config/plugins/my-codex-config/agents").glob("*/agent.md"))) == 13
-assert len(list((plugin / "skills").glob("*/SKILL.md"))) == 13
+assert len(list((plugin / "skills").glob("*/SKILL.md"))) == 12
 for path in (cli / "commands").glob("*.toml"):
     assert "{{args}}" in path.read_text(encoding="utf-8"), path
 for path in (plugin / "skills").glob("*/SKILL.md"):
@@ -569,7 +578,7 @@ cmp -s "$TEST_ROOT/agy-broken-before.json" "$BROKEN_AGY_HOME/.gemini/antigravity
 CLAUDE_HOME="$TEST_ROOT/claude-home"
 mkdir -p "$CLAUDE_HOME/.claude"
 printf 'User Claude notes.\n' > "$CLAUDE_HOME/.claude/CLAUDE.md"
-printf '%s\n' '{"theme":"dark","env":{"KEEP":"1"},"hooks":{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"user-hook"}]}]}}' \
+printf '%s\n' '{"theme":"dark","env":{"KEEP":"1"},"skillOverrides":{"user-skill":"off","simplify":"on"},"hooks":{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"user-hook"}]}]}}' \
   > "$CLAUDE_HOME/.claude/settings.json"
 HOME="$CLAUDE_HOME" CLAUDE_CONFIG_DIR="$CLAUDE_HOME/.claude" BACKUP_ROOT="$TEST_ROOT/claude-backups" \
   "$REPO_ROOT/bootstrap_claude.sh" --no-searxng > "$TEST_ROOT/claude.out" 2> "$TEST_ROOT/claude.err"
@@ -585,7 +594,7 @@ import sys
 
 skills = pathlib.Path(sys.argv[1])
 commands = list(pathlib.Path("config/commands").glob("*.md"))
-assert len(commands) == 13
+assert len(commands) == 12
 for source in commands:
     text = source.read_text(encoding="utf-8")
     skill = re.search(r"^skill:\s*([a-z0-9-]+)$", text, re.MULTILINE).group(1)
@@ -619,6 +628,8 @@ import sys
 
 settings = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
 assert settings["theme"] == "dark" and settings["env"]["KEEP"] == "1"
+assert settings["skillOverrides"]["user-skill"] == "off"
+assert settings["skillOverrides"]["simplify"] == "off" and settings["skillOverrides"]["anthropic-skills:skill-creator"] == "off"
 assert settings["autoCompactWindow"] == 300000
 assert settings["timeZone"] == "Europe/Madrid"
 assert settings["timeFormat"] == "24-hour"

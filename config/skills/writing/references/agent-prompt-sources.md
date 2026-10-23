@@ -1,6 +1,6 @@
 # Sources
 
-Every principle in this skill is traceable to one or more of these published sources. Cross-referenced where principles converge; flagged where sources diverge.
+Every principle in `agent-prompts.md` is traceable to one or more of these published sources. Cross-referenced where principles converge; flagged where sources diverge.
 
 ## Anthropic
 
