@@ -158,8 +158,7 @@ context conflicts or a non-Git action's bounds are missing.
    the slice base when the human picks the whole slice for a big change.
    The full slice live test set reruns on the final head. Before presentation, a
    `final-only` slice's local commit, or a push, the task-owned diff from the checkpoint the
-   last cleanup round audited to the current tree must be empty, whether that round was
-   clean or its remaining findings are recorded risk the human accepted. With no task-owned
+   last cleanup round audited to the current tree must be empty. With no task-owned
    change at all, cleanup is skipped and the comparison from the slice base is empty.
    [Cleanup](references/cleanup.md) owns what each round audits, the big-change question,
    and the cap's outcomes.
