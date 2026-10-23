@@ -25,4 +25,4 @@ allows. Name that cleanup in the plan for dependent slices so it needs no extra 
 
 Record PR, target, CI, review, and completion state in local progress. Workflow stage 8 owns
 how review feedback, CI fixes, and merge-conflict resolutions go back through stages 5 and 6,
-and when the result returns to the human before shipping proceeds.
+and when the result returns to the human.
