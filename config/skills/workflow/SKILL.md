@@ -151,8 +151,8 @@ context conflicts or a non-Git action's bounds are missing.
    accepted findings go through stage 5, then a new checkpoint and the next round. From
    round 3 on (the cap), ask the human before applying a round's accepted findings. Stage 6
    ends with a clean round or with recorded risk the human accepted; recorded risk never
-   counts as clean. Every later code change, from human feedback, wave close, merge
-   conflicts, or CI, takes stages 5 and 6 before it returns to the human, before a
+   counts as clean. Every later code change, from human feedback, PR review, wave close,
+   merge conflicts, or CI, takes stages 5 and 6 before it returns to the human, before a
    `final-only` slice's local commit, or before a push. Each such change restarts the round
    count. Its first round audits from the checkpoint the last cleanup round audited, or from
    the slice base when the human picks the whole slice for a big change.
@@ -180,8 +180,8 @@ context conflicts or a non-Git action's bounds are missing.
    and creates a final commit only when needed. It excludes private memory, progress files,
    temporary agent artifacts, and unrelated changes; approved skill and agent-configuration
    files remain deliverables. Verify the final tree matches the accepted result before
-   performing only the plan-authorized push; a merge-conflict or CI fix that leaves behavior
-   unchanged is the only exception. Pass it the exact plan path and slice; it
+   performing only the plan-authorized push; a merge-conflict, CI, or review fix that leaves
+   behavior unchanged is the only exception. Pass it the exact plan path and slice; it
    writes commits and the PR title and body from the plan's goal, as the `git` skill's
    plan context and PR title rules describe. Record checkpoint and final commit hashes.
    Acceptance is a result gate, not a second Git authorization request. Route a

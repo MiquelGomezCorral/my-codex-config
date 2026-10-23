@@ -57,14 +57,13 @@ slices with inspectable verification and explicit human authority across project
   runs again on those changes until an audit has no accepted findings. After three rounds that
   still have accepted findings, the human chooses another round or accepts the rest as
   recorded risk, which never counts as clean. Every later code change, from human feedback,
-  wave close, merge conflicts, or
-  CI, takes the same coding, review, and cleanup path before it returns to the human, a
-  `final-only` slice's local commit, or a push.
+  PR review, wave close, merge conflicts, or CI, takes the same coding, review, and cleanup
+  path before it returns to the human, a `final-only` slice's local commit, or a push.
 - After the human accepts the result, the Git worker gathers remaining accepted task-owned
   deliverables, excludes working-only agent artifacts and unrelated changes, makes a final
   commit only when needed, and then performs only the plan-authorized push. The shipped tree
-  must match the result the human accepted. A later merge-conflict or CI fix that leaves
-  behavior unchanged is the only exception.
+  must match the result the human accepted. A later merge-conflict, CI, or review fix that
+  leaves behavior unchanged is the only exception.
 - Coding fixes verified in-scope findings at any severity, using P0-P3 to order work.
   Non-blocking out-of-scope findings are
   recorded and excluded; scope-expanding blockers escalate. Two unsuccessful rounds for
@@ -73,9 +72,9 @@ slices with inspectable verification and explicit human authority across project
   authorizes only its specifically named Git actions and bounds; final result acceptance
   does not require a second Git authorization. Implementers never receive merge authority
   merely because they receive coding or shipping context.
-- Merge-conflict and CI fixes take affected checks, review, and cleanup (merge conflicts
-  through the Git worker); changed or uncertain behavior is presented again before shipping
-  continues.
+- Merge-conflict, CI, and review fixes take affected checks, review, and cleanup (merge
+  conflicts through the Git worker); changed or uncertain behavior is presented again before
+  shipping continues.
 - Agents are retained within their assigned loops; distinct stages and slices use fresh
   sessions with explicit lifecycle and ownership accounting.
 - Approved plans persist implementation decisions and attached approved amendments.

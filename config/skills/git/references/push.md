@@ -18,7 +18,8 @@ around it.
   action-level authorization request. A local checkpoint alone does not authorize a push.
 - In the final workflow handoff, push only after the Git worker has staged the accepted
   task-owned deliverables, created a final commit if needed, and verified that the resulting
-  tree matches the presented result. Record the checkpoint and final commit hashes.
+  tree matches the presented result, except as workflow stage 8 allows. Record the
+  checkpoint and final commit hashes.
 - Review repository instructions and checks. Stop if the worktree contains secrets, unclear
   unrelated changes, or failed required verification.
 - When the branch backs a PR, run the `Own commits only` check in `pr.md` before pushing.

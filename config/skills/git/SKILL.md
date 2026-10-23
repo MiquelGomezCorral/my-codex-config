@@ -45,8 +45,9 @@ gate before shipping those named actions, not a second Git authorization request
 checkpoint never authorizes an unlisted push or PR. After acceptance in an approved
 workflow, the Git worker inspects all remaining changes against the approved scope and
 accepted result, stages explicit task-owned deliverables, commits only when needed, verifies
-the final tree matches the accepted result, and then performs only the plan-authorized
-push. Stop on ambiguous ownership or a changed accepted result. In a `final-only` wave the
+the final tree matches the accepted result, except as workflow stage 8 allows, and then
+performs only the plan-authorized push.
+Stop on ambiguous ownership or a changed accepted result. In a `final-only` wave the
 plan may also name a local commit at the end of each slice on the wave's one branch.
 Outside workflow context, a direct Git request authorizes only the action and scope it
 names. Repository rules and any required approval for destructive recovery still apply.
