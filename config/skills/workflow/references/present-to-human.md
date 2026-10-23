@@ -18,6 +18,7 @@ separately named and bounded through the `git` skill.
 Slices skip their own presentation. After the last slice and the passing wave regression,
 present one result page with a section, and its own live evidence, per slice. For each
 feedback item, ask the human whether to fold the fix into the owning slice's commit(s) or
-add a new commit on top. Folding follows the `git` skill's fixup procedure. Each fix takes
-workflow stages 5 and 6; a folded fix folds once stage 6 ends. Then rerun the affected live
-tests and the wave regression, and present the revised page.
+add a new commit on top. Each fix takes workflow stages 5 and 6, and a fold waits until
+stage 6 ends; it follows the `git` skill's
+[fold steps](../../git/references/commit.md#fold-a-fix-into-an-earlier-slice-commit). Then
+rerun the affected live tests and the wave regression, and present the revised page.

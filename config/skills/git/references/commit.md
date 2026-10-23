@@ -92,10 +92,10 @@ revision.
    tags included. Fold only when every remote fetches all its branches, the fetch succeeds,
    both counts match, and the merge list is empty. Otherwise do not fold; report the failed
    check so the parent can offer a new commit on top.
-2. Commit the fix with `git commit --fixup=<owning-sha>`, staging only its paths. Each
-   cleanup checkpoint the workflow adds to that fix is made as a `--fixup=<owning-sha>`
-   commit when it is created. After the last one, record `HEAD` as `<old-head>`, a literal
-   hash, and create the backup ref the skill's `History rewrites` section describes.
+2. Create the fix commit and every cleanup checkpoint for it with
+   `git commit --fixup=<owning-sha>`, staging only their paths. After the last one, record
+   `HEAD` as `<old-head>`, a literal hash, and create the backup ref the skill's `History
+   rewrites` section describes.
 3. Stop if `<wave-base>..HEAD` holds no `fixup!` commit. Fold it:
    `GIT_SEQUENCE_EDITOR=true git rebase -i --autosquash --no-update-refs <wave-base>`. On a
    conflict or stop, run `git rebase --abort`, never `git rebase --skip`, and report it.
