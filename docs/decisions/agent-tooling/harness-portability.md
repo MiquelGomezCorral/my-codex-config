@@ -24,7 +24,12 @@ links shared assets and renders only the native files that differ.
 - Claude and Codex compact their context at 300k tokens, set by their bootstraps
   (Claude `autoCompactWindow` merged into settings, Codex
   `model_auto_compact_token_limit` in `config/codex.toml`). The Claude bootstrap owns only
-  that key, its default-helper-model env key and its model-guard hook in settings.
+  that key, its default-helper-model env key, its model-guard hook, and the `skillOverrides`
+  entries in `SKILLS_OFF`, which switch off claude.ai-synced and bundled skills the user does
+  not want loaded (other overrides are kept).
+- `install-skills` backs up a dangling link in a target folder only when its target lies in
+  a source this repository manages (the skills folder or a portable root); live links, real
+  folders, and links into anywhere else, such as `npx skills` links, stay.
 - Full tool access is available; focused role/task instructions govern authority.
   Native main agents keep their normal prompts. Skills load when needed.
 - Installation uses normal client folders. Existing custom roots continue to work
@@ -84,6 +89,10 @@ after a hook or a plugin with hooks changes.
 
 ## History
 
+- 2026-10-22: Added the repo-owned `skillOverrides` list to the Claude settings merge and
+  dangling-link pruning to `install-skills`, because skills removed from the repository left
+  dangling links in every harness folder and synced or bundled Claude skills duplicated the
+  repository's own.
 - 2026-10-19: The user set compaction at 300k for Claude and Codex to cut context re-reading; they raise it if sessions compact too often.
 - 2026-10-19: The Codex bootstrap now lists hooks waiting for trust, because Codex
   sessions and Orca workers kept stopping on the review prompt after a plugin update;

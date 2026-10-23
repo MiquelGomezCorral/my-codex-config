@@ -30,9 +30,9 @@ test("repository has one shared skill owner with unique valid names", () => {
     "writing", "super-agent", "cleanup", "review", "code", "git",
     "review-findings", "codegraph-setup", "agents-memory",
     "refine-plan", "review-plan", "workflow", "test-audit", "code-quality", "skill-scout", "btca",
-    "bro", "orchestration", "decision-records",
+    "orchestration", "decision-records",
   ]) ok(names.includes(required), `missing skill: ${required}`)
-  for (const removed of ["core", "miquel-voice", "objective-scholar", "plan-implementation", "implementation-planning", "multi-agent-review", "code-review", "python-coding", "skillspector", "find-skills", "btca-first", "btca-cli", "orca-cli", "computer-use"]) {
+  for (const removed of ["core", "miquel-voice", "objective-scholar", "plan-implementation", "implementation-planning", "multi-agent-review", "code-review", "python-coding", "skillspector", "find-skills", "bro", "teach-me", "agent-prompt-writing", "btca-first", "btca-cli", "orca-cli", "computer-use"]) {
     ok(!names.includes(removed), `removed skill still present: ${removed}`)
   }
   ok(!names.includes("task-model-recovery"))

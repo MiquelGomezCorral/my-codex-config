@@ -149,16 +149,17 @@ flow.
 
 ## What gets installed where
 
-All 32 repository skills, 13 focused roles, and 13 command intents share the sources under
+All 30 repository skills, 13 focused roles, and 12 command intents share the sources under
 `config/`. Native adapters load each command's owning skill and forward its arguments.
-Skills are linked one entry at a time, so unrelated user skills remain available. Native
-mutable config is merged; malformed files are left untouched and managed conflicts receive
-private backups.
+Skills are linked one entry at a time, so unrelated user skills remain available; dangling links
+into `config/skills` or the portable skill clones are backed up on the next install, and other
+links stay. Native mutable config is merged; malformed files are left untouched and managed
+conflicts receive private backups.
 
 | Harness | Shared assets and policy | Roles and commands | MCP configuration |
 | --- | --- | --- | --- |
 | Codex | `~/.agents/skills`, individual links; managed policy appended to `~/.codex/AGENTS.md` | `~/.codex/agents` private role copies; linked `commands/` | `~/.codex/config.toml` merged with local MCPs and runtime tables preserved; `~/.codex/hooks.json` is merged too: only the command dispatcher hook is added or refreshed and Orca's hooks are left to Orca; plugins and updater remain Codex-owned |
-| Claude Code | `~/.claude/skills`, individual links; policy appended to `CLAUDE.md` | `agents/*.md`; command aliases are thin skills, with `harness-init` and `harness-review` reserved | User-scoped `claude mcp` commands add the three managed stdio servers and remove retired IDs; user-scoped `claude plugin` commands add the `midudev/better-claude` marketplace and install its `image-preview` and `sub-meter` plugins, plus the `zoharbabin/claude-code-message-timestamps` marketplace and its `message-timestamps` plugin (display-only, so timestamps never enter an agent's context); it installs `jq` into `~/.local/bin` when missing; the settings merge pins `timeZone`/`timeFormat` and the plugin's `CLAUDE_TIMESTAMPS_TZ` to `Europe/Madrid` |
+| Claude Code | `~/.claude/skills`, individual links; policy appended to `CLAUDE.md` | `agents/*.md`; command aliases are thin skills, with `harness-init` and `harness-review` reserved | User-scoped `claude mcp` commands add the three managed stdio servers and remove retired IDs; user-scoped `claude plugin` commands add the `midudev/better-claude` marketplace and install its `image-preview` and `sub-meter` plugins, plus the `zoharbabin/claude-code-message-timestamps` marketplace and its `message-timestamps` plugin (display-only, so timestamps never enter an agent's context); it installs `jq` into `~/.local/bin` when missing; the settings merge pins `timeZone`/`timeFormat` and the plugin's `CLAUDE_TIMESTAMPS_TZ` to `Europe/Madrid`, and sets `skillOverrides` to `off` for the claude.ai-synced and bundled skills listed in `SKILLS_OFF` (`config/bin/harness-assets.py`), keeping any other override |
 | Pi | Configured agent-root `skills/`; `AGENTS.md` policy append | `agents/*.md`, native `prompts/*.md`; async child agents inherit project/global context and skills | `mcp.json` merged; uses a compatible configured-root connector executable when present, otherwise the resolved shared binary |
 | Antigravity | CLI and IDE plugin each link shared skill entries; global policy and plugin policy are appended | CLI command TOML plus CLI-plugin skill aliases; CLI/IDE roles derive from the shared role source | `mcp_config.json` merged while preserving unrelated entries |
 
@@ -241,7 +242,6 @@ loads its owning skill and forwards the full invocation arguments.
 
 | Command | Skill |
 | --- | --- |
-| `bro` | `bro` |
 | `cleanup` | `cleanup` |
 | `code` | `code` |
 | `commit` | `git` |
@@ -334,11 +334,11 @@ The `skill-creator` skill is adapted from
 [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/skill-creator)
 (Apache-2.0, modified). Its license is kept at `config/skills/skill-creator/LICENSE.txt`.
 
-The `bro` skill is adapted from [luchasarie/bro-skill](https://github.com/luchasarie/bro-skill) (MIT, Copyright (c) 2026 Hermes Agent + Luka, modified). The upstream license is kept at `config/skills/bro/LICENSE`.
-
 The `skill-scout` skill replaces the former `find-skills` and `skillspector` skills, folding
 their marketplace discovery and static security scan into one find-vet-catalog flow. Its
-`references/evidence.md` cites the measurements it reasons from:
+`references/discovery.md` takes its query examples, alternate search terms, and leaderboard step
+from the `find-skills` skill in [vercel-labs/skills](https://github.com/vercel-labs/skills) (MIT), reworded.
+Its `references/evidence.md` cites the measurements it reasons from:
 [SWE-Skills-Bench](https://arxiv.org/abs/2603.15401),
 [SkillsBench](https://arxiv.org/abs/2602.12670v1), and a study of 34,000 real skills reported
 by The Decoder.

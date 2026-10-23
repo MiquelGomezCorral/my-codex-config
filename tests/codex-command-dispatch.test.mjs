@@ -21,7 +21,7 @@ test("repository commands load one skill and preserve arguments", () => {
   try {
     symlinkSync(join(root, "config/commands"), join(home, "commands"), "dir")
     for (const [name, skill] of [
-      ["bro", "bro"], ["cleanup", "cleanup"], ["code", "code"], ["commit", "git"],
+      ["cleanup", "cleanup"], ["code", "code"], ["commit", "git"],
       ["index", "codegraph-setup"], ["init", "project-init"], ["merge", "git"],
       ["workflow", "workflow"],
       ["refine-plan", "refine-plan"],

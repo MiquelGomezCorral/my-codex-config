@@ -22,6 +22,23 @@ HOOK_OWNER = "codex-command-dispatch.mjs"
 GUARD_OWNER = "agent-model-guard.py"
 COMPACT_WINDOW = 300000
 LOCAL_TZ = "Europe/Madrid"
+# Skills Claude Code syncs from claude.ai or bundles that the user keeps off. Synced ones need the
+# `anthropic-skills:` key (a bare name is skipped when taken); plugin skills cannot be reached this way.
+SKILLS_OFF = (
+    "anthropic-skills:skill-creator",
+    "anthropic-skills:agent-prompt-writing",
+    "anthropic-skills:deep-research",
+    "anthropic-skills:computer-use",
+    "anthropic-skills:built-in-browser",
+    "anthropic-skills:morning",
+    "anthropic-skills:import-memory",
+    "anthropic-skills:general-instructions",
+    "simplify",
+    "init",
+    "artifact-diagramming",
+    "artifact-design",
+    "artifact-capabilities",
+)
 
 
 def backup(target: pathlib.Path, backup_root: pathlib.Path) -> None:
@@ -51,6 +68,19 @@ def ensure_directory(path: pathlib.Path, backup_root: pathlib.Path) -> pathlib.P
     return path
 
 
+def prune_dangling(target: pathlib.Path, roots: list[pathlib.Path], backup_root: pathlib.Path) -> None:
+    """Back up dangling links into a source this repository manages; every other entry stays."""
+    # A missing portable clone is not a source yet, so links into it are not ours to judge.
+    managed = {path for root in roots if root.is_dir() for path in (root.absolute(), root.resolve())}
+    for entry in target.iterdir():
+        if not entry.is_symlink() or os.path.exists(entry):
+            continue
+        # The OS resolves a relative link from the physical folder it sits in, symlinks before `..`.
+        destination = pathlib.Path(os.path.realpath(entry.parent / os.readlink(entry)))
+        if any(destination.is_relative_to(root) for root in managed):
+            backup(entry, backup_root)
+
+
 def install_skills(args: argparse.Namespace) -> None:
     target = ensure_directory(pathlib.Path(args.target), pathlib.Path(args.backup))
     roots = [pathlib.Path(args.source), *(pathlib.Path(value) for value in args.portable)]
@@ -73,6 +103,7 @@ def install_skills(args: argparse.Namespace) -> None:
 
     if not skills:
         raise SystemExit(f"No shared skills found in {args.source}")
+    prune_dangling(target, roots, pathlib.Path(args.backup))
     for name, source in sorted(skills.items()):
         destination = target / name
         if destination.is_symlink() and destination.resolve() == source:
@@ -329,8 +360,10 @@ def merge_claude_settings(args: argparse.Namespace) -> None:
     if not isinstance(current, dict):
         raise SystemExit(f"Claude settings must be a JSON object: {target}")
     hooks, env = current.get("hooks", {}), current.get("env", {})
-    if not isinstance(hooks, dict) or not isinstance(env, dict):
-        raise SystemExit(f"Claude settings hooks and env must be objects: {target}")
+    overrides = current.get("skillOverrides")
+    overrides = {} if overrides is None else overrides
+    if not all(isinstance(value, dict) for value in (hooks, env, overrides)):
+        raise SystemExit(f"Claude settings hooks, env, and skillOverrides must be objects: {target}")
     existing = hooks.get("PreToolUse", [])
     if not isinstance(existing, list):
         raise SystemExit("Claude hooks event must be a list: PreToolUse")
@@ -352,6 +385,7 @@ def merge_claude_settings(args: argparse.Namespace) -> None:
             "CLAUDE_TIMESTAMPS_INJECT_CONTEXT": "false",
         },
         "hooks": {**hooks, "PreToolUse": merge_event("PreToolUse", existing, [guard], GUARD_OWNER)},
+        "skillOverrides": {**overrides, **dict.fromkeys(SKILLS_OFF, "off")},
     }
     if merged == current:
         return
