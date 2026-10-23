@@ -136,50 +136,74 @@ context conflicts or a non-Git action's bounds are missing.
    priority to order work. Escalate after two unsuccessful rounds for the same unresolved
    problem.
 6. **Cleanup:** after coding gates pass, run the authorized local checkpoint through
-   `$git`, record its hash, then run the read-only `$cleanup` audit with the slice base and
-   checkpoint hash. Compare the complete task-owned changes from base through the current
-   tree, including the checkpoint and later staged, unstaged, or untracked worktree changes.
+   `$git`, record its hash, then run the read-only `$cleanup` audit. The comparison from the
+   slice base is the skip test and the basis of the slice's first round: compare the
+   complete task-owned changes from base through the current tree, including the checkpoint
+   and later staged, unstaged, or untracked worktree changes. A later round passes the
+   checkpoint the previous round audited as its `$cleanup` basis, with the base comparison
+   as context; with no new changes, it runs only the earlier-fix check.
    Skip cleanup only when that complete comparison is empty; a clean post-checkpoint status
-   alone is not enough. Verify each finding, apply or reject it with a concrete reason, and
-   route in-scope simplifications back through the coding loop. A correction must pass
-   affected checks, review, the full slice live test set on the final head, and the
-   cleanup closure check before presentation, or before the slice's local commit in a
-   `final-only` wave.
+   alone is not enough. Verify each finding and accept or reject it with a concrete reason.
+   Before a later round can pass, the coordinator checks every earlier accepted finding
+   the human did not leave as recorded risk against the current tree; one that did not
+   fully land, including a fix that changed nothing, counts as an accepted finding of that
+   round. Cleanup passes only when an audit round has no accepted findings; accepted
+   findings go through stage 5, then a new checkpoint and the next round. Ask the human
+   before applying the findings of a third round that still has accepted findings, and
+   again after every further round the human chooses that still has them; recorded risk is
+   the other way out of the gate and never counts as clean. Stage 6 ends with a clean round
+   or with recorded risk the human accepted. Every later code change, from human feedback,
+   wave close, merge conflicts, or CI, takes stages 5 and 6 before it returns to the human,
+   before a `final-only` slice's local commit, or before a push, and starts a new count of
+   three rounds whose first round audits from the checkpoint the last cleanup round
+   audited, or from the slice base when the human picks the whole slice for a big change.
+   The full slice live test set reruns on the final head. Before presentation, a
+   `final-only` slice's local commit, or a push, the task-owned diff from the last cleanup
+   round's checkpoint to the current tree must be empty, whether that round was clean or is
+   the cap round whose remaining findings the human accepted as recorded risk. With no
+   task-owned change at all, cleanup is skipped and the comparison from the slice base is
+   empty.
+   [Cleanup](references/cleanup.md) owns what each round audits, the big-change question,
+   and the cap's outcomes.
 7. **Present to human:** show the result page (gate 3) with the actual result, live evidence,
-   checks, known gaps, and artifacts after cleanup corrections pass their affected gates.
-   Route feedback through the coding loop. After acceptance, the human-facing coordinator applies exact approved
-   updates to private agent memory once. Do not ship before human acceptance.
-   In a `final-only` wave, skip this per-slice presentation. After cleanup passes, the Git
+   checks, known gaps, and artifacts after stage 6 ends.
+   Route feedback that changes code through stages 5 and 6 before presenting again. After
+   acceptance, the human-facing coordinator applies exact approved updates to private agent
+   memory once. Do not ship before human acceptance.
+   In a `final-only` wave, skip this per-slice presentation. After stage 6 ends, the Git
    worker makes the slice's local commit on the wave's branch, as the plan names it: not
-   shipping, no push or PR. Record its hash as `slice.final-commit-hash`. In one update, mark the slice's
-   `human-validation.*`, `ship-monitor.conflicts`, and `ship-monitor.ci-feedback` steps
-   `skipped` and `ship-monitor.commit-push-pr` done, with the note "final-only, commit
-   only". The next slice starts on the same branch. Reviews, live tests, and cleanup still
-   run for every slice. A red check, a blocking finding, or missing evidence stops the chain
-   and goes to blockers.
+   shipping, no push or PR. Record its hash as `slice.final-commit-hash`. In one update,
+   mark the slice's `human-validation.*`, `ship-monitor.conflicts`, and
+   `ship-monitor.ci-feedback` steps `skipped` and `ship-monitor.commit-push-pr` done, with
+   the note "final-only, commit only". The next slice starts on the same branch. Reviews,
+   live tests, and cleanup still run for every slice. A red check, a blocking finding, or
+   missing evidence stops the chain and goes to blockers.
 8. **Ship and monitor:** after acceptance, the Git worker inspects remaining changes
    against the approved scope and accepted result, stages explicit task-owned deliverables,
    and creates a final commit only when needed. It excludes private memory, progress files,
    temporary agent artifacts, and unrelated changes; approved skill and agent-configuration
    files remain deliverables. Verify the final tree matches the accepted result before
-   performing only the plan-authorized push. Pass it the exact plan path and slice; it
+   performing only the plan-authorized push; a merge-conflict or CI fix that leaves behavior
+   unchanged is the only exception. Pass it the exact plan path and slice; it
    writes commits and the PR title and body from the plan's goal, as the `git` skill's
    plan context and PR title rules describe. Record checkpoint and final commit hashes.
    Acceptance is a result gate, not a second Git authorization request. If a merge
-   conflict occurs, route its resolution through `git-worker`, rerun affected checks and
-   review, and re-present the result if behavior changed or remains uncertain. Inspect
-   required CI and review feedback; never infer an unnamed action. In a `final-only` wave
-   this stage runs once, after final acceptance in stage 9: push only if the plan names
-   it, and open a PR only when the user asks.
+   conflict occurs, route its resolution through `git-worker`, then stages 5 and 6, then
+   re-present the result if behavior changed or remains uncertain. Inspect required CI and
+   review feedback; a fix that changes code takes stages 5 and 6 before the push, and the
+   result returns to the human only if behavior changed or remains uncertain. Never infer an
+   unnamed action. In a `final-only` wave this stage runs once, after final
+   acceptance in stage 9: push only if the plan names it, and open a PR only when the user
+   asks.
 9. **Close the wave:** after the last slice, rerun every slice's live test set on the
    final head. Fix a failure inside the owning slice's scope when it fits the last slice's
-   grant, routed through stages 5-8; otherwise use a bounded correction slice the human
-   approves. Then rerun the whole wave set. Ask the human about unclear results; close only
-   when the set passes. Record completed and unfinished slices, next decisions, deferred
-   findings, and lessons in local progress state. In a `final-only` wave, the passing set
-   opens the final gate: present one result page with a section per slice and route
-   feedback as [present to human](references/present-to-human.md) describes, then ship
-   through stage 8.
+   grant, routed through stages 5-8, cleanup included; otherwise use a bounded correction
+   slice the human approves. Then rerun the whole wave set. Ask the human about unclear
+   results; close only when the set passes. Record completed and unfinished slices, next
+   decisions, deferred findings, and lessons in local progress state. In a `final-only`
+   wave, the passing set opens the final gate: present one result page with a section per
+   slice and route feedback as [present to human](references/present-to-human.md) describes,
+   then ship through stage 8.
 
 Keep slices sequential by default. Ask before independent parallelism. Give each slice one
 worktree; use separate sessions in that worktree with one writer at a time. Start the next

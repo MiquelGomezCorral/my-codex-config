@@ -23,7 +23,7 @@ Post-implementation quality gates expose unnecessary production and test complex
   the user, who alone approves a narrow inline skip. Cleanup runs the non-mutating form of
   the same checks and reports failures as findings.
 - One cleanup coordinator always runs a read-only swarm through `super-agent`: at least two `swarms` lens specialists (dead and speculative code, duplication and reinvention, indirection and structure, test value) and one or two `reviewer-high` simplest-design reviewers, at most six descendants, none of which delegate.
-- A production element with no demonstrated need is a finding. In workflow context every finding is accepted or rejected with a concrete reason, and one `reviewer-high` closure check confirms that accepted simplifications were fully applied.
+- A production element with no demonstrated need is a finding. In workflow context every finding is accepted or rejected with a concrete reason, and the next cleanup round confirms that accepted simplifications were fully applied; cleanup repeats until a round has no accepted findings, or until the human accepts what remains as recorded risk after three rounds.
 - Slopo runs only through `$cleanup --slopo`; OCR runs only through `$review --ocr`.
 - When `$cleanup --slopo` finds no `slopo.conf.yaml`, it may create Slopo's template once,
   report that mutation, and stop Slopo analysis if required configuration remains incomplete.
@@ -65,6 +65,7 @@ Separating diagnosis from correction lets the user choose which simplifications 
 
 ## History
 
+- 2026-10-23: Replaced the closure check with repeated cleanup rounds until clean, and cleanup now reruns after every later code change.
 - 2026-10-19: Ponytail's rules moved into the `code-quality` and review standards, so cleanup no longer names
   Ponytail as a separate criterion ([Ponytail core](ponytail.md)).
 - 2026-10-14: Cleanup judges tests through `test-audit`, and an uncertain test is now recommended for deletion instead of kept, because coders kept landing low-value unit tests.

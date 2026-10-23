@@ -53,10 +53,18 @@ slices with inspectable verification and explicit human authority across project
   tests records the opt-out, and its review and presentation state the waived evidence.
 - A local checkpoint commit precedes cleanup. Cleanup audits stay read-only; an approved
   workflow may route verified in-scope simplifications to the implementation worker.
+  Cleanup must pass clean: accepted findings go back through coding and review, then cleanup
+  runs again on those changes until an audit has no accepted findings. After three rounds that
+  still have accepted findings, the human chooses another round or accepts the rest as
+  recorded risk, which never counts as clean. Every later code change, from human feedback,
+  wave close, merge conflicts, or
+  CI, takes the same coding, review, and cleanup path before it returns to the human, a
+  `final-only` slice's local commit, or a push.
 - After the human accepts the result, the Git worker gathers remaining accepted task-owned
   deliverables, excludes working-only agent artifacts and unrelated changes, makes a final
   commit only when needed, and then performs only the plan-authorized push. The shipped tree
-  must match the result the human accepted.
+  must match the result the human accepted. A later merge-conflict or CI fix that leaves
+  behavior unchanged is the only exception.
 - Coding fixes verified in-scope findings at any severity, using P0-P3 to order work.
   Non-blocking out-of-scope findings are
   recorded and excluded; scope-expanding blockers escalate. Two unsuccessful rounds for
@@ -65,8 +73,9 @@ slices with inspectable verification and explicit human authority across project
   authorizes only its specifically named Git actions and bounds; final result acceptance
   does not require a second Git authorization. Implementers never receive merge authority
   merely because they receive coding or shipping context.
-- Merge conflicts are resolved through the Git worker, followed by affected checks and
-  review; changed or uncertain behavior is presented again before shipping continues.
+- Merge-conflict and CI fixes take affected checks, review, and cleanup (merge conflicts
+  through the Git worker); changed or uncertain behavior is presented again before shipping
+  continues.
 - Agents are retained within their assigned loops; distinct stages and slices use fresh
   sessions with explicit lifecycle and ownership accounting.
 - Approved plans persist implementation decisions and attached approved amendments.
@@ -197,6 +206,8 @@ diagram comprehension remains Review-only.
 
 ## History
 
+- 2026-10-23: Cleanup loops until clean and reruns after every later code change, because
+  feedback fixes on a final-only wave skipped cleanup and about 60 lines of waste reached the PR.
 - 2026-10-19: Slice size became per slice with three values (small, medium, large), approved by the human with the plan; medium and large both get a supervisor, and the size picks the models.
 - 2026-10-16: Moved run state into private `agent-memory/` and plan diagrams and samples into
   `agent-memory/artifacts/<name>/`, so durable agent work has one home and the artifacts skill

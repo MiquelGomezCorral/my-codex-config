@@ -34,7 +34,9 @@ $cleanup [--slopo] [goal or persisted-plan context]
    task-owned changes from the plan, goal, and accepted corrections while preserving
    pre-existing and unrelated worktree changes. In approved workflow context, compare from
    the recorded slice base through the current head so committed checkpoint changes are
-   included, then add later task-owned staged, unstaged, and untracked changes. Stop if
+   included, then add later task-owned staged, unstaged, and untracked changes. When the
+   workflow supplies a comparison basis, such as a later round's previous cleanup checkpoint,
+   audit from that basis and use the slice base comparison as context. Stop if
    ownership is ambiguous.
 3. Skip cleanup only when the complete task-owned comparison is empty. In workflow context,
    a clean post-checkpoint status alone does not establish that; report the base and

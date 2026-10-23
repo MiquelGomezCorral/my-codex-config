@@ -10,7 +10,8 @@ and the presented result. It stages explicit task-owned deliverables, commits on
 needed, and then performs the plan-authorized push. Exclude private memory, progress files,
 temporary agent artifacts, and unrelated changes; classify plan-scoped skills and agent
 configuration as deliverables by their approved scope, not as working-only files by type.
-Verify the final tree matches the accepted result before shipping. Record both checkpoint
+Verify the final tree matches the accepted result before shipping; a merge-conflict or CI
+fix that leaves behavior unchanged is the only exception. Record both checkpoint
 and final commit hashes, and stop if ownership or the accepted tree is unclear. Pass the
 worker the exact plan path and slice: commit subjects and the PR title and body describe the
 plan's goal for the wave's feature area, not the slice label or the code mechanism.
@@ -22,9 +23,10 @@ the child PR and drop the predecessor's commits through the `git` skill's `Own c
 only` rule, then rerun affected checks and reviews. Rewrite history only as that rule
 allows. Name that cleanup in the plan for dependent slices so it needs no extra approval.
 
-Record PR, target, CI, review, and completion state in local progress. Resolve review
-feedback through the affected coding and validation gates; a change that alters the
-presented result returns to the human before newly required shipping actions.
-Route merge-conflict resolution through `git-worker`; rerun affected checks and review.
-If the resolved behavior differs from what the human accepted, or cannot be established,
-present it again before shipping proceeds.
+Record PR, target, CI, review, and completion state in local progress. Review feedback that
+changes code goes through workflow stages 5 and 6; a change that alters the presented
+result returns to the human before newly required shipping actions. CI feedback that
+changes code takes the same stages, and its result returns to the human only if behavior
+changed or remains uncertain. Route merge-conflict resolution through `git-worker`, then
+workflow stages 5 and 6. If the resolved behavior differs from what the human accepted, or
+cannot be established, present it again before shipping proceeds.

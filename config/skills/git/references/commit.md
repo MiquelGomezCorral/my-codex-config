@@ -92,23 +92,24 @@ revision.
    tags included. Fold only when every remote fetches all its branches, the fetch succeeds,
    both counts match, and the merge list is empty. Otherwise do not fold; report the failed
    check so the parent can offer a new commit on top.
-2. Stage only the fix's paths, commit it with `git commit --fixup=<owning-sha>`, and
-   record the new `HEAD` as `<old-head>`, a literal hash. Create the backup ref the skill's
-   `History rewrites` section describes.
-3. Fold it: `GIT_SEQUENCE_EDITOR=true git rebase -i --autosquash --no-update-refs
-   <wave-base>`. On a conflict or stop, run `git rebase --abort`, never `git rebase
-   --skip`, and report it.
+2. Commit the fix with `git commit --fixup=<owning-sha>`, staging only its paths. Each
+   cleanup checkpoint the workflow adds to that fix is made as a `--fixup=<owning-sha>`
+   commit when it is created. After the last one, record `HEAD` as `<old-head>`, a literal
+   hash, and create the backup ref the skill's `History rewrites` section describes.
+3. Stop if `<wave-base>..HEAD` holds no `fixup!` commit. Fold it:
+   `GIT_SEQUENCE_EDITOR=true git rebase -i --autosquash --no-update-refs <wave-base>`. On a
+   conflict or stop, run `git rebase --abort`, never `git rebase --skip`, and report it.
 4. Verify:
 
    ```sh
    git diff --quiet <old-head> HEAD                       # same tree: folding never changes it
-   git rev-list --count <wave-base>..HEAD                 # old count minus one: the fixup is gone
+   git rev-list --count <wave-base>..HEAD                 # the count at <old-head> minus the fixup commits
    git range-diff <wave-base>..<old-head> <wave-base>..HEAD   # readable record, see below
    ```
 
    Tree equality and the count are the gates. In the range-diff, every commit except the
-   owning one shows `=`. The owning commit shows `!` or a `<`/`>` pair, and the `fixup!`
-   commit shows as one `<` line.
+   owning one and the `fixup!` commits shows `=`. The owning commit shows `!` or a `<`/`>`
+   pair, and each `fixup!` commit shows as one `<` line.
 
    Stop on any mismatch: report the old head, the backup ref, and what differed, and ask
    the parent. Otherwise report the rewritten commit hashes.
