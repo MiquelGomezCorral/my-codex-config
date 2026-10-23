@@ -25,12 +25,10 @@
 8. After result acceptance, the Git worker inspects remaining changes against the approved
    scope and accepted result, stages explicit task-owned deliverables, and commits only when
    needed. Exclude private memory, progress files, temporary agent artifacts, and unrelated
-   changes. Verify the final tree matches the accepted result; a merge-conflict or CI fix
-   that leaves behavior unchanged is the only exception. Record the final commit hash,
-   then run only Git actions named by the plan. Resolve merge conflicts through the Git
-   worker, then steps 5-6, and re-present changed or uncertain behavior. CI fixes that
-   change code take steps 5-6 too, as workflow stage 8 says. Inspect required CI and review,
-   then prepare the next slice from this accepted PR head after all gates pass.
+   changes. Verify the final tree matches the accepted result, except as workflow stage 8
+   allows. Record the final commit hash, then run only Git actions named by the plan. Inspect
+   required CI and review; conflict resolutions and fixes follow workflow stage 8. Prepare the
+   next slice from this accepted PR head after all gates pass.
 9. Reconcile progress at interruptions. Run the wave regression (workflow stage 9), then
    close the wave with completed work, open decisions, deferred observations, and lessons.
 

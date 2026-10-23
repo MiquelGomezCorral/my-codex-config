@@ -144,25 +144,23 @@ context conflicts or a non-Git action's bounds are missing.
    as context; with no new changes, it runs only the earlier-fix check.
    Skip cleanup only when that complete comparison is empty; a clean post-checkpoint status
    alone is not enough. Verify each finding and accept or reject it with a concrete reason.
-   Before a later round can pass, the coordinator checks every earlier accepted finding
-   the human did not leave as recorded risk against the current tree; one that did not
-   fully land, including a fix that changed nothing, counts as an accepted finding of that
-   round. Cleanup passes only when an audit round has no accepted findings; accepted
-   findings go through stage 5, then a new checkpoint and the next round. Ask the human
-   before applying the findings of a third round that still has accepted findings, and
-   again after every further round the human chooses that still has them; recorded risk is
-   the other way out of the gate and never counts as clean. Stage 6 ends with a clean round
-   or with recorded risk the human accepted. Every later code change, from human feedback,
-   wave close, merge conflicts, or CI, takes stages 5 and 6 before it returns to the human,
-   before a `final-only` slice's local commit, or before a push, and starts a new count of
-   three rounds whose first round audits from the checkpoint the last cleanup round
-   audited, or from the slice base when the human picks the whole slice for a big change.
+   Before a later round can pass, the human-facing coordinator checks every earlier
+   accepted finding the human did not leave as recorded risk against the current tree; one
+   that did not fully land, including a fix that changed nothing, counts as an accepted
+   finding of that round. Cleanup passes only when an audit round has no accepted findings;
+   accepted findings go through stage 5, then a new checkpoint and the next round. From
+   round 3 on (the cap), ask the human before applying a round's accepted findings. Stage 6
+   ends with a clean round or with recorded risk the human accepted; recorded risk never
+   counts as clean. Every later code change, from human feedback, wave close, merge
+   conflicts, or CI, takes stages 5 and 6 before it returns to the human, before a
+   `final-only` slice's local commit, or before a push. Each such change restarts the round
+   count. Its first round audits from the checkpoint the last cleanup round audited, or from
+   the slice base when the human picks the whole slice for a big change.
    The full slice live test set reruns on the final head. Before presentation, a
-   `final-only` slice's local commit, or a push, the task-owned diff from the last cleanup
-   round's checkpoint to the current tree must be empty, whether that round was clean or is
-   the cap round whose remaining findings the human accepted as recorded risk. With no
-   task-owned change at all, cleanup is skipped and the comparison from the slice base is
-   empty.
+   `final-only` slice's local commit, or a push, the task-owned diff from the checkpoint the
+   last cleanup round audited to the current tree must be empty, whether that round was
+   clean or its remaining findings are recorded risk the human accepted. With no task-owned
+   change at all, cleanup is skipped and the comparison from the slice base is empty.
    [Cleanup](references/cleanup.md) owns what each round audits, the big-change question,
    and the cap's outcomes.
 7. **Present to human:** show the result page (gate 3) with the actual result, live evidence,
@@ -187,14 +185,13 @@ context conflicts or a non-Git action's bounds are missing.
    unchanged is the only exception. Pass it the exact plan path and slice; it
    writes commits and the PR title and body from the plan's goal, as the `git` skill's
    plan context and PR title rules describe. Record checkpoint and final commit hashes.
-   Acceptance is a result gate, not a second Git authorization request. If a merge
-   conflict occurs, route its resolution through `git-worker`, then stages 5 and 6, then
-   re-present the result if behavior changed or remains uncertain. Inspect required CI and
-   review feedback; a fix that changes code takes stages 5 and 6 before the push, and the
-   result returns to the human only if behavior changed or remains uncertain. Never infer an
-   unnamed action. In a `final-only` wave this stage runs once, after final
-   acceptance in stage 9: push only if the plan names it, and open a PR only when the user
-   asks.
+   Acceptance is a result gate, not a second Git authorization request. Route a
+   merge-conflict resolution through `git-worker`, and inspect required CI and review
+   feedback. A conflict resolution or a fix that changes code takes stages 5 and 6 before
+   the push, and the result returns to the human only if behavior changed or remains
+   uncertain. Never infer an unnamed action. In a `final-only` wave this stage runs once,
+   after final acceptance in stage 9: push only if the plan names it, and open a PR only
+   when the user asks.
 9. **Close the wave:** after the last slice, rerun every slice's live test set on the
    final head. Fix a failure inside the owning slice's scope when it fits the last slice's
    grant, routed through stages 5-8, cleanup included; otherwise use a bounded correction
