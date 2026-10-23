@@ -109,6 +109,9 @@ adversarial:
   - harness: codex
     model: gpt-6.1-sol
     thinking: xhigh
+  - harness: agy
+    model: gemini-3.8-flash-high
+    thinking: high
   - harness: pi
     model:
       - opencode-go/deepseek-v4.1-flash
