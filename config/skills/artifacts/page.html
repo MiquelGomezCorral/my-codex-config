@@ -270,9 +270,7 @@ body:has(#viewer[open]){overflow:hidden}
 #viewer-stage.zoomed{cursor:grab}
 #viewer-stage.zoomed:active{cursor:grabbing}
 #viewer-stage>*,#viewer-stage svg{max-width:100%;max-height:100%;transform-box:border-box;transform-origin:center}
-#viewer-stage img{display:block;max-width:100%;max-height:100%;width:auto;height:auto}
 #viewer-stage svg{height:auto}
-#viewer-stage .viewer-pele{display:contents}
 #viewer-stage iframe{width:100%;height:calc(100% - 24px);border:0;background:var(--card)}
 #viewer.plot #viewer-stage{cursor:default}
 .viewer-tools{position:absolute;top:12px;right:12px;display:flex;gap:8px;z-index:1}
@@ -280,7 +278,7 @@ body:has(#viewer[open]){overflow:hidden}
 .viewer-step{position:absolute;top:50%;margin-top:-20px;z-index:1;min-width:40px;height:40px;padding:0;font-size:22px;line-height:1}
 .viewer-step[data-viewer="prev"]{left:12px}
 .viewer-step[data-viewer="next"]{right:12px}
-.viewer-step:disabled,.viewer-tools button:disabled{opacity:.35;cursor:default}
+.viewer-step:disabled{opacity:.35;cursor:default}
 #viewer.plot .viewer-tools [data-viewer="in"],#viewer.plot .viewer-tools [data-viewer="out"]{display:none}
 .split{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:20px;align-items:start}
 @media screen and (max-width:760px){html:not(.print-layout) .split{grid-template-columns:1fr}} /* paper, and Export PDF laying out for it, keeps two columns */
@@ -1585,7 +1583,7 @@ const ZOOM_MAX = 20;
 
 const viewerDialog = document.getElementById("viewer");
 const viewerStage = document.getElementById("viewer-stage");
-const viewer = { items: [], index: 0, opener: null, pair: null, media: null, scale: 1, tx: 0, ty: 0, drag: null };
+const viewer = { items: [], index: 0, opener: null, pair: null, media: null, scale: 1, tx: 0, ty: 0 };
 const viewerPointers = new Map();
 let viewerPinch = null;
 let viewerBackdrop = false;
@@ -1621,12 +1619,6 @@ function mountViewerMedia(element) {
     copy.setAttribute("sandbox", "allow-scripts");
     viewer.media.copy = copy;
     viewerStage.append(copy);
-  } else if (element.closest("pre.mermaid")) {
-    const wrapper = document.createElement("div");
-    // Pele's stylesheet themes `.pele` (the diagram's own svg wears it too), so the copy follows a theme switch.
-    wrapper.className = "viewer-pele pele";
-    wrapper.append(element);
-    viewerStage.append(wrapper);
   } else {
     viewerStage.append(element);
   }
@@ -1712,10 +1704,10 @@ function openViewer(opener) {
   // The step list is the gallery the item sits in; a figure outside one is alone, with no arrows.
   const block = opener.closest(".gallery-block");
   const items = block ? [...block.querySelectorAll(VIEWER_ITEMS)].filter((el) => el.getClientRects().length) : [target];
-  viewer.items = items.includes(target) ? items : [target];
+  viewer.items = items;
   viewer.opener = opener;
   viewerDialog.showModal();
-  showViewerItem(Math.max(0, viewer.items.indexOf(target)));
+  showViewerItem(viewer.items.indexOf(target));
 }
 
 function closeViewer() {
@@ -1726,12 +1718,7 @@ function closeViewer() {
 // An open plot keeps the theme it opened with.
 function rethemeViewer() {
   if (!viewerDialog.open || !viewer.pair) return;
-  unmountViewerMedia();
-  viewer.scale = 1;
-  viewer.tx = 0;
-  viewer.ty = 0;
-  mountViewerMedia(viewerThemed(viewer.items[viewer.index]));
-  applyViewerTransform();
+  showViewerItem(viewer.index);
 }
 
 // A pointer's place in the stage, measured from its middle, where the media is centred.
@@ -1794,10 +1781,10 @@ function wireViewer() {
     viewerPointers.set(e.pointerId, viewerPoint(e.clientX, e.clientY));
     viewerDialog.setPointerCapture(e.pointerId);
     if (viewerPointers.size === 2) viewerPinch = viewerPinchInfo();
-    viewer.drag = viewerPointers.size === 1 ? viewerPoint(e.clientX, e.clientY) : null;
   });
   viewerDialog.addEventListener("pointermove", (e) => {
-    if (!viewerPointers.has(e.pointerId)) return;
+    const from = viewerPointers.get(e.pointerId);
+    if (!from) return;
     const point = viewerPoint(e.clientX, e.clientY);
     viewerPointers.set(e.pointerId, point);
     if (viewerPointers.size > 1) {
@@ -1810,19 +1797,17 @@ function wireViewer() {
       viewerPinch = pinch;
       return;
     }
-    if (viewer.drag && viewer.scale > 1) {
-      viewer.tx += point.x - viewer.drag.x;
-      viewer.ty += point.y - viewer.drag.y;
+    if (viewer.scale > 1) {
+      viewer.tx += point.x - from.x;
+      viewer.ty += point.y - from.y;
       clampViewerPan();
       applyViewerTransform();
     }
-    if (viewer.drag) viewer.drag = point;
   });
   // A press and a release both on the backdrop closes; a drag that merely ends there does not.
   const endPointer = (e) => {
     viewerPointers.delete(e.pointerId);
     if (viewerPointers.size < 2) viewerPinch = null;
-    viewer.drag = viewerPointers.size === 1 ? [...viewerPointers.values()][0] : null;
   };
   viewerDialog.addEventListener("pointerup", (e) => {
     endPointer(e);
@@ -1849,7 +1834,6 @@ function wireViewer() {
     viewer.pair = null;
     viewerPointers.clear();
     viewerPinch = null;
-    viewer.drag = null;
     viewerBackdrop = false;
     viewer.opener?.focus({ preventScroll: true });
     viewer.opener = null;

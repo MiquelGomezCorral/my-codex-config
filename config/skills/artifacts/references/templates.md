@@ -217,8 +217,7 @@ To add a Lucide icon the catalog lacks:
   goes with which picture.
 - **A page rewritten during a long run sets `refresh`.** Drop it once the runs are done.
 - **Without the run sections it is a gallery page.** Keep the header and the section titles and
-  fill the body with `gallery` blocks: each figure opens in the page's viewer, and the arrows
-  step through its gallery.
+  fill the body with `gallery` blocks.
 
 ```json
 {
