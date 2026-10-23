@@ -275,7 +275,7 @@ if (showFlow) {
     ["review", "5", "Review + live tests, every round", "Verified P0-P3 findings go back to the coder. Two failed rounds on the same problem, or a test still impossible after 3, goes to you.", ["$review --preset", "review-worker", "Verifier", "live-validator"]],
     ["git", "6", "Checkpoint commit", "Round 1 of cleanup audits the whole slice from its base; later rounds start at the previous round's checkpoint.", ["$git", "git-worker"]],
     ["cleanup", "6", "Cleanup audit", "Findings only. Accepted ones go back through step 5 and cleanup repeats until a round accepts nothing; after three rounds, you decide.", ["$cleanup", "cleanup-worker"]],
-    ["human", "7", "You accept the result", "Root shows the result, evidence, checks and gaps. Feedback goes back through steps 5 and 6.", []],
+    ["human", "7", "You accept the result", "Root shows the result, evidence, checks and gaps. Feedback that changes code goes back through steps 5 and 6.", []],
     ["git", "8", "Ship", "Final commit, push and PR: only what the plan authorizes, only this slice's commits.", ["$git", "git-worker"]],
     ["sec", "After the last slice"],
     ["root", "9", "Close the wave", "Rerun every slice's live tests on the final head; record unfinished work and lessons.", []],
