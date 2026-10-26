@@ -65,9 +65,9 @@ such as `reviewer-arch` and `reviewer-reasoning`, plus `reviewer-high` simplest-
 reviewers: one, or two under the risk condition of the review swarm (security, data,
 public contracts, migrations, or a large or multi-module change; see
 [swarm coordination](../review/references/swarm-coordination.md), which also owns the
-`pi` entry rule of three workers per listed pi model). With `Audit depth: light`, the swarm
-is one `reviewer-high` simplest-design reviewer and no lens specialists. Its return ends
-with the roster of launched and self-covered lenses.
+`pi` entry rule of three workers per listed pi model). With `Audit depth: light`, the role's
+one-agent swarm replaces the list above. Its return ends with the roster of launched and
+self-covered lenses.
 
 ## Optional Slopo evidence
 
