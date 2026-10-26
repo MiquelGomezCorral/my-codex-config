@@ -20,13 +20,14 @@ Any review, including one a specialist performs, reads
 severity, scope classification, and the output contract come from there and are not
 restated here. Standalone `$review` inspects the staged diff first and uses the unstaged
 diff when nothing is staged. Approved workflow review uses the complete slice basis in
-[references/orchestration.md](references/orchestration.md), not staged-first selection.
+[references/orchestration.md](references/orchestration.md) (a `Review focus`, when passed,
+narrows it), not staged-first selection.
 
 ## Review modes
 
 The modes are the worker-packet markers `Review mode: direct` and `Review mode: swarm`,
 which [references/orchestration.md](references/orchestration.md) sets. A preset (`flash`,
-`swarm`, `swarm-smart`, `full`) selects a mode and more; `full` names only the preset.
+`swarm`, `full`) selects a mode and more; `full` names only the preset.
 
 Audit mode: `$review audit [path]`, or a request such as "audit this codebase", reviews a
 tree (the named path, or the whole repo), not a diff. The workflow and output are the

@@ -259,9 +259,9 @@ loads its owning skill and forwards the full invocation arguments.
 For example, a native `review` alias passes `focus on the payment path` to the
 `review` skill as free-text context. Direct `$skill-name` invocation also remains available.
 
-The `$review --preset` values are `flash`, `swarm`, `swarm-smart`, and `full`, for one
-brief reviewer, adaptive swarm, verified swarm synthesis, or authorized live end-to-end
-validation. OCR stays a separate explicit `$review --ocr` opt-in. Install OCR separately,
+The `$review --preset` values are `flash`, `swarm`, and `full`, for one brief reviewer,
+adaptive swarm, or verified swarm synthesis with authorized live end-to-end validation. OCR
+stays a separate explicit `$review --ocr` opt-in. Install OCR separately,
 then authenticate `opencode-go` in Pi with `/login`; Pi is only the credential store, not
 the review harness. The review helper calls OpenCode Go directly, defaults to
 `deepseek-v4.1-flash`, and stores no credential or session state in this repository. Set

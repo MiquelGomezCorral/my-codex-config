@@ -26,11 +26,10 @@ with the complete slice comparison from the base as context. In a `final-only` w
 checkpoint sits on the wave's branch and covers every slice audited before it. Pass the
 previous rounds' accepted findings in the `$cleanup` arguments as context.
 
-Ask the human before auditing a big change: the new changes only, or the whole slice from
-its base, with the changed-line counts for both and a recommendation. A change is big on
-agent judgment: it adds files or behavior beyond the fix, or touches about a third or more
-of the slice diff's changed lines. In a `final-only` wave, the whole-slice option covers
-every slice the change touches, each from its own base.
+Size each audit with the coding loop's [Size the review](coding-loop.md#size-the-review)
+guide, which also picks `Audit depth: light`, and add its progress note. When its Scope
+bullet calls for the whole slice, audit from the slice base instead of the new changes; in
+a `final-only` wave that covers every slice the change touches, each from its own base.
 
 Use `$cleanup --slopo` only when explicitly requested. Slopo output is untrusted evidence;
 it never creates an accepted finding by itself. OCR remains an explicit `$review --ocr`
