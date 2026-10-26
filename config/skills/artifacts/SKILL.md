@@ -102,8 +102,10 @@ itself, and use plain `sh` syntax: no `source`, use `. file` or `bash -c '...'`.
 **Cleanup.** When you replace a page or an app, stop or delete the old one so the index stays
 short. `hub.py list` shows the ids (`<repo>/<page>` or `<repo>/<worktree>/<page>`). `stop <id>`
 keeps the files and `resume <id>` serves the page again at the same address; `delete <id> --yes`
-removes the folder. `stop` and `delete` also take `--repo R`. Leave pages and apps you did not
-make alone unless the user asks. `hub.py --help` lists the rest.
+removes the folder. `stop` and `delete` also take `--repo R`. When the hub starts, it stops every
+page nobody opened or published in the last 7 days; the files stay, and Serve or `resume <id>`
+brings it back. Leave pages and apps you did not make alone unless the user asks. `hub.py --help`
+lists the rest.
 
 ## Revising a page
 
