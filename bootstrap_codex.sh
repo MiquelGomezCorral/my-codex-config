@@ -413,7 +413,7 @@ install_config() {
     --source "$ROOT/config/codex-hooks.json" --target "$CODEX_TARGET/hooks.json" --backup "$BACKUP_ROOT"
   common_link_managed "$COMMANDS_SOURCE" "$CODEX_TARGET/commands"
   common_link_managed "$ROOT/config/rules/my-opencode-config.rules" "$CODEX_TARGET/rules/my-opencode-config.rules"
-  for name in automation-runner commit-worker; do
+  for name in automation-runner commit-worker live-validator; do
     [[ ! -e "$CODEX_TARGET/agents/$name.toml" && ! -L "$CODEX_TARGET/agents/$name.toml" ]] || backup_existing "$CODEX_TARGET/agents/$name.toml"
   done
   for source in "$ROOT"/config/agents/*.toml; do

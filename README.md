@@ -195,8 +195,9 @@ and passes protected invariants to implementation and review workers. Routine wo
 change, while intent conflicts require user resolution.
 
 Delegating skills load `super-agent`. The `reviewer-fast` and `swarms` roles run on the
-launching agent's own harness with that harness's cheap model at its highest thinking, and
-fall back to that harness's `low` tier. A proven active wrapper such as Orca owns the
+launching agent's own harness with that harness's cheap model at its highest thinking.
+`computer-controller` runs there at the thinking the catalog sets. All three fall back to that
+harness's `low` tier. A proven active wrapper such as Orca owns the
 worker lifecycle and exposes eligible harnesses; without a wrapper, delegation stays on
 the current harness and uses its native worker tools. Generic mixed swarms keep at least
 half their workers, rounded up, on the current harness when no catalog role, harness

@@ -1,8 +1,8 @@
 # Full preset
 
 Run `swarm-smart`, then a live round in which testers run the slice's
-approved live test set. Testers resolve the catalog role `reviewer-fast`; the native agent
-role is `live-validator`.
+approved live test set. Testers resolve the catalog role `computer-controller`; the native agent
+role is `computer-controller`, and each tester's packet says the job is a live test.
 
 Before launch, verify that the persisted plan or a later human approval gives each test
 the `refine-plan` fields: `Flow`, `Samples`, `Where`, `Can run`, `Expected`, `Reset`, and
@@ -25,5 +25,6 @@ or `large` one) owns the app for the live round. Run the round this way:
 
 If a field, the authorization, or an available safe environment is missing, stop live
 testing, report the required evidence as blocked/unverified, and still return the code
-review. Never deploy, install, authenticate, widen the test, or infer success from static
-checks. OCR and Slopo remain separate explicit opt-ins.
+review. Never deploy, install (except `computer-controller`'s pinned Playwright CLI install),
+authenticate, widen the test, or infer success from static checks. OCR and Slopo remain separate
+explicit opt-ins.

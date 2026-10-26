@@ -117,6 +117,13 @@ install_assets() {
   python3 "$ROOT/config/bin/harness-assets.py" install-policy \
     --source "$ROOT/config/AGENTS.md" --target "$AGY_PLUGIN_TARGET/GEMINI.md" --backup "$BACKUP_ROOT"
 
+  for target in "$AGY_CLI_ROOT/agents/live-validator.md" \
+    "$AGY_PLUGIN_TARGET/agents/live-validator/agent.md" \
+    "$AGY_GLOBAL_AGENTS/live-validator/agent.md"; do
+    [[ ! -e "$target" && ! -L "$target" ]] || common_backup_existing "$target"
+  done
+  rmdir "$AGY_PLUGIN_TARGET/agents/live-validator" \
+    "$AGY_GLOBAL_AGENTS/live-validator" 2>/dev/null || true
   for source in "$ROOT"/config/agents/*.toml; do
     name=$(basename "$source" .toml)
     target="$AGY_CLI_ROOT/agents/$name.md"

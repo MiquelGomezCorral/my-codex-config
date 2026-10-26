@@ -121,8 +121,9 @@ adversarial:
 #    model: claude-fable-5-1
 #    thinking: high
 
-# reviewer-fast and swarms (further below) run on the harness of the agent doing the launch,
-# using that harness's by_harness entry, or its `low` tier above when that model is unavailable.
+# reviewer-fast, computer-controller, and swarms (further below) run on the harness of the agent
+# doing the launch, using that harness's by_harness entry, or its `low` tier above when that model
+# is unavailable.
 reviewer-fast:
   harness: current
   by_harness:
@@ -140,6 +141,23 @@ reviewer-fast:
     claude:
       model: claude-haiku-5-5
       thinking: xhigh
+
+# Follows the launching harness, as reviewer-fast does.
+computer-controller:
+  harness: current
+  by_harness:
+    agy:
+      model: gemini-3.8-flash-medium
+      thinking: medium
+    pi:
+      model: opencode-go/deepseek-v4.1-flash
+      thinking: medium
+    codex:
+      model: gpt-6-luna
+      thinking: medium
+    claude:
+      model: claude-haiku-5-5
+      thinking: medium
 
 reviewer-high:
   - harness: codex

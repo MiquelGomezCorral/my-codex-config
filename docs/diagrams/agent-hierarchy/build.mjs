@@ -78,7 +78,7 @@ const C = {
 };
 const legend = [["human", "Human"], ["root", "Root coordinator"], ["plan", "Planning helpers"],
   ["diagram", "diagram-worker"], ["critic", "Critics"], ["sup", "coding-supervisor"], ["coder", "coder"],
-  ["review", "Review"], ["live", "live-validator"], ["cleanup", "Cleanup"], ["git", "git-worker"]];
+  ["review", "Review"], ["live", "computer-controller"], ["cleanup", "Cleanup"], ["git", "git-worker"]];
 const drawLegend = (x, y) => {
   let lx = x;
   for (const [k, label] of legend) {
@@ -122,7 +122,7 @@ const tree = N("human", "Human", "the person", "Decides, approves the wave and i
         N("review", "Strong reviewers 1-2", "reviewer-high · GPT-6.1 Sol", "Review the whole change; two when it touches security, data or contracts", [], "1-2 reviewers"),
       ], "$review"),
       N("review", "Verifier", "reviewer-fast · cheap model\non the current harness", "A fresh review-worker that re-checks every finding against the source", [], "swarm-smart, full", true),
-      N("live", "live-validator ×N", "reviewer-fast · cheap model\non the current harness", "Runs the approved live tests on the real app and reports evidence", [], "full preset", true),
+      N("live", "computer-controller ×N", "computer-controller · cheap model\non the current harness", "Runs approved live tests and other browser or desktop tasks, and reports evidence", [], "full preset", true),
     ], "medium or large slice", true),
     N("cleanup", "cleanup-worker", "sub_orchestrator · sized by slice\nlarge: Opus 5.5 · high\nmedium: Sonnet 5.5 · high\nonly while it coordinates", "Read-only deslop audit of the slice diff. Findings only; the root accepts or rejects each", [
       N("cleanup", "Cleanup lenses ≥2", "swarms · cheap model\non the current harness", "Dead code, duplication, indirection, test value", [], "lenses"),
@@ -240,7 +240,7 @@ if (showRules) {
     ["cleanup-worker", "nothing", "cleanup lenses + simplest-design"],
     ["git-worker", "commits, push, PR the plan allows", "no"],
     ["diagram-worker", "one assigned output folder", "no"],
-    ["live-validator", "its own test data only", "no"],
+    ["computer-controller", "its work folder and evidence files", "no"],
     ["critics, reviewers, researchers", "nothing", "no"],
     ["explorer", "nothing", "no"],
   ];
@@ -272,7 +272,7 @@ if (showFlow) {
     ["sec", "Each slice"],
     ["sup", "4", "Slice narrowed to today's code", "Root for small slices, coding-supervisor for medium and large ones. New live tests run once on the base and must fail there.", ["coding-supervisor"]],
     ["coder", "5", "Coder implements", "One retained writer. Runs only the plan's checks; live testing waits for the review round.", ["coder"]],
-    ["review", "5", "Review + live tests, every round", "Verified P0-P3 findings go back to the coder. Two failed rounds on the same problem, or a test still impossible after 3, goes to you.", ["$review --preset", "review-worker", "Verifier", "live-validator"]],
+    ["review", "5", "Review + live tests, every round", "Verified P0-P3 findings go back to the coder. Two failed rounds on the same problem, or a test still impossible after 3, goes to you.", ["$review --preset", "review-worker", "Verifier", "computer-controller"]],
     ["git", "6", "Checkpoint commit", "The first cleanup audits the whole slice; later rounds and later changes start at the last audited checkpoint.", ["$git", "git-worker"]],
     ["cleanup", "6", "Cleanup audit", "Findings only. Accepted ones go back through step 5 and cleanup repeats until a round accepts nothing; after three rounds, you decide.", ["$cleanup", "cleanup-worker"]],
     ["human", "7", "You accept the result", "Root shows the result, evidence, checks and gaps. Feedback that changes code goes back through steps 5 and 6.", []],

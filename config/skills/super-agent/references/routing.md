@@ -17,10 +17,10 @@ launching a worker.
 - A wrapper's agent selector names the harness, not a worker role.
 - Read the stage's catalog role entry, then carry its catalog role, harness, exact model,
   and thinking in the worker packet, together with the task's native agent role and
-  permissions. For `reviewer-fast` and `swarms`, the harness is the current harness (the
-  harness of the agent doing the launch) and the model and thinking come from the role's
-  `by_harness` entry, or from that harness's `low` tier when the entry's model is
-  unavailable.
+  permissions. For `reviewer-fast`, `computer-controller`, and `swarms`, the harness is the
+  current harness (the harness of the agent doing the launch) and the model and thinking come
+  from the role's `by_harness` entry, or from that harness's `low` tier when the entry's model
+  is unavailable.
 - For a sized role (`sub_orchestrator`, `coder`), use the entry for the slice's `Size:`.
   A plan slice carries it, approved with the plan; with no plan, propose size and route in
   one line and wait for the user's OK.
@@ -43,7 +43,7 @@ launching a worker.
 Include these fields in every worker packet:
 
 ```text
-Catalog role: super_agent | sub_orchestrator | coder | git-worker | explorer | adversarial | reviewer-high | reviewer-fast | swarms
+Catalog role: super_agent | sub_orchestrator | coder | git-worker | explorer | adversarial | reviewer-high | reviewer-fast | computer-controller | swarms
 Size: small | medium | large (sub_orchestrator, coder and git-worker only)
 Harness: the role entry's harness, or an explicit user override
 Model: the resolved exact model

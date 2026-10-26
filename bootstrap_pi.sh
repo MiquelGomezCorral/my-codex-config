@@ -143,6 +143,8 @@ install_assets() {
   python3 "$ROOT/config/bin/harness-assets.py" install-policy \
     --source "$ROOT/config/AGENTS.md" --target "$PI_AGENT_ROOT/AGENTS.md" --backup "$BACKUP_ROOT"
 
+  target="$PI_AGENT_ROOT/agents/live-validator.md"
+  [[ ! -e "$target" && ! -L "$target" ]] || common_backup_existing "$target"
   for source in "$ROOT"/config/agents/*.toml; do
     name=$(basename "$source" .toml)
     target="$PI_AGENT_ROOT/agents/$name.md"
