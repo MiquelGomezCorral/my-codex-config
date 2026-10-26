@@ -25,7 +25,7 @@ import threading
 import time
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import quote, unquote, urlsplit
@@ -34,7 +34,7 @@ PORT = 3200
 # Bump VERSION with every change to hub.py's behavior, including the fields list.json gives hub.html.
 # `ensure` replaces a running hub only when its VERSION is lower, so an unchanged number keeps the
 # old code running.
-VERSION = 4
+VERSION = 5
 APP_ID = "artifact-hub"
 ROUTE_PROBE = ("8.8.8.8", 80)
 LOCAL_REPO = "_local"
@@ -43,6 +43,8 @@ PAGE_NAME = re.compile(r"[a-z0-9][a-z0-9._-]*")
 RANGE = re.compile(r"bytes=(\d{0,18})-(\d{0,18})")
 TERM_WAIT = 5
 START_WAIT = 5
+# A page nobody opened or published for this long is not served again when the hub starts.
+IDLE_DAYS = 7
 MAX_BODY = 4096
 # Keeps another site from framing the index and steering clicks onto its buttons.
 FRAME_GUARD = {"X-Frame-Options": "DENY", "Content-Security-Policy": "frame-ancestors 'none'"}
@@ -169,6 +171,11 @@ def read_record(root: Path, name: str) -> dict | None:
 
 def write_record(root: Path, name: str, record: dict) -> None:
     write_json(record_file(root, name), record)
+
+
+def opened_file(root: Path, name: str) -> Path:
+    """Touched each time a browser opens the page, so its mtime is when it was last opened."""
+    return record_file(root, name).with_suffix(".opened")
 
 
 def stored_records(root: Path) -> Iterator[tuple[str, dict]]:
@@ -654,6 +661,7 @@ def delete_entry(entry: Entry) -> str:
             f"refusing to delete {entry.name}: not a plain folder inside the artifacts folder"
         )
     record_file(entry.root, entry.name).unlink(missing_ok=True)
+    opened_file(entry.root, entry.name).unlink(missing_ok=True)
     return f"deleted {entry.id}"
 
 
@@ -897,6 +905,11 @@ class HubHandler(BaseHTTPRequestHandler):
                 return
             target = inside(root, target / "index.html")
         if target and target.is_file():
+            if target == root / "index.html":
+                try:
+                    opened_file(entry.root, entry.name).touch()  # no lock: a load never waits
+                except OSError as error:
+                    note(f"could not mark {entry.id} opened: {error}")
             self.send_file(target)
         else:
             self.fail(404)
@@ -1045,7 +1058,43 @@ def foreign_port_error() -> HubError:
     )
 
 
+def used_since(entry: Entry, cutoff: datetime) -> bool:
+    """True when the page was opened in a browser, published, or served again after cutoff.
+
+    A date the hub cannot read counts as recent, so one hand-edited record never blocks the start.
+    """
+    with contextlib.suppress(FileNotFoundError):
+        if opened_file(entry.root, entry.name).stat().st_mtime > cutoff.timestamp():
+            return True
+    try:
+        return datetime.fromisoformat(entry.record["updated"]) > cutoff
+    except (TypeError, ValueError):
+        return True
+
+
+def stop_idle_pages() -> None:
+    """Stop serving pages unused for IDLE_DAYS; their files stay. Call under the lock."""
+    cutoff = datetime.now().astimezone() - timedelta(days=IDLE_DAYS)
+    idle = [
+        entry
+        for entry in list_entries()
+        if entry.kind == "page"
+        and entry.record["state"] == "serving"
+        and not used_since(entry, cutoff)
+    ]
+    for entry in idle:
+        # Not `save`, which would date the page as updated today.
+        write_record(entry.root, entry.name, {**entry.record, "state": "stopped"})
+    if idle:
+        note(f"stopped {len(idle)} pages nobody opened in {IDLE_DAYS} days")
+
+
 def spawn_hub() -> None:
+    """Start the hub process, first stopping idle pages so they are not served again."""
+    try:
+        stop_idle_pages()
+    except OSError as error:  # an unreadable folder must not keep the hub from starting
+        note(f"could not stop idle pages: {error}")
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     with LOG_FILE.open("ab") as log:
         subprocess.Popen(
