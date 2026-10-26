@@ -11,9 +11,11 @@
    stage 4 describes.
 5. Record the slice base before coding. Route `small` slices directly to one retained coder
    and `medium` or `large` slices through a read-only coding supervisor with a bounded
-   one-coder grant. The root for `small`, or supervisor for `medium` or `large`, runs the plan-selected `$review` preset
-   against the full slice: base-to-head changes plus task-owned staged, unstaged, and
-   untracked changes. The reviewer reports the inspected revisions. Each round also runs
+   one-coder grant. The root for `small`, or supervisor for `medium` or `large`, runs
+   `$review` at the size the coding loop picks for the round (the plan's preset by default)
+   against the full slice, or a fix round's `Review focus` with the full slice as context:
+   base-to-head changes plus task-owned staged, unstaged, and untracked changes. The
+   reviewer reports the inspected revisions. Each round also runs
    the slice's live tests ([coding loop](coding-loop.md)). Verify required checks and
    review findings; correct every verified in-scope P0-P3 finding in priority order.
 6. After coding gates pass, make the plan-authorized local checkpoint and record its hash.

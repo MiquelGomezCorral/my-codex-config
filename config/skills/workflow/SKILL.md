@@ -124,11 +124,12 @@ context conflicts or a non-Git action's bounds are missing.
    a read-only `coding-supervisor` with a bounded grant to direct one retained coder and
    coordinate the selected review within the approved slice; `super-agent` takes the
    supervisor and coder models from the catalog's sized entries. The root for a small
-   slice, or the supervisor for a medium or large one, invokes `$review --preset <approved preset>` with the complete
+   slice, or the supervisor for a medium or large one, invokes `$review` at the size the
+   coding loop's *Size the review* picks (the approved preset by default) with the complete
    approved plan, amendments, checks, and slice context. In workflow context, the review
    basis includes changes from the recorded slice base through the inspected head plus
-   every task-owned staged, unstaged, and untracked change. Pass the base, head, and
-   task-owned paths to the reviewer, who reports the inspected revisions. Standalone
+   every task-owned staged, unstaged, and untracked change. Pass the reviewer the base, head,
+   task-owned paths, and any `Review focus`; it reports the inspected revisions. Standalone
    `$review` keeps staged-first selection. Each round runs the code review and the slice's
    live tests together, gathers insights, and plans fixes, as the
    [coding loop](references/coding-loop.md) describes.
@@ -155,13 +156,13 @@ context conflicts or a non-Git action's bounds are missing.
    merge conflicts, or CI, takes stages 5 and 6 before it returns to the human, before a
    `final-only` slice's local commit, or before a push. Each such change restarts the round
    count. Its first round audits from the checkpoint the last cleanup round audited, or from
-   the slice base when the human picks the whole slice for a big change.
+   the slice base when the change needs the whole slice.
    The full slice live test set reruns on the final head. Before presentation, a
    `final-only` slice's local commit, or a push, the task-owned diff from the checkpoint the
    last cleanup round audited to the current tree must be empty. With no task-owned
    change at all, cleanup is skipped and the comparison from the slice base is empty.
-   [Cleanup](references/cleanup.md) owns what each round audits, the big-change question,
-   and the cap's outcomes.
+   [Cleanup](references/cleanup.md) owns what each round audits, how big each audit is, and
+   the cap's outcomes.
 7. **Present to human:** show the result page (gate 3) with the actual result, live evidence,
    checks, known gaps, and artifacts after stage 6 ends.
    Route feedback that changes code through stages 5 and 6 before presenting again. After

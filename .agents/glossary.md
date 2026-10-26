@@ -13,7 +13,7 @@
   `super-agent`.
 - Harness: an agent runtime, such as Codex, Claude Code, Pi, or AGY, available directly or through a
   wrapper.
-- Preset: a review shape: `flash`, `swarm`, `swarm-smart`, or `full`.
+- Preset: a review shape: `flash`, `swarm`, or `full`.
 - Tier: a catalog capability label: `low`, `medium`, `high`, or `local`.
 - Capability tier: the minimum tier strength a task or local model can satisfy.
 - Local route: a catalog model executed on the current machine and subject to the shared

@@ -26,8 +26,9 @@ implementation, live actions, or changes to decision records.
 
 Full planning still omits irrelevant questions. Brief planning still requires relevant
 code inspection, a clear goal and scope, and explicit approval before delivery begins. It
-never skips explicit wave approval or lowers the review preset (`full` by default), and an
-answer to the depth question is never an approval.
+never skips explicit wave approval or lowers the plan's review preset (`full` by default;
+the coding loop sizes each round from it), and an answer to the depth question is never an
+approval.
 
 ## Run the Mandatory Steps
 
@@ -108,7 +109,9 @@ artifact.
   progress steps, the final rerun, the wave regression, and the undefined-test blocker.
   Review still runs the code review, and the result presentation states the waived
   evidence. An opted-in test that cannot run stays blocked/unverified; it is never waived.
-  A slice with live tests uses the `full` review preset.
+  A slice with live tests uses the `full` review preset by default, and the
+  [coding loop](coding-loop.md#size-the-review) sizes each round from it. Record a preset the
+  human names as `<preset> (named)`; it stays fixed.
 - Write a live test set per slice with the fields `refine-plan` lists under *Live
   validation*. Each slice's set covers only that slice's behavior; regressions wait for
   the wave regression.

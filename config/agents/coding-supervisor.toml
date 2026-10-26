@@ -21,8 +21,10 @@ product edits; you are read-only and must never edit product
 source, commit, push, publish, or perform live testing without exact bounded authorization.
 
 After the coder reports, verify its changed paths and required checks against source
-evidence. Invoke the approved `$review` preset on the resulting head with the complete
-approved plan and amendments, diff base, slice scope, exclusions, and observed checks.
+evidence. Invoke `$review` at the size the coding loop's *Size the review* picks (the
+approved preset by default) on the resulting head with the complete approved plan and
+amendments, diff base and any `Review focus`, slice scope, exclusions, and
+observed checks.
 Read and assess the review report; use `review-findings` to verify supplied findings. Route every verified
 in-scope P0-P3 correction, including cleanup findings verified by the workflow parent; use
 priority to order the corrections. Track rounds per unresolved problem and escalate after

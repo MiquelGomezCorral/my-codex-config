@@ -49,10 +49,11 @@ $cleanup [--slopo] [goal or persisted-plan context]
 Launch exactly one fresh `cleanup-worker` through `super-agent` with the plan or
 goal, task-owned paths and exclusions, the complete status snapshot, and the workflow
 comparison basis when supplied. Grant it delegation for the cleanup swarm: maximum depth
-one, at most six read-only descendants, none of which may delegate. The packet must
-contain exactly one marker: `Slopo mode: enabled` when `$cleanup --slopo` was supplied,
-otherwise `Slopo mode: disabled`. Consume the flag in the parent; never forward it as
-shell input or user arguments.
+one, at most six read-only descendants, none of which may delegate. A workflow may pass
+`Audit depth: light`; pass it on. Without it, the audit is full. The packet must contain
+exactly one `Slopo mode` marker: `Slopo mode: enabled` when `$cleanup --slopo` was
+supplied, otherwise `Slopo mode: disabled`. Consume the flag in the parent; never forward
+it as shell input or user arguments.
 
 When present, pass the exact workflow context and current slice scope in a separate field;
 it does not expand the worker's read-only audit or Slopo opt-in.
@@ -64,8 +65,9 @@ such as `reviewer-arch` and `reviewer-reasoning`, plus `reviewer-high` simplest-
 reviewers: one, or two under the risk condition of the review swarm (security, data,
 public contracts, migrations, or a large or multi-module change; see
 [swarm coordination](../review/references/swarm-coordination.md), which also owns the
-`pi` entry rule of three workers per listed pi model). Its return ends with
-the roster of launched and self-covered lenses.
+`pi` entry rule of three workers per listed pi model). With `Audit depth: light`, the swarm
+is one `reviewer-high` simplest-design reviewer and no lens specialists. Its return ends
+with the roster of launched and self-covered lenses.
 
 ## Optional Slopo evidence
 

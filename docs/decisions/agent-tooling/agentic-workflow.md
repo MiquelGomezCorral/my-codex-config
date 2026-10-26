@@ -51,6 +51,10 @@ slices with inspectable verification and explicit human authority across project
 - Review includes live testing by default (`full`). Each slice tests only its own behavior,
   and a wave regression reruns every slice's set after the last slice. A wave without live
   tests records the opt-out, and its review and presentation state the waived evidence.
+- Each workflow review and cleanup round is sized to its change by agent judgment, guided by the
+  coding loop: changed-line bands (about 1-25 `flash`, 25-50 `swarm`, more `full`) moved by
+  reach, and fix rounds review what changed since the last review plus what it reaches. Live
+  tests (unless opted out) and cleanup still run every round.
 - A local checkpoint commit precedes cleanup. Cleanup audits stay read-only; an approved
   workflow may route verified in-scope simplifications to the implementation worker.
   Cleanup must pass clean: accepted findings go back through coding and review, then cleanup
@@ -205,6 +209,10 @@ diagram comprehension remains Review-only.
 
 ## History
 
+- 2026-10-26: Review and cleanup rounds are sized to the change by agent judgment, because a
+  1-line change or a 3-line fix round still launched the full swarm. `swarm-smart` was removed:
+  with live tests in every round it launched the same reviewers as `full`. Cleanup's big-change
+  question became agent judgment.
 - 2026-10-23: Cleanup loops until clean and reruns after every later code change, because
   feedback fixes on a final-only wave skipped cleanup and about 60 lines of waste reached the PR.
 - 2026-10-19: Slice size became per slice with three values (small, medium, large), approved by the human with the plan; medium and large both get a supervisor, and the size picks the models.

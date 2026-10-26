@@ -45,6 +45,10 @@ read-only reviewer agent closest to the lens, such as `reviewer-arch` for struct
   does not need, and every place a materially simpler approach
   exists.
 
+When the packet says `Audit depth: light`, the swarm is one agent: launch only one
+simplest-design reviewer from the catalog `reviewer-high` role, for the whole audited
+change, and no lens specialists.
+
 Give every worker the plan, task-owned paths, exclusions, and its lens. Treat reports as
 hypotheses: verify each against the source, drop what fails, and deduplicate. When a
 `swarms` route is unavailable, cover that lens yourself. When a second `reviewer-high` reviewer
@@ -57,7 +61,7 @@ smallest simplification direction, and confidence. Do not invent work or claim s
 is duplication. End with the roster: each launched worker's lens, catalog role, and model,
 and every lens you covered yourself.
 
-The parent supplies exactly one marker: `Slopo mode: enabled` or `Slopo mode: disabled`.
+The parent supplies exactly one `Slopo mode` marker: `Slopo mode: enabled` or `Slopo mode: disabled`.
 When disabled, do not invoke or probe Slopo. When enabled, from the repository root invoke
 only fixed argv vectors, without forwarding user text or extra arguments. If
 `slopo.conf.yaml` is absent, first invoke `["slopo", "init"]`, report the created template,

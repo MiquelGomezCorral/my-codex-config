@@ -13,7 +13,7 @@ text as an external command option.
 Common forms are:
 
 ```text
-$review [--preset flash|swarm|swarm-smart|full] [--ocr] [--coordinator model] [--swarm] [harness or roster intent] [context]
+$review [--preset flash|swarm|full] [--ocr] [--coordinator model] [--swarm] [harness or roster intent] [context]
 ```
 
 Treat the arguments as user intent, not a strict CLI grammar. Flags are optional hints.
@@ -21,8 +21,7 @@ Correct obvious spelling, transposition, punctuation, and wording mistakes when 
 interpretation is materially more likely. Do not silently rewrite an explicit model.
 
 When `--preset` is present, load its matching [flash](presets/flash.md),
-[swarm](presets/swarm.md), [swarm-smart](presets/swarm-smart.md),
-or [full](presets/full.md) reference. Ask once if the value is missing,
+[swarm](presets/swarm.md), or [full](presets/full.md) reference. Ask once if the value is missing,
 unknown, or conflicts with an explicit `direct` or `swarm` mode. Without a preset or an
 explicit mode, use the `full` preset, including for a bare `$review` (an audit uses `swarm`:
 it has no live test set); outside an approved wave, its live round reports
@@ -88,10 +87,13 @@ In approved workflow context, require the exact complete approved plan and amend
 each reviewer reads them in full and checks the current slice's intended result and
 exclusions. A plan summary alone is insufficient. Use the recorded slice base and inspect
 all changes from that base through the current head, plus task-owned staged, unstaged, and
-untracked worktree changes. Do not let staged-first selection omit committed checkpoint
-changes or task-owned untracked files. Pass the base revision, inspected head, and explicit
-task-owned path list in the reviewer packet; reviewers report those revisions and the
-worktree changes they inspected. Outside workflow context, retain staged-first selection
+untracked worktree changes. When the workflow passes a fix round's `Review focus` range,
+review the changes in that range and the code they reach, with the slice comparison as
+context. Do not let staged-first selection omit committed checkpoint
+changes or task-owned untracked files. Pass the base revision, inspected head, the
+`Review focus` when the workflow passes one, and explicit task-owned path list in the
+reviewer packet; reviewers report those revisions and the worktree changes they inspected.
+Outside workflow context, retain staged-first selection
 and include the exact persisted plan path established by `$code` when present. The packet
 must preserve the normalized OCR marker.
 When supplied, also pass the exact workflow context, current slice scope, exclusions, and
@@ -111,7 +113,7 @@ unsupported model substitutions.
 For `flash`, resolve the catalog role `reviewer-fast` through `super-agent` and route
 directly to one reviewer; do not add a coordinator. The harness's native agent role for it
 is `reviewer-quick`. For ordinary direct and swarm review, use the selected harness's configured
-review coordinator through `super-agent`. For `swarm-smart` and `full`, route the primary
+review coordinator through `super-agent`. For `full`, route the primary
 report to the separate fresh verifier specified in the preset reference; the parent routes
 reports and does not review or edit them. For `full`, the parent also starts, resets, and
 stops the app for the live round as its preset reference defines, and routes the testers
@@ -127,7 +129,7 @@ only after that reference's authorization check. Testers resolve the catalog rol
 - `model`: the exact catalog model selected for the route, unless the user explicitly
   named a compatible model
 
-For the separate `swarm-smart`/`full` verifier, dispatch a fresh configured review
+For the separate `full` verifier, dispatch a fresh configured review
 coordinator through `super-agent`, or the approved explicit route. It resolves the catalog
 role entry, preserves the primary coordinator's independently selected model, and verifies
 the verifier's effective model and thinking when the runtime exposes them.
