@@ -25,6 +25,8 @@ anything new. If the same detail exists two ways, one of them is a defect.
 weight or space; demote everything else.
 - **Build with real content.** Longest and shortest titles, a missing description, zero, one
 and many items. Layouts break first on extreme content.
+- **Never invent facts the user will read as real.** No made-up metrics, customer names,
+logos or quotes. Use the project's data, or sample data plainly marked as sample.
 - **Design every supported theme together**, not one then the other.
 
 ### Layout and space
@@ -32,7 +34,7 @@ and many items. Layouts break first on extreme content.
 - **Group by nearness before adding boxes or lines.** Tight inside a group, clearly more
 space between groups. Reach for a divider only when space is not enough.
 - **Give every item in a collection one anatomy.** Same fields, same order, same alignment
-at each width. Text may wrap; corresponding parts and actions must not move. A missing
+at each width. Text may wrap or be cut; corresponding parts and actions must not move. A missing
 optional part must not shift its neighbors. *Seen:* cards put title, open icon and status
 chip on different lines depending on title length. Fix: pick one anatomy (for example
 logo, time and status on line 1, title on line 2) and apply it to every card.
@@ -41,7 +43,8 @@ Never let a control float in the middle of free space. *Seen:* a trash button pa
 mid-row with an empty gap on both sides.
 - **Pin card actions and links to the card bottom.** Stretch cards to the row height and
 push the footer down, so footers line up when descriptions differ; keep clear space
-between body and footer. Let the card grow; never fix its height or clip text.
+between body and footer. Let the card grow; never fix its height, and cut text only as
+**Cut long values** describes.
 - **Show each fact once.** If the title already says it, drop the repeated block or move it
 to a details section.
 - **Keep headers to the title and one quiet line.** Addresses, counts and utilities go to a
@@ -58,6 +61,8 @@ comparable cards identical in anatomy; avoid cards inside cards.
 
 - **One visually primary action per area.** Rank the rest by style (filled, outlined, quiet),
 not by size. Buttons in one group share height and size.
+- **Button labels never wrap** (`white-space: nowrap`). When space runs out, shorten the
+label or move the action into the overflow menu.
 - **Status and main actions lead; delete trails.** People look at the start of a row first,
 so the status and the main action (Start, Stop) sit at the leading edge, and the delete or
 remove control sits alone at the trailing edge, the same way everywhere:
@@ -148,9 +153,18 @@ stopped means broken. Neutral states get neutral colors.
 
 - **Reuse the project's type roles and scale.** One text family plus monospace; hierarchy
 from weight and tone as much as size. The same role looks the same everywhere.
+- **Headings form the outline:** levels step one at a time without skips, picked by structure
+rather than size. Each page sets `lang` and a `<title>` that names it.
 - **Monospace only for code, paths, ids and numbers**, never as a "technical" costume.
-- **Long titles wrap; they never move the actions.** The checker flags ellipsis truncation
-as clipping, so truncate only through an `exceptions` entry the user approved.
+- **Cut long values; never let them move the actions.** In rows, cards and table cells, a
+title, URL, path, command or id that does not fit stays on one line (a description on two)
+and ends in "…", cut with CSS (`text-overflow: ellipsis`, or `-webkit-line-clamp` for two
+lines) so screen readers still get the full value. The cut text is focusable; hover, focus
+or a tap opens a small panel with the full value, which stays while hovered or focused and
+closes on Escape. Add a copy button there when people copy the value. When values share a
+long start, such as paths in one folder, show the part that tells them apart (the folder or
+file name) and leave the full path to the panel. The item's own details view, error
+messages and body text wrap instead.
 - **Sentence case for new labels**, keeping names, acronyms and user content as written. No
 all-caps labels. An eyebrow above a heading is allowed only when it is informational (a
 date, a scope); decorative eyebrows stay banned.
@@ -172,12 +186,19 @@ number and unit ("10 MB"), dates, times and numbers formatted for the user's loc
 ### States and feedback
 
 - **Each control has its relevant states**: default, hover, focus, active, and disabled,
-loading or error where they can occur. Focus is always visible.
+loading or error where they can occur. Focus is always visible: an `outline` ring with at
+least 3:1 contrast against its surroundings, shown at once, never faded in. Use `outline`
+because forced-colors mode removes `box-shadow`.
+- **States never move the layout.** Hover, focus and error keep a control's size and border
+width. A field next to buttons matches their height.
 - **Each data view has its states**: loading (placeholders that keep the layout), empty,
 error, one item, many items.
 - **A busy button keeps its width** and its label with a spinner, or a progress label
 ("Stopping…"), and blocks double clicks. Spinners and skeletons wait a moment before showing
 and stay long enough not to flicker. A destructive action waits for the server; never remove the row first.
+- **Never fake success.** Show "Saved" or "Sent" only after the request succeeded. An
+optimistic toggle rolls back and says so when the request fails. An action with no backend
+yet says it is not connected instead of pretending.
 - **No dead ends.** Empty, error and finished states say which state it is (first use, no
 results, filtered) and offer one next step.
 - **No dead zones.** If part of a control looks clickable, it is clickable; a label and its
@@ -189,7 +210,8 @@ focus. Toasts only for a short result with Undo, reachable by keyboard and touch
 asks first (inside the same dialog, never a second modal).
 - **Live lists keep scroll, focus and open state across refreshes.**
 - **Motion explains a change, briefly**, and leaves a static state cue. Frequent actions are
-instant; respect reduced motion.
+instant; respect reduced motion. Transition named properties, never `all`, and move things
+with `transform` and `opacity` rather than size or position.
 
 ### Components
 
@@ -223,6 +245,13 @@ In one pass over each changed route and relevant state:
  focus.
 5. Run the measured checks below, then report which routes and states you checked.
 
+For a new screen or a redesign, also send the screenshots, the routes they show and this
+file to a fresh reviewer that did not build it, routed through `super-agent`. Withhold the
+reasons behind choices. It answers `ship` or `fix` on the first line, then at most five
+findings, worst first, and changes nothing. Tell it what is not a finding: the project's
+design system, explicit user requirements and approved `exceptions`. It judges only what the
+screenshots show; keyboard and state checks stay with the author.
+
 ## Set up once per project
 
 ```sh
@@ -245,7 +274,11 @@ npm install -D lintapple && npx lintapple init
  the page is ready. Findings fail the test and attach a JSON report.
 
 Fix the code, never the policy. Do not edit `ui-policy.json`, add `exceptions`, or remove
-`data-ui-*` attributes to get a pass; a policy change needs a user request. Unresolved
+`data-ui-*` attributes to get a pass; a policy change needs a user request. One standing
+request: an element cut as **Cut long values** describes, with its full-value panel, may get
+a `content-clipping` entry on its own selector, with a reason naming the panel. No other
+rule, no page-wide selector, and never for hidden overflow, fixed heights or horizontal
+scroll; those are bugs. Unresolved
 contrast findings need review; they are not passes. After changing the checker itself,
 run `npm test` in its repository.
 
@@ -285,9 +318,14 @@ container edge.
 - **Spacing:** at least 8 px between stacked items (`minLayoutGap`).
 - **Nested corners:** inner radius = outer radius minus the inset.
 - **Overflow:** nothing past the horizontal viewport at each configured width (390 and 1440
-by default). Fixed elements and open dialogs also fit vertically. Let long text wrap
-(`overflow-wrap: anywhere`) or scroll in a local region. Never hide overflow to conceal a
-layout error.
+by default). Fixed elements and open dialogs also fit vertically. Cut long values as the
+typography rule says, let other text wrap with `overflow-wrap: break-word` (never
+`anywhere`, which can squeeze a short label to one letter per line), or scroll in a local
+region. Never hide overflow to conceal a layout error. Grid tracks use `minmax(0, 1fr)`, not
+bare `1fr`, which grows to fit its widest unbreakable child (a long URL or `pre` line, a
+wide table, a fixed-width image). Flex children holding such content get `min-width: 0`,
+and the wide element gets `overflow-x: auto`, so it scrolls inside its column instead of
+widening the page.
 - **Copy:** `bannedCopy` phrases ("seamlessly", "game-changing") fail.
 
 Starter CSS that already satisfies these lives in the package at `examples/ui.css`
@@ -319,6 +357,11 @@ need to read them. The full research, with per-rule citations, conflicts between
 the user's feedback screenshots, was done on 2026-10-12.
 
 - Checker: [https://github.com/gholtzap/lintapple](https://github.com/gholtzap/lintapple), pinned at 0.1.20 in `bootstrap_common.sh`.
+- [Hallmark](https://github.com/Nutlope/hallmark) v2.0.0, audited 2026-10-23: rules from
+`references/gates.md` (10a, 15, 26a, 39a, 46a, 49a, 50, 70, F21, F23), `references/craft.md`
+(flex `min-width: 0`, the document), `references/responsive.md` (button label order), and the
+hero review from `references/review-hero.md`, widened to any new screen. Its grid rule covers
+image tracks only; here it covers every track. Its themes and landing-page rules are left out.
 - User requirements: status first and delete last, hover-revealed controls in fixed places,
 modals on Stop and Delete, soft matching colors, consistency of button forms and chips.
 - Nielsen Norman Group: [proximity of consequential options](https://www.nngroup.com/articles/proximity-consequential-options/),

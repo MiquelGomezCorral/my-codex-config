@@ -214,7 +214,7 @@ export function renderMapInspection(svgText, configuration) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="${viewerCsp}">
   <title>Workflow map inspection</title>
-  <style>body{font:14px/1.5 system-ui,sans-serif;margin:24px;max-width:1100px}pre{white-space:pre-wrap;overflow-wrap:anywhere}</style>
+  <style>body{font:14px/1.5 system-ui,sans-serif;margin:24px;max-width:1100px}pre{white-space:pre-wrap;overflow-wrap:break-word}</style>
 </head>
 <body>
   <h1>Workflow map inspection</h1>
