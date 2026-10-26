@@ -25,10 +25,11 @@ h1{font-size:24px;margin:0 0 2px}
 .info{display:flex;align-items:flex-start;gap:6px;color:var(--muted);margin-bottom:16px}
 .info svg{margin-top:3px}
 .offline{color:var(--bad)}
-.toolbar{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:12px}
+.toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px;align-items:center;margin-bottom:12px}
 .search{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:9px;padding:0 10px;max-width:280px;color:var(--muted)}
 .search input{border:0;background:transparent;color:var(--ink);font:inherit;padding:7px 0;outline:none;width:100%}
 .search input::placeholder{color:var(--muted);opacity:1}
+.search:focus-within{outline:2px solid var(--acc);outline-offset:2px}
 .seg{display:inline-flex;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:3px;gap:8px}
 .seg button{display:inline-flex;align-items:center;gap:7px;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:500;padding:7px 14px;border-radius:9px;cursor:pointer}
 .seg button b{font-weight:600;background:var(--mutedbg);color:var(--muted);border-radius:999px;padding:0 7px}
@@ -51,7 +52,7 @@ h1{font-size:24px;margin:0 0 2px}
 .wt-group>summary,.stopped-group>summary{list-style:none;cursor:pointer}
 .wt-group>summary::-webkit-details-marker,.stopped-group>summary::-webkit-details-marker{display:none}
 .wt-group>summary:hover{color:var(--ink)}
-.wtn{min-width:0;overflow-wrap:anywhere}
+.wtn{min-width:0;overflow-wrap:break-word}
 .wt .n{margin-left:auto;flex:none;white-space:nowrap}
 /* a worktree's Stop all and Delete all sit at the line's right end; they show on the line's hover or focus, always on touch */
 .wt .wt-acts{display:inline-flex;gap:8px;align-items:center;flex:none;opacity:0}
@@ -108,9 +109,10 @@ details[open]>summary>.chev{transform:rotate(90deg)}
 .more{position:relative;min-width:0}
 .short{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pop{position:absolute;top:calc(100% + 2px);left:-9px;z-index:4;width:max-content;min-width:calc(100% + 18px);max-width:min(440px,80vw);padding:6px 8px;
-  background:var(--card);border:1px solid var(--line);border-radius:7px;box-shadow:0 6px 16px var(--lift);white-space:normal;overflow-wrap:anywhere;visibility:hidden}
-.more:is(.cut,.always):is(:hover,:focus-within) .pop{visibility:visible;transition:visibility 0s .5s}
-.more:is(.cut,.always):focus-within .pop{transition:none}
+  background:var(--card);border:1px solid var(--line);border-radius:7px;box-shadow:0 6px 16px var(--lift);white-space:normal;overflow-wrap:break-word;visibility:hidden}
+.more:is(.cut,.always):is(:hover,:focus-within):not(.dismissed) .pop{visibility:visible;transition:visibility 0s .5s}
+.more:is(.cut,.always):focus-within:not(.dismissed) .pop{transition:none}
+.short:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .pop::before{content:"";position:absolute;left:0;right:0;top:-6px;height:6px}
 .pop .ln{display:flex;align-items:flex-start;gap:8px}
 .pop .ln>:first-child{flex:1;min-width:0;padding-top:4px}
@@ -118,7 +120,7 @@ details[open]>summary>.chev{transform:rotate(90deg)}
 .pfx{color:var(--muted)}
 .t .short,.t .pop{font-weight:600}
 .addr .short,.addr .pop,.cmd .short,.cmd .pop{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--code)}
-.desc .short{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:anywhere;color:var(--muted)}
+.desc .short{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:break-word;color:var(--muted)}
 .desc .pop{left:-9px;right:-9px;width:auto;max-width:none}
 .more.always>.pop{left:0;min-width:0}
 /* on a narrower window the command panel would run past the right edge, so it opens leftward from its button */
@@ -167,7 +169,7 @@ details[open]>summary>.chev{transform:rotate(90deg)}
 .box{background:var(--card);border:1px solid var(--line);border-radius:14px;max-width:440px;width:100%;padding:18px 20px;box-shadow:0 18px 50px rgba(0,0,0,.3)}
 .box h3{margin:0 0 8px;font-size:20px;display:flex;align-items:center;gap:8px}
 .box h3 span:empty{display:none}
-.box p{margin:0 0 6px;color:var(--muted);overflow-wrap:anywhere}
+.box p{margin:0 0 6px;color:var(--muted);overflow-wrap:break-word}
 .box p:empty{display:none}
 .box .err{color:var(--bad)}
 .box .row-btns{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
@@ -183,8 +185,8 @@ details[open]>summary>.chev{transform:rotate(90deg)}
 .theme{position:fixed;right:18px;bottom:18px}
 .theme button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px;cursor:pointer;display:inline-flex}
 .empty{color:var(--muted);text-align:center;padding:48px 0}
-@media (max-width:760px){.toolbar{grid-template-columns:1fr}.search{max-width:none;order:3}.layout{display:none}
-.fold .lbl{display:inline}.fold .tip{display:none}.seg{display:grid;grid-template-columns:1fr 1fr}.seg button{justify-content:center}}
+@media (max-width:760px){.toolbar{grid-template-columns:minmax(0,1fr)}.search{max-width:none;order:3}.layout{display:none}
+.fold .lbl{display:inline}.fold .tip{display:none}.seg{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.seg button{justify-content:center}}
 </style>
 </head>
 <body>
@@ -449,7 +451,9 @@ function render() {
 function markCut() {
   for (const box of document.querySelectorAll(".more")) {
     const text = box.querySelector(".short");
-    if (text) box.classList.toggle("cut", text.scrollWidth > text.clientWidth + 1 || text.scrollHeight > text.clientHeight + 1);
+    if (!text) continue;
+    box.classList.toggle("cut", text.scrollWidth > text.clientWidth + 1 || text.scrollHeight > text.clientHeight + 1);
+    text.tabIndex = box.matches(".cut, .always") ? 0 : -1; // only a value that opens a panel is a tab stop
   }
 }
 addEventListener("resize", markCut);
@@ -508,14 +512,25 @@ $("m-cancel").onclick = closeDialog;
 modal.onclick = (e) => { if (e.target === modal) closeDialog(); };
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
-  const dialogOpen = modal.classList.contains("on");
-  closeDialog();
+  // Escape peels one layer per press: an open dialog, then an open tooltip or value panel, then the selection.
+  if (modal.classList.contains("on")) { closeDialog(); return; }
+  const open = document.querySelectorAll(".tipwrap:is(:hover,:focus-within):not(.dismissed), .more:is(.cut,.always):is(:hover,:focus-within):not(.dismissed)");
+  if (open.length) {
+    for (const box of open) {
+      // The panel hides the copy button that holds focus, so the box's trigger takes focus first; otherwise focus falls to BODY.
+      if (box.querySelector(".pop")?.contains(document.activeElement)) box.querySelector(".short, .trig")?.focus();
+      box.classList.add("dismissed");
+    }
+    return;
+  }
   const typing = e.target.matches?.("input:not([type=checkbox]), textarea, [contenteditable]");
-  if (!dialogOpen && !typing && selected.size) { selected.clear(); render(); }
-  document.querySelectorAll(".tipwrap:is(:hover,:focus-within)").forEach((t) => t.classList.add("dismissed"));
+  if (!typing && selected.size) { selected.clear(); render(); }
 });
-// A tooltip closed with Escape comes back after the pointer or focus leaves and returns.
-for (const type of ["pointerleave", "focusout"]) document.addEventListener(type, (e) => e.target.closest?.(".tipwrap")?.classList.remove("dismissed"), true);
+// A dismissed tooltip or value panel stays dismissed while the pointer or focus is still in its box; it comes back once both have left.
+for (const type of ["pointerleave", "focusout"]) document.addEventListener(type, (e) => {
+  const box = e.target.closest?.(".tipwrap, .more");
+  if (box) setTimeout(() => { if (!box.matches(":is(:hover,:focus-within)")) box.classList.remove("dismissed"); });
+}, true);
 $("m-ok").onclick = async () => {
   const okButton = $("m-ok");
   busy = true;
