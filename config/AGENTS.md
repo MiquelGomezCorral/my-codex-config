@@ -202,6 +202,10 @@ allow; keep dependent steps in order.
 - For repository work, end the final report with `Memory: <file> - <what was saved>` or
   `Memory: none`.
 - Independently review non-trivial changes, fix blocking findings, and re-check them once.
+- Clean up after yourself before you report. Stop or close every page, app, server, browser tab,
+  window and background process you started that nothing will use again, including those from
+  reviews, tests and computer use. Keep only what the user or a later step still needs, and say
+  what you left running and why.
 - Do not commit, push, publish, or modify shared state unless explicitly requested.
 
 ## Safe tool use
