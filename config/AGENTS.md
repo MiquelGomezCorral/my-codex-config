@@ -217,6 +217,9 @@ allow; keep dependent steps in order.
 - To click, drag, type, press shortcuts, or take screenshots on the user's machine, load the
   `computer` skill and read its desktop-control reference first; on GNOME Wayland, Orca's
   coordinate and key input reports success but does nothing.
+- Hand browser and desktop work to `computer-controller` through `super-agent`. A delegate without
+  a nesting grant sends that task to its parent instead. Do it yourself only for one quick look,
+  or when you are `computer-controller` itself.
 - Run long processes in the background and poll only when their result blocks progress.
 - Load `web-search` before web research. Diagnose failures before retrying and report blockers
 precisely when new evidence is unavailable.

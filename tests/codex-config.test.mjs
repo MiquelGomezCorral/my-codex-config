@@ -418,7 +418,7 @@ test("Codex TOML agents use native fields and preserve all twelve roles", () => 
   const names = [
     "coder", "cleanup-worker", "git-worker", "review-worker",
     "reviewer-quick", "reviewer-reasoning", "reviewer-arch", "reviewer-e2e",
-    "coding-supervisor", "live-validator", "critic", "diagram-worker",
+    "coding-supervisor", "computer-controller", "critic", "diagram-worker",
   ]
   const config = read("config/codex.toml")
   ok(!statSync(join(root, "config/agents/commit-worker.toml"), { throwIfNoEntry: false }))
@@ -434,7 +434,7 @@ test("Codex TOML agents use native fields and preserve all twelve roles", () => 
     doesNotMatch(body, /^sandbox_mode = "(?:read-only|workspace-write)"$/m)
     ok(body.includes("developer_instructions"))
   }
-  for (const name of ["coding-supervisor", "live-validator", "critic"]) {
+  for (const name of ["coding-supervisor", "computer-controller", "critic"]) {
     const body = read(`config/agents/${name}.toml`)
     doesNotMatch(body, /^model\s*=/m)
     doesNotMatch(body, /^model_reasoning_effort\s*=/m)
@@ -447,10 +447,10 @@ test("Codex TOML agents use native fields and preserve all twelve roles", () => 
   match(supervisor, /bounded grant to direct exactly\s+one retained `coder`/)
   match(supervisor, /every verified\s+in-scope P0-P3 correction/)
   match(supervisor, /two unsuccessful\s+rounds/)
-  const validator = read("config/agents/live-validator.toml")
-  match(validator, /target environment, exact flow, sample inputs, expected results/)
-  match(validator, /Do not install or authenticate\s+tools/)
-  match(validator, /blocked\/unverified/)
+  const liveTest = read("config/skills/review/references/live-test.md")
+  match(liveTest, /target environment, exact flow, sample inputs, expected results/)
+  match(liveTest, /Do not install or authenticate\s+tools, except the pinned\s+Playwright CLI install/)
+  match(liveTest, /blocked\/unverified/)
   const critic = read("config/agents/critic.toml")
   match(critic, /plan, design,\s+research claim, bug diagnosis, or decision/)
   match(critic, /complete supplied artifact and cited primary evidence/)
@@ -692,7 +692,7 @@ test("test-audit gates new tests and audits existing ones", () => {
   doesNotMatch(campaign, /openclaw|telegram|Vitest|run-vitest/i)
 
   for (const role of [
-    "cleanup-worker", "coder", "coding-supervisor", "live-validator", "review-worker",
+    "cleanup-worker", "coder", "coding-supervisor", "computer-controller", "review-worker",
     "reviewer-arch", "reviewer-e2e", "reviewer-quick", "reviewer-reasoning",
   ]) {
     match(read(`config/agents/${role}.toml`), /^developer_instructions =/m)

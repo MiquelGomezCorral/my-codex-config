@@ -103,7 +103,7 @@ def review_panel(s, ox, oy):
     full = wide(384, "Review Smart")
     for i, text in enumerate(("Review", "...", "...")):
         node(s, ox + 556 + i * 110, oy + 428, 96, 34, text, "worker")
-    wide(470, "e2e tester (reviewer-fast)")
+    wide(470, "e2e tester (computer-controller)")
 
     # kind of review fans out to the four depths
     trunk = ox + 526

@@ -84,12 +84,13 @@ automatic launch. A stage maps to exactly one role:
 | Reading files for the super agent | `explorer` |
 | Adversarial plan critic, or the code-blind independent proposal in planning | `adversarial` |
 | Strong reviewer in a review swarm or cleanup audit | `reviewer-high` |
-| Direct review, verifier, or live validator | `reviewer-fast` |
+| Direct review or verifier | `reviewer-fast` |
+| Browser or desktop work, or live validation | `computer-controller` |
 | Review-swarm or cleanup-swarm specialist, or planning web research and bug-evidence checks | `swarms` |
 
 `explorer` launches through `explore "<question>" [paths]`, run in the foreground. The command reads the explorer candidates from the catalog itself and tries them in order.
 
-`reviewer-fast` and `swarms` follow the current harness instead of naming one. The current
+`reviewer-fast`, `computer-controller`, and `swarms` follow the current harness instead of naming one. The current
 harness is the harness of the agent doing the launch (a delegate's own harness, not the
 root's or the wrapper's default), read from runtime evidence. The role's `by_harness` entry
 for it gives the model and thinking. When that model is unavailable, use the same harness's
@@ -122,7 +123,7 @@ model, or thinking override wins over the role entry.
 
 The `low`, `medium`, `high`, and `local` tier records are only for a launch the user or
 approved plan explicitly routed by tier or harness, plus the `low` fallback of
-`reviewer-fast` and `swarms` above. Ordered candidates are fallback order, never random
+`reviewer-fast`, `computer-controller`, and `swarms` above. Ordered candidates are fallback order, never random
 distribution, and for every other role an exhausted candidate list is a blocker with no
 automatic escape to a tier or harness default. Unavailability or capability filtering may
 drop a candidate but never silently changes the role harness or thinking.

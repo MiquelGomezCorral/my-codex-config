@@ -183,7 +183,7 @@ do not become accidental permanent policy.
 ## Enforcement
 
 Approved implementation targets are the workflow and stage skills, coding-supervisor and
-live-validator roles, Pi role generation, and focused configuration/bootstrap checks.
+the `computer-controller` role, Pi role generation, and focused configuration/bootstrap checks.
 Human approvals, context independence, evidence quality, and real lifecycle recovery
 remain Review-only until demonstrated in an explicitly authorized live trial.
 Plan presentation is owned by the workflow renderer and planning reference, with focused

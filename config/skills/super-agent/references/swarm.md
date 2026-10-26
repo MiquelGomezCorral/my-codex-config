@@ -65,7 +65,7 @@ Goal: observable outcome
 Scope: owned files or question
 Exclusions: adjacent work and non-goals
 Context: relevant decisions and paths
-Catalog role: super_agent | sub_orchestrator | coder | explorer | adversarial | reviewer-high | reviewer-fast | swarms
+Catalog role: super_agent | sub_orchestrator | coder | explorer | adversarial | reviewer-high | reviewer-fast | computer-controller | swarms
 Size: small | medium | large (sub_orchestrator and coder only)
 Harness: the role entry's harness, or an explicit user override
 Model: the resolved exact model

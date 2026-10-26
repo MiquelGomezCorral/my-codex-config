@@ -116,7 +116,8 @@ report to the separate fresh verifier specified in the preset reference; the par
 reports and does not review or edit them. For `full`, the parent also starts, resets, and
 stops the app for the live round as its preset reference defines, and routes the testers
 only after that reference's authorization check. Testers resolve the catalog role
-`reviewer-fast`; the harness's native agent role for them is `live-validator`.
+`computer-controller`; the harness's native agent role for them is
+`computer-controller`, and their packet says the job is a live test.
 
 - `agent`: the native role of catalog `reviewer-fast` (`reviewer-quick`) for `flash`,
   otherwise the selected harness's best matching configured review coordinator
