@@ -765,10 +765,8 @@ test("agentic workflow keeps stage contracts, approvals, and scenario definition
   match(read("bootstrap_codex.sh"), /merge-hooks/)
   match(code, /`\$code` itself still stops after implementation/)
   match(findings, /Blocked\/unverified/)
-  for (const preset of ["flash", "swarm", "full"]) {
-    match(reviewOrchestration, new RegExp(`--preset[^\\n]*${preset}`))
-  }
-  match(read("config/skills/review/references/presets/full.md"), /resolves the catalog role entry.*pin the resolved harness, model, and thinking/s)
+  match(reviewOrchestration, /--preset flash\|swarm\|full/)
+  match(read("config/skills/review/references/presets/full.md"), /resolves\s+the\s+catalog\s+role\s+entry.*pin\s+the\s+resolved\s+harness,\s+model,\s+and\s+thinking/s)
   match(orcaAdapter, /[Rr]eview\s+modes and presets choose the review shape only;\s+they never set a harness, model, or\s+thinking default/)
   match(codingLoop, /\$review --preset/)
   match(codingLoop, /reviewer reads the full plan/)
