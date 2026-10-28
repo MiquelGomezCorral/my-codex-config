@@ -8,6 +8,7 @@ import argparse
 import contextlib
 import errno
 import fcntl
+import functools
 import http.client
 import itertools
 import json
@@ -459,6 +460,18 @@ def lan_address() -> str | None:
         return probe.getsockname()[0]
 
 
+@functools.cache
+def own_names() -> tuple[str, ...]:
+    """This machine's host name and Tailscale MagicDNS name, so `host:3200` works over Tailscale."""
+    names = [socket.gethostname()]
+    with contextlib.suppress(OSError, ValueError, KeyError, subprocess.SubprocessError):
+        status = subprocess.run(
+            ["tailscale", "status", "--json"], capture_output=True, text=True, timeout=5
+        ).stdout
+        names.append(json.loads(status)["Self"]["DNSName"].rstrip("."))
+    return tuple(names)
+
+
 def page_path(target: str) -> str:
     return "/" + quote(target) + "/"
 
@@ -868,7 +881,7 @@ class HubHandler(BaseHTTPRequestHandler):
         """
         own = self.connection.getsockname()[0]
         return self.headers.get("Host") in {
-            f"{name}:{PORT}" for name in ("localhost", "127.0.0.1", own)
+            f"{name}:{PORT}" for name in ("localhost", "127.0.0.1", own, *own_names())
         }
 
     # ---- GET and HEAD ----
