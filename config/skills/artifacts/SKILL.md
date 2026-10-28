@@ -76,7 +76,7 @@ needs it. The user opens `http://<lan-ip>:3200/` to see everything, and can Stop
 it again, or Delete it there. Anyone on the local network can press those buttons, and every
 file in a page folder and every app command is readable there, so keep secrets out of page
 folders, app commands, and descriptions. The hub answers only by IP address, `localhost:3200` or
-`127.0.0.1:3200`: a host name or a forwarded port gets 403.
+`127.0.0.1:3200`, this machine's host name or its Tailscale name: any other name or a forwarded port gets 403.
 
 A page keeps its address: `http://<lan-ip>:3200/<repo>/<page>/`. A page made in a worktree adds
 the worktree's folder name: `<repo>/<worktree>/<page>/`. Outside any Git repo the address is
