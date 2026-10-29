@@ -69,8 +69,7 @@ orca orchestration worker-start --task <task_id> --worktree current --terminal <
   orca orchestration run-create --objective "<objective>" --json
   ```
 - In Claude, start that wait as a background command and end the turn. The harness wakes you
-  when it exits. On timeout, start it once more. Pass `--ack <delivery_id>` to the next wait for
-  a batch you have processed, as the guide shows.
+  when it exits. On timeout, start it once more.
 - Next to each message wait, start a stall watch the same way:
   `orca terminal wait --terminal <worker handle> --for tui-idle --timeout-ms <expected duration, default 1800000>`.
   Whichever wait exits first wakes you. A later wake for a worker whose result you already

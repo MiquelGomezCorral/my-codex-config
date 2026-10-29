@@ -53,12 +53,11 @@ and `workflow.md`. Every agent, delegates included, may search them in
 text on any error, before a retry, and when a step drags, then read only the matched
 entries. Only the human-facing agent writes them. A delegate may write its assigned report
 under `plans/`; that is not memory. A rule the user states in chat is written to agent
-memory at once, in the same turn. Sort by effect, not wording: a rule about how agents work,
-reply or report goes to `decisions.md` however it is phrased ("I want ..." included);
-product or feature wants go to `requirements.md`. The human-facing agent reads
-`decisions.md` before its first reply in the repository. Project knowledge and user rules
-go to `agent-memory/` even when the harness has its own memory; harness memory may keep a
-copy, never the only one.
+memory in the same turn. Sort by effect, not wording: a rule about how agents work,
+reply or report goes to `decisions.md` ("I want ..." included); product or feature wants
+go to `requirements.md`. The human-facing agent reads `decisions.md` before its first reply
+in the repository. Project knowledge and user rules go to `agent-memory/` even when the
+harness has its own memory; harness memory may keep a copy, never the only one.
 - Never keep plans, slices, handoffs, worker instructions and reports, artifacts, review
 output, or anything a later turn or agent may read again in an operating-system temporary
 location (`/tmp`, `$TMPDIR`, or a harness scratchpad under them); a reboot or cleanup deletes

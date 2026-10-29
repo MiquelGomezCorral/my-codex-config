@@ -176,9 +176,9 @@ unverified effort or unavailable pinning option instead of silently discarding i
   across every route; do not broaden authority to make a route work.
 - The human-facing agent owns `agents-memory`. Pass workers only the relevant facts or
   exact plan they need, not private memory access; the exceptions are every worker's grep of
-  `known-errors.md` and `workflow.md` (matched entries only, never a write) and the Git
-  worker's `plans/` search in the `git` skill's plan context. Workers report useful memory
-  candidates to their parent for the human-facing agent to assess.
+  `known-errors.md` and `workflow.md` and the Git worker's `plans/` search in the `git`
+  skill's plan context. Workers report useful memory candidates to their parent for the
+  human-facing agent to assess.
 - Read-only work must not create a branch or worktree, edit, commit, push, publish, or change
   shared infrastructure without explicit authorization for that exact action.
 - Pass model identifiers and prompts as separate arguments; never evaluate a catalog value

@@ -26,8 +26,8 @@ context from that agent and report memory suggestions back; they do not use
 - Work only in this repository during migration; the old OpenCode repositories and live
   homes are read-only sources.
 - `.agents/requirements.md` records earlier wants. The human-facing agent records new
-  wants and changes in private `agent-memory/requirements.md`, after reading the existing
-  record. Do not update tracked `.agents/` for private working memory.
+  product or feature wants and changes in private `agent-memory/requirements.md`, after
+  reading the existing record. Do not update tracked `.agents/` for private working memory.
 - Never add credentials, authentication state, sessions, databases, logs, caches,
   private memories, installation IDs, plugin caches, or machine-specific absolute paths
   to tracked repository files. Keep new agent memory in the Git common directory above.

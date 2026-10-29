@@ -6,10 +6,9 @@ description: Human-facing main agent only. Read and maintain private project wor
 # Agents Memory
 
 Only the agent directly interacting with the human uses this skill. Delegated agents do
-not load it, browse private memory, or write memory. Their exceptions: they may grep
-`known-errors.md` and `workflow.md` in the directory below and read the matched entries,
-never write them. An exact plan supplied as task input
-is allowed; it does not grant access to other notes. The Git worker may also search
+not load it, browse private memory, or write memory. They may still use the
+`known-errors.md` and `workflow.md` search in the global policy. An exact plan supplied as
+task input is allowed; it does not grant access to other notes. The Git worker may also search
 `plans/` for the plan behind its changes, as the `git` skill describes. Delegates return
 useful memory candidates to the human-facing agent to assess.
 
