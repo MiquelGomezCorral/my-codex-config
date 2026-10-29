@@ -99,6 +99,9 @@ For workflow intake and every worker dispatch, resolve the role's harness, model
 thinking from that skill's `references/model-catalog.yaml`; its stage mapping owns the
 defaults. Explicit user overrides take precedence. Do not substitute agent-file or
 harness defaults when the selected catalog route cannot run.
+Run only models from that catalog, including one-shot CLIs and app test runs that spend one
+of the user's subscriptions, unless the user named the model. When a subscription runs out,
+fall back only to the role's next catalog entry; if none is left, stop and ask the user.
 A proven active wrapper owns agent launch, messaging, waiting, resume, and cleanup;
 without one, use the current harness's native lifecycle. Do not bypass an active wrapper
 with direct harness launches, and use another harness only through an explicit

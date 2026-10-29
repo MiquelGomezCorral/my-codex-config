@@ -110,7 +110,8 @@ with its own harness, model or ordered candidates, and thinking; move to the nex
 fails or is out of quota. Launch several workers of one role only when the invoking skill
 states the count and the condition. Each such worker takes the next runnable entry in list
 order, and the skill says what a shortfall means. A role with no runnable entry is a
-blocker.
+blocker: stop and ask the user, and never start a model or subscription outside the
+catalog to keep going.
 
 For `swarms`, a lens whose route cannot run is reported as missing coverage; a cleanup
 coordinator may cover that lens itself and lists it in its roster.
@@ -138,8 +139,9 @@ Catalog rules:
   worker model identifiers; never copy those identifiers into skills, tests, agents, or
   documentation.
 - Tiers are exactly `low`, `medium`, `high`, and `local`, and their identifiers are a
-  closed allowlist. The role candidate list is the automatic-selection allowlist; only a
-  model the user named may run outside it.
+  closed allowlist. The role candidate list is the automatic-selection allowlist. No model
+  outside the catalog runs at all, one-shot CLIs and test runs on the user's subscriptions
+  included, unless the user named it.
 - When the user explicitly routes by tier, prefer the cheapest adequate tier and an
   adequate local route first. `max_local_concurrency` is shared across the whole tree.
   Count a cataloged local orchestrator against it, and serialize or take an adequate
