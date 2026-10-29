@@ -47,11 +47,9 @@ def read_catalog(catalog: pathlib.Path) -> tuple[dict[str, list[str]], list[str]
 def denial(prompt: str, model: str) -> str | None:
     """Return the reason to block this launch, or None to allow it."""
     # The first plain `Catalog role:` line wins, so a list or quote marker above it (a list item
-    # naming a child's role) cannot decide. A plain line may carry bold around the label
-    # (`**Catalog role:** x`) or `*` after the colon; the fallback also takes list and quote
-    # markers. A trailing `.`, `,`, `:` or `;` on the value is stripped. `[^\S\r\n]` (any space,
-    # non-breaking too) keeps the value on the label's line, so an empty `Catalog role:` line
-    # reads as no role instead of taking the next line's word.
+    # naming a child's role) cannot decide. `[^\S\r\n]` (any space, non-breaking too) keeps
+    # the value on the label's line, so an empty `Catalog role:` line reads as no role instead
+    # of taking the next line's word.
     plain = re.search(r"(?im)^[^\S\r\n]*(?:\*\*)?Catalog role(?:\*\*)?:(?:[^\S\r\n]|\*)*(\S*)", prompt)
     match = plain or re.search(r"(?im)^(?:[^\S\r\n]|[*>#-])*Catalog role[*`]*:(?:[^\S\r\n]|\*)*(\S*)", prompt)
     role = match.group(1).strip("`*.,:;").lower() if match else None

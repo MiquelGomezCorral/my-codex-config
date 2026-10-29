@@ -38,8 +38,9 @@ request.
 2. Give every scope one owner. Keep integration and final verification with the parent.
 3. Write all worker packets before launching. Pass the smallest useful history; make
    packets self-contained when the worker does not need the conversation.
-4. Launch independent workers in the same turn. Use dependency waves when later work
-   needs earlier evidence.
+4. Launch independent workers in the same turn, within the grant's `active` cap; past it,
+   the parent starts each next worker as an earlier one finishes. Use dependency waves when
+   later work needs earlier evidence.
 5. Continue non-overlapping parent work, then wait with a realistic timeout. Keep the
    user informed during long runs.
 6. Collect every relevant result. Deduplicate, reconcile disagreements against evidence,
@@ -48,7 +49,8 @@ request.
 
 ## Lifecycle
 
-- Launch independent workers in the same turn when their selected mechanisms support it.
+- Launch independent workers in the same turn, within the grant's `active` cap (step 4),
+  when their selected mechanisms support it.
 - Before resuming any worker, verify its parent, harness, role, model, and directory.
   Agents are not moved between those identities.
 

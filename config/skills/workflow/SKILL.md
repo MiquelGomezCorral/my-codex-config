@@ -97,16 +97,16 @@ context conflicts or a non-Git action's bounds are missing.
    *Live validation*), and fixes the wave's `Slice gates` mode.
 4. **Slice preparation:** the stage owner for stages 4-6 is the root for a `small` slice and
    the read-only `coding-supervisor` for a `medium` or `large` one (stage 5 sets its grant).
-   The owner refines and narrows each approved slice against current repository
+   A supervisor never asks the human; it escalates every human decision to the root, which
+   asks. The stage owner refines and narrows each approved slice against current repository
    state before dispatch. Refinement may change technical steps
    within the approved outcome and scope; report amendments. Escalate changed behavior,
-   scope, dependencies, validation method, or authority to the human (a supervisor escalates
-   to the root, which asks), except that the
+   scope, dependencies, validation method, or authority to the human, except that the
    stage owner may adjust live tests within their approved bounds and report each change;
    widening a test's environment or side-effect bounds still needs approval. Record its
    result, owner, `Size:`, checks, samples, tools, review preset, artifacts, and exact
-   slice base revision (before coding for a `small` slice; for a supervisor, the root records
-   owner, `Size:` and base at dispatch and the rest from its stage 6 packet). The
+   slice base revision before coding for a `small` slice (stage 6 says who writes the record
+   for a supervisor's slice). The
    human-approved plan records each slice's `Size: small|medium|large`, proposed by the
    planner and approved with the plan, with any human override. The wave
    approval covers its exact implementation and worktree bounds; ask for missing live
@@ -118,8 +118,7 @@ context conflicts or a non-Git action's bounds are missing.
    non-live test route before coding; preflight a live tool only within approved bounds.
    Then the stage owner runs each new live test once on the slice base (the base live run):
    it must fail or show the old behavior. Redefine a test that passes there within its
-   bounds and report it; if the behavior already exists, ask the human (a supervisor
-   escalates it to the root).
+   bounds and report it; if the behavior already exists, ask the human.
    Stop if required evidence or a usable validation route is missing.
 5. **Coding loop:** send a small plan directly to one retained coder. The writer uses the
    harness's normal native coding capability, as routed in
@@ -127,16 +126,17 @@ context conflicts or a non-Git action's bounds are missing.
    a read-only `coding-supervisor` with a bounded grant to direct one retained coder and
    coordinate the selected review within the approved slice. It owns stages 4-6 for the
    slice and never edits product source or commits (the coder edits; a git worker
-   commits). The grant is `Delegation: allowed (max depth 3)`, covering one coder, git
-   workers, review and cleanup coordinators, and `computer-controller` testers. If Orca
-   cannot nest 3 levels, the root starts only the review and cleanup coordinator workers,
-   on the supervisor's request, and relays their reports, questions and escalations to it,
-   and the supervisor's answers back; the supervisor stays the `$review` and `$cleanup`
-   parent, launching the `full` verifier and the live-round testers itself and verifying the
-   findings.
+   commits). The grant is `Delegation: allowed (max depth 3, total 65, active 4)`, covering
+   one coder, git workers, review and cleanup coordinators, the `full` verifier, and
+   `computer-controller` testers. The total covers three review and three cleanup rounds
+   at their widest; active is one coordinator plus three of its workers at a time, so a
+   bigger swarm runs in batches under `super-agent`'s rule. If Orca cannot nest 3 levels,
+   the root starts only the review and cleanup coordinator workers, on the supervisor's
+   request, and relays their reports, questions and escalations to it, and the supervisor's
+   answers back; the supervisor stays the `$review` and `$cleanup` parent, launching the
+   `full` verifier and the live-round testers itself and verifying the findings.
    `super-agent` takes the supervisor and coder models from the catalog's sized entries.
-   The supervisor escalates the round-3 cleanup cap and any human decision to the root,
-   which asks the human. The stage owner invokes `$review` at the size the
+   The stage owner invokes `$review` at the size the
    coding loop's *Size the review* picks (the approved preset by default) with the complete
    approved plan, amendments, checks, and slice context. In workflow context, the review
    basis includes changes from the recorded slice base through the inspected head plus
@@ -163,8 +163,7 @@ context conflicts or a non-Git action's bounds are missing.
    that did not fully land, including a fix that changed nothing, counts as an accepted
    finding of that round. Cleanup passes only when an audit round has no accepted findings;
    accepted findings go through stage 5, then a new checkpoint and the next round. From
-   round 3 on (the cap), ask the human (a supervisor escalates to the root first) before
-   applying a round's accepted findings. Stage 6
+   round 3 on (the cap), ask the human before applying a round's accepted findings. Stage 6
    ends with a clean round or with recorded risk the human accepted; recorded risk never
    counts as clean. Every later code change, from human feedback, PR review, wave close,
    merge conflicts, or CI, takes stages 5 and 6 before it returns to the human, before a
@@ -185,6 +184,10 @@ context conflicts or a non-Git action's bounds are missing.
    rest of the progress record from the packet, and verifies consequential packet claims
    against the cited evidence. It also keeps wave approval, sizes, human gates and pages,
    feedback routing, shipping (stage 8), memory writes and the wave regression (stage 9).
+   For a `medium` or `large` slice, the root sends each later code change, with the last
+   packet, to a fresh coding supervisor, which runs stage 4's base live run for any new
+   live test on the checkpoint the last cleanup round audited, not the slice base, then
+   stages 5 and 6 from that checkpoint, and returns a new packet.
 7. **Present to human:** show the result page (gate 3) with the actual result, live evidence,
    checks, known gaps, and artifacts after stage 6 ends.
    Route feedback that changes code through stages 5 and 6 before presenting again. After

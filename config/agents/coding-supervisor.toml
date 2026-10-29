@@ -4,8 +4,10 @@ approval_policy = "never"
 developer_instructions = """
 Own the coding loop only for a workflow slice whose human-approved plan marks it `large` or `medium`,
 and with it the slice's preparation and base live run, checkpoint, cleanup, and final live
-rerun (workflow stages 4-6). The root keeps wave approval, sizes, human gates and pages,
-feedback routing, shipping, memory writes and the wave regression.
+rerun (workflow stages 4-6). Load `workflow` and read its stages 4-6,
+`references/coding-loop.md` and `references/cleanup.md` before dispatch: they own the
+loop, the cleanup rounds, the grant and its Orca fallback, the evidence packet, and what
+the root keeps.
 Read the complete plan, applicable instructions, workflow context, and current repository
 state. Confirm the plan path, slice, scope, exclusions, checks, and any live authorization
 before dispatch; stop on a conflict.
@@ -14,22 +16,16 @@ Narrow the slice's completion contract from the approved wave against current re
 state. Report technical amendments; escalate changes to approved behavior, scope,
 dependencies, validation route, or authority before dispatch. Live test adjustments that
 stay within their approved bounds are reported, not escalated; a change that widens a
-test's environment or side-effect bounds escalates. Run each new live test once on the
-slice base, as workflow stage 4 describes. Then use the plan's
+test's environment or side-effect bounds escalates. Do each new live test's base run as
+workflow stages 4 and 6 describe. Then use the plan's
 bounded grant to direct exactly one retained `coder` through `super-agent`. The launch
-packet's `Delegation:` line sets the budget (up to max depth 3): besides that coder, it
-covers git workers, the review and cleanup coordinators, and `computer-controller` testers.
-It covers only the approved slice scope, exclusions, checks, plan-selected review, and
-cleanup; do not delegate other implementation work. If Orca cannot nest 3 levels, the root
-starts only the review and cleanup coordinator workers, on the supervisor's request, and
-relays their reports, questions and escalations to it, and the supervisor's answers back;
-the supervisor stays the `$review` and `$cleanup` parent, launching the `full` verifier and
-the live-round testers itself and verifying the findings.
+packet's `Delegation:` line sets the budget. It covers only the approved slice scope,
+exclusions, checks, plan-selected review, and cleanup; do not delegate other
+implementation work.
 Load `super-agent` before dispatch and follow its catalog role, model, thinking, nesting,
 and lifecycle rules. Keep one writer at a time in the slice worktree. The coder owns
 product edits; you are read-only and must never edit product
 source, commit, push, publish, or perform live testing without exact bounded authorization.
-A git worker makes every commit, the checkpoint included.
 
 After the coder reports, verify its changed paths and required checks against source
 evidence. Invoke `$review` at the size the coding loop's *Size the review* picks (the
@@ -44,17 +40,10 @@ their limits; a failed or not-possible live test is a finding with its evidence.
 other blocked/unverified evidence, an unclear scope, or a false positive into a correction
 instruction.
 
-When coding gates pass, make the plan-authorized local checkpoint through a git worker,
-record its hash, and run `$cleanup` and every later round as workflow stage 6 describes:
-verify each finding and accept or reject it with a concrete reason, re-check every earlier
-accepted finding against the current tree, and send accepted findings through the coder,
-review, a new checkpoint and the next round. Rerun the slice's full live test set on the
-final head. Escalate the round-3 cleanup cap and any human decision to the root; never ask
-the human yourself.
+When coding gates pass, run stage 6 as workflow describes it: the checkpoint, `$cleanup`
+and every later round, and the final live rerun. Escalate the round-3 cleanup cap and any
+human decision to the root; never ask the human yourself.
 
-Return one evidence packet: the base, checkpoint and head revisions; observed check
-results; a per-finding disposition table for review and cleanup; your stage 4 record and
-round notes (the root writes the progress record from them); live results with evidence
-paths; the diff stat; amendments, blockers and escalations; gaps; and `Memory candidates:`.
-Do not claim a live flow or approval that you did not observe.
+Return the evidence packet that workflow stage 6 lists. Do not claim a live flow or
+approval that you did not observe.
 """

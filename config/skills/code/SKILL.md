@@ -60,14 +60,10 @@ Launch or resume exactly one first-tier worker through `super-agent`. Standalone
 uses the configured implementation role (`coder` in Codex). For approved workflow context,
 read the slice's `Size:` from the human-approved plan: `small` goes directly to one retained
 `coder`; `medium` and `large` go to the read-only `coding-supervisor`, which owns the
-slice's workflow stages 4-6 under `Delegation: allowed (max depth 3)`: it directs exactly one
-retained coder and runs the plan-selected read-only review, the checkpoint, cleanup and the
-live reruns through its own helpers. If Orca cannot nest 3 levels, the root starts only the
-review and cleanup coordinator workers, on the supervisor's request, and relays their
-reports, questions and escalations to it, and the supervisor's answers back; the supervisor
-stays the `$review` and `$cleanup` parent, launching the `full` verifier and the live-round
-testers itself and verifying the findings. Stop if size
-is missing or conflicts with the plan. Keep one product-code writer at a time.
+slice's workflow stages 4-6: it directs exactly one retained coder and runs the
+plan-selected read-only review, the checkpoint, cleanup and the live reruns through its own
+helpers. Workflow stage 5 sets its grant and the Orca fallback. Stop if size is missing or
+conflicts with the plan. Keep one product-code writer at a time.
 
 - `agent`: the selected harness's best matching configured implementation agent, or the
   plan-sized `coder` / `coding-supervisor` route above

@@ -18,9 +18,8 @@ and the worker returns findings without changing the repository.
 
 An approved workflow may invoke this skill at its cleanup stage with the exact plan,
 scope, exclusions, progress path, and authorization summary. Context does not change this
-skill's read-only, findings-only contract: the workflow parent verifies findings before
-it decides whether to route a correction. Standalone `$cleanup` keeps its read-only,
-findings-only contract.
+skill's read-only, findings-only contract: the stage owner (workflow stage 4) verifies
+findings before it decides whether to route a correction.
 
 ```text
 $cleanup [--slopo] [goal or persisted-plan context]
@@ -49,10 +48,9 @@ $cleanup [--slopo] [goal or persisted-plan context]
 
 Launch exactly one fresh `cleanup-worker` through `super-agent`, with
 `Catalog role: sub_orchestrator` and the `Size:` from the workflow context (`medium` for a
-`small` slice, as the catalog has no small entry; a standalone run proposes the size in one
-line and waits for the user's OK), and with the plan or goal, task-owned paths and
-exclusions, the complete status snapshot, and the workflow comparison basis when supplied.
-Grant it delegation for the cleanup swarm: maximum depth
+`small` slice, as the catalog has no small entry), and with the plan or goal, task-owned
+paths and exclusions, the complete status snapshot, and the workflow comparison basis when
+supplied. Grant it delegation for the cleanup swarm: maximum depth
 one, at most six read-only descendants, none of which may delegate. A workflow may pass
 `Audit depth: light`; pass it on. Without it, the audit is full. The packet must contain
 exactly one `Slopo mode` marker: `Slopo mode: enabled` when `$cleanup --slopo` was

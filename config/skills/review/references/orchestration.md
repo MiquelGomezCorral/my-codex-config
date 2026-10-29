@@ -116,8 +116,7 @@ is `reviewer-quick`. For ordinary direct and swarm review, use the selected harn
 review coordinator through `super-agent`. A coordinator that delegates (swarm mode, the
 `full` primary review included) launches with `Catalog role: sub_orchestrator` and the
 `Size:` from the workflow context, `medium` for a `small` slice (the catalog has no small
-entry); a standalone run proposes the size in one line and waits for the user's OK. Direct
-review and the `full` verifier keep `reviewer-fast`. For
+entry). Direct review and the `full` verifier keep `reviewer-fast`. For
 `full`, route the primary report to the separate fresh verifier specified in the preset
 reference; the parent routes reports and does not review or edit them. For `full`, the
 parent also starts, resets, and

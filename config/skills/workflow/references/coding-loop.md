@@ -12,17 +12,10 @@ The retained writer uses the harness's normal native coding capability; see
    Read the slice's `Size:` in the approved plan.
    For `small`, the root directs one retained `coder` through `super-agent`. For `large`
    or `medium`, assign a read-only `coding-supervisor` that owns this loop, the base live
-   run, and workflow stage 6 for the slice. Its grant is `Delegation: allowed (max depth 3)`:
-   exactly one retained coder, git workers, review and cleanup coordinators, and
-   `computer-controller` testers, within the slice's scope, exclusions, and checks. If Orca
-   cannot nest 3 levels, the root starts only the review and cleanup coordinator workers,
-   on the supervisor's request, and relays their reports, questions and escalations to it,
-   and the supervisor's answers back; the supervisor stays the `$review` and `$cleanup`
-   parent, launching the `full` verifier and the live-round testers itself and verifying the
-   findings. The supervisor never edits product source or commits, and
-   delegates no other implementation work. Below, "the stage owner" is the root for `small`
-   and the supervisor otherwise; a supervisor's progress notes go in its packet, and the root
-   writes the progress record from it.
+   run, and workflow stage 6 for the slice. Workflow stage 5 sets its grant and the Orca
+   fallback, within the slice's scope, exclusions, and checks. The supervisor never edits
+   product source or commits, and delegates no other implementation work. Below, "the stage
+   owner" is as workflow stage 4 defines it.
 2. Run only the planned checks. A passing unit suite alone does not prove a user-facing
    flow.
 3. Set the round: what to review, at what size, and which live tests to run; size it with
@@ -49,15 +42,14 @@ The retained writer uses the harness's normal native coding capability; see
    simplifications the same way. Then repeat from step 3 with the affected checks and
    reviews. Track two unsuccessful correction rounds per unresolved problem, then escalate
    it. A not-possible live test counts toward its own 3-round limit, not the two-round
-   correction limit: ask the human (a supervisor escalates to the root) when a test is
-   still not possible after 3 rounds, or when only unclear results remain.
+   correction limit: ask the human when a test is still not possible after 3 rounds, or
+   when only unclear results remain.
 7. When required behavior and evidence pass, a last round reruns the full slice live test
    set on the final head, including after cleanup corrections. Stop only when the required
    evidence passes or a concrete blocker is reported.
 
 A supervisor ends the slice with the evidence packet that workflow stage 6 lists, in place
-of a short report. The root coordinates and does not edit product code, and verifies
-consequential packet claims against the cited evidence.
+of a short report. The root coordinates and does not edit product code.
 
 ## Size the review
 
