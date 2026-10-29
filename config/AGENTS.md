@@ -40,24 +40,24 @@ delegated agents get the task context they need and end each report with `Memory
 (findings meeting the bar below, or `none`). Delegates do not load the skill or browse
 private memory, except the `known-errors.md` and `workflow.md` search below; only the Git
 worker may search `agent-memory/plans/` for the plan behind its changes.
+- On any error, retry, or slow step, and before debugging, deploying, or web search, grep
+`known-errors.md` and `workflow.md` for the error text in
+`$(git rev-parse --path-format=absolute --git-common-dir)/agent-memory/`; read only matches.
+Every agent does this, delegates included; only the human-facing agent writes them.
 - Persist hard-won project knowledge in that shared `agent-memory/` without asking, even
-during read-only work. A finding qualifies when it took real research or debugging, cannot
-be seen in the code, docs, or Git history, and lets a future agent skip that work: the cause
-and fix of a slow or broken thing, external knowledge we had to search for, deploy or
-release steps that worked, environment gotchas. Skip one-off task state and what the
-repository already records. Every 5-10 turns, and first after a context compaction, check
-the recent discussion for unsaved findings. If the value or exact fact is unclear,
-ask the user. Before debugging, deploying, or searching the web, check `known-errors.md`
-and `workflow.md`. Every agent, delegates included, may search them in
-`$(git rev-parse --path-format=absolute --git-common-dir)/agent-memory/`: grep for the error
-text on any error, before a retry, and when a step drags, then read only the matched
-entries. Only the human-facing agent writes them. A delegate may write its assigned report
-under `plans/`; that is not memory. A rule the user states in chat is written to agent
-memory in the same turn. Sort by effect, not wording: a rule about how agents work,
-reply or report goes to `decisions.md` ("I want ..." included); product or feature wants
-go to `requirements.md`. The human-facing agent reads `decisions.md` before its first reply
-in the repository. Project knowledge and user rules go to `agent-memory/` even when the
-harness has its own memory; harness memory may keep a copy, never the only one.
+during read-only work. A finding qualifies when it took real research or debugging, cannot be
+seen in the code, docs, or Git history, and lets a future agent skip that work: the cause and
+fix of a slow or broken thing, external knowledge we had to search for, deploy or release
+steps that worked, environment gotchas. Skip one-off task state and what the repository
+already records. Every 5-10 turns, and first after a context compaction, check the recent
+discussion for unsaved findings. If the value or exact fact is unclear, ask the user. A
+delegate may write its assigned report under `plans/`; that is not memory. A rule the user
+states in chat is written to agent memory in the same turn. Sort by effect, not wording: a
+rule about how agents work, reply or report goes to `decisions.md` ("I want ..." included);
+product or feature wants go to `requirements.md`. The human-facing agent reads `decisions.md`
+before its first reply in the repository. Project knowledge and user rules go to
+`agent-memory/` even when the harness has its own memory; harness memory may keep a copy,
+never the only one.
 - Never keep plans, slices, handoffs, worker instructions and reports, artifacts, review
 output, or anything a later turn or agent may read again in an operating-system temporary
 location (`/tmp`, `$TMPDIR`, or a harness scratchpad under them); a reboot or cleanup deletes
