@@ -1140,10 +1140,22 @@ function serve(options) {
   server.listen(port, "0.0.0.0")
 }
 
+// One command's usage: its line, plus update's flag notes. An unknown command throws, as main does.
+function commandUsage(command) {
+  const [commands, flags] = usage.split("\n\n")
+  const lines = commands.split("\n").filter((line) => line.trim().split(/\s+/)[2] === command)
+  if (!lines.length) throw new Error(`unknown command: ${command}\n${usage}`)
+  return ["usage:", ...lines, ...(command === "update" ? ["", flags] : [])].join("\n")
+}
+
 function main() {
   const [, , command, ...args] = process.argv
   if (!command || command === "--help" || command === "-h") {
     console.log(usage)
+    return
+  }
+  if (args.includes("--help") || args.includes("-h")) {
+    console.log(commandUsage(command))
     return
   }
   const pairs = parsePairs(args)

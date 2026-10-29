@@ -107,6 +107,12 @@ orca orchestration worker-start --task <task_id> --worktree current --terminal <
 - Never `pkill` or `kill` by command pattern (it killed other agents' waits); stop only what
   you started, by dispatch, handle or PID.
 
+## Ports
+
+Before you start a server, run `orca ports --all` (or open the Ports section of the artifacts hub)
+and pick a port nothing listens on. The scan is a snapshot and reserves nothing. Never stop a process
+you did not start; contact its Orca terminal or your coordinator instead.
+
 ## Retention and release
 
 Retain a worker only when the calling workflow requires it. Verify parent, harness, role,

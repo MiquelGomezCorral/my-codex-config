@@ -99,6 +99,11 @@ again with `/bin/sh` when the user presses Start. It gets the hub's environment,
 shell's, so the command must run in the foreground, set its own variables or activate its venv
 itself, and use plain `sh` syntax: no `source`, use `. file` or `bash -c '...'`.
 
+**Ports.** Before you start a server, run `orca ports --all` (or open the Ports section of the hub) and
+pick a port nothing listens on. The scan is a snapshot and reserves nothing, so another agent can take
+the port after you look. Never stop a process you did not start: contact its Orca terminal or your
+coordinator instead.
+
 **Cleanup.** When you replace a page or an app, stop or delete the old one so the index stays
 short. `hub.py list` shows the ids (`<repo>/<page>` or `<repo>/<worktree>/<page>`). `stop <id>`
 keeps the files and `resume <id>` serves the page again at the same address; `delete <id> --yes`
