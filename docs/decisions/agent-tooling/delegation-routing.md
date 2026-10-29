@@ -21,6 +21,7 @@ Workflows resolve each role's harness, model, and thinking from one frequently e
 - The super agent does lookups itself with CodeGraph plus about three targeted file reads; more reading goes to `explorer`, which returns a brief of 20 lines or fewer with `file:line` references. Most super-agent context came from its own file reading, not from helper reports. The `explore` command launches it without loading `super-agent`, because loading that skill to start one cheap reader cost more main-agent context than the reader saved; the explorer agent file owns the brief contract.
 - Coordinators wait on workers with one blocking wait and never poll; every wait is bounded, so a stalled worker is noticed, nudged once, then stopped and reported. The Orca adapter reference owns the commands.
 - On Claude, a hook installed by the bootstrap blocks helper launches on Opus or Fable outside the roles listed in the catalog's `model_guard`; `AGENT_MODEL_GUARD=off` disables it for one session. Helpers launched without a model get the catalog's Claude `medium` model through the bootstrap's default-helper-model setting, because agent files carry no model line.
+- The same hook refuses helper launches that set a name, because named helpers send idle notices that wake their parent; helpers are reached by their returned ID.
 - Every dispatch rereads the applicable role entry. Role settings override generic tier preferences, wrapper defaults, and agent-file model metadata; explicit user instructions remain authoritative. List order defines fallback. When a skill asks for more workers than can run, the stage continues with those that ran and the user is told about the reduced coverage. Only a role with no runnable entry is a blocker.
 - `reviewer-fast`, `computer-controller`, and `swarms` run on the current harness, the harness of the agent that launches them. Each harness lists one named cheap model for them in the catalog: `reviewer-fast` and `swarms` at the highest thinking that model supports, `computer-controller` at the lower thinking it lists, for speed. When the model is unavailable, the harness's `low` tier runs instead. Direct review and verification run on `reviewer-fast`, live validation and other browser or desktop work on `computer-controller`, and specialists on `swarms`, so every harness has a runnable route for each.
 - Local routes are grouped under their capability tier, and at most one local model process may run at a time. The current orchestrator consumes that slot when it uses a cataloged local model. `max_local_concurrency: 0` turns local routes off; tier-routed work then takes an online route.
@@ -39,6 +40,7 @@ Workflows resolve each role's harness, model, and thinking from one frequently e
 - Delegation policy contains no vendor names; vendor mechanics stay in the policy's references.
 - Automatic routing never crosses to another harness outside a wrapper, except the read-only `explore` command.
 - Claude helpers run on Opus or Fable only in roles the catalog's `model_guard` lists, unless the user turned the guard off for the session.
+- Claude helper launches carry no name; the parent reaches each helper by the ID its launch returns.
 - Explicit preset requests stay within that preset, and explicit harness/model requests remain exact.
 - Catalog identifiers are secret-free and have one authoritative owner.
 - An automatically selected worker is launched with an explicit catalog model and thinking level. Report unavailable pinning or verification; stop a reported effective-setting mismatch and do not use its output.
@@ -54,12 +56,13 @@ Role defaults change often. Keeping their harness, model, and thinking in one ca
 ## Enforcement
 
 - Catalog and behavior checks: [configuration tests](../../../tests/codex-config.test.mjs) and [bootstrap tests](../../../tests/bootstrap.test.sh).
-- Claude model guard: [guard hook](../../../config/bin/agent-model-guard.py), installed by [the Claude bootstrap](../../../bootstrap_claude.sh).
+- Claude model guard and named-helper refusal: [guard hook](../../../config/bin/agent-model-guard.py), installed by [the Claude bootstrap](../../../bootstrap_claude.sh).
 - Delegation instructions and evaluations: [super agent](../../../config/skills/super-agent/SKILL.md), its [routing reference](../../../config/skills/super-agent/references/routing.md), and its [swarm evaluations](../../../config/skills/super-agent/evals/evals.json).
 - Review-only: confirm runtime evidence and wrapper-native lifecycle for live launches, which static checks cannot prove.
 
 ## History
 
+- 2026-10-29: A subscription-usage audit found coordinators waking for idle notices from named Claude helpers, and the guard refusing `Catalog role: coder.` and `**Catalog role:**` spellings. The user approved refusing named helper launches and a tolerant role line; catalog model routes stay unchanged.
 - 2026-10-25: Live tests showed Playwright CLI about twice as fast as Orca's browser and more reliable, so the user put it first: Playwright CLI, Orca's browser, the harness browser, then desktop control.
 - 2026-10-23: The user replaced `live-validator` with a generic `computer-controller` agent that any agent hands browser and desktop work to. It runs on each harness's cheap model at low or medium thinking, tries Orca's browser, the harness browser, Playwright CLI and desktop control in that order, and uses no MCP server.
 - 2026-10-20: A live test showed the super agent delegating reading but loading `super-agent` to do it and getting briefs of 34 and ~147 lines. The user approved an explorer agent file and one `explore` command, pi first, that reads the catalog itself. The user also sized `git-worker` in the catalog and asked the `git` skill to take that size from the user or plan, or ask for it. The code-blind proposal moved to `adversarial` (it designs a solution and needs strong, independent judgement); planning web research and bug-evidence checks moved to `swarms` (cheap search and summary); code facts go to `explore`. Skill files stopped counting toward the reading budget, so loading a skill never pushes reading to the explorer.

@@ -24,12 +24,16 @@ slices with inspectable verification and explicit human authority across project
   research, verification, and artifact production. Each slice carries `Size: small|medium|large`,
   proposed by the planner and approved by the human with the plan. The orchestrator directly
   supervises one retained coder for a small slice; a medium or large slice uses a separate
-  read-only coding supervisor with an explicit one-coder delegation grant, and the size picks
-  the supervisor and coder models from the catalog.
+  read-only coding supervisor that owns stages 4-6 (base live run, coding, review, checkpoint,
+  cleanup and its verification, final live rerun), may launch one coder, git workers, review
+  and cleanup coordinators and testers to depth 3, and returns one evidence packet; the size
+  picks the supervisor and coder models from the catalog.
 - The complete grounded plan is required before coding. The root for small slices, or the
   coding supervisor for medium and large slices, invokes the plan-selected read-only review against
   the resulting head and full approved plan. A reusable critic role challenges plans and
   other proposals; reviewer harness and tier defaults resolve through the model catalog.
+- The root keeps wave approval, human gates, shipping, memory and the wave regression, and
+  verifies consequential claims in the packet against its evidence.
 - Each approved slice is narrowed against current repository state before coding.
   Technical steps may adapt within approved bounds; changed behavior, scope,
   dependencies, validation, or authority returns to the human. The coordinator may adjust
@@ -55,7 +59,7 @@ slices with inspectable verification and explicit human authority across project
   coding loop: changed-line bands (about 1-25 `flash`, 25-50 `swarm`, more `full`) moved by
   reach, and fix rounds review what changed since the last review plus what it reaches. Live
   tests (unless opted out) and cleanup still run every round.
-- A local checkpoint commit precedes cleanup. Cleanup audits stay read-only; an approved
+- A local checkpoint commit, made through a git worker, precedes cleanup. Cleanup audits stay read-only; an approved
   workflow may route verified in-scope simplifications to the implementation worker.
   Cleanup must pass clean: accepted findings go back through coding and review, then cleanup
   runs again on those changes until an audit has no accepted findings. After three rounds that
@@ -209,6 +213,10 @@ diagram comprehension remains Review-only.
 
 ## History
 
+- 2026-10-29: A subscription-usage audit found the root's long Opus context driving most
+  spend while it ran each slice's live runs, checkpoint, cleanup and reruns. The user kept the
+  catalog models and approved handing those stages of a medium or large slice to its coding
+  supervisor, which returns one evidence packet; the root keeps the gates.
 - 2026-10-26: Review and cleanup rounds are sized to the change by agent judgment, because a
   1-line change or a 3-line fix round still launched the full swarm. `swarm-smart` was removed:
   with live tests in every round it launched the same reviewers as `full`. Cleanup's big-change

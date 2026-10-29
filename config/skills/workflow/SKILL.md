@@ -95,36 +95,48 @@ context conflicts or a non-Git action's bounds are missing.
    whether to start delivery; do not dispatch coding before explicit wave approval. That approval
    also covers each slice's live test set, or the recorded opt-out (`refine-plan`
    *Live validation*), and fixes the wave's `Slice gates` mode.
-4. **Slice preparation:** refine and narrow each approved slice against current repository
-   state before dispatch. The root does this for `small`; a read-only `coding-supervisor`
-   can do it for `medium` or `large` under a bounded grant. Refinement may change technical steps
+4. **Slice preparation:** the stage owner for stages 4-6 is the root for a `small` slice and
+   the read-only `coding-supervisor` for a `medium` or `large` one (stage 5 sets its grant).
+   The owner refines and narrows each approved slice against current repository
+   state before dispatch. Refinement may change technical steps
    within the approved outcome and scope; report amendments. Escalate changed behavior,
-   scope, dependencies, validation method, or authority to the human, except that the
-   coordinator may adjust live tests within their approved bounds and report each change;
+   scope, dependencies, validation method, or authority to the human (a supervisor escalates
+   to the root, which asks), except that the
+   stage owner may adjust live tests within their approved bounds and report each change;
    widening a test's environment or side-effect bounds still needs approval. Record its
    result, owner, `Size:`, checks, samples, tools, review preset, artifacts, and exact
-   slice base revision before coding. The
+   slice base revision (before coding for a `small` slice; for a supervisor, the root records
+   owner, `Size:` and base at dispatch and the rest from its stage 6 packet). The
    human-approved plan records each slice's `Size: small|medium|large`, proposed by the
    planner and approved with the plan, with any human override. The wave
    approval covers its exact implementation and worktree bounds; ask for missing live
-   authorization before that action. Apply only the exact approved decision-record
-   changes once through their owning skill before coding; never delegate those writes
-   to the coder.
+   authorization before that action. The root applies only the exact approved decision-record
+   changes once through their owning skill before coding; it never delegates those writes.
    Require the complete grounded plan: verified current behavior and sources, desired
    result, scope and exclusions, implementation decisions, acceptance evidence, and an
    executable validation method with samples and available tools. Check the planned
    non-live test route before coding; preflight a live tool only within approved bounds.
-   Then run each new live test once on the slice base: it must fail or show the old
-   behavior. Redefine a test that passes there within its bounds and report it; if the
-   behavior already exists, ask the human.
+   Then the stage owner runs each new live test once on the slice base (the base live run):
+   it must fail or show the old behavior. Redefine a test that passes there within its
+   bounds and report it; if the behavior already exists, ask the human (a supervisor
+   escalates it to the root).
    Stop if required evidence or a usable validation route is missing.
 5. **Coding loop:** send a small plan directly to one retained coder. The writer uses the
    harness's normal native coding capability, as routed in
    [native capabilities](references/native-capabilities.md). For a medium or large plan, use
    a read-only `coding-supervisor` with a bounded grant to direct one retained coder and
-   coordinate the selected review within the approved slice; `super-agent` takes the
-   supervisor and coder models from the catalog's sized entries. The root for a small
-   slice, or the supervisor for a medium or large one, invokes `$review` at the size the
+   coordinate the selected review within the approved slice. It owns stages 4-6 for the
+   slice and never edits product source or commits (the coder edits; a git worker
+   commits). The grant is `Delegation: allowed (max depth 3)`, covering one coder, git
+   workers, review and cleanup coordinators, and `computer-controller` testers. If Orca
+   cannot nest 3 levels, the root starts only the review and cleanup coordinator workers,
+   on the supervisor's request, and relays their reports, questions and escalations to it,
+   and the supervisor's answers back; the supervisor stays the `$review` and `$cleanup`
+   parent, launching the `full` verifier and the live-round testers itself and verifying the
+   findings.
+   `super-agent` takes the supervisor and coder models from the catalog's sized entries.
+   The supervisor escalates the round-3 cleanup cap and any human decision to the root,
+   which asks the human. The stage owner invokes `$review` at the size the
    coding loop's *Size the review* picks (the approved preset by default) with the complete
    approved plan, amendments, checks, and slice context. In workflow context, the review
    basis includes changes from the recorded slice base through the inspected head plus
@@ -136,8 +148,9 @@ context conflicts or a non-Git action's bounds are missing.
    Verify findings before correction; correct every verified in-scope P0-P3 finding, using
    priority to order work. Escalate after two unsuccessful rounds for the same unresolved
    problem.
-6. **Cleanup:** after coding gates pass, run the authorized local checkpoint through
-   `$git`, record its hash, then run the read-only `$cleanup` audit. The comparison from the
+6. **Cleanup:** after coding gates pass, the stage owner runs the
+   authorized local checkpoint through a git worker under `$git`, records its hash, then
+   runs the read-only `$cleanup` audit. The comparison from the
    slice base is the skip test and the basis of the slice's first round: compare the
    complete task-owned changes from base through the current tree, including the checkpoint
    and later staged, unstaged, or untracked worktree changes. A later round passes the
@@ -145,12 +158,13 @@ context conflicts or a non-Git action's bounds are missing.
    as context; with no new changes, it runs only the earlier-fix check.
    Skip cleanup only when that complete comparison is empty; a clean post-checkpoint status
    alone is not enough. Verify each finding and accept or reject it with a concrete reason.
-   Before a later round can pass, the human-facing coordinator checks every earlier
+   Before a later round can pass, the stage owner checks every earlier
    accepted finding the human did not leave as recorded risk against the current tree; one
    that did not fully land, including a fix that changed nothing, counts as an accepted
    finding of that round. Cleanup passes only when an audit round has no accepted findings;
    accepted findings go through stage 5, then a new checkpoint and the next round. From
-   round 3 on (the cap), ask the human before applying a round's accepted findings. Stage 6
+   round 3 on (the cap), ask the human (a supervisor escalates to the root first) before
+   applying a round's accepted findings. Stage 6
    ends with a clean round or with recorded risk the human accepted; recorded risk never
    counts as clean. Every later code change, from human feedback, PR review, wave close,
    merge conflicts, or CI, takes stages 5 and 6 before it returns to the human, before a
@@ -163,6 +177,14 @@ context conflicts or a non-Git action's bounds are missing.
    change at all, cleanup is skipped and the comparison from the slice base is empty.
    [Cleanup](references/cleanup.md) owns what each round audits, how big each audit is, and
    the cap's outcomes.
+   A supervisor ends stage 6 with one evidence packet: the base, checkpoint and head
+   revisions; check results; a per-finding disposition table for review and cleanup; its
+   stage 4 record and round notes; live results with evidence paths; the diff stat;
+   amendments, blockers and escalations; gaps; and `Memory candidates:`. Only the root writes
+   the run record: it records the slice's owner, `Size:` and base at dispatch, writes the
+   rest of the progress record from the packet, and verifies consequential packet claims
+   against the cited evidence. It also keeps wave approval, sizes, human gates and pages,
+   feedback routing, shipping (stage 8), memory writes and the wave regression (stage 9).
 7. **Present to human:** show the result page (gate 3) with the actual result, live evidence,
    checks, known gaps, and artifacts after stage 6 ends.
    Route feedback that changes code through stages 5 and 6 before presenting again. After

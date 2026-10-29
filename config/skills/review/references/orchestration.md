@@ -113,9 +113,14 @@ unsupported model substitutions.
 For `flash`, resolve the catalog role `reviewer-fast` through `super-agent` and route
 directly to one reviewer; do not add a coordinator. The harness's native agent role for it
 is `reviewer-quick`. For ordinary direct and swarm review, use the selected harness's configured
-review coordinator through `super-agent`. For `full`, route the primary
-report to the separate fresh verifier specified in the preset reference; the parent routes
-reports and does not review or edit them. For `full`, the parent also starts, resets, and
+review coordinator through `super-agent`. A coordinator that delegates (swarm mode, the
+`full` primary review included) launches with `Catalog role: sub_orchestrator` and the
+`Size:` from the workflow context, `medium` for a `small` slice (the catalog has no small
+entry); a standalone run proposes the size in one line and waits for the user's OK. Direct
+review and the `full` verifier keep `reviewer-fast`. For
+`full`, route the primary report to the separate fresh verifier specified in the preset
+reference; the parent routes reports and does not review or edit them. For `full`, the
+parent also starts, resets, and
 stops the app for the live round as its preset reference defines, and routes the testers
 only after that reference's authorization check. Testers resolve the catalog role
 `computer-controller`; the harness's native agent role for them is

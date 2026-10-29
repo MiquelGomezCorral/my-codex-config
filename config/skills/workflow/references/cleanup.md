@@ -1,17 +1,19 @@
 # Cleanup
 
-The workflow invokes standalone `$cleanup` after coding gates pass and an authorized local
-checkpoint exists. The comparison from the slice base is the first round's basis: pass the
+The workflow invokes standalone `$cleanup`, from the coding supervisor or from the root for
+a `small` slice, after coding gates pass and an authorized local checkpoint exists. The
+comparison from the slice base is the first round's basis: pass the
 recorded slice base, checkpoint hash, and complete task-owned change set through the current
 head and worktree. This includes committed checkpoint changes and later task-owned staged,
 unstaged, and untracked changes; a clean status after the checkpoint is not enough to skip
 cleanup. The cleanup worker remains read-only and findings-only.
 
-The parent verifies each finding against the approved scope, current source, and tests,
-and records one outcome per finding in progress notes: accepted, or rejected with a
-concrete reason. A valid reason shows the finding is false, a duplicate, out of scope,
-unverifiable against source, or would break acceptance behavior, a public contract, or a
-protection the cleanup contract preserves. "Looks fine", "low value", or effort is not a
+The coding supervisor, or the root for a small slice, verifies each finding against the
+approved scope, current source, and tests, and records one outcome per finding in progress
+notes: accepted, or rejected with a concrete reason. A supervisor returns its outcomes and
+round notes in its packet, and the root writes the progress record from it. A valid reason
+shows the finding is false, a duplicate, out of scope, unverifiable against source, or would
+break acceptance behavior, a public contract, or a protection the cleanup contract preserves. "Looks fine", "low value", or effort is not a
 reason. Route every accepted simplification through the coding loop at any severity; use
 the plan's size routing and include the base and checkpoint revisions. Skip the audit only when the complete
 task-owned comparison is empty. Require affected checks and review to pass afterward. If
@@ -19,7 +21,8 @@ cleanup exposes a regression, return to coding and preserve the checkpoint and u
 changes.
 
 Workflow stage 6 owns when cleanup repeats and when it passes. At the cap, the human chooses
-another round or recorded risk for each remaining finding.
+another round or recorded risk for each remaining finding; a supervisor escalates the cap to
+the root, which asks.
 
 A later round audits the task-owned changes since the checkpoint the previous round audited,
 with the complete slice comparison from the base as context. In a `final-only` wave that
