@@ -10,7 +10,8 @@ These tracked files are existing project context. The human-facing agent also re
 relevant private notes and new plans from `agent-memory/` under the directory returned by
 `git rev-parse --path-format=absolute --git-common-dir`. Delegated agents receive needed
 context from that agent and report memory suggestions back; they do not use
-`agents-memory` or browse private notes.
+`agents-memory` or browse private notes, except to search `known-errors.md` and
+`workflow.md` there, as the global policy says.
 
 - `.agents/architecture.md` - harness layout and boundaries.
 - `.agents/conventions.md` - portability and security rules.

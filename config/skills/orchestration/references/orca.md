@@ -56,10 +56,18 @@ orca orchestration worker-start --task <task_id> --worktree current --terminal <
 ## Waiting, stalls, and questions
 
 - Wait for workers with one blocking command:
-  `orca orchestration check --wait --timeout-ms 1800000 --types worker_done,escalation,question`.
+  `orca orchestration check --wait --timeout-ms 1800000 --types worker_done,escalation,question --json`.
   `--types` wakes you only for results (`worker_done`), errors (`escalation`) and questions
-  (`question`). Before the first wait, run `orca orchestration check --help` and
-  `orca orchestration send --help` (read-only) to confirm the flags and type names.
+  (`question`). Exact 1.4.243 forms, with no `--help` step:
+
+  ```text
+  # after a batch, ack it and wait for the next
+  orca orchestration check --ack <delivery_id> --wait --types worker_done,escalation,question --timeout-ms <ms> --json
+  # start a worker, then compare launch.effective with the request
+  orca orchestration worker-start --spec "<packet>" --worktree current --agent <agent> --model <id> --effort <level> --json
+  # top-level coordinator only
+  orca orchestration run-create --objective "<objective>" --json
+  ```
 - In Claude, start that wait as a background command and end the turn. The harness wakes you
   when it exits. On timeout, start it once more. Pass `--ack <delivery_id>` to the next wait for
   a batch you have processed, as the guide shows.
@@ -90,6 +98,15 @@ orca orchestration worker-start --task <task_id> --worktree current --terminal <
   or times out. A timed-out question stays pending; resume it with `--resume <message_id>`.
 - A worker that cannot proceed sends its blocker as an escalation,
   `orca orchestration send --type escalation --subject "blocked: <reason>"`, then ends its turn.
+- A dispatched worker that starts helpers adds `--from <own handle>` to `worker-start`, never
+  `--run` (Orca rejects it with `worker_cannot_coordinate_own_run`), and reads helper mail with
+  plain `check --terminal <own handle>`. A top-level coordinator's `check` is bound to its Run
+  by `run-create`/`run-use`.
+- When a worker shows `failed`, read `dispatch.lastFailure` in
+  `worker-show --dispatch <id> --json`.
+- Always write `orca orchestration check`; a bare `orca check` is denied by the Opus guard.
+- Never `pkill` or `kill` by command pattern (it killed other agents' waits); stop only what
+  you started, by dispatch, handle or PID.
 
 ## Retention and release
 

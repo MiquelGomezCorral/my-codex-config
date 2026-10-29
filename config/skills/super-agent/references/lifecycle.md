@@ -21,9 +21,11 @@ Procedures for worker launch, steering, recovery, and release. The policy itself
 
 ## Waiting and stalls
 
-- Wait with the one blocking wait that the lifecycle or harness provides. Never wait with
-  `sleep` loops or repeated status reads; one-shot timers and checks, each fired by a wake-up,
-  are fine. Orca's commands are in [orca.md](../../orchestration/references/orca.md).
+- Wait with the one blocking wait that the lifecycle or harness provides. In Claude, start
+  it with the Bash tool's background mode, never a shell `&`, and end the turn; the harness
+  wakes you when it exits. Never wait with foreground `sleep` or poll loops or repeated
+  status reads; one-shot timers and checks, each fired by a wake-up, are fine. Orca's
+  commands are in [orca.md](../../orchestration/references/orca.md).
 - Native background helpers notify the caller when they finish. Do not poll them
   (`ListAgents`, `TaskOutput`).
 - Every wait is bounded and stall-aware. A native helper gets a background `sleep` timer for

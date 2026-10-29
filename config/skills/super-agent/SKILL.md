@@ -163,19 +163,22 @@ Catalog rules:
 Every automatic launch packet names `Catalog role`, `Size` (sized roles), `Harness`,
 `Model`, and `Thinking`, plus the task's native agent role, scope, exclusions,
 deliverable, evidence, stop conditions, and nesting authority. When the worker must explore code, the packet names
-every worktree path and requires CodeGraph first. Every packet requires the report to end
-with `Memory candidates:` or `none`. Verify the effective model and thinking whenever the
-runtime reports them; report an unverified effort or unavailable pinning option instead of
-silently discarding it.
+every worktree path and requires CodeGraph first. Every packet names the resolved absolute
+`agent-memory/` path and the search rule: grep `known-errors.md` and `workflow.md` for the
+error text on any error, before a retry, and when a step drags, then read only the matched
+entries. Every packet requires the report to end with `Memory candidates:` or `none`.
+Verify the effective model and thinking whenever the runtime reports them; report an
+unverified effort or unavailable pinning option instead of silently discarding it.
 
 ## Invariants
 
 - Preserve scope, exclusions, permissions, directory, read-only limits, and stop conditions
   across every route; do not broaden authority to make a route work.
 - The human-facing agent owns `agents-memory`. Pass workers only the relevant facts or
-  exact plan they need, not private memory access; the one exception is the Git worker's
-  `plans/` search in the `git` skill's plan context. Workers report useful memory candidates
-  to their parent for the human-facing agent to assess.
+  exact plan they need, not private memory access; the exceptions are every worker's grep of
+  `known-errors.md` and `workflow.md` (matched entries only, never a write) and the Git
+  worker's `plans/` search in the `git` skill's plan context. Workers report useful memory
+  candidates to their parent for the human-facing agent to assess.
 - Read-only work must not create a branch or worktree, edit, commit, push, publish, or change
   shared infrastructure without explicit authorization for that exact action.
 - Pass model identifiers and prompts as separate arguments; never evaluate a catalog value
