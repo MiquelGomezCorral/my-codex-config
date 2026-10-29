@@ -56,15 +56,6 @@ WRAPPERS = {
     "timeout": ("-k", "-s"),
     "env": ("-u", "-C"),
     "nohup": (),
-    "time": ("-f", "-o"),
-    "nice": ("-n",),
-    "ionice": ("-c", "-n", "-p", "-P", "-u"),
-    "sudo": ("-u", "-g", "-C", "-D", "-p", "-r", "-R", "-t", "-T", "-U"),
-    "setsid": (),
-    "exec": ("-a",),
-    "command": (),
-    "xvfb-run": ("-e", "-f", "-n", "-p", "-s"),
-    "stdbuf": ("-i", "-o", "-e"),
 }
 SHELLS = ("bash", "sh", "zsh")
 SHELL_OPERATORS = frozenset("<>;|&()")
@@ -84,7 +75,7 @@ SCRIPT_HEAD = 64 * 1024
 BROWSER_LIB = re.compile(
     r"\b(?:from|import|require)\s*\(?\s*['\"](?:[^'\"\n]*/)?"
     r"(?:playwright|playwright-core|puppeteer|puppeteer-core)(?:/index\.mjs)?['\"]"
-    r"|(?m:^)\s*(?:from|import)\s+(?:playwright|puppeteer)\b"  # Python's unquoted import, at a line start so prose does not match
+    r"|(?m:^)[ \t]*(?:from|import)\s+(?:playwright|puppeteer)\b"  # Python's unquoted import, at a line start so prose does not match
     r"|\b(?:chromium|firefox|webkit)\.launch"
 )
 BROWSER_REASON = (
@@ -353,8 +344,6 @@ def after_wrappers(words: list[str]) -> list[str]:
     while words and os.path.basename(words[0]) in WRAPPERS:
         name, index = os.path.basename(words[0]), 1
         while index < len(words) and words[index].startswith("-"):
-            if name == "command" and words[index] in ("-v", "-V"):
-                return []  # a lookup, not a run
             index += 2 if words[index] in WRAPPERS[name] else 1
         if name == "timeout":
             index += 1  # its duration
