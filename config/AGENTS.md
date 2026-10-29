@@ -223,7 +223,9 @@ allow; keep dependent steps in order.
   coordinate and key input reports success but does nothing.
 - Hand browser and desktop work to `computer-controller` through `super-agent`. A delegate without
   a nesting grant sends that task to its parent instead. Do it yourself only for one quick look,
-  or when you are `computer-controller` itself.
+  or when you are `computer-controller` itself. Any headed browser an agent starts, CLI or script,
+  takes the launch args in `${XDG_CACHE_HOME:-$HOME/.cache}/computer-controller/work/.playwright/cli.config.json`,
+  so it opens on the secondary monitor without taking focus.
 - Run long processes in the background and poll only when their result blocks progress.
 - Load `web-search` before web research. Diagnose failures before retrying and report blockers
 precisely when new evidence is unavailable.
