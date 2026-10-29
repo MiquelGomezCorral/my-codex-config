@@ -639,7 +639,7 @@ assert settings["env"]["CLAUDE_CODE_SUBAGENT_MODEL"]
 groups = settings["hooks"]["PreToolUse"]
 assert groups[0]["hooks"][0]["command"] == "user-hook"
 guards = [group for group in groups if "agent-model-guard.py" in group["hooks"][0]["command"]]
-assert len(guards) == 1 and len(groups) == 2 and guards[0]["matcher"] == "Agent|Task", groups
+assert len(guards) == 1 and len(groups) == 3 and guards[0]["matcher"] == "Agent|Task", groups
 PY
 GUARD_HOME="$TEST_ROOT/agent-model-guard-home"
 GUARD_CWD="$TEST_ROOT/agent-model-guard-cwd"

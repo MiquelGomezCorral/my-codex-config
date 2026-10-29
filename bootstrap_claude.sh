@@ -77,7 +77,8 @@ install_assets() {
   python3 "$ROOT/config/bin/harness-assets.py" merge-claude-settings \
     --target "$CLAUDE_CONFIG_ROOT/settings.json" --backup "$BACKUP_ROOT" \
     --catalog "$SKILLS_SOURCE/super-agent/references/model-catalog.yaml" \
-    --guard "$ROOT/config/bin/agent-model-guard.py"
+    --guard "$ROOT/config/bin/agent-model-guard.py" \
+    --opus-guard "$ROOT/config/bin/opus-guard.py"
   common_ensure_directory "$CLAUDE_CONFIG_ROOT/agents"
   [[ ! -e "$CLAUDE_CONFIG_ROOT/agents/live-validator.md" && ! -L "$CLAUDE_CONFIG_ROOT/agents/live-validator.md" ]] ||
     common_backup_existing "$CLAUDE_CONFIG_ROOT/agents/live-validator.md"

@@ -136,11 +136,13 @@ to the user, and assessing plan-critique findings and decision records stay with
 
 - **Do it yourself:** quick questions, a short answer, one read-only command, a small scoped edit, a
   lookup, all within the reading budget. Keep it small and bounded.
-- **Reading budget:** per task, read at most three files yourself; CodeGraph calls and skill
-  files (a skill and its references) do not count. When a question, plan, or check needs more reading, run `explore "<question>" [paths]`
+- **Reading budget:** per human message, read at most three files yourself; CodeGraph calls and installed skill
+  files (a skill and its references) do not count; repo copies of skills do. When a question, plan, or check needs more reading, run `explore "<question>" [paths]`
   in the foreground with a 10-minute timeout; it returns a brief of 20 lines or fewer with
   `file:line` references. Trust the brief and do not re-read what it covers; a file you open
-  to check a claim counts toward the three. Questions follow this rule too.
+  to check a claim counts toward the three. Questions follow this rule too. On Opus sessions a hook
+  denies the fourth distinct file read in one human message; `agent-guard unlock reads` lifts it for
+  the session, and only on the user's explicit words.
 - **Hand it off:** multi-file implementation, research sweeps,
   reviews, long runs, live tests, browsing, anything slow or open-ended. Route it through
   `super-agent`.
@@ -151,7 +153,7 @@ to the user, and assessing plan-critique findings and decision records stay with
   relaying them.
 - **If you are a helper, you are the worker, not the orchestrator.** `super-agent` defines
   who is a helper. Your task is narrow: do it yourself, stay inside its scope, and report
-  back. The reading budget does not apply to helpers. Do not delegate, spawn agents, or plan the wider work, unless `super-agent`'s rules
+  back. On Opus sessions, a helper's reads count against its parent's budget for the same human message; helpers on other models are exempt. Do not delegate, spawn agents, or plan the wider work, unless `super-agent`'s rules
   for your packet's grant and your role allow it.
 
 ## Engineering principles
@@ -226,6 +228,8 @@ allow; keep dependent steps in order.
   or when you are `computer-controller` itself. Any headed browser an agent starts, CLI or script,
   takes the launch args in `${XDG_CACHE_HOME:-$HOME/.cache}/computer-controller/work/.playwright/cli.config.json`,
   so it opens on the secondary monitor without taking focus.
+  On Opus sessions a hook enforces this handoff; `agent-guard unlock browser` lifts it for the
+  session, and only on the user's explicit words.
 - Run long processes in the background and poll only when their result blocks progress.
 - Load `web-search` before web research. Diagnose failures before retrying and report blockers
 precisely when new evidence is unavailable.
