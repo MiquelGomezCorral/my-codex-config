@@ -129,8 +129,8 @@ context conflicts or a non-Git action's bounds are missing.
    commits). The grant is `Delegation: allowed (max depth 3, total 65, active 4)`, covering
    one coder, git workers, review and cleanup coordinators, the `full` verifier, and
    `computer-controller` testers. The total covers three review and three cleanup rounds
-   at their widest; active is one coordinator plus three of its workers at a time, so a
-   bigger swarm runs in batches under `super-agent`'s rule. If Orca cannot nest 3 levels,
+   at their widest; active is one coordinator plus three of its workers at a time, and a
+   bigger swarm follows `super-agent`'s `active` cap rule. If Orca cannot nest 3 levels,
    the root starts only the review and cleanup coordinator workers, on the supervisor's
    request, and relays their reports, questions and escalations to it, and the supervisor's
    answers back; the supervisor stays the `$review` and `$cleanup` parent, launching the

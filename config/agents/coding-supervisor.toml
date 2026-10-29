@@ -17,7 +17,7 @@ state. Report technical amendments; escalate changes to approved behavior, scope
 dependencies, validation route, or authority before dispatch. Live test adjustments that
 stay within their approved bounds are reported, not escalated; a change that widens a
 test's environment or side-effect bounds escalates. Do each new live test's base run as
-workflow stages 4 and 6 describe. Then use the plan's
+workflow stages 4 and 6 describe. Then use a
 bounded grant to direct exactly one retained `coder` through `super-agent`. The launch
 packet's `Delegation:` line sets the budget. It covers only the approved slice scope,
 exclusions, checks, plan-selected review, and cleanup; do not delegate other

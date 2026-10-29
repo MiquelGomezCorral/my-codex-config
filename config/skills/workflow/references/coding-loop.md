@@ -11,11 +11,8 @@ The retained writer uses the harness's normal native coding capability; see
    Stop before coding if required grounding or the planned validation route is missing.
    Read the slice's `Size:` in the approved plan.
    For `small`, the root directs one retained `coder` through `super-agent`. For `large`
-   or `medium`, assign a read-only `coding-supervisor` that owns this loop, the base live
-   run, and workflow stage 6 for the slice. Workflow stage 5 sets its grant and the Orca
-   fallback, within the slice's scope, exclusions, and checks. The supervisor never edits
-   product source or commits, and delegates no other implementation work. Below, "the stage
-   owner" is as workflow stage 4 defines it.
+   or `medium`, a read-only `coding-supervisor` does, under the grant workflow stage 5 sets.
+   Below, "the stage owner" is as workflow stage 4 defines it.
 2. Run only the planned checks. A passing unit suite alone does not prove a user-facing
    flow.
 3. Set the round: what to review, at what size, and which live tests to run; size it with

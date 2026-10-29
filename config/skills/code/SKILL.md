@@ -60,10 +60,8 @@ Launch or resume exactly one first-tier worker through `super-agent`. Standalone
 uses the configured implementation role (`coder` in Codex). For approved workflow context,
 read the slice's `Size:` from the human-approved plan: `small` goes directly to one retained
 `coder`; `medium` and `large` go to the read-only `coding-supervisor`, which owns the
-slice's workflow stages 4-6: it directs exactly one retained coder and runs the
-plan-selected read-only review, the checkpoint, cleanup and the live reruns through its own
-helpers. Workflow stage 5 sets its grant and the Orca fallback. Stop if size is missing or
-conflicts with the plan. Keep one product-code writer at a time.
+slice's workflow stages 4-6 (stage 5 sets its grant and the Orca fallback). Stop if size is
+missing or conflicts with the plan. Keep one product-code writer at a time.
 
 - `agent`: the selected harness's best matching configured implementation agent, or the
   plan-sized `coder` / `coding-supervisor` route above
@@ -74,8 +72,8 @@ conflicts with the plan. Keep one product-code writer at a time.
   check results; blockers or unchecked requirements; and pending live validation. Keep
   implementation inspection and checks in the worker; do not return diffs, file contents,
   or raw logs unless needed to explain a concrete blocker. In medium- or large-slice workflow context,
-  the supervisor never edits product source or commits, and returns the evidence packet
-  that `workflow` stage 6 lists in place of this report.
+  the supervisor returns the evidence packet that `workflow` stage 6 lists in place of this
+  report.
 - When supplied, pass the exact approved workflow context, slice outcome, scope, exclusions,
   progress path, and authorization bounds. Do not derive new permission from them.
 - `directory`: the current worktree; create or use an isolated worktree only when the user

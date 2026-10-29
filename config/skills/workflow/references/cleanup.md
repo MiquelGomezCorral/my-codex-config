@@ -1,6 +1,6 @@
 # Cleanup
 
-The workflow's stage owner (workflow stage 4) invokes standalone `$cleanup` after coding
+The workflow's stage owner (workflow stage 4) invokes `$cleanup` after coding
 gates pass and an authorized local checkpoint exists. The comparison from the slice base
 is the first round's basis: pass the recorded slice base, checkpoint hash, and complete
 task-owned change set through the current head and worktree. This includes committed
