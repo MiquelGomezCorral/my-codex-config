@@ -109,9 +109,7 @@ orca orchestration worker-start --task <task_id> --worktree current --terminal <
 
 ## Ports
 
-Before you start a server, run `orca ports --all` (or open the Ports section of the artifacts hub)
-and pick a port nothing listens on. The scan is a snapshot and reserves nothing. Never stop a process
-you did not start; contact its Orca terminal or your coordinator instead.
+For ports, follow the Ports paragraph in the `artifacts` skill.
 
 ## Retention and release
 

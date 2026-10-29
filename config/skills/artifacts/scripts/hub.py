@@ -219,19 +219,19 @@ def git_output(*args: str) -> str | None:
     return result.stdout.strip() if result.returncode == 0 else None
 
 
-def current_caller(folder: str = ".") -> Caller:
-    common = git_output("-C", folder, "rev-parse", "--path-format=absolute", "--git-common-dir")
+def current_caller() -> Caller:
+    common = git_output("rev-parse", "--path-format=absolute", "--git-common-dir")
     if common is None:
-        return Caller(os.path.realpath(folder), "", "", False, None)
+        return Caller(os.path.realpath(Path.cwd()), "", "", False, None)
 
     # Inside the .git folder the common dir is known but there is no work tree to name the owner.
-    toplevel = git_output("-C", folder, "rev-parse", "--show-toplevel")
+    toplevel = git_output("rev-parse", "--show-toplevel")
     if toplevel is None:
         raise HubError("run hub.py from a worktree of the repo, not from inside its .git folder")
 
     common, toplevel = os.path.realpath(common), os.path.realpath(toplevel)
     main = toplevel == str(Path(common).parent)
-    branch = git_output("-C", folder, "rev-parse", "--abbrev-ref", "HEAD") or ""
+    branch = git_output("rev-parse", "--abbrev-ref", "HEAD") or ""
     return Caller(toplevel, "" if main else folder_label(toplevel), branch, main, common)
 
 
@@ -569,11 +569,11 @@ def app_status(record: dict) -> str:
     return "stopped" if record["state"] == "stopped" else "dead"
 
 
-def ancestors(pid: int) -> set[int]:
-    """The pid and every parent above it, up to init."""
-    found: set[int] = set()
+def ancestors(pid: int) -> list[int]:
+    """The pid and every parent above it, nearest first, up to init."""
+    found: list[int] = []
     while pid > 1 and pid not in found:
-        found.add(pid)
+        found.append(pid)
         stat = proc_stat(pid)
         pid = stat[0] if stat else 0
     return found
@@ -775,30 +775,26 @@ def owner_names(path: str, roots: dict[str, Path]) -> tuple[str, str]:
     """The repo and worktree names the hub gives a folder; blank when Git does not know it."""
     if not path:
         return "", ""  # `git -C ""` would name the hub's own repo
-    try:
-        caller = current_caller(path)
-    except HubError:
+    common = git_output("-C", path, "rev-parse", "--path-format=absolute", "--git-common-dir")
+    if common is None:
         return "", ""
-    if caller.common is None:
-        return "", ""
-    root = repo_root(caller.common)
-    main = Path(caller.common).parent
+    common = os.path.realpath(common)
+    main = Path(common).parent
+    root = repo_root(common)
     repo = next((name for name, known in roots.items() if known == root), folder_label(main))
-    return repo, caller.label
+    # shortcut: a subfolder or .git path names itself, add --show-toplevel if Orca sends one
+    worktree = "" if os.path.realpath(path) == str(main) else folder_label(path)
+    return repo, worktree
 
 
 def terminal_handle(pid: int) -> str:
     """The Orca terminal handle of a process, from its nearest ancestor that carries one."""
-    while pid > 1:
+    for ancestor in ancestors(pid):
         # Another user's process hides its environment; its parent may still show the handle.
         with contextlib.suppress(OSError):
-            for entry in Path(f"/proc/{pid}/environ").read_bytes().split(b"\0"):
+            for entry in Path(f"/proc/{ancestor}/environ").read_bytes().split(b"\0"):
                 if entry.startswith(b"ORCA_TERMINAL_HANDLE="):
                     return entry.partition(b"=")[2].decode(errors="replace")
-        stat = proc_stat(pid)
-        if stat is None:
-            break
-        pid = stat[0]
     return ""
 
 
@@ -812,24 +808,15 @@ def started_at(pid: int) -> int | None:
     return boot + ticks // os.sysconf("SC_CLK_TCK")
 
 
-PORTS_CACHE_SECONDS = 4  # clients polling within this window share one Orca scan
-PORTS_LOCK = threading.Lock()
-ports_last = (float("-inf"), {})  # monotonic time and result of the last finished scan
-
-
 def ports_snapshot() -> dict:
-    """Orca's listener scan, shared by every client polling within PORTS_CACHE_SECONDS."""
-    global ports_last
-    with PORTS_LOCK:
-        if time.monotonic() - ports_last[0] >= PORTS_CACHE_SECONDS:
-            result = scan_ports([])
-            # The hub inherits its starter's folder, which may sit outside every Orca worktree.
-            for root in known_roots().values():
-                if result["error"]:
-                    attempt = scan_ports(["--worktree", f"path:{main_checkout(root)}"])
-                    result = attempt if not attempt["error"] else result
-            ports_last = (time.monotonic(), result)
-        return ports_last[1]
+    """Orca's listener scan, from the hub's folder or else from a known repo's main checkout."""
+    result = scan_ports([])
+    # The hub inherits its starter's folder, which may sit outside every Orca worktree.
+    for root in known_roots().values():
+        if result["error"]:
+            attempt = scan_ports(["--worktree", f"path:{main_checkout(root)}"])
+            result = attempt if not attempt["error"] else result
+    return result
 
 
 def scan_ports(scope: list[str]) -> dict:
