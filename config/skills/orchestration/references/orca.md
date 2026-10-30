@@ -65,6 +65,10 @@ orca orchestration worker-start --task <task_id> --worktree current --terminal <
   orca orchestration check --ack <delivery_id> --wait --types worker_done,escalation,question --timeout-ms <ms> --json
   # start a worker, then compare launch.effective with the request
   orca orchestration worker-start --spec "<packet>" --worktree current --agent <agent> --model <id> --effort <level> --json
+  # coordinator: message one worker by its dispatch
+  orca orchestration send --run <run> --to dispatch:<id> --subject "<subject>" --body "<body>"
+  # worker: report the result with both task and dispatch identity
+  orca orchestration send --from <own handle> --type worker_done --subject "<status>" --body "<summary>" --task-id <task_id> --dispatch-id <dispatch_id> --outcome <succeeded|failed> [--report-path <path>]
   # top-level coordinator only
   orca orchestration run-create --objective "<objective>" --json
   ```

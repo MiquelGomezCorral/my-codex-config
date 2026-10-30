@@ -41,7 +41,8 @@ applied approved decision-record changes. Require that plan path and reuse it un
 do not persist a second plan or repeat the first-call document writes. Pass the current
 approved slice refinement and amendments as context, without replacing the wave plan.
 
-The coder reads only the exact supplied plan, not other private memory. It must not
+The coder reads only the exact supplied plan, not other private memory, except to grep
+`known-errors.md` and `workflow.md` as the global policy requires, reading only matches. It must not
 repeat or reinterpret those document edits. It implements within the
 approved constraints and reports any conflict. If implementation fails after records were
 written, report the failure and written paths accurately; do not claim implementation or

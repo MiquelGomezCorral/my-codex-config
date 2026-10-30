@@ -139,10 +139,6 @@ details[open]>summary>.chev{transform:rotate(90deg)}
 /* min-height: the height of a row whose description fills two lines, so every row is the same height */
 .row{display:grid;grid-template-columns:28px var(--actw) 32px minmax(0,1.4fr) 32px minmax(0,1fr) 64px 32px;align-items:center;gap:6px 16px;padding:8px 14px;min-height:59px;border-bottom:1px solid var(--line)}
 .row:last-child{border-bottom:0}
-/* a listener's line: its fields keep their order and stack on a phone */
-.port{display:grid;grid-template-columns:minmax(0,1.4fr) 64px minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);align-items:baseline;gap:6px 16px;overflow-wrap:break-word;padding:8px 14px;border-bottom:1px solid var(--line)}
-.port:last-child{border-bottom:0}
-@media (max-width:760px){.port{grid-template-columns:minmax(0,1fr)}}
 .row .tm{text-align:right}
 /* link, address copy and trash appear at once on row hover or focus; they stay focusable, and touch screens always show them */
 .row .hov{opacity:0}
@@ -219,7 +215,6 @@ details[open]>summary>.chev{transform:rotate(90deg)}
 </div>
 <div class="legend"><span class="live"><span class="badge"></span>Running</span><span class="off"><span class="badge"></span>Stopped</span><span class="busy"><span class="badge"></span>Starting</span><span class="warn"><span class="badge"></span>No page file</span></div>
 <div id="out"><p class="empty">Loading…</p></div>
-<section class="repo" aria-labelledby="ports-h"><div class="repo-h"><span data-i="server"></span><h2 id="ports-h">Ports</h2><span class="path">Read-only snapshot of Orca's port scan: no listener seen; a snapshot reserves nothing.</span></div><div id="ports"><p class="empty">Scanning…</p></div></section>
 </main>
 <span class="tipwrap theme"><button id="theme" aria-label="Switch light or dark theme" data-ui-tooltip="tip-theme"><span data-i="sun"></span></button><span class="tip" role="tooltip" id="tip-theme">Switch light or dark theme</span></span>
 <div class="bar" id="bar" role="group" aria-label="Selected entries" hidden>
@@ -474,7 +469,6 @@ function load(text) {
 }
 async function refresh(force) {
   if (pending || (document.hidden && !force)) return;
-  refreshPorts();
   try {
     const resp = await fetch("/_hub/list.json", { cache: "no-store" });
     if (!resp.ok) throw new Error(resp.status);
@@ -482,49 +476,6 @@ async function refresh(force) {
     $("offline").hidden = true;
     if (force || text !== raw) load(text);
   } catch { $("offline").hidden = false; }
-}
-
-// ---- ports: Orca's read-only listener scan, polled with the list ----
-let portsRaw = "";
-let portsFetching = false;
-function portRow(port) {
-  const host = port.address.includes(":") ? `[${port.address}]` : port.address; // IPv6 needs brackets before the port
-  const fields = [
-    `<span class="mono">${esc(host)}:${esc(port.port)}</span>`,
-    esc(port.protocol),
-    port.pid ? esc(`pid ${port.pid} ${port.process}`.trim()) : "",
-    port.started ? esc(`started ${when(new Date(port.started * 1000).toISOString())}`) : "",
-    port.terminal ? `terminal <span class="mono">${esc(port.terminal)}</span>` : ""
-  ];
-  return `<div class="port">${fields.map((field) => `<span>${field}</span>`).join("")}</div>`;
-}
-function portsHtml(view) {
-  if (view.error) return `<p class="offline">The port scan failed: ${esc(view.error)}</p>`;
-  if (!view.ports.length) return `<p class="empty">No listener seen in this scan.</p>`;
-  const groups = new Map();
-  for (const port of view.ports) {
-    const name = port.repo ? `${port.repo} · ${port.worktree || "main checkout"}` : port.ownerName || "unknown owner";
-    if (!groups.has(name)) groups.set(name, []);
-    groups.get(name).push(port);
-  }
-  return [...groups].map(([name, ports]) => `<div class="wt"><span class="wtn">${esc(name)}</span><span class="n">${plural(ports.length, "listener", "listeners")}</span></div>${ports.map(portRow).join("")}`).join("");
-}
-async function refreshPorts() {
-  if (portsFetching) return;
-  portsFetching = true;
-  try {
-    const resp = await fetch("/_hub/ports.json", { cache: "no-store" });
-    if (!resp.ok) throw new Error(resp.status);
-    const text = await resp.text();
-    if (text === portsRaw) return;
-    $("ports").innerHTML = portsHtml(JSON.parse(text));
-    portsRaw = text;
-  } catch {
-    portsRaw = "";
-    $("ports").innerHTML = `<p class="offline">Could not read the port scan; trying again.</p>`;
-  } finally {
-    portsFetching = false;
-  }
 }
 
 // ---- actions and their dialogs ----

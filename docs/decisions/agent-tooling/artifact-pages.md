@@ -16,8 +16,8 @@ serves gets lost, keeps running unnoticed, or changes address.
   without a record still appear, so the index is the full catalog for pruning.
 - Apps keep their own port and register a link, start command, description, and process; Stop
   and Start act only after the hub confirms the process identity and port ownership.
-- The hub also shows a read-only Ports view from Orca's own port scan, with owner worktree and
-  terminal and never process arguments; it never stops a process.
+- Port data comes from Orca's own scan, `orca ports --all --json`, which agents run on this
+  machine. The hub has no Ports view, so LAN clients never see local listeners.
 - The artifacts skill is the single owner of serving; workflow, skill-creator, and the global
   policy point to it. workflow-progress keeps its own live server and registers it as an app.
 - The artifacts folder `agent-memory/artifacts/<name>/` is the one home for durable pages,
@@ -44,12 +44,14 @@ rather than proxied pages so their own ports and protocols keep working.
 ## Enforcement
 
 - Live validation of the hub (start, addresses, actions, restart, apps, catalog, races) and of
-  agents using it unprompted, and of the Ports view against real listeners.
+  agents using it unprompted.
 - Review-only: [artifacts skill](../../../config/skills/artifacts/SKILL.md) stays the only file
   that explains serving.
 
 ## History
 
+- 2026-10-30: The user removed the hub's Ports view: the want was a local command for agents
+  on this machine, not a page the LAN can see.
 - 2026-10-16: Made the artifacts folder the home for plan diagrams and samples too, and scoped
   the UI policy file to the hub after it flagged every artifact page.
 - 2026-10-11: User approved the page hub on 3200 replacing per-page servers on 3100-3199, with

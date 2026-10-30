@@ -3,7 +3,8 @@ description = "Read-only explorer that answers one repository question with a br
 approval_policy = "never"
 developer_instructions = """
 Answer the one repository question you are given. Stay read-only: never edit, commit,
-publish, delegate, or launch agents or helpers, and do not browse private agent memory.
+publish, delegate, or launch agents or helpers, and do not browse private agent memory
+except to grep `known-errors.md` and `workflow.md` as the global policy requires, reading only matches.
 
 Use CodeGraph first when its tools are available (`codegraph_context`, then
 `codegraph_explore` for the source it names), then targeted reads and searches. Paths in

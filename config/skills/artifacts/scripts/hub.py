@@ -35,7 +35,7 @@ PORT = 3200
 # Bump VERSION with every change to hub.py's behavior, including the fields list.json gives hub.html.
 # `ensure` replaces a running hub only when its VERSION is lower, so an unchanged number keeps the
 # old code running.
-VERSION = 6
+VERSION = 7
 APP_ID = "artifact-hub"
 ROUTE_PROBE = ("8.8.8.8", 80)
 LOCAL_REPO = "_local"
@@ -569,11 +569,11 @@ def app_status(record: dict) -> str:
     return "stopped" if record["state"] == "stopped" else "dead"
 
 
-def ancestors(pid: int) -> list[int]:
-    """The pid and every parent above it, nearest first, up to init."""
-    found: list[int] = []
+def ancestors(pid: int) -> set[int]:
+    """The pid and every parent above it, up to init."""
+    found: set[int] = set()
     while pid > 1 and pid not in found:
-        found.append(pid)
+        found.add(pid)
         stat = proc_stat(pid)
         pid = stat[0] if stat else 0
     return found
@@ -765,110 +765,6 @@ def run_action(action: str, target: str) -> str:
 
 
 # ======================================================================================
-#                                         PORTS
-# ======================================================================================
-def ports_failure(message: str) -> dict:
-    return {"error": message, "ports": []}
-
-
-def owner_names(path: str, roots: dict[str, Path]) -> tuple[str, str]:
-    """The repo and worktree names the hub gives a folder; blank when Git does not know it."""
-    if not path:
-        return "", ""  # `git -C ""` would name the hub's own repo
-    common = git_output("-C", path, "rev-parse", "--path-format=absolute", "--git-common-dir")
-    if common is None:
-        return "", ""
-    common = os.path.realpath(common)
-    main = Path(common).parent
-    root = repo_root(common)
-    repo = next((name for name, known in roots.items() if known == root), folder_label(main))
-    # shortcut: a subfolder or .git path names itself, add --show-toplevel if Orca sends one
-    worktree = "" if os.path.realpath(path) == str(main) else folder_label(path)
-    return repo, worktree
-
-
-def terminal_handle(pid: int) -> str:
-    """The Orca terminal handle of a process, from its nearest ancestor that carries one."""
-    for ancestor in ancestors(pid):
-        # Another user's process hides its environment; its parent may still show the handle.
-        with contextlib.suppress(OSError):
-            for entry in Path(f"/proc/{ancestor}/environ").read_bytes().split(b"\0"):
-                if entry.startswith(b"ORCA_TERMINAL_HANDLE="):
-                    return entry.partition(b"=")[2].decode(errors="replace")
-    return ""
-
-
-def started_at(pid: int) -> int | None:
-    """Unix time a live process started: its start ticks since boot, plus the boot time."""
-    ticks = start_time(pid)
-    if ticks is None:
-        return None
-    lines = Path("/proc/stat").read_text().splitlines()
-    boot = int(next(line for line in lines if line.startswith("btime ")).split()[1])
-    return boot + ticks // os.sysconf("SC_CLK_TCK")
-
-
-def ports_snapshot() -> dict:
-    """Orca's listener scan, from the hub's folder or else from a known repo's main checkout."""
-    result = scan_ports([])
-    # The hub inherits its starter's folder, which may sit outside every Orca worktree.
-    for root in known_roots().values():
-        if result["error"]:
-            attempt = scan_ports(["--worktree", f"path:{main_checkout(root)}"])
-            result = attempt if not attempt["error"] else result
-    return result
-
-
-def scan_ports(scope: list[str]) -> dict:
-    """Orca's listener scan, each owner named the way the hub names its repo and worktree.
-
-    Read-only: nothing is stopped or reserved, and a process that exits mid-scan leaves blanks.
-    """
-    try:
-        scan = subprocess.run(
-            ["orca", "ports", "--all", "--json", *scope], capture_output=True, text=True, timeout=10
-        )
-    except subprocess.TimeoutExpired:
-        return ports_failure("orca ports timed out")
-    except OSError:
-        return ports_failure("could not run orca")
-    try:
-        body = json.loads(scan.stdout)
-        if scan.returncode or not body["ok"]:
-            return ports_failure(body["error"]["message"])
-        rows = body["result"]["ports"]
-    except (ValueError, KeyError, TypeError):
-        return ports_failure(f"orca ports gave no usable result (exit code {scan.returncode})")
-
-    roots = known_roots()
-    names: dict[str, tuple[str, str]] = {}
-    ports = []
-    for row in rows:
-        owner = row.get("owner") or {}
-        path = owner.get("path") or ""
-        if path not in names:
-            names[path] = owner_names(path, roots)
-        repo, worktree = names[path]
-        pid = row.get("pid")
-        ports.append(
-            {
-                "port": row.get("port"),
-                "address": row.get("bindHost") or "",
-                "protocol": row.get("protocol") or "",
-                "pid": pid,
-                "process": row.get("processName") or "",
-                "started": started_at(pid) if pid else None,
-                "terminal": terminal_handle(pid) if pid else "",
-                "ownerName": owner.get("displayName") or "",
-                "repo": repo,
-                "worktree": worktree,
-            }
-        )
-    ports.sort(key=lambda port: (not port["repo"], port["repo"], port["worktree"], port["port"] or 0))
-    return {"error": "", "ports": ports}
-
-
-# ======================================================================================
 #                                      HTTP SERVER
 # ======================================================================================
 def parse_range(header: str | None, size: int) -> tuple[int, int] | None:
@@ -1004,8 +900,6 @@ class HubHandler(BaseHTTPRequestHandler):
             self.reply_json({"app": APP_ID, "version": VERSION, "pid": os.getpid()})
         elif path == "/_hub/list.json":
             self.reply_json(catalog())
-        elif path == "/_hub/ports.json":
-            self.reply_json(ports_snapshot())
         else:
             self.serve_page(path)
 
