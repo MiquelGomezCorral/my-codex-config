@@ -145,13 +145,13 @@ to the user, and assessing plan-critique findings and decision records stay with
 
 - **Do it yourself:** quick questions, a short answer, one read-only command, a small scoped edit, a
   lookup, all within the reading budget. Keep it small and bounded.
-- **Reading budget:** per human message, read at most three files yourself; CodeGraph calls and installed skill
-  files (a skill and its references) do not count; repo copies of skills do. When a question, plan, or check needs more reading, run `explore "<question>" [paths]`
+- **Reading budget:** per human message, read at most three files yourself; CodeGraph calls, installed skill
+  files (a skill and its references), agent memory, and your session's own output files do not count; repo copies of skills do. When a question, plan, or check needs more reading, run `explore "<question>" [paths]`
   in the foreground with a 10-minute timeout; it returns a brief of 20 lines or fewer with
   `file:line` references. Trust the brief and do not re-read what it covers; a file you open
   to check a claim counts toward the three. Questions follow this rule too. On Opus sessions a hook
   denies the fourth distinct file read in one human message; `agent-guard unlock reads` lifts it for
-  the session, and only on the user's explicit words.
+  the session, and only on the user's explicit words; `agent-guard lock reads` restores it.
 - **Hand it off:** multi-file implementation, research sweeps,
   reviews, long runs, live tests, browsing, anything slow or open-ended. Route it through
   `super-agent`.
@@ -238,7 +238,7 @@ allow; keep dependent steps in order.
   takes the launch args in `${XDG_CACHE_HOME:-$HOME/.cache}/computer-controller/work/.playwright/cli.config.json`,
   so it opens on the secondary monitor without taking focus.
   On Opus sessions a hook enforces this handoff; `agent-guard unlock browser` lifts it for the
-  session, and only on the user's explicit words.
+  session, and only on the user's explicit words; `agent-guard lock browser` restores it.
 - Run long processes in the background and poll only when their result blocks progress.
 - Load `web-search` before web research. Diagnose failures before retrying and report blockers
 precisely when new evidence is unavailable.

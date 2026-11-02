@@ -5,7 +5,8 @@ Applies only when the session's model contains `opus`. A main session reads its 
 API request its transcript logs; a native helper reads it from its own `subagents/agent-<id>.jsonl`.
 The fourth distinct file read in one human message is denied, and so is every browser or desktop tool;
 each reason names the way out. `agent-guard unlock reads` or `agent-guard unlock browser` lifts one for
-the session, and the command itself is denied as its receipt. Set AGENT_GUARD=off to skip the guard.
+the session, and `agent-guard lock reads` or `agent-guard lock browser` restores it. The command itself is
+denied as its receipt. Set AGENT_GUARD=off to skip the guard.
 Any problem reading the hook input, the transcript or the state allows the call.
 """
 
@@ -26,7 +27,12 @@ PRUNE_AFTER = 7 * 24 * 3600
 READ_BUDGET = 3
 STATE_DIR = pathlib.Path(os.environ.get("XDG_STATE_HOME") or pathlib.Path.home() / ".local/state") / "agent-guard"
 SKILLS_DIR = pathlib.Path(os.environ.get("CLAUDE_CONFIG_DIR") or pathlib.Path.home() / ".claude") / "skills"
-UNLOCKS = {"agent-guard unlock reads": "reads", "agent-guard unlock browser": "browser"}
+GUARD_COMMANDS = {
+    "agent-guard unlock reads": ("unlock", "reads"),
+    "agent-guard unlock browser": ("unlock", "browser"),
+    "agent-guard lock reads": ("lock", "reads"),
+    "agent-guard lock browser": ("lock", "browser"),
+}
 BROWSER_TOOLS = (
     "mcp__claude-in-chrome__",
     "mcp__Claude_Browser__",
@@ -67,6 +73,8 @@ COMMENT = re.compile(r"""('[^']*'|"(?:\\.|[^"\\])*"|\\.)|(?<!\S)(?<!\\\s)#.*""")
 HEREDOC_START = re.compile(r"(?<!<)<<-?\s*\\?(?:(['\"])(.+?)\1|([\w.-]+))")
 # A digit touching < or > is a file descriptor (2>, 1>>), not a file.
 DESCRIPTOR_DIGITS = re.compile(r"(?<![^\s;&|()])\d+(?=[<>])")
+# $NAME and ${NAME}: the two forms expand() replaces with a variable's value.
+SHELL_VARIABLE = re.compile(r"\$(?:\{(\w+)\}|(\w+))")
 # Node, Bun, Deno and any Python run the script file they name; only the head of that file is read.
 SCRIPT_RUNNERS = ("node", "nodejs", "bun", "deno")
 SCRIPT_SUFFIXES = (".js", ".mjs", ".cjs", ".ts", ".py")
@@ -91,9 +99,9 @@ def main() -> None:
     session_id = str(payload.get("session_id") or "")
     tool_input = payload.get("tool_input") or {}
     command = str(tool_input.get("command") or "").strip() if payload.get("tool_name") == "Bash" else ""
-    if command in UNLOCKS:
-        kind = UNLOCKS[command]
-        reason = with_state(session_id, lambda state: unlock(state, kind))
+    if command in GUARD_COMMANDS:
+        verb, kind = GUARD_COMMANDS[command]
+        reason = with_state(session_id, lambda state: set_guard(state, verb, kind))
     else:
         main_transcript = pathlib.Path(payload["transcript_path"])
         if "opus" not in current_model(model_transcript(payload, main_transcript)).lower():
@@ -132,8 +140,8 @@ def decide(payload: dict, state: dict, prompt_id: str) -> str | None:
         return BROWSER_REASON
     if "reads" in state["unlocked"] or not opened:
         return None
-    memory = memory_dir(cwd)
-    new = [path for path in dict.fromkeys(opened) if path not in state["files"] and not is_free(path, memory)]
+    memory, session_id = memory_dir(cwd), str(payload.get("session_id") or "")
+    new = [path for path in dict.fromkeys(opened) if path not in state["files"] and not is_free(path, memory, session_id)]
     if len(state["files"]) + len(new) > READ_BUDGET:
         return read_reason(state["files"], len(new))
     state["files"].extend(new)
@@ -152,14 +160,21 @@ def read_reason(files: list[str], new_count: int) -> str:
     )
 
 
-def unlock(state: dict, kind: str) -> str:
-    """Record the unlock for this session and return the receipt that denies the command."""
-    state["unlocked"] = sorted({*state.get("unlocked", []), kind})
-    return f"Opus guard: unlocked {kind} for this session. No agent-guard binary exists; this denial is the receipt."
+def set_guard(state: dict, verb: str, kind: str) -> str:
+    """Lift or restore one block for this session and return the receipt that denies the command."""
+    kinds = {*state.get("unlocked", [])}
+    if verb == "unlock":
+        kinds.add(kind)
+        receipt = f"unlocked {kind} for this session"
+    else:
+        kinds.discard(kind)
+        receipt = f"locked {kind} again for this session"
+    state["unlocked"] = sorted(kinds)
+    return f"Opus guard: {receipt}. No agent-guard binary exists; this denial is the receipt."
 
 
 def new_prompt(state: dict, prompt_id: str) -> None:
-    """Forget the files read in an earlier human message; unlocks last for the whole session."""
+    """Forget the files read in an earlier human message; unlocks last for the whole session, until a lock."""
     if state.get("prompt_id") != prompt_id:
         state.update(prompt_id=prompt_id, files=[])
     state.setdefault("files", [])
@@ -262,8 +277,13 @@ def scan_bash(command: str, cwd: str) -> tuple[bool, list[str]]:
     # a closed body is text the command writes, such as a script not yet on disk; it counts only when the command runs a script too
     # shortcut: a same-call write and run through tsx or ts-node is not matched, upgrade on a live miss
     browser = BROWSER_LIB.search(bodies) is not None and has_script_runner(text)
-    opened = []
+    # shortcut: unset, read, for, declare and local keep a name's old value, and subshell or pipeline
+    # assignments persist here, upgrade on a live miss
+    opened, variables = [], {"HOME": os.environ.get("HOME", "")}
     for words in bash_commands(text):
+        if words and all(is_assignment(word) for word in words):  # NAME=value words only set shell variables
+            assign(variables, words)
+            continue
         words = after_wrappers(words)
         if not words:
             continue
@@ -276,11 +296,13 @@ def scan_bash(command: str, cwd: str) -> tuple[bool, list[str]]:
         elif is_browser(name, words[1:]) or runs_browser_script(name, words[1:], cwd):
             browser = True
         elif name == "cd":
-            target = words[1] if len(words) > 1 else "~"
+            target = expand(words[1], variables) if len(words) > 1 else "~"
             cwd = os.path.normpath(os.path.join(cwd, os.path.expanduser(target)))
+        elif name == "export":
+            assign(variables, words[1:])
         elif name in READ_COMMANDS:
             for operand in operands(name, words[1:]):
-                opened.extend(operand_files(operand, cwd))
+                opened.extend(operand_files(expand(operand, variables), cwd))
     return browser, opened
 
 
@@ -331,11 +353,33 @@ def bash_commands(command: str) -> list[list[str]]:
     return [*commands, words]
 
 
+def is_assignment(word: str) -> bool:
+    """Return whether a word is NAME=value, the form that sets a shell variable or a command's environment."""
+    return "=" in word and word.partition("=")[0].isidentifier()
+
+
 def without_assignments(words: list[str]) -> list[str]:
     """Drop the leading VAR=value words that set the environment of a command."""
-    while words and "=" in words[0] and words[0].partition("=")[0].isidentifier():
+    while words and is_assignment(words[0]):
         words = words[1:]
     return words
+
+
+def assign(variables: dict, words: list[str]) -> None:
+    """Record NAME=value words; a value still holding $ or a backtick after expansion forgets NAME."""
+    for word in words:
+        if is_assignment(word):
+            name, _, value = word.partition("=")
+            value = expand(value, variables)
+            if "$" in value or "`" in value:
+                variables.pop(name, None)
+            else:
+                variables[name] = value
+
+
+def expand(text: str, variables: dict) -> str:
+    """Replace $NAME and ${NAME} with their known values; an unknown name stays, so its $ marks an unknown file."""
+    return SHELL_VARIABLE.sub(lambda match: variables.get(match.group(1) or match.group(2), match.group(0)), text)
 
 
 def after_wrappers(words: list[str]) -> list[str]:
@@ -433,7 +477,7 @@ def resolve(path: str, cwd: str) -> str:
 def operand_files(operand: str, cwd: str) -> list[str]:
     """Return the absolute paths an operand names; a shell expansion counts as one unknown file."""
     if "$" in operand or "`" in operand:
-        return [operand]
+        return [resolve(operand, cwd)]
     literal = resolve(operand, cwd)
     if os.path.isfile(literal) or not any(char in operand for char in "*?["):
         return [literal]
@@ -450,9 +494,10 @@ def memory_dir(cwd: str) -> str:
     return os.path.join(result.stdout.strip(), "agent-memory") if result.returncode == 0 else ""
 
 
-def is_free(path: str, memory: str) -> bool:
-    """Return whether a path is a harness skill or shared agent memory, which the budget does not count."""
-    return path.startswith(str(SKILLS_DIR) + os.sep) or (bool(memory) and path.startswith(memory + os.sep))
+def is_free(path: str, memory: str, session_id: str) -> bool:
+    """Return whether the budget skips a path: a harness skill, shared agent memory, or this session's own folder."""
+    in_session = bool(session_id) and session_id in os.path.dirname(path).split(os.sep)
+    return in_session or path.startswith(str(SKILLS_DIR) + os.sep) or (bool(memory) and path.startswith(memory + os.sep))
 
 
 if __name__ == "__main__":
