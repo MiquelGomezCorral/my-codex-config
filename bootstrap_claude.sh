@@ -78,7 +78,8 @@ install_assets() {
     --target "$CLAUDE_CONFIG_ROOT/settings.json" --backup "$BACKUP_ROOT" \
     --catalog "$SKILLS_SOURCE/super-agent/references/model-catalog.yaml" \
     --guard "$ROOT/config/bin/agent-model-guard.py" \
-    --opus-guard "$ROOT/config/bin/opus-guard.py"
+    --opus-guard "$ROOT/config/bin/opus-guard.py" \
+    --ui-reminder "$ROOT/config/bin/ui-open-reminder.py"
   common_ensure_directory "$CLAUDE_CONFIG_ROOT/agents"
   [[ ! -e "$CLAUDE_CONFIG_ROOT/agents/live-validator.md" && ! -L "$CLAUDE_CONFIG_ROOT/agents/live-validator.md" ]] ||
     common_backup_existing "$CLAUDE_CONFIG_ROOT/agents/live-validator.md"

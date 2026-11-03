@@ -578,7 +578,7 @@ cmp -s "$TEST_ROOT/agy-broken-before.json" "$BROKEN_AGY_HOME/.gemini/antigravity
 CLAUDE_HOME="$TEST_ROOT/claude-home"
 mkdir -p "$CLAUDE_HOME/.claude"
 printf 'User Claude notes.\n' > "$CLAUDE_HOME/.claude/CLAUDE.md"
-printf '%s\n' '{"theme":"dark","env":{"KEEP":"1"},"skillOverrides":{"user-skill":"off","simplify":"on"},"hooks":{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"user-hook"}]}]}}' \
+printf '%s\n' '{"theme":"dark","env":{"KEEP":"1"},"skillOverrides":{"user-skill":"off","simplify":"on"},"hooks":{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"user-hook"}]}],"PostToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"user-post-hook"}]}],"Stop":[{"hooks":[{"type":"command","command":"user-stop-hook"}]}]}}' \
   > "$CLAUDE_HOME/.claude/settings.json"
 HOME="$CLAUDE_HOME" CLAUDE_CONFIG_DIR="$CLAUDE_HOME/.claude" BACKUP_ROOT="$TEST_ROOT/claude-backups" \
   "$REPO_ROOT/bootstrap_claude.sh" --no-searxng > "$TEST_ROOT/claude.out" 2> "$TEST_ROOT/claude.err"
@@ -612,8 +612,10 @@ for name in codegraph searxng btca; do
 done
 grep -q '^claude plugin marketplace add zoharbabin/claude-code-message-timestamps' "$CLAUDE_LOG"
 grep -q '^claude plugin install message-timestamps@zoharbabin-claude-tools' "$CLAUDE_LOG"
+cp "$CLAUDE_HOME/.claude/settings.json" "$TEST_ROOT/claude-settings-first.json"
 HOME="$CLAUDE_HOME" CLAUDE_CONFIG_DIR="$CLAUDE_HOME/.claude" BACKUP_ROOT="$TEST_ROOT/claude-backups" \
   "$REPO_ROOT/bootstrap_claude.sh" --no-searxng --no-searxng-mcp > "$TEST_ROOT/claude-no-mcp.out" 2> "$TEST_ROOT/claude-no-mcp.err"
+cmp -s "$TEST_ROOT/claude-settings-first.json" "$CLAUDE_HOME/.claude/settings.json"
 grep -q '^claude mcp remove searxng' "$CLAUDE_LOG"
 [[ "$(sort "$CLAUDE_MCP_STATE")" == $'btca\ncodegraph\nunrelated' ]]
 [[ "$(grep -c '^claude mcp add-json codegraph' "$CLAUDE_LOG")" -eq 2 ]]
@@ -640,6 +642,12 @@ groups = settings["hooks"]["PreToolUse"]
 assert groups[0]["hooks"][0]["command"] == "user-hook"
 guards = [group for group in groups if "agent-model-guard.py" in group["hooks"][0]["command"]]
 assert len(guards) == 1 and len(groups) == 3 and guards[0]["matcher"] == "Agent|Task", groups
+for event in ("PostToolUse", "Stop", "SubagentStop"):
+    commands = [hook["command"] for group in settings["hooks"][event] for hook in group["hooks"]]
+    assert sum("ui-open-reminder.py" in command for command in commands) == 1, (event, commands)
+assert [hook["command"] for hook in settings["hooks"]["PostToolUse"][0]["hooks"]] == ["user-post-hook"]
+assert [hook["command"] for hook in settings["hooks"]["Stop"][0]["hooks"]] == ["user-stop-hook"]
+assert settings["hooks"]["PostToolUse"][1]["matcher"] == "Edit|Write|MultiEdit|Bash|Agent|mcp__.*"
 PY
 GUARD_HOME="$TEST_ROOT/agent-model-guard-home"
 GUARD_CWD="$TEST_ROOT/agent-model-guard-cwd"

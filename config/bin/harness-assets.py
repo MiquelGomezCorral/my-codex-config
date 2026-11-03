@@ -21,6 +21,7 @@ LEGACY_POLICY_MARKER = MARKERS[1]
 HOOK_OWNER = "codex-command-dispatch.mjs"
 GUARD_OWNER = "agent-model-guard.py"
 OPUS_OWNER = "opus-guard.py"
+UI_OWNER = "ui-open-reminder.py"
 COMPACT_WINDOW = 300000
 LOCAL_TZ = "Europe/Madrid"
 # Skills Claude Code syncs from claude.ai or bundles that the user keeps off. Synced ones need the
@@ -365,9 +366,9 @@ def merge_claude_settings(args: argparse.Namespace) -> None:
     overrides = {} if overrides is None else overrides
     if not all(isinstance(value, dict) for value in (hooks, env, overrides)):
         raise SystemExit(f"Claude settings hooks, env, and skillOverrides must be objects: {target}")
-    existing = hooks.get("PreToolUse", [])
-    if not isinstance(existing, list):
-        raise SystemExit("Claude hooks event must be a list: PreToolUse")
+    for event in ("PreToolUse", "PostToolUse", "Stop", "SubagentStop"):
+        if not isinstance(hooks.get(event, []), list):
+            raise SystemExit(f"Claude hooks event must be a list: {event}")
 
     guard = {
         "matcher": "Agent|Task",
@@ -377,9 +378,15 @@ def merge_claude_settings(args: argparse.Namespace) -> None:
         "matcher": "Read|Bash|mcp__claude-in-chrome__.*|mcp__Claude_Browser__.*|mcp__remote-devices__Claude_Browser__.*|mcp__computer-use__.*",
         "hooks": [{"type": "command", "command": f"test ! -f {shlex.quote(args.opus_guard)} || python3 {shlex.quote(args.opus_guard)}"}],
     }
+    ui_hook = {"type": "command", "command": f"test ! -f {shlex.quote(args.ui_reminder)} || python3 {shlex.quote(args.ui_reminder)}"}
+    ui_post_tool = {"matcher": "Edit|Write|MultiEdit|Bash|Agent|mcp__.*", "hooks": [ui_hook]}
+    ui_stop = {"hooks": [ui_hook]}
     model = catalog_model(pathlib.Path(args.catalog), "claude", "medium")
-    pre_tool = merge_event("PreToolUse", existing, [guard], GUARD_OWNER)
+    pre_tool = merge_event("PreToolUse", hooks.get("PreToolUse", []), [guard], GUARD_OWNER)
     pre_tool = merge_event("PreToolUse", pre_tool, [opus_guard], OPUS_OWNER)
+    post_tool = merge_event("PostToolUse", hooks.get("PostToolUse", []), [ui_post_tool], UI_OWNER)
+    stop = merge_event("Stop", hooks.get("Stop", []), [ui_stop], UI_OWNER)
+    subagent_stop = merge_event("SubagentStop", hooks.get("SubagentStop", []), [ui_stop], UI_OWNER)
     merged = {
         **current,
         "autoCompactWindow": COMPACT_WINDOW,
@@ -391,7 +398,13 @@ def merge_claude_settings(args: argparse.Namespace) -> None:
             "CLAUDE_TIMESTAMPS_TZ": LOCAL_TZ,
             "CLAUDE_TIMESTAMPS_INJECT_CONTEXT": "false",
         },
-        "hooks": {**hooks, "PreToolUse": pre_tool},
+        "hooks": {
+            **hooks,
+            "PreToolUse": pre_tool,
+            "PostToolUse": post_tool,
+            "Stop": stop,
+            "SubagentStop": subagent_stop,
+        },
         "skillOverrides": {**overrides, **dict.fromkeys(SKILLS_OFF, "off")},
     }
     if merged == current:
@@ -442,6 +455,7 @@ def parser() -> argparse.ArgumentParser:
     settings.add_argument("--catalog", required=True)
     settings.add_argument("--guard", required=True)
     settings.add_argument("--opus-guard", required=True)
+    settings.add_argument("--ui-reminder", required=True)
     settings.add_argument("--backup", required=True)
     settings.set_defaults(run=merge_claude_settings)
     return root

@@ -26,6 +26,8 @@ not weaken security or explicit user constraints.
   Never invent a URL or publish a private artifact merely to obtain one.
 - Show every page the user should open through the `artifacts` skill's page hub, never a
   server of your own, and list every app preview you run on that hub.
+- On long work, give status without being asked: done, running, next.
+- Answer each point of a list the user sends, in order.
 
 ## Authority and scope
 
@@ -208,9 +210,13 @@ reproduced regression the live flow cannot cover, never for coverage, convention
 completeness. Run independent tests in parallel, as many at once as the task and machine
 allow; keep dependent steps in order.
 
+- Before you say a sign-in works, run one on the port and with the keys you name.
+
 ## Completion
 
 - Report observed results, including verification, diff inspection, blockers, and gaps.
+- For a UI change, read code-quality `ui.md` before the first edit;
+  open the running app and check it before saying done.
 - For repository work, end the final report with `Memory: <file> - <what was saved>` or
   `Memory: none`.
 - Independently review non-trivial changes, fix blocking findings, and re-check them once.
@@ -218,6 +224,7 @@ allow; keep dependent steps in order.
   window and background process you started that nothing will use again, including those from
   reviews, tests and computer use. Keep only what the user or a later step still needs, and say
   what you left running and why.
+- An app the user is testing stays running until they say so.
 - Do not commit, push, publish, or modify shared state unless explicitly requested.
 
 ## Safe tool use
