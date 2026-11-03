@@ -31,10 +31,9 @@ universal rules apply first; the language reference narrows them for that langua
   `figures` skill and read its `references/plotly.md`
 - [UI](references/ui.md): when you touch a `.css`, `.html`, `.jsx` or `.tsx` file, a Tailwind
   config, a component, a screen or a mock. Design rules, the live inspection of the running
-  app, and the `lintapple` check. UI work is done only with the inspection report (routes,
-  clicks, numbers, what was not checked). Also read the matching stack file:
-  [CSS](references/web/css.md), [Tailwind](references/web/tailwind.md) or
-  [React](references/web/react.md)
+  app, and the `lintapple` check. UI work is done only with the inspection report. Also read
+  the matching stack file: [CSS](references/web/css.md),
+  [Tailwind](references/web/tailwind.md) or [React](references/web/react.md)
 
 ## Language checks
 

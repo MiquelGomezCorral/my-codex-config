@@ -1,4 +1,4 @@
-# React
+# React mechanics for UI code
 
 How to apply `ui.md` in React 19 (the 19.3 post dated 2026-09-09). It adds React mechanics and
 never repeats a `ui.md` rule. Check the project's React version before using a rule marked

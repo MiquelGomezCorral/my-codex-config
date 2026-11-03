@@ -12,7 +12,7 @@ v3 names differ.
   `outline-style: none`, which also removes it in forced-colors mode.
 - **`hover:` applies only inside `@media (hover: hover)`.** A control revealed with
   `opacity-0 group-hover:opacity-100` never shows on touch; add `focus-visible:` and
-  `group-focus-within:` and keep it visible where there is no hover.
+  `group-focus-within:`.
 - **`dark:` follows the OS by default.** For an app theme toggle, declare
   `@custom-variant dark (&:where(.dark, .dark *));` (or a `data-theme` selector).
 - **Use v4 names.** `shadow-xs`, `shadow-sm`, `rounded-xs`, `rounded-sm` replace the v3

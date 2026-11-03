@@ -1,8 +1,9 @@
 // Browser-side UI probes for a running page. Each function returns [{ check, selector, detail, values }]; [] means clean.
-// Load with page.addScriptTag({ path }) or paste into a browser tool's evaluate. Wait ~200 ms after a load or a state
-// change so transitions end. boxes() compares with its previous call on the page: call it before and after a state change.
+// boxes() compares with its previous call on the page, kept even if this script loads again: call it before and after a
+// state change. A first call for a selector only saves and returns a `saved` notice, which is not a defect.
 (() => {
-  const EPS = 0.75, seen = {}; // sub-pixel noise reaches 0.5 px, real defects start at 1 px
+  const EPS = 0.75, seen = (window.inspectSeen ??= {}); // sub-pixel noise reaches 0.5 px, real defects start at 1 px
+  const flag = (list, check, selector, detail, values) => list.push({ check, selector, detail, values }); // the one place a defect item is built
   const $$ = (s) => [...document.querySelectorAll(s)].filter((e) => e.getClientRects().length);
   const rect = (e) => e.getBoundingClientRect();
   const px = (n) => Math.round(n * 10) / 10;
@@ -29,7 +30,7 @@
   function census(selector, only) {
     const els = $$(selector), found = [], names = {};
     const on = (c) => (only ? only === c : !['hidden', 'dupe', 'key'].includes(c));
-    const add = (check, detail, values) => found.push({ check, selector, detail, values });
+    const add = (check, detail, values) => flag(found, check, selector, detail, values);
     const dims = { height: (e) => rect(e).height, 'font-size': (e) => parseFloat(css(e).fontSize), 'padding-x': (e) => parseFloat(css(e).paddingLeft), 'padding-y': (e) => parseFloat(css(e).paddingTop) };
     for (const [key, get] of Object.entries(dims)) {
       const v = els.map(get);
@@ -43,6 +44,7 @@
     for (const e of els) {
       const r = rect(e), name = label(e), control = e.matches('a,button,input,[role]'), next = e.matches('svg,img') && after(e);
       const s = css(e), big = parseFloat(s.fontSize) >= 24 || (parseFloat(s.fontSize) >= 18.66 && +s.fontWeight >= 700), need = big ? 3 : 4.5;
+      // 21 is the highest possible contrast ratio: an element with no text of its own never fails
       const c = own(e) ? ratio(rgba(s.color), bgOf(e)) : 21, off = next && r.top + r.height / 2 - (span(next).top + span(next).height / 2);
       if (on('contrast') && c < need) add('contrast', `${name} ${px(c)}:1, needs ${need}`, [name]);
       if (on('target') && control && !e.textContent.trim() && Math.min(r.width, r.height) < 24 - EPS) add('target', `${name} ${px(r.width)}x${px(r.height)}, needs 24`, [name]);
@@ -65,8 +67,9 @@
       const lead = text[widest].left - box.left, trail = box.left + box.width - text[widest].right;
       const numeric = cells.every((c) => /right|end/.test(css(c).textAlign) && /\d/.test(c.textContent)), side = numeric ? 'right' : 'left', edge = text.map((t) => t[side]);
       const plain = !cells.some((c) => c.querySelector('a,button,input,[role]')) && !cells.every((c) => css(c).textAlign === 'center');
-      if (plain && spread(edge) > EPS) found.push({ check: 'edge', selector: at, detail: `${side} edges differ by ${px(spread(edge))}`, values: edge.map(px) });
-      if (Math.abs(lead - trail) > EPS && (lead > EPS || i === count - 1)) found.push({ check: 'width', selector: at, detail: `${px(Math.max(lead, trail))} px of the column is empty beside its widest value`, values: [px(box.width), px(text[widest].width)] });
+      if (plain && spread(edge) > EPS) flag(found, 'edge', at, `${side} edges differ by ${px(spread(edge))}`, edge.map(px));
+      // The last column's empty reserved width shows only as trailing space, so it counts without leading space.
+      if (Math.abs(lead - trail) > EPS && (lead > EPS || i === count - 1)) flag(found, 'width', at, `${px(Math.max(lead, trail))} px of the column is empty beside its widest value`, [px(box.width), px(text[widest].width)]);
     }
     return found;
   }
@@ -81,8 +84,8 @@
       const [a, b, c, d] = row ? ['left', 'right', 'top', 'bottom'] : ['top', 'bottom', 'left', 'right'];
       const gap = r.slice(1).map((k, i) => k[a] - r[i][b]).filter((v) => v > -EPS), edge = r.map((k) => [k[c] - box[c], box[d] - k[d]]);
       const fills = kids.every((k, i) => !chosen(k) || edge[i].every((v) => v <= EPS)), ends = edge.map((e) => e[1]);
-      if (gap.length && (spread(gap) > EPS || gap.some((v) => v > EPS && v < 8 - EPS))) found.push({ check: 'gap', selector: groupSelector, detail: `gaps ${gap.map(px).join(', ')} px; they should be equal and at least 8`, values: gap.map(px) });
-      if (!fills || (spread(edge.map((e) => e[0])) <= EPS && spread(ends) > EPS)) found.push({ check: 'inset', selector: groupSelector, detail: 'a selected child does not fill the group, or children start together and end apart', values: edge.map((e) => e.map(px)) });
+      if (gap.length && (spread(gap) > EPS || gap.some((v) => v > EPS && v < 8 - EPS))) flag(found, 'gap', groupSelector, `gaps ${gap.map(px).join(', ')} px; they should be equal and at least 8`, gap.map(px));
+      if (!fills || (spread(edge.map((e) => e[0])) <= EPS && spread(ends) > EPS)) flag(found, 'inset', groupSelector, 'a selected child does not fill the group, or children start together and end apart', edge.map((e) => e.map(px)));
     }
     return found;
   }
@@ -91,7 +94,7 @@
   // positioned-out, ellipsis and scrolling parts are skipped), page wider than the window, a fixed bar over the last content.
   function overflow() {
     const d = document.documentElement, found = [], all = $$('body *');
-    const add = (check, e, detail, values) => found.push({ check, selector: typeof e === 'string' ? e : named(e), detail, values });
+    const add = (check, e, detail, values) => flag(found, check, typeof e === 'string' ? e : named(e), detail, values);
     const clipped = (x) => /ellipsis/.test(css(x).textOverflow) || /auto|scroll/.test(css(x).overflowX);
     const words = (n) => [...n.childNodes].flatMap((c) => (c.nodeType === 3 ? (c.textContent.trim() ? [span(c)] : []) : c.nodeType !== 1 || !c.getClientRects().length || clipped(c) || /absolute|fixed/.test(css(c).position) ? [] : c.matches('svg,img') ? [span(c)] : words(c)));
     for (const e of all.filter((x) => x.textContent.trim() && x.clientWidth > 2 && !clipped(x))) {
@@ -115,9 +118,10 @@
     const found = [];
     for (const s of selectors) {
       const now = $$(s).map((e) => ({ n: label(e), left: rect(e).left + scrollX, top: rect(e).top + scrollY, width: rect(e).width, height: rect(e).height }));
+      if (!seen[s]) flag(found, 'saved', s, `nothing to compare yet: saved ${now.length} boxes as the before state`, [now.length]);
       (seen[s] ?? []).forEach((was, i) => {
         const moves = now[i] && ['left', 'top', 'width', 'height'].filter((k) => Math.abs(now[i][k] - was[k]) > EPS).map((k) => `${k} ${px(now[i][k] - was[k])}`);
-        if (moves?.length) found.push({ check: 'moved', selector: `${s}[${i}]`, detail: `${was.n}: ${moves.join(', ')}`, values: [was, now[i]].map((b) => [b.left, b.top, b.width, b.height].map(px)) });
+        if (moves?.length) flag(found, 'moved', `${s}[${i}]`, `${was.n}: ${moves.join(', ')}`, [was, now[i]].map((b) => [b.left, b.top, b.width, b.height].map(px)));
       });
       seen[s] = now;
     }
