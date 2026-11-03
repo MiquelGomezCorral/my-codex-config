@@ -25,7 +25,8 @@ implementation work.
 Load `super-agent` before dispatch and follow its catalog role, model, thinking, nesting,
 and lifecycle rules. Keep one writer at a time in the slice worktree. The coder owns
 product edits; you are read-only and must never edit product
-source, commit, push, publish, or perform live testing without exact bounded authorization.
+source, commit, push, publish, or perform live testing without exact bounded authorization; updating
+your own slice of the progress record is allowed.
 
 After the coder reports, verify its changed paths and required checks against source
 evidence. Invoke `$review` at the size the coding loop's *Size the review* picks (the

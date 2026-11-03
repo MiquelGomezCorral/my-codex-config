@@ -7,7 +7,9 @@ description: Run the complete agentic workflow from an initial idea and evidence
 
 Accept the initial request, evidence, ideas, or `@file` as input. Load the
 [workflow-progress skill](../workflow-progress/SKILL.md) and initialize run state at
-intake; load the [planning reference](references/planning.md) as planning begins. The plan
+intake; write the page link it prints to the user before your next tool call. Every run uses
+that skill from intake to close, at each event in its "When to update" table, so the user
+reads the page instead of asking. Load the [planning reference](references/planning.md) as planning begins. The plan
 path remains pending until the wave is finalized. This single entry point owns planning
 and delivery. The human owns material
 decisions, bounded approvals, final result acceptance, and shipping authority. The
@@ -24,8 +26,9 @@ Present every artifact the human must review as a descriptive clickable link in 
 same message, including plans, diagrams, mockups, reports, and validation evidence.
 Publish every browser preview, gate pages included, through the
 [artifacts skill's page hub](../artifacts/SKILL.md#page-hub) and return the URL it prints; a
-bare path is not a review link. The progress page is registered on the same hub as an app
-([workflow-progress](../workflow-progress/SKILL.md)). Apply this at every human gate.
+bare path is not a review link. The progress page is a hub page too, published at intake
+and refreshed by every update ([workflow-progress](../workflow-progress/SKILL.md)). Apply
+this at every human gate.
 Each gate has a required page: the discovery page after the first draft, the plan page at
 wave approval, and the result page ([present to human](references/present-to-human.md)).
 When you ask for a decision, set `--set human-decision=<what to decide> <page URL>` and
@@ -49,6 +52,9 @@ Workflow context: approved
 Plan path: <absolute private plan path, or an existing approved plan path>
 Slice: <slice id or name>
 Stage: <current stage>
+Run ID: <workflow-progress run id>
+Slice ID: <the slice's id in that run>
+Progress script: node <absolute path to workflow-progress>/scripts/progress.mjs
 Progress path: <path printed by workflow-progress `path --run <id>`>
 Scope: <approved paths and behavior>
 Exclusions: <explicit boundaries>
@@ -179,10 +185,15 @@ context conflicts or a non-Git action's bounds are missing.
    A supervisor ends stage 6 with one evidence packet: the base, checkpoint and head
    revisions; check results; a per-finding disposition table for review and cleanup; its
    stage 4 record and round notes; live results with evidence paths; the diff stat;
-   amendments, blockers and escalations; gaps; and `Memory candidates:`. Only the root writes
-   the run record: it records the slice's owner, `Size:` and base at dispatch, writes the
-   rest of the progress record from the packet, and verifies consequential packet claims
-   against the cited evidence. It also keeps wave approval, sizes, human gates and pages,
+   amendments, blockers and escalations; gaps; and `Memory candidates:`. A supervisor updates
+   only its own slice in the run record, on every step change, wait, result, and blocker, with
+   the packet's `Progress script` as `update --run <Run ID> --slice <Slice ID>`: steps, activity,
+   next action, notes, evidence, and blockers. That update is its one allowed write; it never
+   edits `progress.json` by hand. The root keeps the wave fields, approvals, gates, attention
+   items, and slice creation: it records the slice's owner, `Size:` and base at dispatch, writes
+   the rest from the packet without appending slice evidence the supervisor already wrote, and
+   verifies consequential packet claims against the cited evidence. It also
+   keeps wave approval, sizes, human gates and pages,
    feedback routing, shipping (stage 8), memory writes and the wave regression (stage 9).
    For a `medium` or `large` slice, the root sends each later code change, with the last
    packet, to a fresh coding supervisor, which runs stage 4's base live run for any new
@@ -244,9 +255,10 @@ human gate: completed slices keep their state, and the shipping layout chosen at
 stays.
 
 Use [workflow-progress](../workflow-progress/SKILL.md) at intake and each transition to
-record completed gates, evidence, current activity, and next action. Reconcile its state
-with the plan and real worker state after interruption; it never supplies missing approval.
-Record what the user must act on while work continues as attention items, following that skill's attention rule.
+record completed gates, evidence, current activity, and next action; read each reply and fix
+and rerun a rejected call. Reconcile its state with the plan and real worker state after
+interruption; it never supplies missing approval. Record what the user must act on while
+work continues as attention items, following that skill's attention rule.
 
 ## Evidence and recovery
 

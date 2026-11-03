@@ -8,7 +8,7 @@ import { stages } from "./stages.mjs"
 const skillDirectory = dirname(fileURLToPath(import.meta.url))
 const progressScript = resolve(skillDirectory, "progress.mjs")
 const usage = "usage: node scripts/demo.mjs --run workflow-demo-<id> [--interval-ms 3000]"
-const steps = stages.flatMap((stage) => stage.steps.map((step) => ({ ...step, stageId: stage.id, stage: stage.title, repeated: stage.repeated })))
+const steps = stages.flatMap((stage) => stage.steps.map((step) => ({ ...step, stageId: stage.id, repeated: stage.repeated })))
 const planningSteps = steps.filter((step) => !step.repeated && step.stageId !== "close-wave")
 const deliverySteps = steps.filter((step) => step.repeated)
 const closeSteps = steps.filter((step) => step.stageId === "close-wave")
@@ -73,6 +73,7 @@ function runProgress(args) {
   const result = spawnSync(process.execPath, [progressScript, ...args], { cwd: process.cwd(), encoding: "utf8" })
   if (result.error) throw result.error
   if (result.status !== 0) throw new Error(result.stderr.trim() || `progress command failed: ${args[0]}`)
+  return result.stdout
 }
 
 // progress.mjs owns where a run lives; main() only accepts workflow-demo-<id> run IDs.
@@ -100,7 +101,6 @@ function waveArgs(tick) {
   if (planningFrame) {
     return [
       ...laneArgs(planningSteps, planningFrame, ["Demo: three slices in delivery", "Demo: close the wave"]),
-      "--set", `current-stage=${planningSteps[planningFrame.index]?.stage ?? "Delivery"}`,
       ...(tick === 0 ? ["--note", `Demo replay: ${simulated}`] : []),
     ]
   }
@@ -109,7 +109,6 @@ function waveArgs(tick) {
   const finished = closeFrame.index === closeSteps.length
   return [
     ...laneArgs(closeSteps, closeFrame, ["Demo complete", "Step-by-step display walkthrough finished"]),
-    "--set", `current-stage=${closeSteps[0].stage}`,
     ...(finished ? ["--note", "Demo replay complete; no work, approvals, or Git actions occurred."] : []),
   ]
 }
@@ -142,7 +141,8 @@ async function main() {
   if (!Number.isSafeInteger(intervalMs) || intervalMs <= 0) throw new Error("--interval-ms must be a positive integer")
 
   rmSync(demoRunDirectory(runId), { recursive: true, force: true })
-  runProgress(["init", "--run", runId, "--repository", "Workflow demo"])
+  // init prints the record path, then the hub page address to open while the replay runs.
+  console.log(runProgress(["init", "--run", runId, "--repository", "Workflow demo"]).trim().split("\n").at(-1))
   const lastTick = close.start + close.frames.length - 1
   for (let tick = 0; tick <= lastTick; tick += 1) {
     if (tick > 0) await delay(intervalMs)

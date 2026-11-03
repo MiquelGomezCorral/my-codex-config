@@ -94,10 +94,17 @@ slices with inspectable verification and explicit human authority across project
   hosting-service state remains authoritative for reconciliation.
 - Plan-specific editable diagrams, SVG previews, mockups and live-test samples live in
   `agent-memory/artifacts/<name>/`, which the artifacts skill owns; the plan links to them.
-- A script-maintained progress record generates the local HTML status page. Routine
-  workflow runs use it instead of the retained legacy Markdown template. The root updates
-  it at dispatches, waits, results, corrections, gates, and resume. Updates preserve
-  untouched statuses and slice evidence. Each slice keeps its own delivery steps and
+- A script-maintained progress record generates the status page, published on the artifacts
+  hub at intake. Every update rewrites it and the open page refreshes itself, so the user
+  reads progress instead of asking. Every `/workflow` run uses it from intake to close
+  instead of the retained legacy Markdown template: the root updates it at dispatches,
+  waits, results, corrections, gates, and resume, and a coding supervisor updates only its
+  own slice (steps, activity, next action, notes, evidence, blockers). The root keeps wave
+  fields, approvals, gates, attention items, and slice creation. A lock file serializes
+  updates, and the script answers every call: a rejected one lists each problem and writes
+  nothing, a good one prints the current status. Updates preserve
+  untouched statuses and slice evidence. The page derives the current stage from the
+  active steps; no one sets it by hand. Each slice keeps its own delivery steps and
   activity, so parallel slices show side by side; planning and close-wave steps are
   wave-level. A summary table, per-slice tabs, and the latest five living-note versions
   make progress visible without changing approval or evidence requirements.
@@ -213,6 +220,11 @@ diagram comprehension remains Review-only.
 
 ## History
 
+- 2026-11-02: Progress pages went stale during real runs and agents never knew whether an
+  update worked. The page is now a hub page refreshed by every update (no server of its own),
+  the script reports every call's outcome, the hand-set stage and last-gate fields were
+  removed, and coding supervisors update their own slice under a lock. Every `/workflow` run
+  must use it, and the user gets the link at intake.
 - 2026-10-29: A subscription-usage audit found the root's long Opus context driving most
   spend while it ran each slice's live runs, checkpoint, cleanup and reruns. The user kept the
   catalog models and approved handing those stages of a medium or large slice to its coding

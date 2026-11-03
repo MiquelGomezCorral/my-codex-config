@@ -15,10 +15,24 @@ const cli = join(root, "config/skills/workflow-progress/scripts/progress.mjs")
 const diagramPath = join(root, "config/skills/workflow-progress/assets/workflow.svg")
 const mapPath = join(root, "config/skills/workflow-progress/assets/map.json")
 
+// A stand-in for `python3 hub.py` so tests never reach the real hub: `dir` makes the page folder
+// under <directory>/hub and `publish` prints the page address.
+function fakeHubEnv(directory, stateHome) {
+  const bin = join(directory, "bin")
+  mkdirSync(bin, { recursive: true })
+  writeFileSync(join(bin, "python3"), `#!/bin/sh
+case "$2" in
+  dir) mkdir -p "${directory}/hub/$3" && echo "${directory}/hub/$3" ;;
+  publish) echo "http://hub.test/$(basename "$3")/" ;;
+esac
+`, { mode: 0o755 })
+  return { ...process.env, XDG_STATE_HOME: stateHome, PATH: `${bin}:${process.env.PATH}` }
+}
+
 function createRun(t, runId, selectedMap = undefined) {
   const stateHome = mkdtempSync(join(tmpdir(), "workflow-progress-test-"))
   t.after(() => rmSync(stateHome, { recursive: true, force: true }))
-  const env = { ...process.env, XDG_STATE_HOME: stateHome }
+  const env = fakeHubEnv(stateHome, stateHome)
   // The temporary folder is not a Git repository, so runs stay under the XDG state home.
   const runCli = (args) => spawnSync(process.execPath, [cli, ...args], { cwd: stateHome, env, encoding: "utf8" })
   const initialized = runCli([
@@ -106,53 +120,23 @@ SVG
   strictEqual(readFileSync(svgPath).equals(previousSvg), true)
 })
 
-test("served progress refreshes retain the native map frame and export an unchanged source", async (t) => {
+test("init publishes a hub page and every update rewrites it, native map included", (t) => {
   const run = createRun(t, "diagram-refresh")
   const graphBeforeRender = readFileSync(diagramPath, "utf8")
+  const page = join(run.cwd, "hub/diagram-refresh-progress")
+  strictEqual(run.readState().run.pageDirectory, page)
+  strictEqual(run.readState().run.pageUrl, "http://hub.test/diagram-refresh-progress/")
+  strictEqual(existsSync(join(page, "content.html")), true)
+
   let result = run.runCli([
     "update", "--run", "diagram-refresh", "--new-slice", "slice-1",
     "--active", "build-review.review", "--waiting", "human-validation.await-feedback",
     "--done", "first-draft.draft",
   ])
   strictEqual(result.status, 0, result.stderr)
-
-  const server = spawn(process.execPath, [cli, "serve", "--run", "diagram-refresh"], {
-    cwd: run.cwd, env: run.env, stdio: ["ignore", "pipe", "pipe"],
-  })
-  t.after(async () => {
-    if (server.exitCode !== null) return
-    const exited = once(server, "exit")
-    server.kill()
-    await exited
-  })
-  let stderr = ""
-  server.stderr.setEncoding("utf8")
-  server.stderr.on("data", (chunk) => { stderr += chunk })
-  const baseUrl = await new Promise((resolveUrl, reject) => {
-    let stdout = ""
-    let settled = false
-    const timeout = setTimeout(() => finish(reject, new Error(`server did not start: ${stderr}`)), 5000)
-    const finish = (callback, value) => {
-      if (settled) return
-      settled = true
-      clearTimeout(timeout)
-      callback(value)
-    }
-    server.stdout.setEncoding("utf8")
-    server.stdout.on("data", (chunk) => {
-      stdout += chunk
-      const url = stdout.match(/http:\/\/127\.0\.0\.1:\d+\//)?.[0]
-      if (url) finish(resolveUrl, url)
-    })
-    server.once("error", (error) => finish(reject, error))
-    server.once("exit", (code) => finish(reject, new Error(`server exited ${code}: ${stderr}`)))
-  })
-  const dashboardCsp = "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; font-src data:; frame-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'"
-
-  let response = await fetch(new URL("content", baseUrl))
-  strictEqual(response.status, 200)
-  strictEqual(response.headers.get("content-security-policy"), dashboardCsp)
-  let content = await response.text()
+  match(result.stdout, /^Updated new slice slice-1: active build-review\.review, done first-draft\.draft, waiting human-validation\.await-feedback\.\n/)
+  match(result.stdout, /\nNow: slice-1 build-review\.review, waiting human-validation\.await-feedback · next: .* · page http:\/\/hub\.test\/diagram-refresh-progress\/\n$/)
+  let content = readFileSync(join(page, "content.html"), "utf8")
   match(content, /data-step-id="build-review\.review" data-status="active"/)
   match(content, /data-step-id="human-validation\.await-feedback" data-status="waiting"/)
   match(content, /data-step-id="first-draft\.draft" data-status="done"/)
@@ -160,45 +144,70 @@ test("served progress refreshes retain the native map frame and export an unchan
 
   result = run.runCli(["update", "--run", "diagram-refresh", "--done", "build-review.review", "--active", "cleanup.audit"])
   strictEqual(result.status, 0, result.stderr)
-  response = await fetch(new URL("workflow-map.html", baseUrl))
-  strictEqual(response.status, 200)
-  strictEqual(response.headers.get("content-security-policy"), dashboardCsp.replace("img-src data:", "img-src data: blob:"))
-  let nativeHtml = await response.text()
+  content = readFileSync(join(page, "content.html"), "utf8")
+  match(content, /data-step-id="build-review\.review" data-status="done"/)
+  match(content, /data-step-id="cleanup\.audit" data-status="active"/)
+  match(content, /<time datetime="[^"]+">Updated /)
+  const nativeHtml = readFileSync(join(page, "workflow-map.html"), "utf8")
   match(nativeHtml, /data-preset="signal-flow"/)
   strictEqual(/http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; object-src 'none'/.test(nativeHtml), true, "native viewer allows local images and remains isolated")
   const nativeInput = nativeHtml.match(/<script type="application\/json" id="workflow-map-input">([\s\S]*?)<\/script>/)
   strictEqual(nativeInput?.length, 2)
   deepStrictEqual(JSON.parse(nativeInput[1]).svgText, graphBeforeRender)
 
-  response = await fetch(new URL("/", baseUrl))
-  strictEqual(response.status, 200)
-  strictEqual(response.headers.get("content-security-policy"), dashboardCsp)
-  const page = await response.text()
-  match(page, /<iframe id="workflow-map-frame"[^>]+sandbox="allow-scripts"/)
-  const frameUrl = page.match(/<iframe id="workflow-map-frame"[^>]+src="([^"]+)"/)?.[1]
-  strictEqual(frameUrl, "workflow-map.html?theme=dark&amp;present=1")
-  doesNotMatch(frameUrl, /(?:\?|&)embed=1(?:&|$)/)
-  doesNotMatch(page, /sandbox="[^"]*allow-same-origin/)
-  match(response.headers.get("content-security-policy"), /frame-src 'self'/)
+  const index = readFileSync(join(page, "index.html"), "utf8")
+  match(index, /<iframe id="workflow-map-frame"[^>]+sandbox="allow-scripts"/)
+  strictEqual(index.match(/<iframe id="workflow-map-frame"[^>]+src="([^"]+)"/)?.[1], "workflow-map.html?theme=dark&amp;present=1")
+  doesNotMatch(index, /sandbox="[^"]*allow-same-origin/)
+  match(index, /fetch\("content\.html"/)
+  match(index, /connect-src 'self'/)
 
-  response = await fetch(new URL("content", baseUrl))
-  strictEqual(response.status, 200)
-  content = await response.text()
-  match(content, /data-step-id="build-review\.review" data-status="done"/)
-  match(content, /data-step-id="cleanup\.audit" data-status="active"/)
-
-  result = run.runCli(["render", "--run", "diagram-refresh"])
+  result = run.runCli(["render", "--run", "diagram-refresh", "--output", join(run.cwd, "snapshot.html")])
   strictEqual(result.status, 0, result.stderr)
   const snapshot = readFileSync(result.stdout.trim(), "utf8")
   match(snapshot, /summary>Original workflow diagram reference<\/summary>/)
   match(snapshot, /data-step-id="cleanup\.audit" data-status="active"/)
-  match(snapshot, /<iframe id="workflow-map-frame"[^>]+sandbox="allow-scripts"/)
-  const nativeSnapshot = readFileSync(join(dirname(result.stdout.trim()), "workflow-map.html"), "utf8")
-  match(nativeSnapshot, /data-preset="signal-flow"/)
-  const snapshotInput = nativeSnapshot.match(/<script type="application\/json" id="workflow-map-input">([\s\S]*?)<\/script>/)
-  strictEqual(snapshotInput?.length, 2)
-  deepStrictEqual(JSON.parse(snapshotInput[1]).svgText, graphBeforeRender)
   strictEqual(readFileSync(diagramPath, "utf8"), graphBeforeRender)
+})
+
+test("a rejected update names every problem and writes nothing; a good one reports the status", (t) => {
+  const run = createRun(t, "feedback")
+  const before = readFileSync(run.path, "utf8")
+  let result = run.runCli([
+    "update", "--run", "feedback", "--dnoe", "x", "--set", "last-gate=done", "--set", "bogus=1",
+    "--done", "build-review.implment", "--slice", "slice-9", "--note",
+  ])
+  notStrictEqual(result.status, 0)
+  match(result.stderr, /6 problems:/)
+  match(result.stderr, /unknown option: --dnoe \(did you mean --done/)
+  match(result.stderr, /--set last-gate was removed: .*steps/)
+  match(result.stderr, /unknown --set field: bogus/)
+  match(result.stderr, /unknown step ID after --done: build-review\.implment \(did you mean build-review\.implement/)
+  match(result.stderr, /unknown slice ID: slice-9/)
+  match(result.stderr, /--note requires a value/)
+  match(result.stderr, /nothing was written/)
+  match(result.stderr, /progress\.mjs help update/)
+  strictEqual(readFileSync(run.path, "utf8"), before)
+
+  result = run.runCli(["update", "--run", "feedback", "--new-slice", "slice-1", "--active", "build-review.implement"])
+  strictEqual(result.status, 0, result.stderr)
+  match(result.stdout, /^Updated new slice slice-1: active build-review\.implement\.\nNow: slice-1 build-review\.implement · next: /)
+  match(run.runCli(["help", "update"]).stdout, /--set fields: .*slice\.state[\s\S]*step IDs:[\s\S]*build-review\.implement/)
+})
+
+test("parallel updates are all recorded, and a lock left by a dead process is cleared", async (t) => {
+  const run = createRun(t, "parallel")
+  writeFileSync(join(dirname(run.path), "progress.lock"), "999999999")
+  const ids = ["a", "b", "c", "d", "e"]
+  const exits = await Promise.all(ids.map(async (id) => {
+    const child = spawn(process.execPath, [cli, "update", "--run", "parallel", "--new-slice", id, "--active", "build-review.implement"], {
+      cwd: run.cwd, env: run.env, stdio: "ignore",
+    })
+    return (await once(child, "exit"))[0]
+  }))
+  deepStrictEqual(exits, [0, 0, 0, 0, 0])
+  deepStrictEqual(run.readState().slices.map((slice) => slice.id).sort(), ids)
+  strictEqual(existsSync(join(dirname(run.path), "progress.lock")), false)
 })
 
 test("updates preserve untouched data, allow parallel active steps, and reopen completed steps", (t) => {
@@ -340,14 +349,13 @@ test("current stages show working wave stages without order inference", (t) => {
     "--blocked", "close-wave.regression",
     "--active", "build-review.review",
     "--current", "Reviewing the implementation",
-    "--set", "current-stage=Intake",
   ])
   strictEqual(result.status, 0, result.stderr)
   result = run.runCli(["render", "--run", "current-stages"])
   strictEqual(result.status, 0, result.stderr)
   let html = readFileSync(result.stdout.trim(), "utf8")
   match(html, /<p class="field-label">Current stages<\/p><p class="field-value">First draft · Challenge and approve · Close wave<\/p>/)
-  match(html, /<span class="field-label">Recorded current stage<\/span><br>Intake/)
+  doesNotMatch(html, /Recorded current stage|Last completed gate/)
 
   result = run.runCli([
     "update", "--run", "current-stages",
@@ -569,7 +577,7 @@ test("runs in a Git repository live in its agent-memory; old-location runs stay 
   const repository = join(directory, "repo")
   mkdirSync(repository)
   strictEqual(spawnSync("git", ["init", "-q"], { cwd: repository }).status, 0)
-  const env = { ...process.env, XDG_STATE_HOME: stateHome }
+  const env = fakeHubEnv(directory, stateHome)
   const runCli = (cwd, args) => spawnSync(process.execPath, [cli, ...args], { cwd, env, encoding: "utf8" })
 
   let result = runCli(repository, ["init", "--run", "fresh"])
@@ -605,14 +613,14 @@ test("a run follows the repository given to init, from any folder", (t) => {
   const repository = join(directory, "repo")
   mkdirSync(repository)
   strictEqual(spawnSync("git", ["init", "-q"], { cwd: repository }).status, 0)
-  const env = { ...process.env, XDG_STATE_HOME: join(directory, "state") }
+  const env = fakeHubEnv(directory, join(directory, "state"))
   const runCli = (cwd, args) => spawnSync(process.execPath, [cli, ...args], { cwd, env, encoding: "utf8" })
 
   // Started outside Git, the run still lands in the named repository and updates from inside it.
   let result = runCli(directory, ["init", "--run", "named", "--repository", repository])
   strictEqual(result.status, 0, result.stderr)
   const named = join(repository, ".git/agent-memory/workflow-runs/named/progress.json")
-  strictEqual(result.stdout.trim(), named)
+  strictEqual(result.stdout.split("\n")[0], named)
   result = runCli(repository, ["update", "--run", "named", "--new-slice", "slice-1"])
   strictEqual(result.status, 0, result.stderr)
 

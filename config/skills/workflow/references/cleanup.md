@@ -9,8 +9,8 @@ status after the checkpoint is not enough to skip cleanup. The cleanup worker re
 read-only and findings-only.
 
 The stage owner verifies each finding against the approved scope, current source, and
-tests, and records one outcome per finding in progress notes (a supervisor's notes go in its
-packet, workflow stage 6): accepted, or rejected with a concrete reason. A valid reason
+tests, and records one outcome per finding in progress notes (a supervisor adds them to its own
+slice and its packet, workflow stage 6): accepted, or rejected with a concrete reason. A valid reason
 shows the finding is false, a duplicate, out of scope,
 unverifiable against source, or would break acceptance behavior, a public contract, or a
 protection the cleanup contract preserves. "Looks fine", "low value", or effort is not a

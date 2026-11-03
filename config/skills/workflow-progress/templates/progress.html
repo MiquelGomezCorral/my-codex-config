@@ -131,6 +131,16 @@
           panel.hidden = panel.dataset.tabPanel !== tab
         }
       }
+      // "Updated N min ago" is recomputed here, so it stays right between refreshes and offline.
+      const showAge = () => {
+        for (const time of document.querySelectorAll("#progress-content time[datetime]")) {
+          const seconds = Math.max(0, Math.round((Date.now() - Date.parse(time.dateTime)) / 1000))
+          const [amount, unit] = seconds < 60 ? [seconds, "s"] : seconds < 3600 ? [Math.floor(seconds / 60), "min"]
+            : seconds < 86400 ? [Math.floor(seconds / 3600), "h"] : [Math.floor(seconds / 86400), "d"]
+          time.textContent = `Updated ${amount} ${unit} ago`
+          time.title = time.dateTime
+        }
+      }
       const sendMapState = (refocus = false) => {
         const state = readMapState()
         if (!frameLoaded || !childReady || !state) return
@@ -166,10 +176,13 @@
         }
       })
 
+      showAge()
+      window.setInterval(showAge, 5000)
       if (location.protocol !== "http:" && location.protocol !== "https:") return
+      // A relative path keeps working behind the hub's page address; progress.mjs rewrites content.html on every update.
       const refresh = async () => {
         try {
-          const response = await fetch("/content", { cache: "no-store" })
+          const response = await fetch("content.html", { cache: "no-store" })
           if (!response.ok) throw new Error(`server returned ${response.status}`)
           const html = await response.text()
           const parsed = new DOMParser().parseFromString(html, "text/html")
@@ -186,6 +199,7 @@
           }
           const state = readMapState()
           if (state) showTab(selectedTab(state))
+          showAge()
           if (focusedTab !== undefined) {
             [...document.querySelectorAll("#progress-content [data-tab]")]
               .find((button) => button.dataset.tab === focusedTab)?.focus({ preventScroll: true })

@@ -145,8 +145,9 @@ most recently updated slice), stays with it, and does not carry forward to new s
 runs do not inherit another run's metadata. Legacy runs without map fields use the installed
 default map.
 
-`render` creates `progress.html` and a sibling `workflow-map.html`. `serve` exposes the map
-through the same server and keeps its native frame loaded while progress refreshes.
+`render` and every `update` write `workflow-map.html` beside the page, in the hub page folder
+once the run is published. The page polls its content fragment and keeps the native frame
+loaded while progress refreshes.
 The host opens the map in the native presentation viewport. Both viewers start with the native
 dark theme; the theme control remains available. The frame is sandboxed and isolated from the
 host page. Native selection, arrows, Passport, and Route Probe

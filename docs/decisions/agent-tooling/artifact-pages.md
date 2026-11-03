@@ -19,7 +19,8 @@ serves gets lost, keeps running unnoticed, or changes address.
 - Port data comes from Orca's own scan, `orca ports --all --json`, which agents run on this
   machine. The hub has no Ports view, so LAN clients never see local listeners.
 - The artifacts skill is the single owner of serving; workflow, skill-creator, and the global
-  policy point to it. workflow-progress keeps its own live server and registers it as an app.
+  policy point to it. workflow-progress publishes its progress page on the hub like any other
+  page and rewrites it on every update; it runs no server of its own.
 - The artifacts folder `agent-memory/artifacts/<name>/` is the one home for durable pages,
   diagrams, mockups and samples; other skills point to it instead of keeping their own.
 - `hub-ui-policy.json` governs the hub index only; its name keeps lintapple from picking it

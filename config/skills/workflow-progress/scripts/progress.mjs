@@ -1,12 +1,11 @@
 import { randomUUID } from "node:crypto"
 import { execFileSync } from "node:child_process"
 import { cpSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs"
-import { createServer } from "node:http"
 import { homedir } from "node:os"
 import { dirname, isAbsolute, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import {
-  buildMapViewer, defaultMapPath, inspectMap, mapConfigurationFromState,
+  defaultMapPath, inspectMap, mapConfigurationFromState,
   readMapConfiguration, rebuildMap, renderMapError, safeJson, validateMapConfiguration, validateMapInfo,
   writeMapViewer,
 } from "./map.mjs"
@@ -14,9 +13,11 @@ import {
   deliveryStages, doneSliceChip, repeatedStepIds, stages, statuses, stepById, waveStages, waveStepIds,
 } from "./stages.mjs"
 
-const scriptDirectory = dirname(fileURLToPath(import.meta.url))
+const scriptPath = fileURLToPath(import.meta.url)
+const scriptDirectory = dirname(scriptPath)
 const template = readFileSync(resolve(scriptDirectory, "../templates/progress.html"), "utf8")
 const referenceImage = readFileSync(resolve(scriptDirectory, "../assets/Whole-Flow.png")).toString("base64")
+const hubScript = resolve(scriptDirectory, "../../artifacts/scripts/hub.py")
 const usage = `usage:
   node progress.mjs init --run <id> [--repository <path>] [--planning-mode brief|full] [--map <configuration.json>]
   node progress.mjs list-steps
@@ -24,30 +25,40 @@ const usage = `usage:
   node progress.mjs migrate --run <id>
   node progress.mjs update --run <id> [flags] [--slice <id[,id...]>|--new-slice <id> [flags]]... [--map <configuration.json>]
   node progress.mjs render --run <id> [--output <html-file>]
-  node progress.mjs serve --run <id> [--port <port 3100-3199>]
+  node progress.mjs publish --run <id>
   node progress.mjs rebuild-map --map <configuration.json> --drawio <executable>
   node progress.mjs inspect-map --map <configuration.json> --output <inspection.html>
-
-status flags: --active|--done|--upcoming|--waiting|--blocked|--skipped <step-id>, --reopen <step-id>
-metadata flags: --current <text>, --slice-context <text>, --next <text>, --note <text>,
-                --new-slice <id>, --set <field=value>, --append <field=value>,
-                --resolve-slice-blocker <text>, --resolve-unresolved-blocker <text>,
-                --resolve-attention <text>
-slice groups: --slice <id[,id...]> or --new-slice <id> sends the flags after it (delivery statuses,
-              activity, notes, slice.* fields, slice blockers, attention items, delivery map info) to those slices;
-              before any group they go to the wave, and slice-only flags to the latest slice
-              (rejected when the call adds a slice)
-map flags: --map <configuration.json> adopts a revised manifest, --map-info <run-info.json>`
+  node progress.mjs help [command]`
 const statusFlags = new Map([
   ["--active", "active"], ["--done", "done"], ["--upcoming", "upcoming"],
   ["--waiting", "waiting"], ["--blocked", "blocked"], ["--skipped", "skipped"],
   ["--reopen", "upcoming"],
 ])
+// Every `update` flag as [repeatable, argument, meaning]. The parser's allowed and repeatable sets
+// and `help update` both read this table.
+const updateFlags = new Map([
+  ["--run", [false, "<id>", "the run to update; required"]],
+  ...[...statusFlags].map(([flag, status]) => [flag, [true, "<step-id>", `mark the step ${status}`]]),
+  ["--slice", [true, "<id[,id...]>", "opens a group: the flags after it update these existing slices"]],
+  ["--new-slice", [true, "<id>", "opens a group that adds a slice with fresh delivery steps"]],
+  ["--depends-on", [true, "<slice-id>", "new slice only: a slice it depends on"]],
+  ["--base-revision", [false, "<revision>", "new slice only: the Git revision it starts from"]],
+  ["--worktree", [false, "<path>", "new slice only: its worktree"]],
+  ["--current", [false, "<text>", "what is happening now"]],
+  ["--slice-context", [false, "<text>", "a short label for the slice; slices only"]],
+  ["--next", [false, "<text>", "what happens next"]],
+  ["--note", [false, "<text>", "a living note; once per call, the latest five are kept"]],
+  ["--set", [true, "<field=value>", "set one field from the --set list below"]],
+  ["--append", [true, "<field=value>", "add one entry to a list from the --append list below"]],
+  ["--resolve-slice-blocker", [true, "<exact text>", "remove that blocker from the slice"]],
+  ["--resolve-unresolved-blocker", [true, "<exact text>", "remove that run-level unresolved blocker"]],
+  ["--resolve-attention", [true, "<exact text>", "resolve that attention item"]],
+  ["--map", [false, "<configuration.json>", "adopt a revised map manifest"]],
+  ["--map-info", [false, "<run-info.json>", "add native map metadata"]],
+])
 const runScalarTargets = {
   repository: (state) => [state.run, "repository"],
-  "current-stage": (state) => [state.run, "currentStage"],
   "planning-mode": (state) => [state.run, "planningMode"],
-  "last-gate": (state) => [state.run, "lastCompletedGate"],
   "next-action": (state) => [state.run, "nextAction"],
   "human-decision": (state) => [state.run, "humanDecisionPending"],
   "wave-plan": (state) => [state.run, "wavePlan"],
@@ -96,6 +107,14 @@ const sliceAppendTargets = {
 }
 const workingStatuses = ["active", "waiting", "blocked"]
 const attentionKinds = ["login", "permission", "live-test", "question", "other"]
+const setFields = [...Object.keys(runScalarTargets), ...activityTargets.map(([, field]) => field), ...Object.keys(sliceScalarTargets)]
+const appendFields = ["attention", ...Object.keys(runAppendTargets), ...Object.keys(sliceAppendTargets)]
+// Hand-set fields the page now derives, with what to use instead.
+const removedFields = {
+  "current-stage": "the page derives the current stage from the active steps; mark steps with --active, --waiting, or --done <step-id>",
+  "last-gate": "the page shows gates through step statuses and approvals; mark steps --done <step-id> or record --append approval=<json>",
+}
+const stepIds = [...stepById.keys()]
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (character) => ({
@@ -116,14 +135,55 @@ function isRecord(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value)
 }
 
-function parsePairs(args) {
+// A rejected call lists every problem found, so the caller fixes them in one pass.
+function reject(problems) {
+  if (problems.length === 1) throw new Error(problems[0])
+  if (problems.length) throw new Error(`${problems.length} problems:\n${problems.map((problem) => `  - ${problem}`).join("\n")}`)
+}
+
+// The run changed before the failure, so the error must not claim that nothing was written.
+class PartialFailure extends Error {}
+
+// Up to three valid values that contain the typed one or differ from it by a few characters.
+function closest(value, valid) {
+  const distance = (a, b) => {
+    let row = Array.from({ length: b.length + 1 }, (_, index) => index)
+    for (let i = 1; i <= a.length; i += 1) {
+      const next = [i]
+      for (let j = 1; j <= b.length; j += 1) next[j] = Math.min(row[j] + 1, next[j - 1] + 1, row[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1))
+      row = next
+    }
+    return row[b.length]
+  }
+  const containing = value ? valid.filter((candidate) => candidate.includes(value)) : []
+  const near = valid.map((candidate) => [candidate, distance(value, candidate)])
+    .filter(([, apart]) => apart <= Math.max(2, Math.ceil(value.length / 4)))
+    .sort((a, b) => a[1] - b[1]).map(([candidate]) => candidate)
+  return (containing.length ? containing : near).slice(0, 3)
+}
+
+function unknownProblem(kind, value, valid) {
+  const near = closest(value, valid)
+  const hint = near.length ? `did you mean ${near.join(" or ")}?`
+    : !valid.length ? "none exist yet" : `valid: ${valid.join(", ")}`
+  return `unknown ${kind}: ${value} (${hint})`
+}
+
+// Every token is a --flag followed by its value; a flag followed by another flag lost its value.
+function parsePairs(args, problems) {
   const pairs = []
-  for (let index = 0; index < args.length; index += 2) {
+  for (let index = 0; index < args.length; index += 1) {
     const name = args[index]
-    if (!name.startsWith("--")) throw new Error(`unexpected argument: ${name}`)
+    if (!name.startsWith("--")) {
+      problems.push(`unexpected argument: ${name} (a value goes right after its flag; quote text that has spaces)`)
+      continue
+    }
     const value = args[index + 1]
-    if (value === undefined) throw new Error(`${name} requires a value`)
-    pairs.push([name, value])
+    if (value === undefined || /^--[a-z][a-z-]*$/.test(value)) problems.push(`${name} requires a value`)
+    else {
+      pairs.push([name, value])
+      index += 1
+    }
   }
   return pairs
 }
@@ -153,11 +213,17 @@ function parseSliceGroups(pairs) {
   return groups.map(({ pairs: groupPairs, ...group }) => ({ ...group, options: optionsFromPairs(groupPairs) }))
 }
 
-function validateOptions(options, allowed, repeatable = new Set()) {
+function optionProblems(options, allowed, repeatable = new Set()) {
+  const problems = []
   for (const [name, values] of options) {
-    if (!allowed.has(name)) throw new Error(`unknown option: ${name}`)
-    if (values.length > 1 && !repeatable.has(name)) throw new Error(`${name} may only be used once`)
+    if (!allowed.has(name)) problems.push(unknownProblem("option", name, [...allowed]))
+    else if (values.length > 1 && !repeatable.has(name)) problems.push(`${name} may only be used once`)
   }
+  return problems
+}
+
+function validateOptions(options, allowed, repeatable) {
+  reject(optionProblems(options, allowed, repeatable))
 }
 
 function one(options, name, fallback = undefined) {
@@ -279,9 +345,7 @@ function makeState(runId, repository, planningMode, map) {
     run: {
       id: runId,
       repository,
-      currentStage: "Intake",
       planningMode,
-      lastCompletedGate: "None recorded",
       nextAction: "Gather evidence for the first draft",
       humanDecisionPending: "None",
       currentSliceId: null,
@@ -476,23 +540,105 @@ function atomicWrite(path, contents) {
 
 function saveState(state) {
   validateState(state, state.run.id)
-  const { directory, readOnly } = locateRun(state.run.id)
-  if (readOnly) {
-    throw new Error(`run ${state.run.id} is read-only at ${directory}; copy it into the repository with: migrate --run ${state.run.id}`)
-  }
-  // shortcut: one coordinator writes each run; add locking if updates ever become concurrent.
   atomicWrite(statePath(state.run.id), `${JSON.stringify(state, null, 2)}\n`)
 }
 
-function parseAssignments(options) {
+const lockWaitMs = 20_000
+
+function clearDeadLock(lock) {
+  const clearing = `${lock}.clear`
+  try {
+    writeFileSync(clearing, String(process.pid), { flag: "wx", mode: 0o600 })
+  } catch (error) {
+    if (error.code === "EEXIST") return // another waiter is clearing it
+    throw error
+  }
+  if (lockHolderIsGone(lock)) rmSync(lock, { force: true })
+  rmSync(clearing, { force: true })
+}
+
+function lockHolderIsGone(lock) {
+  try {
+    const pid = Number(readFileSync(lock, "utf8"))
+    if (pid) process.kill(pid, 0) // an empty file is a lock still being written
+    return false
+  } catch (error) {
+    return error.code === "ESRCH"
+  }
+}
+
+// Agents on one run can update at once, so every load-change-write cycle holds a lock file beside
+// the record. A waiter clears a dead holder's lock only while it owns `<lock>.clear`, and re-checks
+// the holder first, so two waiters never remove each other's fresh locks. Old-location runs are read-only here.
+// shortcut: a crash inside that clearing step leaves `<lock>.clear` behind and blocks updates until
+// it is deleted; the timeout message names the lock, so delete both files then.
+function withRunLock(runId, work) {
+  const { directory, readOnly } = locateRun(runId)
+  if (readOnly) {
+    throw new Error(`run ${runId} is read-only at ${directory}; copy it into the repository with: migrate --run ${runId}`)
+  }
+  const lock = join(directory, "progress.lock")
+  const deadline = Date.now() + lockWaitMs
+  for (;;) {
+    try {
+      writeFileSync(lock, String(process.pid), { flag: "wx", mode: 0o600 })
+      break
+    } catch (error) {
+      if (error.code === "ENOENT") throw new Error(`run not initialized: ${join(directory, "progress.json")}`)
+      if (error.code !== "EEXIST") throw error
+      if (lockHolderIsGone(lock)) clearDeadLock(lock)
+      if (Date.now() > deadline) {
+        throw new Error(`another update still holds ${lock}; run it again, or delete ${lock} and ${lock}.clear if no update is running`)
+      }
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 50)
+    }
+  }
+  try {
+    return work()
+  } finally {
+    rmSync(lock, { force: true })
+  }
+}
+
+function parseAssignments(options, problems) {
   const assignments = []
   for (const [flag, status] of statusFlags) {
     for (const id of many(options, flag)) {
-      if (!stepById.has(id)) throw new Error(`unknown step ID: ${id}`)
-      assignments.push([id, status])
+      if (stepById.has(id)) assignments.push([id, status])
+      else problems.push(unknownProblem(`step ID after ${flag}`, id, stepIds))
     }
   }
   return assignments
+}
+
+// Field names of --set and --append, checked against the same tables the apply step reads.
+function fieldProblems(options) {
+  const problems = []
+  for (const [flag, fields] of [["--set", setFields], ["--append", appendFields]]) {
+    for (const value of many(options, flag)) {
+      const separator = value.indexOf("=")
+      const field = value.slice(0, separator)
+      if (separator < 1) problems.push(`${flag} ${value} must use field=value`)
+      else if (flag === "--set" && Object.hasOwn(removedFields, field)) problems.push(`${flag} ${field} was removed: ${removedFields[field]}`)
+      else if (!fields.includes(field)) problems.push(unknownProblem(`${flag} field`, field, fields))
+    }
+  }
+  return problems
+}
+
+// Slice IDs a group names must exist, or be added by an earlier group of the same call.
+function sliceProblems(groups, state) {
+  const known = new Set(state.slices.map((slice) => slice.id))
+  const problems = []
+  for (const group of groups) {
+    if (group.newSliceId !== undefined) {
+      if (known.has(group.newSliceId)) problems.push(`slice already exists: ${group.newSliceId}`)
+      known.add(group.newSliceId)
+      continue
+    }
+    for (const id of group.sliceIds.filter((sliceId) => !known.has(sliceId))) problems.push(unknownProblem("slice ID", id, [...known]))
+  }
+  return problems
 }
 
 function addSlice(state, slice) {
@@ -505,13 +651,16 @@ function addSlice(state, slice) {
 // but would change the previous one.
 function groupTarget(state, sliceIds, callAddsSlice) {
   if (!sliceIds.length) {
+    const written = []
     const latestSlice = () => {
       if (callAddsSlice) {
         throw new Error("slice-only flags before --new-slice would change the previous slice; place them after --new-slice <id>, or after --slice <id> for an existing slice")
       }
-      return [currentSlice(state)]
+      const slice = currentSlice(state)
+      written.push(slice.id)
+      return [slice]
     }
-    return { sliceIds, slices: latestSlice, activities: [state.activity] }
+    return { sliceIds, slices: latestSlice, activities: [state.activity], written }
   }
   const slices = sliceIds.map((id) => findSlice(state, id))
   return { sliceIds, slices: () => slices, activities: slices.map((slice) => slice.activity) }
@@ -680,6 +829,11 @@ function initialize(options) {
   if (runs) atomicWrite(pointerPath(runId), `${repository}\n`)
   saveState(state)
   console.log(statePath(runId))
+  try {
+    publishRun(runId)
+  } catch (error) {
+    throw new PartialFailure(`run ${runId} was created, but its hub page was not published: ${error.message}\nfix that, then run: node ${scriptPath} publish --run ${runId}`)
+  }
 }
 
 function migrate(options) {
@@ -760,49 +914,99 @@ function applyGroup(state, group, mapConfiguration, assigned, callAddsSlice) {
   resolveBlockers(state, group.options, target)
   resolveAttention(state, group.options, target)
   if (group.sliceIds.length) state.run.currentSliceId = group.sliceIds.at(-1)
+  return group.sliceIds.length ? group.sliceIds : target.written
 }
 
-function update(pairs) {
-  const allowed = new Set([
-    ...statusFlags.keys(), "--run", "--depends-on", "--base-revision", "--worktree",
-    "--current", "--slice-context", "--next", "--note", "--set", "--append",
-    "--resolve-slice-blocker", "--resolve-unresolved-blocker", "--resolve-attention", "--map", "--map-info",
-  ])
-  const repeatable = new Set([
-    ...statusFlags.keys(), "--depends-on", "--set", "--append",
-    "--resolve-slice-blocker", "--resolve-unresolved-blocker", "--resolve-attention",
-  ])
+const updateAllowed = new Set(updateFlags.keys())
+const updateRepeatable = new Set([...updateFlags].filter(([, [repeatable]]) => repeatable).map(([flag]) => flag))
+const newSliceOnlyFlags = ["--depends-on", "--base-revision", "--worktree"]
+
+// What the call changed, per group: step statuses first, then the other flags it used. A group
+// without slice IDs names the slices its slice-only flags reached.
+function describeChanges(groups, written) {
+  const quiet = new Set([...statusFlags.keys(), "--run", ...newSliceOnlyFlags])
+  return groups.map((group, index) => {
+    const target = group.newSliceId !== undefined ? `new slice ${group.newSliceId}` : group.sliceIds.join(",") || ["wave", ...new Set(written[index])].join(" and ")
+    const used = [...group.options].filter(([name]) => !quiet.has(name))
+      .flatMap(([name, values]) => (name === "--set" || name === "--append" ? values.map((value) => `${name.slice(2)} ${value.split("=")[0]}`) : [name.slice(2)]))
+    const parts = [...group.assignments.map(([id, status]) => `${status} ${id}`), ...used]
+    return parts.length ? `${target}: ${parts.join(", ")}` : ""
+  }).filter(Boolean).join("; ")
+}
+
+// The steps in flight per slice (and the wave), the next action, and the page address. `written`
+// holds the slices this call wrote: only the latest of them may show its own next action.
+function describeStatus(state, written) {
+  const working = (record, ids) => ids.filter((id) => workingStatuses.includes(record[id]))
+    .map((id) => (record[id] === "active" ? id : `${record[id]} ${id}`)).join(", ")
+  const lanes = state.slices.map((slice) => {
+    const finished = repeatedStepIds.every((id) => ["done", "skipped"].includes(slice.statuses[id]))
+    return `${slice.id} ${working(slice.statuses, repeatedStepIds) || (finished ? "done" : "idle")}`
+  })
+  const waveWorking = working(state.statuses, waveStepIds)
+  if (waveWorking) lanes.unshift(`wave ${waveWorking}`)
+  const latest = state.slices.find((slice) => slice.id === state.run.currentSliceId && written.has(slice.id))
+  const next = latest?.activity.nextAction ? `${latest.id}: ${latest.activity.nextAction}` : state.activity.nextAction
+  const shortNext = next.length > 90 ? `${next.slice(0, 89)}…` : next
+  return ["Now: " + (lanes.join(" · ") || "no steps in flight"), shortNext && `next: ${shortNext}`, state.run.pageUrl && `page ${state.run.pageUrl}`]
+    .filter(Boolean).join(" · ")
+}
+
+function update(pairs, problems) {
   const groups = parseSliceGroups(pairs).map((group) => {
-    validateOptions(group.options, allowed, repeatable)
-    if (group.newSliceId === "") throw new Error("--new-slice requires a non-empty slice ID")
-    if (group.newSliceId === undefined && ["--depends-on", "--base-revision", "--worktree"].some((name) => group.options.has(name))) {
-      throw new Error("--depends-on, --base-revision, and --worktree only set up a new slice; place them after --new-slice <id>")
+    problems.push(...optionProblems(group.options, updateAllowed, updateRepeatable), ...fieldProblems(group.options))
+    if (group.newSliceId === "") problems.push("--new-slice requires a non-empty slice ID")
+    if (group.newSliceId === undefined && newSliceOnlyFlags.some((name) => group.options.has(name))) {
+      problems.push(`${newSliceOnlyFlags.join(", ")} only set up a new slice; place them after --new-slice <id>`)
     }
-    return {
-      ...group,
-      assignments: parseAssignments(group.options),
-      newSlice: group.newSliceId === undefined ? null : makeSlice(group.newSliceId, group.options),
+    let newSlice = null
+    if (group.newSliceId) {
+      try {
+        newSlice = makeSlice(group.newSliceId, group.options)
+      } catch (error) {
+        problems.push(error.message)
+      }
     }
+    return { ...group, assignments: parseAssignments(group.options, problems), newSlice }
   })
   // One call adds at most one note version, tagged with the slices of the group it sits in.
-  if (groups.filter((group) => group.options.has("--note")).length > 1) throw new Error("--note may only be used once")
+  if (groups.filter((group) => group.options.has("--note")).length > 1) problems.push("--note may only be used once")
   const waveOptions = groups[0].options
-  const runId = requireRunId(one(waveOptions, "--run"))
-  const original = loadState(runId)
-  const mapConfigurationUpdate = waveOptions.has("--map") ? readMapConfiguration(one(waveOptions, "--map")) : null
-  if (mapConfigurationUpdate) validateSavedMapOverrides(original, mapConfigurationUpdate.configuration)
-  const mapConfiguration = mapConfigurationUpdate?.configuration ?? mapConfigurationFromState(original).configuration
-  const state = structuredClone(original)
-  if (mapConfigurationUpdate) {
-    state.run.mapConfig = mapConfigurationUpdate.configuration
-    state.run.mapDirectory = mapConfigurationUpdate.directory
+  let runId = one(waveOptions, "--run")
+  if (runId === undefined) {
+    if (!problems.includes("--run requires a value")) problems.push("--run <id> is required")
+  } else {
+    try {
+      requireRunId(runId)
+      if (!existsSync(statePath(runId))) throw new Error(`run not initialized: ${statePath(runId)}`)
+    } catch (error) {
+      problems.push(error.message)
+      runId = undefined
+    }
   }
-  const assigned = new Map()
-  const callAddsSlice = groups.some((group) => group.newSlice)
-  for (const group of groups) applyGroup(state, group, mapConfiguration, assigned, callAddsSlice)
-  state.activity.updatedAt = new Date().toISOString()
-  saveState(state)
-  console.log(statePath(runId))
+  if (runId === undefined) reject(problems)
+  withRunLock(runId, () => {
+    const original = loadState(runId)
+    problems.push(...sliceProblems(groups, original))
+    reject(problems)
+    const mapConfigurationUpdate = waveOptions.has("--map") ? readMapConfiguration(one(waveOptions, "--map")) : null
+    if (mapConfigurationUpdate) validateSavedMapOverrides(original, mapConfigurationUpdate.configuration)
+    const mapConfiguration = mapConfigurationUpdate?.configuration ?? mapConfigurationFromState(original).configuration
+    const state = structuredClone(original)
+    if (mapConfigurationUpdate) {
+      state.run.mapConfig = mapConfigurationUpdate.configuration
+      state.run.mapDirectory = mapConfigurationUpdate.directory
+    }
+    const assigned = new Map()
+    const callAddsSlice = groups.some((group) => group.newSlice)
+    const written = groups.map((group) => applyGroup(state, group, mapConfiguration, assigned, callAddsSlice))
+    state.activity.updatedAt = new Date().toISOString()
+    saveState(state)
+    refreshPage(state)
+    console.log(`Updated ${describeChanges(groups, written) || "the run"}.`)
+    console.log(describeStatus(state, new Set(written.flat())))
+    if (!state.run.pageDirectory) console.log(publishHint(runId))
+  })
 }
 
 function empty(value, render = escapeHtml) {
@@ -983,7 +1187,10 @@ function renderProgress(state) {
         <p><span class="field-label">Completion</span><br>${empty(slice.delivery.completion)}</p>
       </div>
     </article>`).join("")
-  const updated = state.activity.updatedAt ? escapeHtml(state.activity.updatedAt) : "Not recorded"
+  // The page script rewrites this time as "Updated N min ago" and keeps it current.
+  const updated = state.activity.updatedAt
+    ? `<time datetime="${escapeHtml(state.activity.updatedAt)}">Updated ${escapeHtml(state.activity.updatedAt)}</time>`
+    : "Updated: not recorded"
   const mapState = { defaultTab, tabs: Object.fromEntries(tabs.map((tab) => [tab.id, tab.map])) }
   return `<main id="progress-content">
     ${renderAttention(state)}
@@ -1000,7 +1207,7 @@ function renderProgress(state) {
         <div><p class="field-label">Current stages</p><p class="field-value">${currentStages}</p></div>
         <div><p class="field-label">Slice gates</p><p class="field-value">${empty(state.run.sliceGates)}</p></div>
       </div>
-      <p class="last-update">Last update: <time>${updated}</time></p>
+      <p class="last-update">${updated}</p>
     </section>
     <section aria-labelledby="progress-title">
       <div class="progress-heading"><h2 id="progress-title">Progress</h2><span class="muted">Numbers show reading order; loops and alternatives can return to earlier steps.</span></div>
@@ -1019,8 +1226,6 @@ function renderProgress(state) {
           <section><h3>Plan and scope</h3>
             <p><span class="field-label">Wave plan</span><br>${empty(state.run.wavePlan)}</p>
             <p><span class="field-label">Wave approval</span><br>${escapeHtml(state.run.waveApproval.state)}${state.run.waveApproval.reference ? ` · ${escapeHtml(state.run.waveApproval.reference)}` : ""}${state.run.waveApproval.approvedBounds ? ` · ${escapeHtml(state.run.waveApproval.approvedBounds)}` : ""}</p>
-            <p><span class="field-label">Recorded current stage</span><br>${empty(state.run.currentStage)}</p>
-            <p><span class="field-label">Last completed gate</span><br>${empty(state.run.lastCompletedGate)}</p>
             <p><span class="field-label">Human decision pending</span><br>${empty(state.run.humanDecisionPending, linkUrls)}</p>
             <p><span class="field-label">Scope and exclusions</span><br>${empty(state.run.scopeAndExclusions)}</p>
             <h3>Planning evidence and artifacts</h3>${renderList(state.run.planningEvidenceAndArtifacts)}
@@ -1057,95 +1262,113 @@ function renderPage(state) {
   return template.replace("{{DIAGRAM}}", () => renderDiagram()).replace("{{CONTENT}}", () => renderProgress(state))
 }
 
+// Writes the page, its content fragment (the page polls it), and the sibling native map.
+function writePage(state, indexPath) {
+  const directory = dirname(indexPath)
+  atomicWrite(indexPath, renderPage(state))
+  atomicWrite(join(directory, "content.html"), renderProgress(state))
+  try {
+    const map = mapConfigurationFromState(state)
+    writeMapViewer(join(directory, "workflow-map.html"), map.configuration, map.directory)
+  } catch (error) {
+    atomicWrite(join(directory, "workflow-map.html"), renderMapError(error))
+    console.error(`warning: native map could not be built: ${error.message}`)
+  }
+}
+
+const publishHint = (runId) => `no hub page for run ${runId}; publish one with: node ${scriptPath} publish --run ${runId}`
+
+// A saved update is never undone by a failed page refresh.
+function refreshPage(state) {
+  if (!state.run.pageDirectory) return
+  try {
+    writePage(state, join(state.run.pageDirectory, "index.html"))
+  } catch (error) {
+    console.error(`warning: the update is saved, but the page was not refreshed: ${error.message}`)
+  }
+}
+
 function render(options) {
   validateOptions(options, new Set(["--run", "--output"]))
   const runId = requireRunId(one(options, "--run"))
-  const state = loadState(runId)
-  const output = resolve(one(options, "--output", join(dirname(statePath(runId)), "progress.html")))
-  atomicWrite(output, renderPage(state))
-  let mapWarning = ""
+  const draw = () => {
+    const state = loadState(runId)
+    const defaultOutput = state.run.pageDirectory
+      ? join(state.run.pageDirectory, "index.html")
+      : join(dirname(statePath(runId)), "progress.html")
+    const output = resolve(one(options, "--output", defaultOutput))
+    writePage(state, output)
+    console.log(output)
+    if (!state.run.pageDirectory) console.error(publishHint(runId))
+  }
+  // Updates rewrite the same hub page, so a render takes the run lock too. Read-only runs have no lock.
+  if (locateRun(runId).readOnly) draw()
+  else withRunLock(runId, draw)
+}
+
+// hub.py takes the repo and worktree from its working directory, so it runs where the run's repository is.
+function hub(args, repository) {
   try {
-    const map = mapConfigurationFromState(state)
-    writeMapViewer(join(dirname(output), "workflow-map.html"), map.configuration, map.directory)
+    return execFileSync("python3", [hubScript, ...args], {
+      cwd: existsSync(repository) ? repository : process.cwd(), encoding: "utf8", timeout: 30_000, stdio: ["ignore", "pipe", "pipe"],
+    }).trim()
   } catch (error) {
-    mapWarning = error.message
-    atomicWrite(join(dirname(output), "workflow-map.html"), renderMapError(error))
+    throw new Error(String(error.stderr || error.message).trim())
   }
-  console.log(output)
-  if (mapWarning) console.error(`warning: native map could not be built: ${mapWarning}`)
 }
 
-const artifactPorts = { first: 3100, last: 3199 }
-
-function serve(options) {
-  validateOptions(options, new Set(["--run", "--port"]))
-  const runId = requireRunId(one(options, "--run"))
-  loadState(runId)
-  const firstPort = Number(one(options, "--port", String(artifactPorts.first)))
-  if (!Number.isInteger(firstPort) || firstPort < artifactPorts.first || firstPort > artifactPorts.last) {
-    throw new Error(`--port must be an integer from ${artifactPorts.first} to ${artifactPorts.last}`)
-  }
-  let port = firstPort
-  const server = createServer((request, response) => {
-    if (request.method !== "GET") {
-      response.writeHead(405, { "content-type": "text/plain; charset=utf-8", allow: "GET" }).end("Method not allowed")
-      return
-    }
-    const pathname = new URL(request.url, "http://127.0.0.1").pathname
-    if (pathname !== "/" && pathname !== "/content" && pathname !== "/workflow-map.html") {
-      response.writeHead(404, { "content-type": "text/plain; charset=utf-8" }).end("Not found")
-      return
-    }
+// Gets the hub folder (the same one every time), renders into it, publishes it, and records both.
+function publishRun(runId) {
+  withRunLock(runId, () => {
+    const state = loadState(runId)
+    const directory = hub(["dir", `${runId.toLowerCase()}-progress`], state.run.repository)
+    writePage(state, join(directory, "index.html"))
+    let url
     try {
-      const latest = loadState(runId)
-      let body
-      if (pathname === "/content") body = renderProgress(latest)
-      else if (pathname === "/workflow-map.html") {
-        try {
-          const map = mapConfigurationFromState(latest)
-          body = buildMapViewer(map.configuration, map.directory)
-        } catch (error) {
-          body = renderMapError(error)
-        }
-      } else body = renderPage(latest)
-      response.writeHead(200, {
-        "cache-control": "no-store",
-        "content-security-policy": `default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src ${pathname === "/workflow-map.html" ? "data: blob:" : "data:"}; font-src data:; frame-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'`,
-        "content-type": "text/html; charset=utf-8",
-        "x-content-type-options": "nosniff",
-      }).end(body)
+      [url] = hub([
+        "publish", directory, "--title", `Workflow progress: ${runId}`,
+        "--desc", "Live progress of an agentic workflow run; it updates itself.", "--by", "workflow-progress",
+      ], state.run.repository).split("\n")
     } catch (error) {
-      response.writeHead(500, { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" })
-        .end(`Progress refresh failed: ${error.message}`)
+      throw new PartialFailure(`the page files were written to ${directory}, but the hub did not publish them: ${error.message}`)
     }
+    state.run.pageDirectory = directory
+    state.run.pageUrl = url
+    saveState(state)
+    // Fresh sessions skipped the SKILL's "give the user the link" until the reply said it (L4, 2026-11-03).
+    console.log("Before your next tool call, write this link to the user; they follow the run there instead of asking:")
+    console.log(url)
   })
-  server.on("error", (error) => {
-    if (error.code === "EADDRINUSE" && port < artifactPorts.last) {
-      port += 1
-      server.listen(port, "0.0.0.0")
-      return
-    }
-    if (error.code === "EADDRINUSE") {
-      console.error(`serve failed: no free port from ${firstPort} to ${artifactPorts.last}`)
-    } else {
-      console.error(`serve failed: ${error.message}`)
-    }
-    process.exitCode = 1
-  })
-  server.on("listening", () => {
-    const chosenPort = server.address().port
-    console.log(`http://127.0.0.1:${chosenPort}/`)
-    console.log(`bound 0.0.0.0:${chosenPort}; remote clients use this machine's observed host/IP with the same port`)
-  })
-  server.listen(port, "0.0.0.0")
 }
 
-// One command's usage: its line, plus update's flag notes. An unknown command throws, as main does.
+const commandLines = (command) => usage.split("\n").filter((line) => line.trim().split(/\s+/)[2] === command)
+
+// Flags, fields, step IDs, and examples for `update`, read from the tables the parser uses.
+function updateHelp() {
+  const flagLines = [...updateFlags].map(([flag, [repeatable, argument, meaning]]) => `  ${flag} ${argument}${repeatable ? " (repeatable)" : ""}: ${meaning}`)
+  const stepLines = stages.map((stage) => `  ${stage.title} (${stage.repeated ? "slice" : "wave"}): ${stage.steps.map((step) => step.id).join(", ")}`)
+  return [
+    "flags:", ...flagLines,
+    "A group (--slice or --new-slice) sends the flags after it to those slices. Flags before any group go to the wave;",
+    "slice-only flags (slice.* fields, --slice-context, delivery steps) go to the most recently updated slice, and a call",
+    "that adds a slice rejects them before --new-slice.",
+    `--set fields: ${setFields.join(", ")}`,
+    `  slice-gates takes ${sliceGateModes.join(" or ")}`,
+    `--append fields: ${appendFields.join(", ")}`,
+    `  attention text may start with ${attentionKinds.map((kind) => `${kind}:`).join(" ")} to set its kind`,
+    "step IDs:", ...stepLines,
+    "examples:",
+    "  node progress.mjs update --run <id> --new-slice slice-1 --active build-review.implement --slice-context \"Slice 1: login form\"",
+    "  node progress.mjs update --run <id> --slice slice-1 --done build-review.implement --active build-review.review \\",
+    "    --current \"Reviewing the change\" --next \"Verify the findings\"",
+  ].join("\n")
+}
+
+// One command's usage, plus update's reference. An unknown command throws, as main does.
 function commandUsage(command) {
-  const [commands, flags] = usage.split("\n\n")
-  const lines = commands.split("\n").filter((line) => line.trim().split(/\s+/)[2] === command)
+  const lines = commandLines(command)
   if (!lines.length) throw new Error(`unknown command: ${command}\n${usage}`)
-  return ["usage:", ...lines, ...(command === "update" ? ["", flags] : [])].join("\n")
+  return ["usage:", ...lines, ...(command === "update" ? ["", updateHelp()] : [])].join("\n")
 }
 
 function main() {
@@ -1154,15 +1377,17 @@ function main() {
     console.log(usage)
     return
   }
-  if (args.includes("--help") || args.includes("-h")) {
-    console.log(commandUsage(command))
+  if (command === "help" || args.includes("--help") || args.includes("-h")) {
+    console.log(command === "help" ? (args[0] ? commandUsage(args[0]) : `${usage}\n\nnode progress.mjs help update lists the update flags, fields, and step IDs.`) : commandUsage(command))
     return
   }
-  const pairs = parsePairs(args)
+  const problems = []
+  const pairs = parsePairs(args, problems)
   if (command === "update") {
-    update(pairs)
+    update(pairs, problems)
     return
   }
+  reject(problems)
   const options = optionsFromPairs(pairs)
   if (command === "init") initialize(options)
   else if (command === "list-steps") {
@@ -1173,8 +1398,10 @@ function main() {
     console.log(statePath(one(options, "--run")))
   } else if (command === "migrate") migrate(options)
   else if (command === "render") render(options)
-  else if (command === "serve") serve(options)
-  else if (command === "rebuild-map") {
+  else if (command === "publish") {
+    validateOptions(options, new Set(["--run"]))
+    publishRun(requireRunId(one(options, "--run")))
+  } else if (command === "rebuild-map") {
     validateOptions(options, new Set(["--map", "--drawio"]))
     rebuildMap(one(options, "--map"), one(options, "--drawio"))
   } else if (command === "inspect-map") {
@@ -1187,6 +1414,10 @@ function main() {
 try {
   main()
 } catch (error) {
+  const command = process.argv[2]
   console.error(`error: ${error.message}`)
+  if (!(error instanceof PartialFailure)) {
+    console.error(`nothing was written\nhelp: node ${scriptPath} help${commandLines(command).length ? ` ${command}` : ""}`)
+  }
   process.exitCode = 1
 }
