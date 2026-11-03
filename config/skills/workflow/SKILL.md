@@ -109,7 +109,10 @@ context conflicts or a non-Git action's bounds are missing.
    within the approved outcome and scope; report amendments. Escalate changed behavior,
    scope, dependencies, validation method, or authority to the human, except that the
    stage owner may adjust live tests within their approved bounds and report each change;
-   widening a test's environment or side-effect bounds still needs approval. Record its
+   widening a test's environment or side-effect bounds still needs approval. Before coding,
+   the stage owner lists open PRs that touch the slice's files (for example,
+   `gh pr list --json number,title,files`). If one replaces or reworks that code, it stacks
+   the slice on that PR or waits, and reports which. Record the slice's
    result, owner, `Size:`, checks, samples, tools, review preset, artifacts, and exact
    slice base revision before coding for a `small` slice (stage 6 says who writes the record
    for a supervisor's slice). The

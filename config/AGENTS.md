@@ -99,7 +99,8 @@ focused skill.
 academic text — load `writing` and read its `natural-writing` and `voice-profile`
 references.
 - Before writing or editing code, load `code-quality` and read the reference for the
-language of the files you touch. The standard is mandatory, not advisory.
+language of the files you touch. The repository's own coding guidelines come first and
+win where they differ. The standard is mandatory, not advisory, for everything they leave open.
 - All agents, including nested workers, must load `super-agent` before delegating, except to run `explore`.
 For workflow intake and every worker dispatch, resolve the role's harness, model, and
 thinking from that skill's `references/model-catalog.yaml`; its stage mapping owns the

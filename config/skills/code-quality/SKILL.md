@@ -76,7 +76,9 @@ Take the first option that fully solves the verified problem:
    infrastructure beside it.
 3. Standard library or a platform feature? Use it, unless the project has its own. A house
    component beats a native widget.
-4. An installed dependency? Use it. Never add a dependency for a few lines.
+4. An installed dependency? Use it. For a known algorithm (graph search, layout, RL
+   training, parsing), look for a maintained library first. Skip a new dependency only when
+   the code is a few lines (about 20 or fewer).
 5. Can it be one line a reader gets at a glance? One line.
 6. Otherwise: the minimum code that works.
 
@@ -86,6 +88,10 @@ Take the first option that fully solves the verified problem:
   nobody asked for. Keep values in the form the platform already gives you. Deletion beats
   addition. Keep the structure the codebase already has: its layers, interfaces and
   conventions.
+- Fallback code for when the model or another part fails ships with a log line or
+  counter that shows when it runs. If it never runs in two weeks of real use, delete it. When
+  the app can do the job itself, do not ask the model to do it and then add code that checks
+  whether it did.
 - The shortest working diff wins, once you know everything it must touch. A one-liner that
   needs decoding is not short.
 - Comment only the why the code cannot show (rationale, constraints, invariants, external
@@ -126,7 +132,9 @@ the requested behavior and do not change unrelated code for consistency or specu
 - Abstract stable concepts with a current consumer and a real boundary; do not abstract
   code merely because it looks similar.
 - Prefer a little duplication over a generic layer with flags, special cases, or speculative
-  flexibility. Keep interfaces narrow and do not add one only for mocking.
+  flexibility, when the copies change for different reasons. Share a fact users see (a flag, a
+  name, wording, a provider list) as soon as a second consumer needs it. Keep interfaces narrow
+  and do not add one only for mocking.
 - Hide necessary complexity behind a small explicit contract. Remove a wrong abstraction
   from its callers before extracting again around the remaining commonality.
 

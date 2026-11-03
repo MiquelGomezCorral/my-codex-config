@@ -45,8 +45,8 @@ Findings are more valuable than commentary. False positives are worse than silen
 7. **Lean:** code that should not exist or should be smaller.
    - delete: dead code, unused options, speculative features
    - reuse: the repo already has this helper (name the path)
-   - stdlib / native: the standard library or platform already does it; a new dependency
-     for a few lines
+   - stdlib / native: a standard library, the platform, or a maintained library already does
+     it (hand-rolled known algorithms included); a new dependency for a few lines (about 20 or fewer)
    - yagni: abstraction with one implementation, config nobody sets
    - merge: near-copies that must change together
    - split: one function doing several unrelated jobs, so it is hard to read or test.

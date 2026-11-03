@@ -40,6 +40,8 @@ changes agent behavior only after someone reads it and syncs it on purpose.
   - No levels and no session mode switching (they need Ponytail's hooks and mode state).
   - The `shortcut: <the limit>, <when to upgrade>` comment is kept, and review still accepts the older
     `ponytail:` form; the debt ledger that collects them is not.
+  - Dependencies: upstream's "Never add a dependency for a few lines" became "look for a maintained library
+    for a known algorithm; skip one only for about 20 lines or fewer" (code-size audit, 2026-11-03).
 - Syncing a later version:
   1. Clone the full repository into an empty temporary folder:
      `git clone https://github.com/DietrichGebert/ponytail.git`.
