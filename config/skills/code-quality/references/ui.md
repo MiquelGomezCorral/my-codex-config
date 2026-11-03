@@ -280,15 +280,15 @@ delivered screen itself. An app that will not start means blocked, not done.
   in every language the app ships (locale files, switcher or route prefix), and for changed
   screens with motion on and off.
 - **Methods:** load `scripts/inspect-page.js` with `page.addScriptTag({ path })`, or paste it
-  into the browser tool's evaluate, and wait for motion to end (up to 500 ms) after a load or
-  click. Each probe returns `{ check, selector, detail, values }` items, `[]` when clean:
+  into the browser tool's evaluate, and wait until motion ends (see Motion timing) after a load
+  or click. Each probe returns `{ check, selector, detail, values }` items, `[]` when clean:
   - `census(selector)`: one kind of element: size, type, padding, contrast, small targets,
     icon off center (a second argument runs one check; `hidden`, `dupe`, `key` are opt-in);
   - `columns(rowSelector)` and `gaps(groupSelector)`: ragged edges, empty reserved width,
     uneven gaps, a selected option that does not fill its box;
-  - `boxes(selectors)` before and after every state change: what moved (first call only saves);
-  - `overflow()` in every language: text past its box, page wider than the window, a fixed
-    bar over content;
+  - `boxes(selectors)` before and after every state change: what moved. A first call for a
+    selector only saves and returns one `saved` notice (not a defect) instead of `[]`;
+  - `overflow()`: text past its box, page wider than the window, a fixed bar over content;
   - by hand in each state: tab through (focus reaches every action in reading order;
     hover-revealed actions appear on focus), read the accessibility tree, compare a
     screenshot with the mock.

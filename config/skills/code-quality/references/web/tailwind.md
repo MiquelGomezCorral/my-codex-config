@@ -11,8 +11,8 @@ v3 names differ.
   Hide the default outline with `outline-hidden`; in v4 `outline-none` sets
   `outline-style: none`, which also removes it in forced-colors mode.
 - **`hover:` applies only inside `@media (hover: hover)`.** A control revealed with
-  `opacity-0 group-hover:opacity-100` never shows on touch; add `focus-visible:` and
-  `group-focus-within:`.
+  `opacity-0 group-hover:opacity-100` never shows on touch; add `pointer-coarse:opacity-100`
+  (v4.1+) for touch, and `focus-visible:` and `group-focus-within:` for the keyboard.
 - **`dark:` follows the OS by default.** For an app theme toggle, declare
   `@custom-variant dark (&:where(.dark, .dark *));` (or a `data-theme` selector).
 - **Use v4 names.** `shadow-xs`, `shadow-sm`, `rounded-xs`, `rounded-sm` replace the v3
