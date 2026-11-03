@@ -8,6 +8,10 @@ consistency, color, wording, states.
 - **Measured checks** (`lintapple`, below): real sizes, contrast, overflow and spacing on the
 rendered page. The bootstrap installs it globally.
 
+> **Must, on every UI change.** Open the running app before saying done. Check the main
+> language, then every other shipped language. A state change moves nothing outside the changed
+> part. Elements of one kind share size. Report numbers and what you did not check.
+
 ## Design rules
 
 Defaults for product UI (dashboards, tools, lists, settings), where scanability, consistency
@@ -28,6 +32,7 @@ and many items. Layouts break first on extreme content.
 - **Never invent facts the user will read as real.** No made-up metrics, customer names,
 logos or quotes. Use the project's data, or sample data plainly marked as sample.
 - **Design every supported theme together**, not one then the other.
+- **Design alternatives differ on one named question**, and the reply says what it is.
 
 ### Layout and space
 
@@ -56,11 +61,20 @@ needs. *Seen:* "robot icon · claude · sonnet-5.5 · today 16:05" where a harne
 the time were enough.
 - **Rows or tables for dense comparison; cards for summaries and visual content.** Keep
 comparable cards identical in anatomy; avoid cards inside cards.
+- **A column is as wide as its widest value**: no empty reserved width at the row edge, and a
+status column fits its widest label so its left edge is straight.
+- **One leading mark per row**, a selector or an icon, not both, unless the icon is the item's
+identity. A status chip that qualifies a name sits beside the name.
+- **Sibling groups share one heading pattern**, the title above its content, never in a side
+column. Sections follow the order of the user's decisions; long lists go last.
+- **Views in one flow share one container width**; a side panel is as tall as the form.
+- **A phone layout hides no text the desktop shows**; a collapsed menu keeps items reachable.
 
 ### Actions and destructive actions
 
 - **One visually primary action per area.** Rank the rest by style (filled, outlined, quiet),
-not by size. Buttons in one group share height and size.
+not by size, and by how necessary each is: never demote the only way to do a task. Buttons in
+one group share height and size.
 - **Button labels never wrap** (`white-space: nowrap`). When space runs out, shorten the
 label or move the action into the overflow menu.
 - **Status and main actions lead; delete trails.** People look at the start of a row first,
@@ -69,7 +83,9 @@ remove control sits alone at the trailing edge, the same way everywhere:
   - list row: status and main action at the start, delete at the far end;
   - card footer: main actions at the bottom-left, delete at the bottom-right.
   Never two clusters floating apart in the middle, and never delete glued to Open or Start.
-  Keep DOM order equal to visual order.
+  Keep DOM order equal to visual order. Status trailing, with the main action shown on hover
+  or focus in its slot, is the other valid layout. Follow what the app already does or what
+  the user said; ask only when there is no clear evidence.
 - **Hover-revealed controls go in fixed places.** A control that appears on hover sits either
 at the trailing end of its row, or right after the text it belongs to (the link icon just
 right of the title). Pick one place per kind of control and repeat it in every item.
@@ -83,10 +99,11 @@ right of the title). Pick one place per kind of control and repeat it in every i
   On the page, destruction is never the primary style, the Enter default or the first focus.
 - **Mark danger with more than color**: position, a trash or stop icon, and a label or
 tooltip.
-- **Confirm deletes and stopping live work with a modal**, even when the process can be
-restarted. Reversible changes (archive, remove a filter or chip) act at once and show Undo.
-Start, Open and ordinary controls need neither. Type-the-name confirmation only for rare,
-severe deletes.
+- **Confirm deletes, revoking or disconnecting access, and stopping live work with a modal**,
+even when the process can be restarted. Any change that loses access or data the user cannot
+restore in one click warns first. Reversible changes (archive, remove a filter or chip) act
+at once and show Undo. Start, Open and ordinary controls need neither. Type-the-name
+confirmation only for rare, severe deletes.
 - **Write the confirmation as a restatement.** The title names the action and the item
 ("Delete artifact-hub-plan?"); one line says the consequence; buttons are "Cancel" and
 the verb ("Delete page"), never Yes/No/OK.
@@ -102,8 +119,11 @@ just right of its title, not a boxed button in the action group.
 place because Stop carries its modal. When an action is unavailable, say why instead of a
 silent disabled button.
 - **Up to two row actions stay inline as icon buttons; three or more go in an overflow
-menu**, destructive item last and set off by a divider. Add bulk actions ("Stop all") only when batch work is part of the task, with the
-same safeguards as the single action.
+menu**, destructive item last and set off by a divider. An action appears once per screen,
+inline or in the menu, never both. Add bulk actions ("Stop all") only when batch work is part
+of the task, with the same safeguards as the single action.
+- **Actions on a whole list sit in one fixed toolbar above it**, never inside explanatory text.
+- **The action that fixes a warning sits inside that warning.**
 
 ### Consistency
 
@@ -112,7 +132,8 @@ size and position on every screen. "Stop" is never also "Halt" or "Cancel".
 - **Show an attribute on all comparable items or none.** If status chips are shown, every
 item shows its real status in the same slot. *Seen:* a "serving" chip on some cards only.
 Optional content (a description, a warning badge) appears only when it applies and never
-displaces actions.
+displaces actions. A list and a grid of one collection show the same fields. A row whose data
+cannot be read shows an error or unknown state, never a default that contradicts stored data.
 - **One marker per state, separate from identity.** The same status gets the same labeled
 indicator in every row; a different marker says "different state". Identity marks (a
 harness logo) are allowed to differ, but must not look like status. *Seen:* a dotted
@@ -124,7 +145,8 @@ plain text is enough.
 - **One title format.** Human titles in one case and style; raw slugs and ids only as
 secondary text. *Seen:* "artifact-hub-discovery" next to "One page hub — result".
 - **One icon family for controls**, stroke weight matched to the text beside it, outline by
-default. Real logos stay as they are; never emoji or Unicode glyphs as icons.
+default. Real logos stay as they are; never emoji or Unicode glyphs as icons. Icons and
+markers in one row share one size and one center line with their text.
 - **Consistent surfaces:** borders for structure, soft shadows only for raised layers (per
 theme; dark uses lighter surfaces instead), one radius scale.
 
@@ -157,14 +179,18 @@ from weight and tone as much as size. The same role looks the same everywhere.
 rather than size. Each page sets `lang` and a `<title>` that names it.
 - **Monospace only for code, paths, ids and numbers**, never as a "technical" costume.
 - **Cut long values; never let them move the actions.** In rows, cards and table cells, a
-title, URL, path, command or id that does not fit stays on one line (a description on two)
-and ends in "…", cut with CSS (`text-overflow: ellipsis`, or `-webkit-line-clamp` for two
-lines) so screen readers still get the full value. The cut text is focusable; hover, focus
+title, URL, path, command or id that does not fit stays on one line (a description on two;
+metadata such as date, place and type always on one) and ends in "…", cut with CSS
+(`text-overflow: ellipsis`, or `-webkit-line-clamp` for two lines) so screen readers still
+get the full value. The cut text is focusable; hover, focus
 or a tap opens a small panel with the full value, which stays while hovered or focused and
 closes on Escape. Add a copy button there when people copy the value. When values share a
 long start, such as paths in one folder, show the part that tells them apart (the folder or
 file name) and leave the full path to the panel. The item's own details view, error
 messages and body text wrap instead.
+- **Running text is about 65–75 characters wide**, never over about 80.
+- **Use the shortest correct word**, checked in every language. A helper note is one short
+sentence; a summary line leaves out empty parts.
 - **Sentence case for new labels**, keeping names, acronyms and user content as written. No
 all-caps labels. An eyebrow above a heading is allowed only when it is informational (a
 date, a scope); decorative eyebrows stay banned.
@@ -190,9 +216,11 @@ loading or error where they can occur. Focus is always visible: an `outline` rin
 least 3:1 contrast against its surroundings, shown at once, never faded in. Use `outline`
 because forced-colors mode removes `box-shadow`.
 - **States never move the layout.** Hover, focus and error keep a control's size and border
-width. A field next to buttons matches their height.
+width. A field next to buttons matches their height. A tab, step, selection, page or data
+change moves and resizes nothing outside the part that changed; tab widths hold.
 - **Each data view has its states**: loading (placeholders that keep the layout), empty,
-error, one item, many items.
+error, one item, many items. A paged list keeps its full-page height on a short last page and
+an empty state keeps the filled frame, the one exception to fixing a height.
 - **A busy button keeps its width** and its label with a spinner, or a progress label
 ("Stopping…"), and blocks double clicks. Spinners and skeletons wait a moment before showing
 and stay long enough not to flicker. A destructive action waits for the server; never remove the row first.
@@ -210,8 +238,10 @@ focus. Toasts only for a short result with Undo, reachable by keyboard and touch
 asks first (inside the same dialog, never a second modal).
 - **Live lists keep scroll, focus and open state across refreshes.**
 - **Motion explains a change, briefly**, and leaves a static state cue. Frequent actions are
-instant; respect reduced motion. Transition named properties, never `all`, and move things
-with `transform` and `opacity` rather than size or position.
+instant; respect reduced motion. Timing: 100–150 ms for feedback, 150–300 ms for a state
+change, 300–500 ms for layout or overlays; exits are shorter than enters. Transition named
+properties, never `all`, and move things with `transform` and `opacity` rather than size or
+position.
 
 ### Components
 
@@ -219,38 +249,66 @@ with `transform` and `opacity` rather than size or position.
 2–5), all text or all icon-only with tooltips. Long choices or deferred submit: radios or a
 select. A switch is only on/off; tabs switch content panels. *Seen:* a four-state filter
 (All, Serving, Stopped, Apps) belongs in one segmented control.
+- **A selected option fills its whole control box.**
+- **Each option card shows an icon, a one-line meaning and what it changes** before picking.
+- **A multi-step flow is a numbered sequence of short rows**, not a stack of cards.
 - **Search fields have a leading magnifier**, a placeholder naming the scope, and a clear
 icon at the right end of the field.
 - **Close is an icon at the top-right; Copy confirms with a short "Copied" tooltip.**
 - **Forms:** every field has a visible label; errors sit next to their field and the first
 one gets focus on submit; submit stays enabled until submission starts, so validation can
-explain what is missing; never block typing or paste.
+explain what is missing; never block typing or paste. Fields set `type`, `inputmode`, `name`
+and `autocomplete`, with spellcheck off for codes and emails.
+- **Images get `alt`** (empty when decorative); decorative icons get `aria-hidden`.
 - **Filters, tabs and segmented choices live in the URL**, so refresh, Back and shared links
 keep them.
 - **Chips are static labels**: a short adjective in a semantic tint. A chip that filters is a
-button and needs button semantics.
+button and needs button semantics. Chips and tags of one kind share height, padding and type
+size, as buttons do. A type name is plain text or an icon, not a chip.
 - **Modals hold one task.** Cancel left, confirm right, a solid scrim, focus trapped and
 returned, Escape and the close control dismiss, never a modal on a modal.
 - **The project's accessible primitives first, then native elements**; hand-roll a dialog,
 menu or select only with full keyboard and focus behavior.
 
-### Review before the measured checks
+### Inspect the running app
 
-In one pass over each changed route and relevant state:
+The author checks its own render in the running app; after delegating, the lead opens each
+delivered screen itself. An app that will not start means blocked, not done.
 
-1. Hierarchy: in a small screenshot the focal element and the groups still read in order.
-2. Collections: every item has the same anatomy, action positions, button forms and markers.
-3. Every supported theme, a narrow and a wide window, enlarged text, extreme content.
-4. Keyboard: focus reaches every action in reading order; hover-revealed actions appear on
- focus.
-5. Run the measured checks below, then report which routes and states you checked.
-
-For a new screen or a redesign, also send the screenshots, the routes they show and this
-file to a fresh reviewer that did not build it, routed through `super-agent`. Withhold the
-reasons behind choices. It answers `ship` or `fix` on the first line, then at most five
-findings, worst first, and changes nothing. Tell it what is not a finding: the project's
-design system, explicit user requirements and approved `exceptions`. It judges only what the
-screenshots show; keyboard and state checks stay with the author.
+- **Matrix:** each changed screen and each screen sharing a changed component, in every state
+  (empty, one, many, loading, error, open, selected), at 390, 768 and 1440 px, light and dark,
+  in every language the app ships (locale files, switcher or route prefix), and for changed
+  screens with motion on and off.
+- **Methods:** load `scripts/inspect-page.js` with `page.addScriptTag({ path })`, or paste it
+  into the browser tool's evaluate, and wait about 200 ms after a load or click. Each probe
+  returns `{ check, selector, detail, values }` items, `[]` when clean:
+  - `census(selector)`: one kind of element: size, type, padding, contrast, small targets,
+    icon off center (a second argument runs one check; `hidden`, `dupe`, `key` are opt-in);
+  - `columns(rowSelector)` and `gaps(groupSelector)`: ragged edges, empty reserved width,
+    uneven gaps, a selected option that does not fill its box;
+  - `boxes(selectors)` before and after every state change: what moved;
+  - `overflow()` in every language: text past its box, page wider than the window, a fixed
+    bar over content;
+  - by hand in each state: tab through (focus reaches every action in reading order;
+    hover-revealed actions appear on focus), read the accessibility tree, compare a
+    screenshot with the mock.
+- **lintapple 0.1.20 cannot see** layout shifts between states, other languages (it forces
+  en-US), motion, a fixed bar over content, or layout on elements without `data-ui-*`
+  markup. Run it after these methods, not instead.
+- **Brief a browser helper** with concrete screens, the clicks to each state and the expected
+  result; ask for observations with numbers, never "looks good". The report lists routes,
+  clicks, numbers per check and what was not checked.
+- **A new screen also goes to a fresh, skeptical reviewer** (through `super-agent`) with the
+  screenshots, routes and this file, never the reasons behind choices. It answers `ship` or
+  `fix`, then at most five findings, worst first, and changes nothing. Not findings: the
+  project's design system, explicit user requirements, approved `exceptions`. A full review
+  of the whole app comes at the very end, only when the user asks. Give it these examples:
+  - fail: the selected segment leaves a gap and is not fully filled; the footer buttons sit
+    at a different height on each step;
+  - pass: every status chip in the column has the same height, padding and type size; the
+    pager sits at the same top on every page and tab.
+- **A human eye** still decides whether the hierarchy reads, the screen fits the task and
+  brand, and the copy reads well in each language.
 
 ## Set up once per project
 
@@ -312,9 +370,10 @@ text gets the same size.
 table columns.
 - **Contrast:** normal text 4.5:1, large text 3:1, in every color scheme in the policy.
 Check placeholders and hover/focus color changes.
-- **Controls:** at least 15 px by default (`minControlSize`; give touch targets more, as
-`examples/ui.css` does with 40 px), 8 px between actions, 8 px between a control and its
-container edge.
+- **Controls:** at least 24 px for pointer targets (WCAG 2.2 AA; links inside a sentence are
+exempt) and 40 px for touch (`examples/ui.css`), 8 px between actions, 8 px between a control
+and its container edge. `minControlSize` defaults to 15: set it to 24 in `ui-policy.json` at
+setup, and add a `controlSizeRules` entry (`minSize` 40) for touch widths.
 - **Spacing:** at least 8 px between stacked items (`minLayoutGap`).
 - **Nested corners:** inner radius = outer radius minus the inset.
 - **Overflow:** nothing past the horizontal viewport at each configured width (390 and 1440

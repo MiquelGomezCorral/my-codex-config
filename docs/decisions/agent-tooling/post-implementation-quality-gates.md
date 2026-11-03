@@ -33,6 +33,11 @@ Post-implementation quality gates expose unnecessary production and test complex
 - External output is evidence requiring source verification, never an automatic finding or fix.
 - External failures degrade visibly while native cleanup or review continues.
 - External installation, authentication, tracked runtime state, and automatic fixes remain outside these workflows.
+- UI work includes the live inspection pass in `code-quality`'s `ui.md` ("Inspect the running app"): the
+  builder opens the running app and measures its own render before saying done, and the lead checks each
+  delivered screen. In Claude, a hook reminds the agent once, by blocking its stop, when it changed UI
+  files and has not opened the app since. The hook checks only that the app was opened, not what the
+  agent saw.
 
 ## Protected invariants
 
@@ -45,6 +50,8 @@ Post-implementation quality gates expose unnecessary production and test complex
 - OCR cannot replace the native review verdict or inspect unrelated workspace changes.
 - OCR provider credentials, sessions, and runtime state are never stored in this repository.
 - Before/after repository status must expose unexpected mutation.
+- `ui.md` is the one owner of UI rules; other files point at it. The UI reminder never blocks the same
+  stop twice.
 - Workflow corrections preserve approved behavior and scope, including meaningful tests;
   non-blocking simplifications are eligible only after their evidence is verified.
 
@@ -62,9 +69,14 @@ Separating diagnosis from correction lets the user choose which simplifications 
   [review worker](../../../config/agents/review-worker.toml).
 - Static enforcement: [configuration tests](../../../tests/codex-config.test.mjs) and [bootstrap tests](../../../tests/bootstrap.test.sh).
 - Review-only: provider availability and source transmission remain live-validation concerns.
+- UI inspection: [UI reference](../../../config/skills/code-quality/references/ui.md) and the Claude
+  [UI reminder hook](../../../config/bin/ui-open-reminder.py). Review-only: whether the agent checked the
+  app well is measured by live builder runs, not by the hook.
 
 ## History
 
+- 2026-11-03: Added the UI inspection pass and the Claude UI reminder, because a review of 187 of the
+  user's UI critiques showed agents calling UI done without opening the running app.
 - 2026-10-26: Workflow cleanup of a small or mechanical change runs a one-agent swarm.
 - 2026-10-23: Replaced the closure check with repeated cleanup rounds until clean, and cleanup now reruns after every later code change.
 - 2026-10-19: Ponytail's rules moved into the `code-quality` and review standards, so cleanup no longer names

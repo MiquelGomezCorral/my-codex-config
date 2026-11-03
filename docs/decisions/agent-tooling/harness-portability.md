@@ -24,9 +24,12 @@ links shared assets and renders only the native files that differ.
 - Claude and Codex compact their context at 300k tokens, set by their bootstraps
   (Claude `autoCompactWindow` merged into settings, Codex
   `model_auto_compact_token_limit` in `config/codex.toml`). The Claude bootstrap owns only
-  that key, its default-helper-model env key, its model-guard hook, and the `skillOverrides`
+  that key, its default-helper-model env key, its model-guard and UI reminder hooks, and the `skillOverrides`
   entries in `SKILLS_OFF`, which switch off claude.ai-synced and bundled skills the user does
   not want loaded (other overrides are kept).
+- Claude alone gets the UI reminder hook (`config/bin/ui-open-reminder.py` on PostToolUse, Stop and
+  SubagentStop), merged by `bootstrap_claude.sh` next to its guard hooks. Codex, Pi and AGY get no
+  such hook for now; they rely on `ui.md` and the `config/AGENTS.md` pointer.
 - `install-skills` backs up a dangling link in a target folder only when its target lies in
   a source this repository manages (the skills folder or a portable root); live links, real
   folders, and links into anywhere else, such as `npx skills` links, stay.
@@ -89,6 +92,7 @@ after a hook or a plugin with hooks changes.
 
 ## History
 
+- 2026-11-03: Added the Claude-only UI reminder hook; the user chose to leave Codex, Pi and AGY without one.
 - 2026-10-22: Added the repo-owned `skillOverrides` list to the Claude settings merge and
   dangling-link pruning to `install-skills`, because skills removed from the repository left
   dangling links in every harness folder and synced or bundled Claude skills duplicated the
