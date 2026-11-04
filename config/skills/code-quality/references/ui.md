@@ -283,8 +283,9 @@ delivered screen itself. An app that will not start means blocked, not done.
   each screen sharing a changed component. Brief it with the URL, the clicks to each state, the
   languages, whether the dark theme follows the OS preference or has its own toggle, and a base
   build or URL when there is one. The builder runs `scripts/check-ui.mjs` itself only to re-check a
-  fix. It fixes every new finding and copies the checker's `UI checker findings` block unchanged
-  into its final report, saying what it did about each line.
+  fix. It fixes every new finding and pastes the checker's fenced `UI checker findings` block into
+  its final report word for word, even when it shortens everything else, then says what it did about
+  each line. It never drops, merges or rewords a line, old ones included.
 - **Methods:** `scripts/check-ui.mjs` (`../scripts/` from this file) measures the matrix in
   headless Chromium after motion ends (see Motion timing) and prints one line per finding with
   its state, check, selector and numbers, plus a screenshot per state. Usage: `node check-ui.mjs
