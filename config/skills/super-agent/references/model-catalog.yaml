@@ -121,9 +121,8 @@ adversarial:
 #    model: claude-fable-5-1
 #    thinking: high
 
-# reviewer-fast, computer-controller, and swarms (further below) run on the harness of the agent
-# doing the launch, using that harness's by_harness entry, or its `low` tier above when that model
-# is unavailable.
+# Roles with `harness: current` below run on the harness of the agent doing the launch, using that
+# harness's by_harness entry, or its `low` tier above when that model is unavailable.
 reviewer-fast:
   harness: current
   by_harness:

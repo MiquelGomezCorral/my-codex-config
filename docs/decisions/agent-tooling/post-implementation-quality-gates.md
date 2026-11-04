@@ -33,12 +33,12 @@ Post-implementation quality gates expose unnecessary production and test complex
 - External output is evidence requiring source verification, never an automatic finding or fix.
 - External failures degrade visibly while native cleanup or review continues.
 - External installation, authentication, tracked runtime state, and automatic fixes remain outside these workflows.
-- UI work includes the live inspection pass in `code-quality`'s `ui.md` ("Inspect the running app"): the
-  builder hands each changed screen to the read-only `ui-checker` agent, which runs `check-ui.mjs` (every
-  state, width, language and theme through `inspect-page.js`) before its hand checks and reports every
-  finding with numbers; the builder fixes new findings and reports old ones. The checker only critiques. In
-  Claude, a hook reminds the agent once, by blocking its stop, when it changed UI files and has not opened
-  the app or run the checker since. The hook checks only that this happened, not what the agent saw.
+- UI work includes the live inspection pass in `code-quality`'s `ui.md` ("Inspect the running app"), which
+  owns its steps: the read-only `ui-checker` agent checks each changed screen and reports every finding with
+  numbers in one block the builder keeps in its final report. The checker only critiques. In Claude, a hook
+  reminds the agent once, by blocking its stop, when it changed UI files and has not run the checker or
+  `check-ui.mjs` since; a quick look at the app does not count. The hook checks only that this happened, not
+  what the checker found.
 
 ## Protected invariants
 
@@ -80,7 +80,8 @@ Separating diagnosis from correction lets the user choose which simplifications 
 
 - 2026-11-04: Added the read-only `ui-checker` agent and the one-command `check-ui.mjs`, because builders
   that read `ui.md` still skipped `inspect-page.js` and their browser helper never saw it (live builder runs
-  0 of 3 twice).
+  0 of 3 twice). The UI reminder now clears only on the checker or `check-ui.mjs`, because every builder took
+  a quick look at the app, which cleared it before any check ran.
 - 2026-11-03: Added the UI inspection pass and the Claude UI reminder, because a review of 187 of the
   user's UI critiques showed agents calling UI done without opening the running app.
 - 2026-10-26: Workflow cleanup of a small or mechanical change runs a one-agent swarm.

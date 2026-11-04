@@ -125,7 +125,7 @@ model, or thinking override wins over the role entry.
 
 The `low`, `medium`, `high`, and `local` tier records are only for a launch the user or
 approved plan explicitly routed by tier or harness, plus the `low` fallback of
-`reviewer-fast`, `computer-controller`, and `swarms` above. Ordered candidates are fallback order, never random
+the current-harness roles above. Ordered candidates are fallback order, never random
 distribution, and for every other role an exhausted candidate list is a blocker with no
 automatic escape to a tier or harness default. Unavailability or capability filtering may
 drop a candidate but never silently changes the role harness or thinking.

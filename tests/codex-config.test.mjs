@@ -414,11 +414,11 @@ test("legacy policy migration preserves local tails and backs up the replaced fi
   }
 })
 
-test("Codex TOML agents use native fields and preserve all thirteen roles", () => {
+test("Codex TOML agents use native fields and preserve all roles", () => {
   const names = [
     "coder", "cleanup-worker", "git-worker", "review-worker",
     "reviewer-quick", "reviewer-reasoning", "reviewer-arch", "reviewer-e2e",
-    "coding-supervisor", "computer-controller", "critic", "diagram-worker", "ui-checker",
+    "coding-supervisor", "computer-controller", "critic", "diagram-worker", "ui-checker", "explorer",
   ]
   const config = read("config/codex.toml")
   ok(!statSync(join(root, "config/agents/commit-worker.toml"), { throwIfNoEntry: false }))

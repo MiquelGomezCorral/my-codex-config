@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 // Measure every state of a running UI with inspect-page.js in headless Chromium (see code-quality ui.md, "Inspect the running app").
-// usage: node check-ui.mjs <url>... [--lang <text>] [--widths 390,768,1440] [--dark] [--plan <file.json>] [--out <dir>] [--json]
 // Per URL, width, language (as loaded, then after clicking the element with the text --lang) and theme (light, plus dark with --dark):
 // probes the loaded state, then after each click on a [role=tab]. --plan adds screens and steps auto mode cannot reach:
 //   { "screens": [{ "name": "optional label", "url": "#/route", "widths": [390], "setup": [<step>...], "steps": [{ "click": "css" }, { "fill": "css", "text": "..." }] }] }
+// --dark only emulates the OS dark preference; an app with its own theme toggle or class needs the toggle click in a plan file.
 // A screen url is resolved against the first <url>. Setup steps run first and are not compared; each later step is followed by the probes.
-// Exit 0 clean, 1 findings, 2 error.
+// Exit 0 clean, 1 findings, 2 error, which includes a state that shows no visible text (a blank page is never clean).
 import { execSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -14,7 +14,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
-const USAGE = 'usage: check-ui.mjs <url>... [--lang <text>] [--widths 390,768,1440] [--dark] [--plan <file.json>] [--out <dir>] [--json]';
+const USAGE = 'usage: node check-ui.mjs <url>... [--lang <text>] [--widths 390,768,1440] [--dark] [--plan <file.json>] [--out <dir>] [--json]';
 const INSPECT = fileURLToPath(new URL('inspect-page.js', import.meta.url));
 const fail = (message) => { console.error(`check-ui: ${message}`); process.exit(2); };
 
@@ -24,13 +24,14 @@ function measure() {
   const vis = (e) => e.getClientRects().length, rect = (e) => e.getBoundingClientRect();
   const tag = (e) => e.tagName.toLowerCase();
   const all = [...document.querySelectorAll('body *')].filter(vis), items = [];
+  if (!all.length || !document.body.innerText.trim()) return null; // nothing to measure: the caller reports a blank page
   const named = (e) => `${tag(e.parentElement)} > ${tag(e)}${e.classList[0] ? '.' + e.classList[0] : ''} "${e.textContent.replace(/\s+/g, ' ').trim().slice(0, 20)}"`;
   const inner = (e) => [...e.querySelectorAll('*')].filter((d) => !d.ownerSVGElement).map(tag); // what is drawn inside an svg does not count
   const path = (e, root) => { const steps = []; for (; e !== root; e = e.parentElement) steps.unshift(`${tag(e)}:nth-of-type(${[...e.parentElement.children].filter((c) => c.tagName === e.tagName).indexOf(e) + 1})`); return steps.join(' > '); };
   // Probes take a CSS selector, so each measured set gets a temporary data-ck mark; results are renamed to a readable selector.
   let count = 0;
   document.querySelectorAll('[data-ck]').forEach((e) => e.removeAttribute('data-ck'));
-  const mark = (els) => { const id = `k${++count}`; els.forEach((e) => e.setAttribute('data-ck', `${e.getAttribute('data-ck') ?? ''} ${id}`.trim())); return `[data-ck~="${id}"]`; };
+  const mark = (els) => { const id = `k${++count}`; els.forEach((e) => e.setAttribute('data-ck', id)); return `[data-ck="${id}"]`; };
   const run = (name, sel, list) => items.push(...list.map((i) => ({ ...i, selector: i.selector.replace(sel, name) })));
   const controls = 'a,button,[role=tab],[role=switch],[role=menuitem]';
 
@@ -40,12 +41,12 @@ function measure() {
     const groups = {};
     for (const c of parent.children) if (vis(c) && c.firstElementChild && !c.ownerSVGElement && !/^(td|th)$/i.test(c.tagName)) (groups[`${c.tagName} ${c.getAttribute('class') ?? inner(c)}`] ??= []).push(c);
     for (const repeats of Object.values(groups).filter((g) => g.length > 1)) {
-      const where = `${tag(parent)} > ${tag(repeats[0])}`, kinds = {}, sel = mark(repeats);
+      const where = `${tag(parent)} > ${tag(repeats[0])}`, kinds = {};
       const kids = [...repeats[0].children].filter(vis);
       const row = kids.length > 1 && kids.every((k) => rect(k).top < rect(kids[0]).bottom) && repeats.every((r) => Math.abs(rect(r).left - rect(repeats[0]).left) < 1);
       for (const r of repeats) for (const d of r.querySelectorAll('*')) if (vis(d) && !d.ownerSVGElement && !/^t[dh]$/i.test(tag(d))) (kinds[`${path(d, r)}|${inner(d)}`] ??= []).push(d);
       for (const [key, els] of Object.entries(kinds)) if (els.length > 1) { const k = mark(els), name = `${where} > ${key.split('|')[0]}`; run(name, k, census(k, 'size')); if (row) run(name, k, census(k, 'center')); }
-      if (row) run(where, sel, columns(sel));
+      if (row) { const sel = mark(repeats); run(where, sel, columns(sel)); }
     }
   }
 
@@ -53,14 +54,14 @@ function measure() {
   const grouped = all.filter((p) => { const k = [...p.children].filter(vis); return k.length > 1 && (k.every((c) => c.matches('button:not([role=tab])') && (p.matches('[role=group],[role=toolbar]') || c.textContent.trim().length > 2)) || k.every((c) => rect(c).height >= 150)); });
   for (const g of grouped) { const sel = mark([g]); run(named(g), sel, gaps(sel)); }
 
-  // The selected-border check compares a chosen element with its unchosen siblings, so it runs on the choice elements only.
+  // The selected-border check compares each chosen element with every unchosen match on the page, not only its siblings, so it runs on the choice elements only.
   const choices = 'label:has(input),[role=radio],[role=option],[aria-pressed],[aria-selected]';
-  run(choices, choices, census(choices, 'contrast').filter((i) => /^selected border/.test(i.detail)));
-  run('body *', 'body *', census('body *', 'contrast').filter((i) => !/^selected border/.test(i.detail)));
-  run('body *', 'body *', census('body *', 'key'));
-  run(controls, controls, census(controls, 'target'));
-  run(controls, controls, census(controls, 'hidden'));
-  if (document.querySelector('[role=menu]')) run(controls, controls, census(`${controls},[role=menuitem]`, 'dupe'));
+  items.push(...census(choices, 'contrast').filter((i) => /^selected border/.test(i.detail)));
+  items.push(...census('body *', 'contrast').filter((i) => !/^selected border/.test(i.detail)));
+  items.push(...census('body *', 'key'));
+  items.push(...census(controls, 'target'));
+  items.push(...census(controls, 'hidden'));
+  if (document.querySelector('[role=menu]')) items.push(...census(controls, 'dupe'));
   items.push(...overflow());
 
   // Compare with the previous call: landmarks and headings always; every text element too when the page kept the same ones.
@@ -71,7 +72,7 @@ function measure() {
   const outline = texts.map((e) => tag(e) + e.textContent).join(); // a click that changes text is not a pure layout change
   const same = outline === window.ckOutline;
   window.ckOutline = outline;
-  items.push(...boxes(['nav', 'aside', 'footer', 'form', 'h1,h2,h3', '[role=tablist]', '[role=tab]', '[data-ck-text]']).filter((i) => same || !i.selector.startsWith('[data-ck-text]')).map((i) => ({ ...i, selector: i.selector.replace('[data-ck-text]', 'text') })));
+  run('text', '[data-ck-text]', boxes(['nav', 'aside', 'footer', 'form', 'h1,h2,h3', '[role=tablist]', '[role=tab]', '[data-ck-text]']).filter((i) => same || !i.selector.startsWith('[data-ck-text]')));
   return items;
 }
 
@@ -112,6 +113,7 @@ try {
       await page.screenshot({ path: join(out, shot), fullPage: true });
       const state = [screen.name ?? screen.url, `${width}px`, lang ?? 'as loaded', dark ? 'dark' : 'light', after && `after ${after}`, `[${shot}]`].filter(Boolean).join(' ');
       const items = await page.evaluate(measure);
+      if (!items) throw new Error(`page looks blank: ${state}`);
       findings.push(...items.filter((i) => i.check !== 'saved' && !reported.has(JSON.stringify(i)) && reported.add(JSON.stringify(i))).map((i) => ({ state, ...i })));
     };
     try {
@@ -128,7 +130,8 @@ try {
       const tabs = page.locator('[role=tab]:visible');
       for (let i = 0, n = await tabs.count(); i < n; i++) {
         const name = (await tabs.nth(i).innerText()).replace(/\s+/g, ' ').trim();
-        await act({ click: `[role=tab]:visible >> nth=${i}` });
+        await tabs.nth(i).click();
+        await settle();
         await check(`click tab "${name}"`);
       }
     } finally { await context.close(); }
