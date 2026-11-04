@@ -279,25 +279,37 @@ delivered screen itself. An app that will not start means blocked, not done.
   (empty, one, many, loading, error, open, selected), at 390, 768 and 1440 px, light and dark,
   in every language the app ships (locale files, switcher or route prefix), and for changed
   screens with motion on and off.
-- **Methods:** load `scripts/inspect-page.js` with `page.addScriptTag({ path })`, or paste it
-  into the browser tool's evaluate, and wait until motion ends (see Motion timing) after a load
-  or click. Each probe returns `{ check, selector, detail, values }` items, `[]` when clean:
+- **Who checks:** hand each changed screen and each screen sharing a changed component to the
+  `ui-checker` agent (through `super-agent`) with the URL, the clicks to each state, the
+  languages and, when there is one, a base build or URL; or run `scripts/check-ui.mjs` yourself
+  (`../scripts/` from this file). Fix every new finding and report the old ones with numbers.
+- **Methods:** `scripts/check-ui.mjs` measures the matrix in headless Chromium after motion ends
+  (see Motion timing) and prints one line per finding with its state, check, selector and
+  numbers, plus a screenshot per state. Usage: `node check-ui.mjs <url>... [--lang <text>]
+  [--widths 390,768,1440] [--dark] [--plan <file.json>] [--out <dir>] [--json]`, where `--lang`
+  is the visible text of the language switch and `--plan` adds screens and click or fill steps it
+  cannot reach alone (format in the script header). Exit 0 clean, 1 findings, 2 error. It runs
+  every probe below, and again after a click on each tab. Say aligned, fits or unchanged only
+  from a probe result. The probes live in `scripts/inspect-page.js` (`page.addScriptTag({ path })`
+  for a check of your own). Each returns `{ check, selector, detail, values }` items, `[]` when
+  clean:
   - `census(selector)`: one kind of element: size, type, padding, contrast, small targets,
     icon off center (a second argument runs one check; `hidden`, `dupe`, `key` are opt-in);
   - `columns(rowSelector)` and `gaps(groupSelector)`: ragged edges, empty reserved width,
     uneven gaps, a selected option that does not fill its box;
-  - `boxes(selectors)` before and after every state change: what moved. A first call for a
-    selector only saves and returns one `saved` notice (not a defect) instead of `[]`;
+  - `boxes(selectors)` before and after every state change, including a click on each tab:
+    what moved. A first call for a selector only saves and returns one `saved` notice (not a
+    defect) instead of `[]`;
   - `overflow()`: text past its box, page wider than the window, a fixed bar over content;
-  - by hand in each state: tab through (focus reaches every action in reading order;
-    hover-revealed actions appear on focus), read the accessibility tree, compare a
-    screenshot with the mock.
+  - by hand in each state, which the script cannot do: tab through (focus reaches every action
+    in reading order; hover-revealed actions appear on focus), read the accessibility tree,
+    compare a screenshot with the mock, read the wording.
 - **lintapple 0.1.20 cannot see** layout shifts between states, other languages (it forces
   en-US), motion, a fixed bar over content, or layout on elements without `data-ui-*`
   markup. Run it after these methods, not instead.
-- **Brief a browser helper** with concrete screens, the clicks to each state and the expected
-  result; ask for observations with numbers, never "looks good". The report lists routes,
-  clicks, numbers per check and what was not checked.
+- **Brief `ui-checker`** with the URL, the clicks to each state, the languages, whether the
+  app has a dark theme, and a base build or URL when there is one; it reports every finding
+  with numbers, marked new or already there, and what it did not check, never "looks good".
 - **A new screen also goes to a fresh, skeptical reviewer** (through `super-agent`) with the
   screenshots, routes and this file, never the reasons behind choices. It answers `ship` or
   `fix`, then at most five findings, worst first, and changes nothing. Not findings: the

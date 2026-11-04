@@ -34,10 +34,11 @@ Post-implementation quality gates expose unnecessary production and test complex
 - External failures degrade visibly while native cleanup or review continues.
 - External installation, authentication, tracked runtime state, and automatic fixes remain outside these workflows.
 - UI work includes the live inspection pass in `code-quality`'s `ui.md` ("Inspect the running app"): the
-  builder opens the running app and measures its own render before saying done, and the lead checks each
-  delivered screen. In Claude, a hook reminds the agent once, by blocking its stop, when it changed UI
-  files and has not opened the app since. The hook checks only that the app was opened, not what the
-  agent saw.
+  builder hands each changed screen to the read-only `ui-checker` agent, which runs `check-ui.mjs` (every
+  state, width, language and theme through `inspect-page.js`) before its hand checks and reports every
+  finding with numbers; the builder fixes new findings and reports old ones. The checker only critiques. In
+  Claude, a hook reminds the agent once, by blocking its stop, when it changed UI files and has not opened
+  the app or run the checker since. The hook checks only that this happened, not what the agent saw.
 
 ## Protected invariants
 
@@ -69,12 +70,17 @@ Separating diagnosis from correction lets the user choose which simplifications 
   [review worker](../../../config/agents/review-worker.toml).
 - Static enforcement: [configuration tests](../../../tests/codex-config.test.mjs) and [bootstrap tests](../../../tests/bootstrap.test.sh).
 - Review-only: provider availability and source transmission remain live-validation concerns.
-- UI inspection: [UI reference](../../../config/skills/code-quality/references/ui.md) and the Claude
+- UI inspection: [UI reference](../../../config/skills/code-quality/references/ui.md), the
+  [UI check runner](../../../config/skills/code-quality/scripts/check-ui.mjs), the
+  [UI checker role](../../../config/agents/ui-checker.toml) and the Claude
   [UI reminder hook](../../../config/bin/ui-open-reminder.py). Review-only: whether the agent checked the
   app well is measured by live builder runs, not by the hook.
 
 ## History
 
+- 2026-11-04: Added the read-only `ui-checker` agent and the one-command `check-ui.mjs`, because builders
+  that read `ui.md` still skipped `inspect-page.js` and their browser helper never saw it (live builder runs
+  0 of 3 twice).
 - 2026-11-03: Added the UI inspection pass and the Claude UI reminder, because a review of 187 of the
   user's UI critiques showed agents calling UI done without opening the running app.
 - 2026-10-26: Workflow cleanup of a small or mechanical change runs a one-agent swarm.

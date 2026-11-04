@@ -65,8 +65,8 @@ commands = root / "commands"
 skill_paths = sorted(path for path in skills.iterdir() if (path / "SKILL.md").is_file())
 agent_paths = sorted(agents.glob("*.toml"))
 command_paths = sorted(commands.glob("*.md"))
-if len(skill_paths) != 30 or len(agent_paths) != 13 or len(command_paths) != 12:
-    raise SystemExit("Expected 30 skills, 13 roles, and 12 command intents")
+if len(skill_paths) != 30 or len(agent_paths) != 14 or len(command_paths) != 12:
+    raise SystemExit("Expected 30 skills, 14 roles, and 12 command intents")
 
 for path in skill_paths:
     text = (path / "SKILL.md").read_text(encoding="utf-8")

@@ -12,7 +12,7 @@ import sys
 
 STATE_DIR = pathlib.Path(os.environ.get("XDG_RUNTIME_DIR") or "/tmp") / "ui-open-reminder"
 UI_FILE = re.compile(r"\.(tsx|jsx|css|scss|html|vue|svelte)$|(^|/)tailwind\.config\.")
-APP_OPENED = re.compile(r"playwright|chrom(?:e|ium)|inspect-page|capture\.mjs|agent-browser|orca(?:-ide|-dev)? +(?:tab|snapshot|goto|screenshot)\b", re.I)
+APP_OPENED = re.compile(r"playwright|chrom(?:e|ium)|inspect-page|check-ui|capture\.mjs|agent-browser|orca(?:-ide|-dev)? +(?:tab|snapshot|goto|screenshot)\b", re.I)
 APP_TOOLS = ("mcp__playwright__", "mcp__claude-in-chrome__", "mcp__Claude_Browser__",
              "mcp__remote-devices__Claude_Browser__", "mcp__computer-use__")
 
@@ -35,8 +35,8 @@ def main() -> None:
         lines = path.read_text(encoding="utf-8").splitlines()
         path.unlink()
         names = list(dict.fromkeys(os.path.basename(line) for line in lines))[:3]
-        reason = (f"You changed {', '.join(names)} and have not opened the app since. Open it and check it "
-                  "live (code-quality ui.md, Inspect the running app) before you finish.")
+        reason = (f"You changed {', '.join(names)} and have not opened the app since. Have the ui-checker agent "
+                  "check it live (code-quality ui.md, Inspect the running app) before you finish.")
         print(json.dumps({"decision": "block", "reason": reason}))
 
 
@@ -44,7 +44,7 @@ def opened_app(tool: str, tool_input: dict) -> bool:
     if tool == "Bash":
         return APP_OPENED.search(tool_input.get("command") or "") is not None
     if tool == "Agent":
-        return tool_input.get("subagent_type") == "computer-controller"
+        return tool_input.get("subagent_type") in ("computer-controller", "ui-checker")
     return tool.startswith(APP_TOOLS)
 
 

@@ -159,6 +159,25 @@ computer-controller:
       model: claude-haiku-5-5
       thinking: medium
 
+# Follows the launching harness, as computer-controller does.
+ui-checker:
+  harness: current
+  by_harness:
+    agy:
+      model: gemini-3.8-flash-high
+      thinking: high
+    pi:
+      model:
+        - opencode-go/glm-5.3-flash
+        - opencode-go/deepseek-v4.1-flash
+      thinking: high
+    codex:
+      model: gpt-6-luna
+      thinking: xhigh
+    claude:
+      model: claude-sonnet-5-5
+      thinking: high
+
 reviewer-high:
   - harness: codex
     model: gpt-6.1-sol

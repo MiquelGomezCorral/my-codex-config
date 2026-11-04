@@ -216,7 +216,7 @@ allow; keep dependent steps in order.
 
 - Report observed results, including verification, diff inspection, blockers, and gaps.
 - For a UI change, read code-quality `ui.md` before the first edit;
-  open the running app and check it before saying done.
+  have `ui-checker` check every changed screen before saying done.
 - For repository work, end the final report with `Memory: <file> - <what was saved>` or
   `Memory: none`.
 - Independently review non-trivial changes, fix blocking findings, and re-check them once.
@@ -240,9 +240,10 @@ allow; keep dependent steps in order.
 - To click, drag, type, press shortcuts, or take screenshots on the user's machine, load the
   `computer` skill and read its desktop-control reference first; on GNOME Wayland, Orca's
   coordinate and key input reports success but does nothing.
-- Hand browser and desktop work to `computer-controller` through `super-agent`. A delegate without
-  a nesting grant sends that task to its parent instead. Do it yourself only for one quick look,
-  or when you are `computer-controller` itself. Any headed browser an agent starts, CLI or script,
+- Hand browser and desktop work to `computer-controller` through `super-agent`, and UI checks of a
+  running app to `ui-checker`. A delegate without a nesting grant sends that task to its parent
+  instead. Do it yourself only for one quick look, or when you are `computer-controller` itself.
+  Any headed browser an agent starts, CLI or script,
   takes the launch args in `${XDG_CACHE_HOME:-$HOME/.cache}/computer-controller/work/.playwright/cli.config.json`,
   so it opens on the secondary monitor without taking focus.
   On Opus sessions a hook enforces this handoff; `agent-guard unlock browser` lifts it for the

@@ -301,7 +301,7 @@ PY
 [[ "$(grep -c '^git clone' "$STUB_LOG")" -eq 1 ]]
 [[ -L "$CODEX_TARGET/commands" ]]
 [[ "$(find -L "$CODEX_TARGET/commands" -maxdepth 1 -type f -name '*.md' | wc -l)" -eq 12 ]]
-[[ "$(find "$CODEX_TARGET/agents" -maxdepth 1 -type f -name '*.toml' | wc -l)" -eq 13 ]]
+[[ "$(find "$CODEX_TARGET/agents" -maxdepth 1 -type f -name '*.toml' | wc -l)" -eq 14 ]]
 python3 - "$CODEX_TARGET/hooks.json" <<'PY'
 import json
 import pathlib
@@ -447,7 +447,7 @@ assert "$@" in prompt and "review" in prompt, prompt
 assert (root / "skills/writing").is_symlink()
 assert (root / "skills/diagram-design").is_symlink()
 assert "User Pi instructions" in (root / "AGENTS.md").read_text(encoding="utf-8")
-assert len(list((root / "agents").glob("*.md"))) == 13
+assert len(list((root / "agents").glob("*.md"))) == 14
 assert len(list((root / "prompts").glob("*.md"))) == 12
 for path in (root / "agents").glob("*.md"):
     assert "\ntools:" not in path.read_text(encoding="utf-8"), path
@@ -535,9 +535,9 @@ assert (agy_skills / "user-skill/SKILL.md").is_file()
 assert len(list(agy_skills.glob("*"))) == 33
 cli = home / ".gemini/antigravity-cli"
 plugin = cli / "plugins/my-codex-config"
-assert len(list((cli / "agents").glob("*.md"))) == 13
+assert len(list((cli / "agents").glob("*.md"))) == 14
 assert len(list((cli / "commands").glob("*.toml"))) == 12
-assert len(list((home / ".gemini/config/plugins/my-codex-config/agents").glob("*/agent.md"))) == 13
+assert len(list((home / ".gemini/config/plugins/my-codex-config/agents").glob("*/agent.md"))) == 14
 assert len(list((plugin / "skills").glob("*/SKILL.md"))) == 12
 for path in (cli / "commands").glob("*.toml"):
     assert "{{args}}" in path.read_text(encoding="utf-8"), path
@@ -584,7 +584,7 @@ HOME="$CLAUDE_HOME" CLAUDE_CONFIG_DIR="$CLAUDE_HOME/.claude" BACKUP_ROOT="$TEST_
   "$REPO_ROOT/bootstrap_claude.sh" --no-searxng > "$TEST_ROOT/claude.out" 2> "$TEST_ROOT/claude.err"
 [[ -f "$CLAUDE_HOME/.claude/skills/harness-init/SKILL.md" ]]
 [[ -f "$CLAUDE_HOME/.claude/skills/harness-review/SKILL.md" ]]
-[[ "$(find "$CLAUDE_HOME/.claude/agents" -maxdepth 1 -type f -name '*.md' | wc -l)" -eq 13 ]]
+[[ "$(find "$CLAUDE_HOME/.claude/agents" -maxdepth 1 -type f -name '*.md' | wc -l)" -eq 14 ]]
 grep -q 'User Claude notes' "$CLAUDE_HOME/.claude/CLAUDE.md"
 grep -q 'BEGIN my-harness-config policy' "$CLAUDE_HOME/.claude/CLAUDE.md"
 python3 - "$CLAUDE_HOME/.claude/skills" <<'PY'

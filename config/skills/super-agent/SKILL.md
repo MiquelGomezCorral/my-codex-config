@@ -86,11 +86,12 @@ automatic launch. A stage maps to exactly one role:
 | Strong reviewer in a review swarm or cleanup audit | `reviewer-high` |
 | Direct review or verifier | `reviewer-fast` |
 | Browser or desktop work, or live validation | `computer-controller` |
+| UI check of a running app after a UI change | `ui-checker` |
 | Review-swarm or cleanup-swarm specialist, or planning web research and bug-evidence checks | `swarms` |
 
 `explorer` launches through `explore "<question>" [paths]`, run in the foreground. The command reads the explorer candidates from the catalog itself and tries them in order.
 
-`reviewer-fast`, `computer-controller`, and `swarms` follow the current harness instead of naming one. The current
+`reviewer-fast`, `computer-controller`, `ui-checker`, and `swarms` follow the current harness instead of naming one. The current
 harness is the harness of the agent doing the launch (a delegate's own harness, not the
 root's or the wrapper's default), read from runtime evidence. The role's `by_harness` entry
 for it gives the model and thinking. When that model is unavailable, use the same harness's
