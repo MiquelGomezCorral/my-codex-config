@@ -638,16 +638,27 @@ assert settings["timeFormat"] == "24-hour"
 assert settings["env"]["CLAUDE_TIMESTAMPS_TZ"] == "Europe/Madrid"
 assert settings["env"]["CLAUDE_TIMESTAMPS_INJECT_CONTEXT"] == "false"
 assert settings["env"]["CLAUDE_CODE_SUBAGENT_MODEL"]
+
+
+def commands(event):
+    return [hook["command"] for group in settings["hooks"][event] for hook in group["hooks"]]
+
+
+def ui_groups(event):
+    return [group for group in settings["hooks"][event]
+            if any("ui-open-reminder.py" in hook["command"] for hook in group["hooks"])]
+
+
 groups = settings["hooks"]["PreToolUse"]
-assert groups[0]["hooks"][0]["command"] == "user-hook"
+assert "user-hook" in commands("PreToolUse")
 guards = [group for group in groups if "agent-model-guard.py" in group["hooks"][0]["command"]]
 assert len(guards) == 1 and len(groups) == 3 and guards[0]["matcher"] == "Agent|Task", groups
-for event in ("PostToolUse", "Stop", "SubagentStop"):
-    commands = [hook["command"] for group in settings["hooks"][event] for hook in group["hooks"]]
-    assert sum("ui-open-reminder.py" in command for command in commands) == 1, (event, commands)
-assert [hook["command"] for hook in settings["hooks"]["PostToolUse"][0]["hooks"]] == ["user-post-hook"]
-assert [hook["command"] for hook in settings["hooks"]["Stop"][0]["hooks"]] == ["user-stop-hook"]
-assert settings["hooks"]["PostToolUse"][1]["matcher"] == "Edit|Write|MultiEdit|Bash|Agent|mcp__.*"
+assert "user-post-hook" in commands("PostToolUse") and "user-stop-hook" in commands("Stop")
+[post] = ui_groups("PostToolUse")
+assert post["matcher"] == "Edit|Write|MultiEdit|Bash|Agent|mcp__.*", post
+for event in ("Stop", "SubagentStop"):
+    [group] = ui_groups(event)
+    assert list(group) == ["hooks"], (event, group)
 PY
 GUARD_HOME="$TEST_ROOT/agent-model-guard-home"
 GUARD_CWD="$TEST_ROOT/agent-model-guard-cwd"

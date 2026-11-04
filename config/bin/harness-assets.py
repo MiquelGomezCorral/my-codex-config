@@ -352,6 +352,12 @@ def catalog_model(catalog: pathlib.Path, harness: str, size: str) -> str:
     raise SystemExit(f"No {harness} {size} model in {catalog}")
 
 
+def hook_command(script: str) -> str:
+    quoted = shlex.quote(script)
+    # test skips the hook while its script file is missing
+    return f"test ! -f {quoted} || python3 {quoted}"
+
+
 def merge_claude_settings(args: argparse.Namespace) -> None:
     """Set the Claude settings keys this repository owns, leaving every other key and hook as is."""
     target = pathlib.Path(args.target)
@@ -372,13 +378,13 @@ def merge_claude_settings(args: argparse.Namespace) -> None:
 
     guard = {
         "matcher": "Agent|Task",
-        "hooks": [{"type": "command", "command": f"test ! -f {shlex.quote(args.guard)} || python3 {shlex.quote(args.guard)}"}],
+        "hooks": [{"type": "command", "command": hook_command(args.guard)}],
     }
     opus_guard = {
         "matcher": "Read|Bash|mcp__claude-in-chrome__.*|mcp__Claude_Browser__.*|mcp__remote-devices__Claude_Browser__.*|mcp__computer-use__.*",
-        "hooks": [{"type": "command", "command": f"test ! -f {shlex.quote(args.opus_guard)} || python3 {shlex.quote(args.opus_guard)}"}],
+        "hooks": [{"type": "command", "command": hook_command(args.opus_guard)}],
     }
-    ui_hook = {"type": "command", "command": f"test ! -f {shlex.quote(args.ui_reminder)} || python3 {shlex.quote(args.ui_reminder)}"}
+    ui_hook = {"type": "command", "command": hook_command(args.ui_reminder)}
     ui_post_tool = {"matcher": "Edit|Write|MultiEdit|Bash|Agent|mcp__.*", "hooks": [ui_hook]}
     ui_stop = {"hooks": [ui_hook]}
     model = catalog_model(pathlib.Path(args.catalog), "claude", "medium")
