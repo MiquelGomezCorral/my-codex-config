@@ -1,6 +1,7 @@
 // Browser-side UI probes for a running page. Each function returns [{ check, selector, detail, values }]; [] means clean.
 (() => {
   const EPS = 0.75; // sub-pixel noise reaches 0.5 px, real defects start at 1 px
+  const EMPTY = 8; // empty width beside a column's widest value is a defect above this (ui.md)
   const seen = (window.inspectSeen ??= {}); // on window, so loading the script again keeps the saved boxes
   const item = (check, selector, detail, values) => ({ check, selector, detail, values }); // every result item, the `saved` notice too
   const $$ = (s) => [...document.querySelectorAll(s)].filter((e) => e.getClientRects().length);
@@ -9,14 +10,22 @@
   const spread = (a) => Math.max(...a) - Math.min(...a);
   const css = (e) => getComputedStyle(e);
   const own = (e) => [...e.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join('').trim(); // own text only
-  const label = (e) => (e.getAttribute('aria-label') || e.textContent).replace(/\s+/g, ' ').trim().slice(0, 24);
+  const fullName = (e) => (e.getAttribute('aria-label') || e.textContent).replace(/\s+/g, ' ').trim();
+  const label = (e) => fullName(e).slice(0, 24); // display only: the dupe check keys on fullName
   const named = (e) => `${e.tagName.toLowerCase()}${e.classList[0] ? '.' + e.classList[0] : ''} "${label(e)}"`;
+  // A value cut as ui.md "Cut long values" says: an ellipsis past the box width, or a line clamp past its height. The text range still spans the full text, so columns() skips it.
+  const cut = (e) => [e, ...e.querySelectorAll('*')].some((x) => {
+    const s = css(x), ellipsis = /ellipsis/.test(s.textOverflow) && x.scrollWidth > x.clientWidth;
+    return s.overflowX !== 'visible' && (ellipsis || (s.getPropertyValue('-webkit-line-clamp') !== 'none' && x.scrollHeight > x.clientHeight));
+  });
   const chosen = (e) => e.matches('[aria-pressed=true],[aria-selected=true],[aria-checked=true],label:has(input:checked)');
   const after = (e) => { let n = e.nextSibling; while (n && n.nodeType === 3 && !n.textContent.trim()) n = n.nextSibling; return n; };
   // Range around a node or its contents: the real text box, not the element box (svg and img keep their own box).
   const span = (n, within) => { const g = document.createRange(); within && !n.matches('svg,img') ? g.selectNodeContents(n) : g.selectNode(n); return g.getBoundingClientRect(); };
   const pad = (e) => { const r = rect(e), left = r.left + e.clientLeft, top = r.top + e.clientTop; return { left, top, right: left + e.clientWidth, bottom: top + e.clientHeight }; };
   const inner = (e) => { const s = css(e), l = parseFloat(s.paddingLeft); return { left: pad(e).left + l, width: e.clientWidth - l - parseFloat(s.paddingRight) }; };
+  // inner().width comes from clientWidth, which rounds to whole pixels and would hide an 8.1 px gap; this keeps the fraction (a scrollbar counts as room).
+  const room = (e) => { const s = css(e); return rect(e).width - ['borderLeftWidth', 'borderRightWidth', 'paddingLeft', 'paddingRight'].reduce((t, k) => t + parseFloat(s[k]), 0); };
   // Computed colors can be oklch(): a 1x1 canvas turns any CSS color into RGB. The background is the first opaque ancestor.
   const canvas = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
   const rgba = (c) => { canvas.clearRect(0, 0, 1, 1); canvas.fillStyle = c; canvas.fillRect(0, 0, 1, 1); return canvas.getImageData(0, 0, 1, 1).data; };
@@ -25,7 +34,7 @@
   const bgOf = (e) => { for (; e; e = e.parentElement) { const c = rgba(css(e).backgroundColor); if (c[3] === 255) return c; } return [255, 255, 255]; };
 
   // Elements of one kind: unequal height, type size or padding; low text or selected-border contrast; small icon controls; icon off its text.
-  // A second argument runs one check alone: size, contrast, target, center, or the opt-in hidden (opacity 0), dupe (name used twice), key (a.b.c shown).
+  // A second argument runs one check alone: size, contrast, target, center, or the opt-in hidden (opacity 0), dupe (full name used twice), key (a.b.c shown).
   function census(selector, only) {
     const els = $$(selector), found = [], names = {};
     const on = (c) => (only ? only === c : !['hidden', 'dupe', 'key'].includes(c));
@@ -50,25 +59,26 @@
       if (on('hidden') && control && +css(e).opacity === 0) add('hidden', `${name} has opacity 0 at rest`, [name]);
       if (on('key') && /^[a-z]+(\.\w+){2,}$/.test(own(e))) add('key', `"${own(e)}" looks like a translation key`, [own(e)]);
       if (on('center') && Math.abs(off) > EPS) add('center', `${label(e.parentElement)} icon is ${px(off)} px off its text`, [label(e.parentElement)]);
-      if (on('dupe') && name) (names[name] ??= []).push(e);
+      if (on('dupe') && name) (names[fullName(e)] ??= []).push(e);
     }
-    for (const [name, list] of Object.entries(names)) if (list.length > 1) add('dupe', `"${name}" appears ${list.length} times`, [name]);
+    for (const list of Object.values(names)) if (list.length > 1) add('dupe', `"${label(list[0])}" appears ${list.length} times`, [label(list[0])]);
     return found;
   }
 
-  // Cells of one column across rows: ragged content edge (left, or right for right-aligned numbers; not for centered or control columns), reserved width that stays empty on one side.
+  // Cells of one column across rows: ragged content edge (left, or right for right-aligned numbers; not for centered or control columns), reserved width over EMPTY px that stays empty on one side (not beside a cut value).
   function columns(rowSelector) {
     const rows = $$(rowSelector).map((r) => [...r.children].filter((c) => c.getClientRects().length)), found = [], count = Math.max(0, ...rows.map((r) => r.length));
     for (let i = 0; i < count; i++) {
       const cells = rows.map((r) => r[i]).filter((c) => c && span(c, true).width > 0), at = `${rowSelector} > :nth-child(${i + 1})`; // an empty cell has no box
       if (cells.length < 2) continue;
-      const text = cells.map((c) => span(c, true)), widest = text.indexOf(text.reduce((a, b) => (b.width > a.width ? b : a))), box = inner(cells[widest]);
+      const text = cells.map((c) => span(c, true)), widest = text.indexOf(text.reduce((a, b) => (b.width > a.width ? b : a))), box = { ...inner(cells[widest]), width: room(cells[widest]) };
       const lead = text[widest].left - box.left, trail = box.left + box.width - text[widest].right;
       const numeric = cells.every((c) => /right|end/.test(css(c).textAlign) && /\d/.test(c.textContent)), side = numeric ? 'right' : 'left', edge = text.map((t) => t[side]);
       const plain = !cells.some((c) => c.querySelector('a,button,input,[role]')) && !cells.every((c) => css(c).textAlign === 'center');
       if (plain && spread(edge) > EPS) found.push(item('edge', at, `${side} edges differ by ${px(spread(edge))}`, edge.map(px)));
+      const empty = px(Math.max(lead, trail)); // compared as printed, so 8.0 plus float noise is clean; text past its box leaves none (overflow() reports that)
       // The last column's empty reserved width shows only as trailing space, so it counts without leading space.
-      if (Math.abs(lead - trail) > EPS && (lead > EPS || i === count - 1)) found.push(item('width', at, `${px(Math.max(lead, trail))} px of the column is empty beside its widest value`, [px(box.width), px(text[widest].width)]));
+      if (empty > EMPTY && Math.abs(lead - trail) > EPS && (lead > EPS || i === count - 1) && !cut(cells[widest])) found.push(item('width', at, `${empty} px of the column is empty beside its widest value`, [px(box.width), px(text[widest].width)]));
     }
     return found;
   }

@@ -115,6 +115,10 @@ artifact.
 - Write a live test set per slice with the fields `refine-plan` lists under *Live
   validation*. Each slice's set covers only that slice's behavior; regressions wait for
   the wave regression.
+- Record each slice's expected `UI impact:` (none, low, noticeable or big) with a one-line
+  reason, sized as code-quality [ui.md](../../code-quality/references/ui.md) (*Inspect the
+  running app*) says. The planner picks it without asking the human; the coding loop
+  re-sizes it each round.
 - Prefer the closest realistic path a real user or caller takes. Do not substitute a unit
   test, mocked harness, or shape assertion for the live route, and do not treat passing
   small tests as evidence that the live behavior works.

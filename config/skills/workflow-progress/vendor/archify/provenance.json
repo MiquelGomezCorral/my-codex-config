@@ -24,11 +24,11 @@
     ],
     "source": {
       "path": "agent-workflow.drawio",
-      "sha256": "07eda877f696a0f837e5c9786a034164b00020ecc946882ea98008198d04a431"
+      "sha256": "3d869b4fd553e51a6e67bd46b64e87d1fb806a25946659b43495ebb1066dedf5"
     },
     "svg": {
       "path": "workflow.svg",
-      "sha256": "c5f0f361839295bb4afa51a6623051933195f313fb53a1e9e1be7568bab19ff9"
+      "sha256": "31daf67994071381c9edeec6bbd789ec732e972119f87232231dbc4957e2e929"
     }
   }
 }

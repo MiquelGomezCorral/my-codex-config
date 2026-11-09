@@ -215,8 +215,10 @@ allow; keep dependent steps in order.
 ## Completion
 
 - Report observed results, including verification, diff inspection, blockers, and gaps.
-- For a UI change, read code-quality `ui.md` before the first edit;
-  have `ui-checker` check every changed screen before saying done.
+- For a UI change, read code-quality `ui.md` before the first edit, size its UI impact and
+  run that level's checks before saying done (`ui.md`, *Inspect the running app*). When
+  `ui-checker` runs, fix every finding your change caused and paste its `UI checker findings`
+  block whole into your final report.
 - For repository work, end the final report with `Memory: <file> - <what was saved>` or
   `Memory: none`.
 - Independently review non-trivial changes, fix blocking findings, and re-check them once.

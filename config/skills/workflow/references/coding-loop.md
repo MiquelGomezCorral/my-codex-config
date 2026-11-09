@@ -15,10 +15,11 @@ The retained writer uses the harness's normal native coding capability; see
    Below, "the stage owner" is as workflow stage 4 defines it.
 2. Run only the planned checks. A passing unit suite alone does not prove a user-facing
    flow.
-3. Set the round: what to review, at what size, and which live tests to run; size it with
-   [Size the review](#size-the-review) and add its progress note. The first round runs the
-   slice's full live test set; a fix round reruns only tests that failed or were not
-   possible. A recorded opt-out skips the live tests, never the review.
+3. Set the round: what to review, at what size, which live tests to run, and for a UI change
+   which UI checks; size it with [Size the review](#size-the-review) and add its progress
+   note. The first round runs the slice's full live test set; a fix round reruns only tests
+   that failed or were not possible. A recorded opt-out skips the live tests, never the
+   review.
 4. Run the review and the live tests. The stage owner invokes
    `$review --preset <the round's preset>` on the resulting head with the round's scope.
    The [`full` preset](../../review/references/presets/full.md) runs
@@ -30,19 +31,24 @@ The retained writer uses the harness's normal native coding capability; see
    needs severity, scope classification, and source evidence. Mark unavailable checks
    blocked/unverified. Review is required; only the preset depth varies. When the live
    round reports `not possible`, the review still runs and the next round fixes the
-   blocker.
+   blocker. The round's app owner (the `full` preset names it) launches `ui-checker`, the
+   skeptical reviewer and the flow walk, as [UI impact](#size-the-review) says.
 5. Gather insights: use `review-findings` to verify reports against the source, and treat
-   each failed or not-possible live test as a finding with its evidence. Do not pass false positives,
-   unclear ownership, or out-of-scope observations as correction instructions.
+   each failed or not-possible live test as a finding with its evidence, and each line of the
+   `ui-checker` block as a failed live test with its numbers as the evidence: it goes to the
+   same coder without a source citation. Do not pass false positives, unclear ownership, or
+   out-of-scope observations as correction instructions.
 6. Plan fixes: route every verified in-scope P0-P3 finding to the coder, including
    non-blocking findings; use severity to order corrections. Route verified cleanup
    simplifications the same way. Then repeat from step 3 with the affected checks and
    reviews. Track two unsuccessful correction rounds per unresolved problem, then escalate
    it. A not-possible live test counts toward its own 3-round limit, not the two-round
    correction limit: ask the human when a test is still not possible after 3 rounds, or
-   when only unclear results remain.
+   when only unclear results remain. `ui-checker` lines still open when the plan's review
+   rounds run out go to the human gate with the block.
 7. When required behavior and evidence pass, a last round reruns the full slice live test
-   set on the final head, including after cleanup corrections. Stop only when the required
+   set on the final head, including after cleanup corrections, and at noticeable or big the
+   UI check, whose last block the slice evidence keeps whole. Stop only when the required
    evidence passes or a concrete blocker is reported.
 
 A supervisor ends the slice with the evidence packet that workflow stage 6 lists, in place
@@ -70,6 +76,19 @@ plan) stays fixed under every rule below. Before each round, snapshot what it wi
   lines change something many parts depend on, such as a shared helper, a contract, state,
   security, or concurrency, and review that dependent code even where the diff does not
   touch it. When unsure, go one size up.
+- **UI impact.** The plan records each slice's expected `UI impact:`; code-quality
+  [ui.md](../../code-quality/references/ui.md) (*Inspect the running app*) owns the levels and
+  sizes by what a user sees, not by lines. Each round re-sizes it from what changed since the
+  last check, with the reach rule above, and adds the level and why to its progress note. At
+  noticeable or big, every review round runs `ui-checker` (unless the plan opted out of live
+  tests) on every changed and affected screen of the slice, with the slice base build for
+  new/old marking when one can be built. When the checker comes back clean or its fix budget
+  ends, the skeptical reviewer runs once, and at big the flow walk too; the reviewer's `fix`
+  findings go to the same coder in one more round under the limits in step 6, with the checker
+  re-run on the screens that round touches. At low the coder runs `check-ui.mjs` itself and
+  puts its output in its report. The coder packet states the level and who checks, so at
+  noticeable or big the coder launches no check of its own; if the UI reminder blocks it, it
+  answers that the planned UI check covers it.
 - **Always.** Live tests run at every size, unless the plan recorded an opt-out. Cleanup
   sizes its audit the same way ([cleanup](cleanup.md)): pass `Audit depth: light` when this
   guide gives the audit `flash`, and run the full audit otherwise.

@@ -8,7 +8,7 @@
           <mxGeometry height="1191" width="1571" x="72" y="987" as="geometry" />
         </mxCell>
         <mxCell id="c218" parent="1" style="rounded=1;arcSize=5.1;whiteSpace=nowrap;html=1;fillColor=#f3f0fd;strokeColor=#1e1e1e;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="" vertex="1">
-          <mxGeometry height="200" width="310" x="1250" y="1384" as="geometry" />
+          <mxGeometry height="200" width="380" x="1250" y="1384" as="geometry" />
         </mxCell>
         <mxCell id="c2" parent="1" style="rounded=1;arcSize=3.1;whiteSpace=nowrap;html=1;fillColor=#f8f7fd;strokeColor=#1e1e1e;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="" vertex="1">
           <mxGeometry height="647" width="1571" x="72" y="212" as="geometry" />
@@ -961,6 +961,15 @@
         </mxCell>
         <mxCell id="c217" parent="1" style="rounded=1;arcSize=20.9;whiteSpace=nowrap;html=1;fillColor=#eaedfd;strokeColor=#5b6be0;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;dashed=1;dashPattern=4 3;" value="Gather insights&lt;br&gt;pass / fail / unclear / not possible" vertex="1">
           <mxGeometry height="36" width="160" x="1320" y="1504" as="geometry" />
+        </mxCell>
+        <mxCell id="c248" parent="1" style="rounded=1;arcSize=20.9;whiteSpace=nowrap;html=1;fillColor=#f6e5f8;strokeColor=#b050cf;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="UI check&lt;br&gt;noticeable or big" vertex="1">
+          <mxGeometry height="44" width="110" x="1510" y="1444" as="geometry" />
+        </mxCell>
+        <mxCell id="c249" edge="1" parent="1" source="c212" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="c248" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c250" edge="1" parent="1" source="c248" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="c217" value="">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="c224" parent="1" vertex="1" style="rounded=1;arcSize=20.9;whiteSpace=nowrap;html=1;fillColor=#eaedfd;strokeColor=#5b6be0;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;dashed=1;dashPattern=4 3;" value="Live tests on base&lt;br&gt;must fail first">
           <mxGeometry x="1000" y="1027" width="133" height="43" as="geometry" />

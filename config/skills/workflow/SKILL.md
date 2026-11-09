@@ -203,7 +203,9 @@ context conflicts or a non-Git action's bounds are missing.
    live test on the checkpoint the last cleanup round audited, not the slice base, then
    stages 5 and 6 from that checkpoint, and returns a new packet.
 7. **Present to human:** show the result page (gate 3) with the actual result, live evidence,
-   checks, known gaps, and artifacts after stage 6 ends.
+   checks, known gaps, and artifacts after stage 6 ends. For a noticeable or big slice, add
+   the changed screens' screenshots, the last `ui-checker` block whole and the skeptical
+   reviewer's verdict and findings (code-quality `ui.md`, *Inspect the running app*).
    Route feedback that changes code through stages 5 and 6 before presenting again. After
    acceptance, the human-facing coordinator applies exact approved updates to private agent
    memory once. Do not ship before human acceptance.

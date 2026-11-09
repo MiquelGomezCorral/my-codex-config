@@ -8,9 +8,10 @@ consistency, color, wording, states.
 - **Measured checks** (`lintapple`, below): real sizes, contrast, overflow and spacing on the
 rendered page. The bootstrap installs it globally.
 
-> **Must, on every UI change.** Open the running app before saying done. Check the main
-> language, then every other shipped language. A state change moves nothing outside the changed
-> part. Elements of one kind share size. Report numbers and what you did not check.
+> **Must, on every UI change.** Size its UI impact and run that level's checks on the running
+> app before saying done (Inspect the running app). Check the main language, then every other
+> shipped language. A state change moves nothing outside the changed part. Elements of one kind
+> share size. Report numbers and what you did not check.
 
 ## Design rules
 
@@ -61,8 +62,9 @@ needs. *Seen:* "robot icon · claude · sonnet-5.5 · today 16:05" where a harne
 the time were enough.
 - **Rows or tables for dense comparison; cards for summaries and visual content.** Keep
 comparable cards identical in anatomy; avoid cards inside cards.
-- **A column is as wide as its widest value**: no empty reserved width at the row edge, and a
-status column fits its widest label so its left edge is straight.
+- **A column is as wide as its widest value**: empty width beside it is a defect above 8 px;
+the only exception is a long text value cut as **Cut long values** describes. A status column
+fits its widest label so its left edge is straight.
 - **One leading mark per row**, a selector or an icon, not both, unless the icon is the item's
 identity. A status chip that qualifies a name sits beside the name.
 - **Sibling groups share one heading pattern**, the title above its content, never in a side
@@ -275,17 +277,38 @@ menu or select only with full keyboard and focus behavior.
 The author checks its own render in the running app; after delegating, the lead opens each
 delivered screen itself. An app that will not start means blocked, not done.
 
+- **UI impact:** size each change by what a user sees, not by lines: how many screens show it,
+  whether anything moves, whether what the user does changes. A shared component counts every
+  screen that shows it. When unsure, size one level up. The level sets the checks:
+  - **none**: nothing a user sees changes (backend, tests, config, a refactor with the same
+    output). No check; say in one line why.
+  - **low**: a few words, one size or spacing fix, a small fix inside one component. The builder
+    runs `scripts/check-ui.mjs` itself on the screens that show it, looks at the screenshots,
+    and runs lintapple when the project has a `ui-policy.json`, once, before saying done. No
+    `ui-checker`.
+  - **noticeable**: several components, things move, a new state or variant, a shared component.
+    `ui-checker` on every screen that shows the change: the script, the screenshots, the Tab
+    key, the accessibility tree, a click on every changed state and the old build side by side.
+    Then the skeptical reviewer once, then the human.
+  - **big**: a page redo, a new screen, a changed user flow. All of noticeable, plus
+    `computer-controller` walking the whole flow end to end; the skeptical reviewer once at the
+    end, then the human.
+  - Video (`capture.mjs --video`, `artifacts` skill) only when motion or a transition changed;
+    more often needed at big than at noticeable.
 - **Matrix:** each changed screen and each screen sharing a changed component, in every state
   (empty, one, many, loading, error, open, selected), at 390, 768 and 1440 px, light and dark,
   in every language the app ships (locale files, switcher or route prefix), and for changed
   screens with motion on and off.
-- **Who checks:** the builder has `ui-checker` (through `super-agent`) check each changed screen and
+- **Who checks:** at none and low, the builder, as above. At noticeable and big the builder has
+  `ui-checker` (through `super-agent`) check each changed screen and
   each screen sharing a changed component. Brief it with the URL, the clicks to each state, the
   languages, whether the dark theme follows the OS preference or has its own toggle, and a base
   build or URL when there is one. The builder runs `scripts/check-ui.mjs` itself only to re-check a
   fix. It fixes every new finding and pastes the checker's fenced `UI checker findings` block into
   its final report word for word, even when it shortens everything else, then says what it did about
-  each line. It never drops, merges or rewords a line, old ones included.
+  each line. It never drops, merges or rewords a line, old ones included. Inside a workflow the
+  review round runs these checks instead, as the [coding loop](../../workflow/references/coding-loop.md)
+  says: the coder launches no check of its own.
 - **Methods:** `scripts/check-ui.mjs` (`../scripts/` from this file) measures the matrix in
   headless Chromium after motion ends (see Motion timing) and prints one line per finding with
   its state, check, selector and numbers, plus a screenshot per state. Usage: `node check-ui.mjs
@@ -299,8 +322,8 @@ delivered screen itself. An app that will not start means blocked, not done.
   returns `{ check, selector, detail, values }` items, `[]` when clean:
   - `census(selector)`: one kind of element: size, type, padding, contrast, small targets,
     icon off center (a second argument runs one check; `hidden`, `dupe`, `key` are opt-in);
-  - `columns(rowSelector)` and `gaps(groupSelector)`: ragged edges, empty reserved width,
-    uneven gaps, a selected option that does not fill its box;
+  - `columns(rowSelector)` and `gaps(groupSelector)`: ragged edges, empty reserved width above
+    8 px, uneven gaps, a selected option that does not fill its box;
   - `boxes(selectors)` before and after every state change, including a click on each tab:
     what moved. A first call for a selector only saves and returns one `saved` notice (not a
     defect) instead of `[]`;
@@ -311,17 +334,21 @@ delivered screen itself. An app that will not start means blocked, not done.
 - **lintapple 0.1.20 cannot see** layout shifts between states, other languages (it forces
   en-US), motion, a fixed bar over content, or layout on elements without `data-ui-*`
   markup. Run it after these methods, not instead.
-- **A new screen also goes to a fresh, skeptical reviewer** (through `super-agent`) with the
-  screenshots, routes and this file, never the reasons behind choices. It answers `ship` or
-  `fix`, then at most five findings, worst first, and changes nothing. Not findings: the
-  project's design system, explicit user requirements, approved `exceptions`. A full review
-  of the whole app comes at the very end, only when the user asks. Give it these examples:
+- **A noticeable or big change also goes to a fresh, skeptical reviewer** (through `super-agent`)
+  once, after the checker comes back clean or its fix budget ends, with the screenshots, routes
+  and this file, never the reasons behind choices. It answers `ship` or `fix`, then at most five
+  findings, worst first, and changes nothing. Not findings: the project's design system, explicit
+  user requirements, approved `exceptions`. A full review of the whole app comes at the very end,
+  only when the user asks. Give it these examples:
   - fail: the selected segment leaves a gap and is not fully filled; the footer buttons sit
     at a different height on each step;
   - pass: every status chip in the column has the same height, padding and type size; the
     pager sits at the same top on every page and tab.
 - **A human eye** still decides whether the hierarchy reads, the screen fits the task and
-  brand, and the copy reads well in each language.
+  brand, and the copy reads well in each language. At noticeable and big the human looks at the
+  end: the builder's final report (inside a workflow, the slice's result gate) shows the changed
+  screens' screenshots, the last checker block whole and the skeptical reviewer's verdict and
+  findings, and asks the user to look.
 
 ## Set up once per project
 

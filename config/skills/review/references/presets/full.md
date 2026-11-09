@@ -34,6 +34,13 @@ or `large` one) owns the app for the live round. Run the round this way:
   resets the shared data between sequential tests and between repeats.
 - Report each result as pass, fail, unclear, or not possible, with evidence: the command
   and its output, a screenshot, or a log. A result without evidence counts as not run.
+- At UI impact noticeable or big (sized by the
+  [coding loop](../../../workflow/references/coding-loop.md#size-the-review)), the parent also
+  launches `ui-checker` through `super-agent` on the running app, within the live tests' `Where`
+  and `Bounds`, with the changed and affected screens and the slice base build when one can be
+  built. Each line of its block joins the live results as a failed test, its numbers as the
+  evidence. When the checker is clean or its fix budget ends, the parent launches the skeptical
+  reviewer once and, at big, a `computer-controller` flow walk, as the coding loop says.
 - Live results join the review verdict.
 - After the round, the parent stops the app and resets the shared test data.
 

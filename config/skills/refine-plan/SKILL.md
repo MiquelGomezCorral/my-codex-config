@@ -91,7 +91,9 @@ execution; coders receive them as constraints and report conflicts.
 
 ## Workflow and authorizations (complete workflow only)
 Record slice order, dependencies, per-slice scope and exclusions, `Size: small|medium|large`
-(approved with the plan; it picks the coder and supervisor route), owners,
+(approved with the plan; it picks the coder and supervisor route),
+`UI impact: none|low|noticeable|big` with a one-line reason (the expected level, sized as
+code-quality `ui.md` says; each review round re-sizes it), owners,
 checks, samples, tool availability, review preset, acceptance evidence, required
 artifacts with editable source and preview paths, human gates, and known starting
 revisions; for later slices state the accepted-predecessor-head rule instead. Record

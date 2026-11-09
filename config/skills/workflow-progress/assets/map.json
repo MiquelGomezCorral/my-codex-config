@@ -22,7 +22,7 @@
     "build-review.implement": { "anchors": ["c48"] },
     "build-review.check": { "anchors": ["c48"] },
     "build-review.review": { "anchors": ["c49", "c50", "c51", "c52", "c59", "c60", "c63", "c64", "c65"] },
-    "build-review.live-test": { "anchors": ["c63", "c212", "c213", "c215", "c217"] },
+    "build-review.live-test": { "anchors": ["c63", "c212", "c213", "c215", "c217", "c248"] },
     "build-review.verify-findings": { "anchors": ["c65"] },
     "build-review.fix-recheck": { "anchors": ["c43"] },
     "cleanup.checkpoint": { "anchors": ["c68", "c69", "c70", "c71", "c74", "c75"] },
@@ -43,7 +43,7 @@
     "c5": ["c34", "c35", "c36", "c37", "c38", "c39"],
     "c7": ["c49", "c50", "c51", "c52", "c59", "c60", "c63", "c64", "c65"],
     "c8": ["c51", "c52", "c59", "c60", "c63"],
-    "c218": ["c212", "c213", "c215", "c217"]
+    "c218": ["c212", "c213", "c215", "c217", "c248"]
   },
   "nodes": {
     "c9": { "kind": "frontend", "description": "Legend: super-agent steps share this color" },
@@ -121,6 +121,7 @@
     "c213": { "kind": "database", "description": "Tester" },
     "c215": { "kind": "database", "description": "Tester" },
     "c217": { "kind": "frontend", "description": "Live results" },
+    "c248": { "kind": "database", "description": "UI check of every changed screen, run at UI impact noticeable or big" },
     "c224": { "kind": "frontend", "description": "Base run" },
     "c227": { "kind": "frontend", "description": "Wave regression" },
     "c233": { "kind": "messagebus", "description": "How and who live validates it" },

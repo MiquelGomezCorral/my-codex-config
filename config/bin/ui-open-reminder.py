@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Claude Code hook (PostToolUse, Stop, SubagentStop): remind an agent once to have the ui-checker check the app after UI edits.
+"""Claude Code hook (PostToolUse, Stop, SubagentStop): remind an agent once to check the app at the change's UI impact level after UI edits.
 
 Pending edits: one file per agent in ${XDG_RUNTIME_DIR:-/tmp}/ui-open-reminder/. Only a ui-checker call or a check-ui run
 deletes it; a Stop or SubagentStop with edits blocks once and deletes it. Any error exits 0 silently."""
@@ -33,8 +33,8 @@ def main() -> None:
         lines = path.read_text(encoding="utf-8").splitlines()
         path.unlink()
         names = list(dict.fromkeys(os.path.basename(line) for line in lines))[:3]
-        reason = (f"You changed {', '.join(names)} and have not had the ui-checker agent check it. Have it check "
-                  "the running app (code-quality ui.md, Inspect the running app) before you finish.")
+        reason = (f"You changed {', '.join(names)} and have not run a UI check. Check the running app at the change's "
+                  "UI impact level, or say in one line why no check is needed (code-quality ui.md, Inspect the running app).")
         print(json.dumps({"decision": "block", "reason": reason}))
 
 
