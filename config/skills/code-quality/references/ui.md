@@ -299,16 +299,15 @@ delivered screen itself. An app that will not start means blocked, not done.
   (empty, one, many, loading, error, open, selected), at 390, 768 and 1440 px, light and dark,
   in every language the app ships (locale files, switcher or route prefix), and for changed
   screens with motion on and off.
-- **Who checks:** at none and low, the builder, as above. At noticeable and big the builder has
-  `ui-checker` (through `super-agent`) check each changed screen and
-  each screen sharing a changed component. Brief it with the URL, the clicks to each state, the
-  languages, whether the dark theme follows the OS preference or has its own toggle, and a base
-  build or URL when there is one. The builder runs `scripts/check-ui.mjs` itself only to re-check a
-  fix. It fixes every new finding and pastes the checker's fenced `UI checker findings` block into
-  its final report word for word, even when it shortens everything else, then says what it did about
-  each line. It never drops, merges or rewords a line, old ones included. Inside a workflow the
-  review round runs these checks instead, as the [coding loop](../../workflow/references/coding-loop.md)
-  says: the coder launches no check of its own.
+- **Who checks:** at noticeable and big the builder has `ui-checker` (through `super-agent`) check
+  each changed screen and each screen sharing a changed component. Brief it with the URL, the
+  clicks to each state, the languages, whether the dark theme follows the OS preference or has its
+  own toggle, and a base build or URL when there is one. At noticeable and big, outside a
+  workflow, the builder runs `scripts/check-ui.mjs` itself only to re-check a fix. It fixes every
+  new finding and pastes the checker's fenced `UI checker findings` block into its final report
+  word for word, even when it shortens everything else, then says what it did about each line. It
+  never drops, merges or rewords a line, old ones included. Inside a workflow the review round
+  runs these checks, as the [coding loop](../../workflow/references/coding-loop.md) says.
 - **Methods:** `scripts/check-ui.mjs` (`../scripts/` from this file) measures the matrix in
   headless Chromium after motion ends (see Motion timing) and prints one line per finding with
   its state, check, selector and numbers, plus a screenshot per state. Usage: `node check-ui.mjs
@@ -322,8 +321,8 @@ delivered screen itself. An app that will not start means blocked, not done.
   returns `{ check, selector, detail, values }` items, `[]` when clean:
   - `census(selector)`: one kind of element: size, type, padding, contrast, small targets,
     icon off center (a second argument runs one check; `hidden`, `dupe`, `key` are opt-in);
-  - `columns(rowSelector)` and `gaps(groupSelector)`: ragged edges, empty reserved width above
-    8 px, uneven gaps, a selected option that does not fill its box;
+  - `columns(rowSelector)` and `gaps(groupSelector)`: ragged edges, empty reserved width (the
+    column rule above), uneven gaps, a selected option that does not fill its box;
   - `boxes(selectors)` before and after every state change, including a click on each tab:
     what moved. A first call for a selector only saves and returns one `saved` notice (not a
     defect) instead of `[]`;

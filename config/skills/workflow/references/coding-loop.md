@@ -31,8 +31,8 @@ The retained writer uses the harness's normal native coding capability; see
    needs severity, scope classification, and source evidence. Mark unavailable checks
    blocked/unverified. Review is required; only the preset depth varies. When the live
    round reports `not possible`, the review still runs and the next round fixes the
-   blocker. The round's app owner (the `full` preset names it) launches `ui-checker`, the
-   skeptical reviewer and the flow walk, as [UI impact](#size-the-review) says.
+   blocker. At noticeable or big, the parent launches `ui-checker`, the skeptical reviewer
+   and, at big, the flow walk, as [UI impact](#size-the-review) says.
 5. Gather insights: use `review-findings` to verify reports against the source, and treat
    each failed or not-possible live test as a finding with its evidence, and each line of the
    `ui-checker` block as a failed live test with its numbers as the evidence: it goes to the
@@ -86,9 +86,10 @@ plan) stays fixed under every rule below. Before each round, snapshot what it wi
   ends, the skeptical reviewer runs once, and at big the flow walk too; the reviewer's `fix`
   findings go to the same coder in one more round under the limits in step 6, with the checker
   re-run on the screens that round touches. At low the coder runs `check-ui.mjs` itself and
-  puts its output in its report. The coder packet states the level and who checks, so at
-  noticeable or big the coder launches no check of its own; if the UI reminder blocks it, it
-  answers that the planned UI check covers it.
+  puts its output in its report. The coder packet states the level and who checks, or that the
+  plan waived the UI check by opting out of live tests, so at noticeable or big the coder
+  launches no check of its own; if the UI reminder blocks it, it answers that the planned UI
+  check covers it or that the plan waived it.
 - **Always.** Live tests run at every size, unless the plan recorded an opt-out. Cleanup
   sizes its audit the same way ([cleanup](cleanup.md)): pass `Audit depth: light` when this
   guide gives the audit `flash`, and run the full audit otherwise.

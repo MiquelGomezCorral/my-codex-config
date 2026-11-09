@@ -35,10 +35,9 @@ Post-implementation quality gates expose unnecessary production and test complex
 - External installation, authentication, tracked runtime state, and automatic fixes remain outside these workflows.
 - UI work includes the live inspection pass in `code-quality`'s `ui.md` ("Inspect the running app"), which
   owns its steps. Agents size each UI change by its impact on the user (none, low, noticeable, big), the way
-  review rounds are sized, and the level sets the checks: none skips with one line, low is the builder's own
-  `check-ui.mjs` run, noticeable and big add the read-only `ui-checker` in every review round, a skeptical
-  reviewer at the end and the human at the gate. Inside a workflow the review round runs them and treats each
-  checker line as a failed live test; outside, the builder does. The checker reports every finding with
+  review rounds are sized, and `ui.md` sets the checks for each level. Where the level calls for the read-only
+  `ui-checker`, inside a workflow the review round runs it and treats each line as a failed live test;
+  outside, the builder does. The checker reports every finding with
   numbers in one block the builder keeps whole, and only critiques. In Claude, a hook
   reminds the agent once, by blocking its stop, when it changed UI files and has not run the checker or
   `check-ui.mjs` since; a quick look at the app does not count. The hook checks only that this happened, not

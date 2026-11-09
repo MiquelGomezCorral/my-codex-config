@@ -13,7 +13,7 @@
   const fullName = (e) => (e.getAttribute('aria-label') || e.textContent).replace(/\s+/g, ' ').trim();
   const label = (e) => fullName(e).slice(0, 24); // display only: the dupe check keys on fullName
   const named = (e) => `${e.tagName.toLowerCase()}${e.classList[0] ? '.' + e.classList[0] : ''} "${label(e)}"`;
-  // A value cut as ui.md "Cut long values" says: an ellipsis past the box width, or a line clamp past its height. The text range still spans the full text, so columns() skips it.
+  // A value cut as ui.md "Cut long values" says: an ellipsis past the box width, or a line clamp past its height. The text range still spans the full text, so columns() skips its width line.
   const cut = (e) => [e, ...e.querySelectorAll('*')].some((x) => {
     const s = css(x), ellipsis = /ellipsis/.test(s.textOverflow) && x.scrollWidth > x.clientWidth;
     return s.overflowX !== 'visible' && (ellipsis || (s.getPropertyValue('-webkit-line-clamp') !== 'none' && x.scrollHeight > x.clientHeight));
@@ -71,14 +71,15 @@
     for (let i = 0; i < count; i++) {
       const cells = rows.map((r) => r[i]).filter((c) => c && span(c, true).width > 0), at = `${rowSelector} > :nth-child(${i + 1})`; // an empty cell has no box
       if (cells.length < 2) continue;
-      const text = cells.map((c) => span(c, true)), widest = text.indexOf(text.reduce((a, b) => (b.width > a.width ? b : a))), box = { ...inner(cells[widest]), width: room(cells[widest]) };
+      const text = cells.map((c) => span(c, true)), widest = text.indexOf(text.reduce((a, b) => (b.width > a.width ? b : a))), box = { left: inner(cells[widest]).left, width: room(cells[widest]) };
       const lead = text[widest].left - box.left, trail = box.left + box.width - text[widest].right;
       const numeric = cells.every((c) => /right|end/.test(css(c).textAlign) && /\d/.test(c.textContent)), side = numeric ? 'right' : 'left', edge = text.map((t) => t[side]);
       const plain = !cells.some((c) => c.querySelector('a,button,input,[role]')) && !cells.every((c) => css(c).textAlign === 'center');
       if (plain && spread(edge) > EPS) found.push(item('edge', at, `${side} edges differ by ${px(spread(edge))}`, edge.map(px)));
-      const empty = px(Math.max(lead, trail)); // compared as printed, so 8.0 plus float noise is clean; text past its box leaves none (overflow() reports that)
+      const empty = px(Math.max(lead, trail)); // compared as printed, so 8.0 plus float noise is clean
       // The last column's empty reserved width shows only as trailing space, so it counts without leading space.
-      if (empty > EMPTY && Math.abs(lead - trail) > EPS && (lead > EPS || i === count - 1) && !cut(cells[widest])) found.push(item('width', at, `${empty} px of the column is empty beside its widest value`, [px(box.width), px(text[widest].width)]));
+      const oneSided = Math.abs(lead - trail) > EPS && (lead > EPS || i === count - 1);
+      if (empty > EMPTY && oneSided && !cut(cells[widest])) found.push(item('width', at, `${empty} px of the column is empty beside its widest value`, [px(box.width), px(text[widest].width)]));
     }
     return found;
   }
