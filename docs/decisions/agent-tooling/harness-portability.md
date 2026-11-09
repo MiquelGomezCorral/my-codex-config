@@ -19,6 +19,9 @@ links shared assets and renders only the native files that differ.
   bootstrap_<harness>.sh commands call it; none dispatches other client setup.
 - Native extensions/plugins remain their client's responsibility and skip
   already installed compatible packages. No profiles or duplicate inventories.
+- One repo-owned exception: bootstrap_pi.sh links
+  `config/pi/extensions/opencode-go-models.ts`, the closed OpenCode Go model list
+  (user, 2026-11-09), because Pi's `models.json` cannot remove built-in models.
 - Shared portable assets use symlinks. Native format rendering and safe merging
   preserve mutable settings/MCP/auth state and unrelated user configuration.
 - Claude and Codex compact their context at 300k tokens, set by their bootstraps

@@ -456,6 +456,7 @@ for path in (root / "prompts").glob("*.md"):
 PY
 [[ "$(grep -c '^docker ' "$STUB_LOG")" -eq "$docker_calls_before" ]]
 [[ -L "$PI_HOME/.local/bin/ocr-go" ]]
+[[ "$PI_AGENT_ROOT/extensions/opencode-go-models.ts" -ef "$REPO_ROOT/config/pi/extensions/opencode-go-models.ts" ]]
 cp "$PI_AGENT_ROOT/mcp.json" "$TEST_ROOT/pi-before-rerun.json"
 "$REPO_ROOT/bootstrap_pi.sh" --no-searxng > "$TEST_ROOT/pi-repeat.out" 2> "$TEST_ROOT/pi-repeat.err"
 cmp -s "$TEST_ROOT/pi-before-rerun.json" "$PI_AGENT_ROOT/mcp.json"

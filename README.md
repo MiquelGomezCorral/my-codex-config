@@ -160,7 +160,7 @@ conflicts receive private backups.
 | --- | --- | --- | --- |
 | Codex | `~/.agents/skills`, individual links; managed policy appended to `~/.codex/AGENTS.md` | `~/.codex/agents` private role copies; linked `commands/` | `~/.codex/config.toml` merged with local MCPs and runtime tables preserved; `~/.codex/hooks.json` is merged too: only the command dispatcher hook is added or refreshed and Orca's hooks are left to Orca; plugins and updater remain Codex-owned |
 | Claude Code | `~/.claude/skills`, individual links; policy appended to `CLAUDE.md` | `agents/*.md`; command aliases are thin skills, with `harness-init` and `harness-review` reserved | User-scoped `claude mcp` commands add the three managed stdio servers and remove retired IDs; user-scoped `claude plugin` commands add the `midudev/better-claude` marketplace and install its `image-preview` and `sub-meter` plugins, plus the `zoharbabin/claude-code-message-timestamps` marketplace and its `message-timestamps` plugin (display-only, so timestamps never enter an agent's context); it installs `jq` into `~/.local/bin` when missing; the settings merge pins `timeZone`/`timeFormat` and the plugin's `CLAUDE_TIMESTAMPS_TZ` to `Europe/Madrid`, and sets `skillOverrides` to `off` for the claude.ai-synced and bundled skills listed in `SKILLS_OFF` (`config/bin/harness-assets.py`), keeping any other override |
-| Pi | Configured agent-root `skills/`; `AGENTS.md` policy append | `agents/*.md`, native `prompts/*.md`; async child agents inherit project/global context and skills | `mcp.json` merged; uses a compatible configured-root connector executable when present, otherwise the resolved shared binary |
+| Pi | Configured agent-root `skills/`; `AGENTS.md` policy append; `extensions/opencode-go-models.ts` link (OpenCode Go model allowlist) | `agents/*.md`, native `prompts/*.md`; async child agents inherit project/global context and skills | `mcp.json` merged; uses a compatible configured-root connector executable when present, otherwise the resolved shared binary |
 | Antigravity | CLI and IDE plugin each link shared skill entries; global policy and plugin policy are appended | CLI command TOML plus CLI-plugin skill aliases; CLI/IDE roles derive from the shared role source | `mcp_config.json` merged while preserving unrelated entries |
 
 The common MCP source is exactly CodeGraph, SearXNG, and BTCA in `config/mcp.json`.
@@ -265,7 +265,9 @@ stays a separate explicit `$review --ocr` opt-in. Install OCR separately,
 then authenticate `opencode-go` in Pi with `/login`; Pi is only the credential store, not
 the review harness. The review helper calls OpenCode Go directly, defaults to
 `deepseek-v4.1-flash`, and stores no credential or session state in this repository. Set
-`OCR_OPENCODE_GO_MODEL` before launching the harness to select another Go model. Without
+`OCR_OPENCODE_GO_MODEL` to `glm-5.3-flash` before launching the harness to use the other
+allowed model. Any other Go model is refused; the list lives in
+`config/pi/extensions/opencode-go-models.ts`. Without
 Pi, provide `OPENCODE_API_KEY` through the approved secret store.
 
 ```bash

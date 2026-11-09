@@ -806,19 +806,27 @@ printf 'ok\\n'
   chmodSync(pi, 0o700)
   chmodSync(ocr, 0o700)
 
-  const result = spawnSync(
-    join(root, "config/skills/review/scripts/ocr-opencode-go"),
-    ["review", "--audience", "agent", "--background", "goal"],
-    {
-      encoding: "utf8",
-      env: {
-        HOME: temporary,
-        PATH: `${bin}:/usr/bin:/bin`,
+  const runOcr = (env = {}) =>
+    spawnSync(
+      join(root, "config/skills/review/scripts/ocr-opencode-go"),
+      ["review", "--audience", "agent", "--background", "goal"],
+      {
+        encoding: "utf8",
+        env: {
+          HOME: temporary,
+          PATH: `${bin}:/usr/bin:/bin`,
+          ...env,
+        },
       },
-    },
-  )
+    )
+
+  const result = runOcr()
   strictEqual(result.status, 0, result.stderr)
   strictEqual(result.stdout, "ok\n")
+
+  const refused = runOcr({ OCR_OPENCODE_GO_MODEL: "kimi-k3" })
+  strictEqual(refused.status, 1, refused.stderr)
+  match(refused.stderr, /model kimi-k3 is not allowed/)
 })
 
 test("skill-scout vets before installing and never merges on its own", () => {

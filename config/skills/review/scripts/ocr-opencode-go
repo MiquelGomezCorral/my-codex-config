@@ -6,6 +6,13 @@ die() {
   exit 1
 }
 
+# The allowlist's owner is config/pi/extensions/opencode-go-models.ts; keep these ids in sync.
+ocr_model=${OCR_OPENCODE_GO_MODEL:-deepseek-v4.1-flash}
+case "$ocr_model" in
+  deepseek-v4.1-flash|glm-5.3-flash) ;;
+  *) die "model $ocr_model is not allowed on OpenCode Go (allowed: deepseek-v4.1-flash, glm-5.3-flash); see config/pi/extensions/opencode-go-models.ts" ;;
+esac
+
 command -v ocr >/dev/null 2>&1 || die "ocr is not installed"
 
 opencode_go_token=${OPENCODE_API_KEY:-}
@@ -16,7 +23,6 @@ if [[ -z "$opencode_go_token" ]]; then
 fi
 [[ -n "$opencode_go_token" ]] || die "the opencode-go credential is empty"
 
-ocr_model=${OCR_OPENCODE_GO_MODEL:-deepseek-v4.1-flash}
 ocr_session_id="ocr-$(date +%s)-$$"
 
 OCR_LLM_TOKEN="$opencode_go_token" \

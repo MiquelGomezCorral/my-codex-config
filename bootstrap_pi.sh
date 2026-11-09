@@ -155,6 +155,7 @@ install_assets() {
     python3 "$ROOT/config/bin/harness-assets.py" render-command --format pi \
       --source "$source" --target "$PI_AGENT_ROOT/prompts" --backup "$BACKUP_ROOT"
   done
+  common_link_managed "$ROOT/config/pi/extensions/opencode-go-models.ts" "$PI_AGENT_ROOT/extensions/opencode-go-models.ts"
   install_mcp_config
 }
 
