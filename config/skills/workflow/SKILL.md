@@ -187,7 +187,8 @@ context conflicts or a non-Git action's bounds are missing.
    A supervisor ends stage 6 with one evidence packet: the base, checkpoint and head
    revisions; check results; a per-finding disposition table for review and cleanup; its
    stage 4 record and each round's progress note (tree hash and step 5 labels);
-   live results with evidence paths; the diff stat;
+   live results with evidence paths; the requirement rows for the slice's `Covers` IDs
+   ([present to human](references/present-to-human.md) shapes them); the diff stat;
    amendments, blockers and escalations; gaps; and `Memory candidates:`. A supervisor updates
    only its own slice in the run record, on every step change, wait, result, and blocker, with
    the packet's `Progress script` as `update --run <Run ID> --slice <Slice ID>`: steps, activity,
@@ -203,7 +204,10 @@ context conflicts or a non-Git action's bounds are missing.
    live test on the checkpoint the last cleanup round audited, not the slice base, then
    stages 5 and 6 from that checkpoint, and returns a new packet.
 7. **Present to human:** show the result page (gate 3) with the actual result, live evidence,
-   checks, known gaps, and artifacts after stage 6 ends. For a noticeable or big slice, add
+   checks, known gaps, and artifacts after stage 6 ends. Before the page, the root checks
+   the slice's `Covers` IDs against the current head and live evidence ([present to
+   human](references/present-to-human.md) shapes the requirements table). A missing ID follows
+   [evidence and recovery](#evidence-and-recovery). For a noticeable or big slice, add
    the UI evidence code-quality `ui.md` (*Inspect the running app*) lists for the human.
    Route feedback that changes code through stages 5 and 6 before presenting again. After
    acceptance, the human-facing coordinator applies exact approved updates to private agent
@@ -233,14 +237,18 @@ context conflicts or a non-Git action's bounds are missing.
    after final acceptance in stage 9: push only if the plan names it, and open a PR only
    when the user asks.
 9. **Close the wave:** after the last slice, rerun every slice's live test set on the
-   final head. Fix a failure inside the owning slice's scope when it fits the last slice's
-   grant, routed through stages 5-8, cleanup included; otherwise use a bounded correction
-   slice the human approves. Then rerun the whole wave set. Ask the human about unclear
-   results; close only when the set passes. Record completed and unfinished slices, next
-   decisions, deferred findings, and lessons in local progress state. In a `final-only`
-   wave, the passing set opens the final gate: present one result page with a section per
-   slice and route feedback as [present to human](references/present-to-human.md) describes,
-   then ship through stage 8.
+   final head. Fix a failure inside the owning slice's scope when it
+   [fits](#evidence-and-recovery) the last slice's grant, routed through stages 5-8,
+   cleanup included; otherwise use a bounded correction slice the human approves. After a
+   correction, rerun the whole wave set. Ask the human
+   about unclear results; close only when the set passes. Before the final gate and at
+   wave close, the root checks every requirement ID against the current head and live
+   evidence. A missing one follows [evidence and recovery](#evidence-and-recovery). Record
+   completed and unfinished slices, next decisions, deferred findings, and lessons in
+   local progress state. In a `final-only` wave, the passing set opens the final gate:
+   present one result page with a section per slice, and route feedback as [present to
+   human](references/present-to-human.md)
+   describes, then ship through stage 8.
 
 Keep slices sequential by default. Ask before independent parallelism. Give each slice one
 worktree; use separate sessions in that worktree with one writer at a time. Start the next
@@ -271,6 +279,16 @@ source evidence. Treat false positives as rejected after verification. Record no
 out-of-scope observations without putting them in correction briefs. Required unavailable
 evidence is blocked/unverified, never an invented defect or approval. Deeper review presets
 do not enable OCR or Slopo; those remain explicit opt-ins.
+
+A missing requirement is a P1 finding, so the round cap never defers it. A P2/P3 finding
+that the cap defers counts as missing when it leaves a requirement unmet. It is routed
+back without asking the human: at a slice gate into that slice's coding loop
+(stages 5 and 6), and at wave close as the owning slice's correction task through
+stages 5 and 6 when the fix fits. A fix fits when it stays inside that slice's approved
+scope and its own stage 5-6 route, with no new kind of agent. After two unsuccessful
+correction rounds it escalates as [coding loop](references/coding-loop.md) step 6 sets.
+The human is asked to approve a bounded correction slice only when the fix does not fit,
+would change scope, or is impossible.
 
 Keep script-maintained JSON run state and its generated HTML where [workflow-progress](../workflow-progress/SKILL.md) puts them, under the repository's `agent-memory/workflow-runs/`.
 Reconcile them against the selected lifecycle, Git, and hosting-service state; they are not proof of completion.

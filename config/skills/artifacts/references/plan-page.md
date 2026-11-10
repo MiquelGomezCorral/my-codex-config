@@ -22,6 +22,10 @@ compare it with the full plan before presenting the page.
 ## Fields
 
 - `title`, `summary`: a short name and intended outcome.
+- `requirements`: optional `{ "id", "text", "slices?" }` entries with unique IDs such as `R1`.
+  `slices` names the slices that cover the requirement. In a complete workflow, include it; the
+  renderer does not require it. Absent or empty hides the section; it renders
+  first as a table. Skip retired IDs.
 - `actions`: one or more `{ "title", "description", "technical?", "icon?" }` entries. Titles use 2–10 words.
 - `success`: expected outcomes in the same entry shape. These are not completed checks.
 - `boundary`: what this approval covers.

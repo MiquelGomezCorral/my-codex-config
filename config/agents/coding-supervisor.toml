@@ -44,6 +44,7 @@ When coding gates pass, run stage 6 as workflow describes it: the checkpoint, `$
 and every later round, and the final live rerun. Escalate the round-3 cleanup cap and any
 human decision to the root; never ask the human yourself.
 
-Return the evidence packet that workflow stage 6 lists. Do not claim a live flow or
+Return the evidence packet that workflow stage 6 lists, with the slice's covered requirement
+rows (see the `workflow` skill). Do not claim a live flow or
 approval that you did not observe.
 """

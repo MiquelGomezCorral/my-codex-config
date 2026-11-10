@@ -454,9 +454,31 @@ function validateArtifacts(value, directory) {
   })
 }
 
+function validateRequirements(value) {
+  if (value === undefined) return []
+  if (!Array.isArray(value)) throw new Error("--review.requirements must be an array")
+  const ids = new Set()
+  return value.map((requirement, index) => {
+    const field = "--review.requirements[" + index + "]"
+    if (!isRecord(requirement)) throw new Error(field + " must be an object")
+    onlyKeys(requirement, ["id", "text", "slices"], field)
+    const id = requiredText(requirement.id, field + ".id").trim()
+    if (ids.has(id)) throw new Error(field + ".id repeats an earlier id: " + id)
+    ids.add(id)
+    let slices = []
+    if (requirement.slices !== undefined) {
+      if (!Array.isArray(requirement.slices)) {
+        throw new Error(field + ".slices must be an array")
+      }
+      slices = requirement.slices.map((slice, sliceIndex) => requiredText(slice, field + ".slices[" + sliceIndex + "]"))
+    }
+    return { id, text: requiredText(requirement.text, field + ".text"), slices }
+  })
+}
+
 function validateReview(value, directory) {
   if (!isRecord(value)) throw new Error("--review must contain a JSON object")
-  onlyKeys(value, ["title", "summary", "actions", "actionsIntro", "success", "boundary", "risks", "risksIntro", "questions", "details", "artifacts"], "--review")
+  onlyKeys(value, ["title", "summary", "actions", "actionsIntro", "success", "boundary", "risks", "risksIntro", "questions", "details", "artifacts", "requirements"], "--review")
   return {
     title: requiredText(value.title, "--review.title"),
     summary: requiredText(value.summary, "--review.summary"),
@@ -469,6 +491,7 @@ function validateReview(value, directory) {
     questions: validateEntries(value.questions, "--review.questions", false, false),
     details: validateDetails(value.details),
     artifacts: validateArtifacts(value.artifacts, directory),
+    requirements: validateRequirements(value.requirements),
   }
 }
 
@@ -581,6 +604,23 @@ function briefData(review, plan, source, outputDirectory) {
       ...sideVisuals.flatMap((artifact) => visualBlocks(artifact, outputDirectory)),
     ],
   }]
+  if (review.requirements.length) {
+    const withSlices = review.requirements.some((requirement) => requirement.slices.length)
+    sections.unshift({
+      id: "requirements",
+      title: "Requirements",
+      blocks: [{
+        type: "table",
+        columns: ["ID", "Requirement", ...(withSlices ? ["Slices"] : [])],
+        // The no-break space keeps each slice list on one line inside its table cell.
+        rows: review.requirements.map((requirement) => [
+          requirement.id,
+          requirement.text,
+          ...(withSlices ? [requirement.slices.length ? requirement.slices.join(",\u00a0") : "–"] : []),
+        ]),
+      }],
+    })
+  }
   if (review.risks.length) {
     sections.push({ id: "risks", title: "Material risks", ...(review.risksIntro ? { intro: review.risksIntro } : {}), blocks: [entryCards(review.risks, "triangle-alert")] })
   }

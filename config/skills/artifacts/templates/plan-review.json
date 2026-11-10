@@ -1,6 +1,17 @@
 {
   "title": "Preserve saved destinations",
   "summary": "Keep the existing return flow working while accepting a saved destination.",
+  "requirements": [
+    {
+      "id": "R1",
+      "text": "A saved destination reaches the existing return path.",
+      "slices": ["S1"]
+    },
+    {
+      "id": "R2",
+      "text": "Current callers keep their return behavior."
+    }
+  ],
   "actionsIntro": "Both changes keep the existing return path in control, so current destination checks still decide where a request may go.",
   "actions": [
     {

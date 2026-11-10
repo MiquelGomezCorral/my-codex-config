@@ -18,9 +18,11 @@ Offer a diagram with the first candidate when it clarifies a real flow, boundary
 or decision. Follow [the diagram guide](diagrams.md); keep the task in prose when a visual
 adds no useful information.
 
-Before the plan, present what discovery found on one discovery page (gate 1): codebase
-findings, external research with sources, the independent proposal, options, and the open
-questions as a `decisions` block. The `artifacts` rule that keeps small results in chat does
+Before the plan, present what discovery found on one discovery page (gate 1). It opens with a
+Requirements section, before any summary or stats section, built from the grill-me answers: each requirement with its ID (`R1`, `R2`,
+...), its text, and the grill-me answer that set it. Discovery sets the IDs. The page then covers
+codebase findings, external research with sources, the independent proposal, options, and the
+open questions as a `decisions` block. The `artifacts` rule that keeps small results in chat does
 not apply here; every workflow gets this page.
 
 Validation means the real thing, not a unit test. Establish early how the changed behavior

@@ -37,7 +37,9 @@ Exact implementation paths only.
 ## Requirements
 Required behavior, invariants, interfaces, and important edge cases. Include only
 facts established by the user or repository; do not turn unanswered choices into
-assumptions.
+assumptions. In a complete workflow, keep the `R1`, `R2`, ... IDs that discovery set from
+the grill-me answers. Append new requirements with the next free ID. Retire a removed one:
+mark it `retired` and keep its ID. Never reuse an ID or renumber.
 
 ## Steps
 Numbered actions. Name the exact file and symbol where possible, the intended change,
@@ -90,7 +92,8 @@ record/index changes. The main orchestrator owns those approved document changes
 execution; coders receive them as constraints and report conflicts.
 
 ## Workflow and authorizations (complete workflow only)
-Record slice order, dependencies, per-slice scope and exclusions, `Size: small|medium|large`
+Record slice order, dependencies, per-slice scope and exclusions, `Covers: R..`,
+`Size: small|medium|large`
 (approved with the plan; it picks the coder and supervisor route),
 `UI impact: none|low|noticeable|big` with a one-line reason (the expected level, sized as
 code-quality `ui.md` says; each review round re-sizes it), owners,
