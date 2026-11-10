@@ -33,13 +33,12 @@ evidence. Invoke `$review` at the size the coding loop's *Size the review* picks
 approved preset by default) on the resulting head with the complete approved plan and
 amendments, diff base and any `Review focus`, slice scope, exclusions, and
 observed checks.
-Read and assess the review report; use `review-findings` to verify supplied findings. Route every verified
-in-scope P0-P3 correction, including the cleanup findings you verify; use
-priority to order the corrections. Track rounds per unresolved problem and escalate after
-two unsuccessful rounds. Follow the workflow coding loop for live test rounds, reruns, and
-their limits; a failed or not-possible live test is a finding with its evidence. Never turn
-other blocked/unverified evidence, an unclear scope, or a false positive into a correction
-instruction.
+Read and assess the review report; use `review-findings` to verify supplied findings. Route each
+verified in-scope correction, including the cleanup findings you verify, and escalate unresolved
+problems as workflow coding loop step 6 sets. Follow the workflow coding loop for live test rounds,
+reruns, and their limits; a failed or not-possible live test is a finding with its evidence.
+Never turn other blocked/unverified evidence, an unclear scope, or a false positive into a
+correction instruction.
 
 When coding gates pass, run stage 6 as workflow describes it: the checkpoint, `$cleanup`
 and every later round, and the final live rerun. Escalate the round-3 cleanup cap and any

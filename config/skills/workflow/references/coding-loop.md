@@ -38,14 +38,38 @@ The retained writer uses the harness's normal native coding capability; see
    `ui-checker` block as a failed live test with its numbers as the evidence: it goes to the
    same coder without a source citation. Do not pass false positives, unclear ownership, or
    out-of-scope observations as correction instructions.
-6. Plan fixes: route every verified in-scope P0-P3 finding to the coder, including
-   non-blocking findings; use severity to order corrections. Route verified cleanup
-   simplifications the same way. Then repeat from step 3 with the affected checks and
-   reviews. Track two unsuccessful correction rounds per unresolved problem, then escalate
-   it. A not-possible live test counts toward its own 3-round limit, not the two-round
-   correction limit: ask the human when a test is still not possible after 3 rounds, or
-   when only unclear results remain. `ui-checker` lines still open when the plan's review
-   rounds run out go to the human gate with the block.
+   From round 2 on, check each verified finding against the previous round's tree: the tree
+   hash its progress note records (see *Mark what each review saw*, at the end of this file),
+   uncommitted work included. For a code finding, read the cited code and what it depends on at
+   that tree. For a live-test finding, use that test's result in the previous round, or replay
+   it on that tree when there is none. Label the finding `already there` if it shows on that
+   tree. If it does not, label it `churn`. When several corrections landed since that tree, the
+   stage owner names the correction that caused it and the problem that correction addressed;
+   one correction is everything the coder changed for one finding. A correction that
+   rethinks another addresses the same problem as the one it replaces. If the check cannot
+   settle the finding, label it `unclear`; investigate it before routing, never guess, and
+   if it stays unsettled, the stage owner asks the human through the root. Cite each check
+   in the current round's progress note. A finding rejected with a reason, or accepted as
+   risk by the human, stays closed when raised again.
+6. Plan fixes. Route churn first, at any severity and in any round, as
+   `undo or rethink that correction from its root cause`; never patch on top. Then route the
+   other verified in-scope findings by round, using severity to order corrections.
+   Rounds 1 and 2 route every verified in-scope P0-P3 finding, including non-blocking ones. From
+   round 3 only P0 and P1 go to the coder; P2 and P3 go to the disposition table as
+   `deferred (round cap)` and to the known gaps for the result page. The round-3 cut covers
+   review findings only; a failed or not-possible live test, a `ui-checker` line, and the
+   skeptical reviewer's `fix` findings are never deferred by it and keep the limits this
+   step sets. Count rounds per slice from its first coding-loop review; only a later change
+   listed in workflow stage 6 starts a new count. Route verified cleanup simplifications to
+   the coder too; cleanup keeps its own cap in workflow stage 6. Then repeat from step 3
+   with the affected checks and reviews. Track two unsuccessful correction rounds per
+   unresolved problem, then escalate it. A fixed finding that comes back counts against its
+   original problem. In one review, all churn and returned findings for the same problem
+   count as one unsuccessful correction. There is no separate counter. A not-possible live
+   test counts toward its own 3-round limit, not the two-round correction limit: ask the
+   human when a test is still not possible after 3 rounds, or when only unclear results
+   remain. `ui-checker` lines still open when the plan's review rounds run out go to the
+   human gate with the block.
 7. When required behavior and evidence pass, a last round reruns the full slice live test
    set on the final head, including after cleanup corrections, and at noticeable or big the
    UI check, whose last block the slice evidence keeps whole. Stop only when the required

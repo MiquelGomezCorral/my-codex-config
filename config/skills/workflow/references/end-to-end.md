@@ -17,7 +17,7 @@
    base-to-head changes plus task-owned staged, unstaged, and untracked changes. The
    reviewer reports the inspected revisions. Each round also runs
    the slice's live tests ([coding loop](coding-loop.md)). Verify required checks and
-   review findings; correct every verified in-scope P0-P3 finding in priority order.
+   review findings; route corrections as the coding loop's step 6 sets.
 6. After coding gates pass, make the plan-authorized local checkpoint through a git worker
    and record its hash. The first audit covers the complete task-owned comparison from slice
    base through the checkpoint and later worktree changes; skip cleanup only when this full

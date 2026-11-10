@@ -55,9 +55,10 @@ remain pending separate authorization.
   review claim, one out-of-scope observation, and a cleanup simplification that regresses
   accepted behavior.
 - **Expected:** label unavailable evidence blocked/unverified; verify and reject the false
-  positive; record but exclude the out-of-scope observation; correct all verified in-scope
-  P0-P3 findings by priority; return the cleanup regression to coding with the checkpoint
-  intact; escalate after two unsuccessful rounds for the same unresolved issue; reconcile
-  progress against the selected lifecycle and Git before resuming.
+  positive; record but exclude the out-of-scope observation; route churn first, then in
+  rounds 1-2 every verified in-scope finding, and from round 3 only P0 and P1 review
+  findings (P2 and P3 deferred as known gaps); return the cleanup regression to coding with
+  the checkpoint intact; escalate as coding loop step 6 sets; reconcile progress against the
+  selected lifecycle and Git before resuming.
 - **Must not:** convert missing evidence into a defect or approval, edit for the out-of-scope
   observation, discard the checkpoint, or report the interrupted slice complete.

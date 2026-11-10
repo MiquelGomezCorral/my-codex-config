@@ -154,9 +154,8 @@ context conflicts or a non-Git action's bounds are missing.
    `$review` keeps staged-first selection. Each round runs the code review and the slice's
    live tests together, gathers insights, and plans fixes, as the
    [coding loop](references/coding-loop.md) describes.
-   Verify findings before correction; correct every verified in-scope P0-P3 finding, using
-   priority to order work. Escalate after two unsuccessful rounds for the same unresolved
-   problem.
+   Verify findings before correction, then route and escalate them as the
+   [coding loop](references/coding-loop.md) step 6 sets.
 6. **Cleanup:** after coding gates pass, the stage owner runs the
    authorized local checkpoint through a git worker under `$git`, records its hash, then
    runs the read-only `$cleanup` audit. The comparison from the
@@ -187,7 +186,8 @@ context conflicts or a non-Git action's bounds are missing.
    the cap's outcomes.
    A supervisor ends stage 6 with one evidence packet: the base, checkpoint and head
    revisions; check results; a per-finding disposition table for review and cleanup; its
-   stage 4 record and round notes; live results with evidence paths; the diff stat;
+   stage 4 record and each round's progress note (tree hash and step 5 labels);
+   live results with evidence paths; the diff stat;
    amendments, blockers and escalations; gaps; and `Memory candidates:`. A supervisor updates
    only its own slice in the run record, on every step change, wait, result, and blocker, with
    the packet's `Progress script` as `update --run <Run ID> --slice <Slice ID>`: steps, activity,

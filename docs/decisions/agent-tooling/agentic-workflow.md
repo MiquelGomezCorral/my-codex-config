@@ -72,10 +72,13 @@ slices with inspectable verification and explicit human authority across project
   commit only when needed, and then performs only the plan-authorized push. The shipped tree
   must match the result the human accepted. A later merge-conflict, CI, or review fix that
   leaves behavior unchanged is the only exception.
-- Coding fixes verified in-scope findings at any severity, using P0-P3 to order work.
-  Non-blocking out-of-scope findings are
-  recorded and excluded; scope-expanding blockers escalate. Two unsuccessful rounds for
-  the same unresolved problem escalate rather than silently restarting the count.
+- Review rounds 1 and 2 of a slice's coding loop fix verified in-scope findings at any
+  severity, using P0-P3 to order work; from round 3 only P0 and P1 are fixed, and P2/P3
+  become known gaps on the result page. A finding a correction since the last review caused
+  is churn: that correction is undone or rethought from its root cause, at any severity and
+  before the round cut. Non-blocking out-of-scope findings are recorded and excluded;
+  scope-expanding blockers escalate. Two unsuccessful rounds for the same unresolved problem
+  escalate rather than silently restarting the count.
 - The human validates the final result before named shipping actions. An accepted plan
   authorizes only its specifically named Git actions and bounds; final result acceptance
   does not require a second Git authorization. Implementers never receive merge authority
@@ -220,6 +223,10 @@ diagram comprehension remains Review-only.
 
 ## History
 
+- 2026-11-09: Coding loops could run many rounds fixing every P2/P3 and patching fixes on top of
+  fixes. After comparing Google's elephant-goldfish review loop, the user capped P2/P3 fixes at
+  two rounds and made agents tell an old bug from one the last fix caused, which gets that fix
+  undone or rethought instead of patched.
 - 2026-11-02: Progress pages went stale during real runs and agents never knew whether an
   update worked. The page is now a hub page refreshed by every update (no server of its own),
   the script reports every call's outcome, the hand-set stage and last-gate fields were
