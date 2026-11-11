@@ -7,6 +7,8 @@ and validation method before proposing implementation details.
 This phase runs the first two [mandatory planning steps](planning.md#run-the-mandatory-steps):
 `grill-me` on the request before any solution plus the investigation (codebase mapping,
 research, the independent proposal, artifacts), then "How and who live validates it?".
+During the investigation, a qualifying wave also runs the
+[probes](planning.md#probe-unproven-assumptions).
 
 A worker writes the independent proposal through `super-agent`. Send it only verified
 problem facts, desired outcomes, constraints, and examples. Exclude repository code,

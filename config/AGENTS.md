@@ -36,6 +36,8 @@ together with this policy, even when its harness has its own instruction file su
 `CLAUDE.md` or `GEMINI.md`; read that file as well.
 - Questions are read-only; imperatives authorize only the stated implementation scope.
 - Planning, research, audit, and review stay read-only until implementation is authorized.
+A planning probe may add new files in the repository, never edit existing ones, and use no
+paid service; it still counts as planning.
 - For repository work, only the human-facing agent loads `agents-memory` and reads
 relevant existing repository context and private notes under the Git common directory;
 delegated agents get the task context they need and end each report with `Memory candidates:`

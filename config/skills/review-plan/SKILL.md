@@ -28,11 +28,19 @@ than the planner's: pass the planner's effective model and family to `super-agen
 the runtime-reported model when available, otherwise its configured model. Preserve an
 explicit human harness or model choice. `super-agent` reads
 `super-agent/references/model-catalog.yaml` and pins the exact harness, model, and thinking
-for each launch. Give each critic the same complete planning context from the main agent: the user's request and corrections, every decision and answered question, unresolved questions,
-alternatives considered and why they were rejected, repository evidence, applicable
+for each launch.
+Before launching the critics, the main agent saves the plan under review as `plan.md` and the
+complete planning context as `critic-context.md`, both in the plan's folder as
+[planning](../workflow/references/planning.md#finalize-the-wave) names it. The context file
+holds the user's request and corrections, every decision and answered question, unresolved
+questions, alternatives considered and why they were rejected, repository evidence, applicable
 instructions, the separate approved `Decision records` section, and the full proposed and
-approved plan. Do not assume it inherits the
-conversation; explicitly include this context in its task when inheritance is unavailable.
+approved plan. Do not assume a critic inherits the conversation; its task names the plan file
+and this context file. The first critic's launch gives file paths only, with no inline facts.
+It reads the plan file first and opens the context file only after writing a `Plan-only gaps`
+section, which lists everything a coder holding only the plan would have to guess. Critics write
+no files, so this section goes first in the report it returns, ahead of its usual full critique.
+The second critic opens the context file from the start.
 
 Each critic works independently and does not see the other's report: it challenges the plan
 using the checks below and returns concrete flaws, supporting evidence, suggested
@@ -57,6 +65,8 @@ user's requirements:
 - Confirm the proposed files, symbols, utilities, and commands exist.
 - Ensure the implementation can reach live validation with only the minimum useful
   non-live readiness check.
+- For each live test, name a plausible wrong build that would still pass it and the extra
+  condition that rejects it.
 - In a complete workflow, confirm the plan records what `refine-plan` requires. Report a
   missing or vague record as a flaw.
 
@@ -70,4 +80,4 @@ Once the findings are resolved, return the revised plan in chat as a self-contai
 execution specification for an agent with no conversation history.
 
 Load the `refine-plan` skill and follow it to render the finalized plan in the canonical
-template. Do not modify files; `refine-plan` owns the finalization statement.
+template. Do not modify repository files; `refine-plan` owns the finalization statement.

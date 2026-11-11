@@ -20,6 +20,10 @@ The retained writer uses the harness's normal native coding capability; see
    note. The first round runs the slice's full live test set; a fix round reruns only tests
    that failed or were not possible. A recorded opt-out skips the live tests, never the
    review.
+   Round 1's review request names the slice's `New parts:` and `Size guess:` to check the diff
+   against. An unlisted part is a finding
+   of its own. A diff far over the guess is a separate finding, not a line in a summary. A listed,
+   justified part is not a finding.
 4. Run the review and the live tests. The stage owner invokes
    `$review --preset <the round's preset>` on the resulting head with the round's scope.
    The [`full` preset](../../review/references/presets/full.md) runs
@@ -68,7 +72,11 @@ The retained writer uses the harness's normal native coding capability; see
    count as one unsuccessful correction. There is no separate counter. A not-possible live
    test counts toward its own 3-round limit, not the two-round correction limit: ask the
    human when a test is still not possible after 3 rounds, or when only unclear results
-   remain. `ui-checker` lines still open when the plan's review rounds run out go to the
+   remain. When a fix keeps failing before you escalate, swap in a known-good part
+   (another model's known-good weights through the same pipeline, or a request known to work)
+   or, when the wave had a probe, rerun its first probe on the current code, to see which side
+   is broken.
+   `ui-checker` lines still open when the plan's review rounds run out go to the
    human gate with the block.
 7. When required behavior and evidence pass, a last round reruns the full slice live test
    set on the final head, including after cleanup corrections, and at noticeable or big the

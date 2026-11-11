@@ -95,6 +95,9 @@ execution; coders receive them as constraints and report conflicts.
 Record slice order, dependencies, per-slice scope and exclusions, `Covers: R..`,
 `Size: small|medium|large`
 (approved with the plan; it picks the coder and supervisor route),
+`New parts:` (files, abstractions, dependencies, and flags the slice may add, each with why,
+or `none`),
+`Size guess:` (changed lines, counted as the coding loop's *Size the review* counts them),
 `UI impact: none|low|noticeable|big` with a one-line reason (the expected level, sized as
 code-quality `ui.md` says; each review round re-sizes it), owners,
 checks, samples, tool availability, review preset, acceptance evidence, required

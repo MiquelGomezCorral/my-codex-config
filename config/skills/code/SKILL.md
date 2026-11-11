@@ -29,7 +29,8 @@ the human-facing agent loads `agents-memory` and resolves the shared private pla
    update it atomically with approved concern changes, and never overwrite or duplicate links.
    Do not repeat approval after these changes are authorized.
 4. Persist the finalized plan unchanged as a self-contained
-   `agent-memory/plans/<short-kebab-task>.md` file under the resolved Git common directory,
+   `plan.md` file in the plan's folder that [planning](../workflow/references/planning.md#finalize-the-wave)
+   names, under the resolved Git common directory,
    creating that private directory when needed. Reuse an exact existing approved plan path
    when continuing older work.
 5. Record the absolute path for every later retained coder turn. Dispatch the coder with

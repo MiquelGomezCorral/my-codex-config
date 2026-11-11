@@ -97,6 +97,35 @@ checkpoint is the scope-lock package rather than a duplicate ledger summary.
    for other current external facts. Research a concrete open decision; do not browse a
    generic tutorial merely because the technology is unfamiliar.
 
+## Probe Unproven Assumptions
+
+A wave with a clear goal that adds something new (a capability, an integration, a dependency,
+or a user flow) gets probes when a probe makes sense. That includes small-medium waves, not only
+big ones. Judge the size from the scope so far, since slices are not sized yet. A simple UI or
+plain logic needs no probe: build it in slices, the logic first, then the UI.
+
+A probe is quick ad hoc code that proves the risky inputs and outputs work. Make it as big as
+the risk needs, but never a rebuild of the app. An API probe calls every endpoint the feature
+will use. Never use a paid service; use free services or free tiers. When the user says there is
+quota to burn, ask first. Use test or read-only access; keys come from the environment, never a
+file in the repository. Write each result on the discovery page. The plan's folder is named
+under [Finalize the wave](#finalize-the-wave).
+
+A probe may add new files in the repository, but it never edits an existing file. It installs what
+it needs in its own folder or a throwaway environment, never into the project's manifest or
+lockfile. Keep the probe code that worked as a readable, runnable notebook or script, a new
+file in the repository folder where it fits, never pasted into a document. It is the
+first slice's starting point. A probe that yields a script or page keeps that too. Delete the other
+throwaway files. List the kept file under the first slice's `New parts:`. For a wave that gets
+probes, shape the first slice as the
+[improvement loop](improvement-loop.md) says. A part the probe shows impossible leaves the plan
+before approval.
+
+Fixes and tweaks of existing behavior have no formal probe step: no probe section and no
+probe-based plan. Small checks now and then are fine, to understand the bug and the fix.
+
+Examples: [probe examples](probe-examples.md).
+
 ## Define the Live Test
 
 Unit tests never replace the live test. Every plan must define how the actual changed
@@ -202,8 +231,9 @@ Include only applicable sections from:
   artifacts, human gates, and exact bounded Git/live authorizations or none.
 
 Do not turn unanswered choices into assumptions. Resolve the Git common directory through
-`agents-memory` and persist each new native plan under its `agent-memory/plans/` directory;
-preserve exact existing plan paths when continuing older work. List supporting evidence
+`agents-memory` and persist each new native plan in its own folder under that directory:
+`agent-memory/plans/<short-kebab-task>-<YYYYMMDD>/`, created at first use.
+Preserve exact existing plan paths when continuing older work. List supporting evidence
 and artifacts. Keep implementation choices and durable project decisions distinct.
 For human review, fill a concise brief from the artifacts skill's
 `references/plan-page.md`; read that reference only when producing the brief. Keep the

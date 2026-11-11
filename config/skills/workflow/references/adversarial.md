@@ -13,8 +13,8 @@ preference, and what happens when a provider is unavailable. Pass the planner's 
 runtime-reported model when available, otherwise its configured model. Preserve an
 explicit human harness or model choice. Never substitute an uncataloged model or fall back
 to a generic tier.
-Launch no third critic and no further round. Give each critic the complete candidate plan, claims, cited sources, bug
-evidence, user requirements, and exclusions; require source checks for consequential
+Launch no third critic and no further round. Give each critic the complete candidate plan and its context file, in the
+files and order `$review-plan` sets. Require source checks for consequential
 claims rather than a summary verdict. The critics work independently and do not see each
 other's reports.
 
