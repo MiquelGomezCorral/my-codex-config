@@ -4,7 +4,8 @@
 Runs the catalog's `explorer` candidates in order (pi one-shot, then claude) and prints the
 first brief that comes back. stdout carries only the brief; stderr carries one line per
 failed candidate and one line naming the route that answered. Exit status 1 means every
-candidate failed. Each candidate runs under a timeout (240 s, or --timeout seconds).
+candidate failed. Each candidate runs under a timeout (240 s, or --timeout seconds). Every
+call carries the global policy and the current repository's AGENTS.md in its system prompt.
 """
 
 import argparse
@@ -18,6 +19,7 @@ import tomllib
 CONFIG_ROOT = pathlib.Path(__file__).resolve().parent.parent
 CATALOG = CONFIG_ROOT / "skills/super-agent/references/model-catalog.yaml"
 AGENT_FILE = CONFIG_ROOT / "agents/explorer.toml"
+POLICY_FILE = CONFIG_ROOT / "AGENTS.md"
 DEFAULT_TIMEOUT_SECONDS = 240
 MAX_BRIEF_LINES = 20
 
@@ -49,6 +51,35 @@ def explorer_candidates(catalog: pathlib.Path) -> list[dict[str, str]]:
 def instructions() -> str:
     """Return the explorer's developer instructions, which explorer.toml owns."""
     return tomllib.loads(AGENT_FILE.read_text(encoding="utf-8"))["developer_instructions"].strip()
+
+
+def repository_context() -> tuple[pathlib.Path | None, str]:
+    """Return the current Git root (None outside Git) and its agent-memory folder or `unavailable`."""
+    try:
+        done = subprocess.run(
+            ["git", "rev-parse", "--path-format=absolute", "--show-toplevel", "--git-common-dir"],
+            capture_output=True, encoding="utf-8", check=False,
+        )
+    except OSError:
+        return None, "unavailable"
+    if done.returncode:
+        return None, "unavailable"
+    root, common_dir = done.stdout.splitlines()[:2]
+    memory = pathlib.Path(common_dir) / "agent-memory"
+    return pathlib.Path(root), (str(memory) if memory.is_dir() else "unavailable")
+
+
+def system_prompt(root: pathlib.Path | None) -> str:
+    """Return the explorer's instructions with the global policy and the repository's AGENTS.md.
+
+    The pi and claude flags drop AGENTS.md and CLAUDE.md, so both texts travel in the system prompt.
+    """
+    policy = POLICY_FILE.read_text(encoding="utf-8").strip()
+    parts = [instructions(), f"# Global policy ({POLICY_FILE})", policy]
+    agents = root / "AGENTS.md" if root is not None else None
+    if agents is not None and agents.is_file():
+        parts += [f"# Repository AGENTS.md ({agents})", agents.read_text(encoding="utf-8").strip()]
+    return "\n\n".join(parts)
 
 
 def one_shot_argv(candidate: dict[str, str], prompt: str, system: str) -> list[str] | None:
@@ -101,8 +132,13 @@ def main() -> None:
     args = parser.parse_args()
 
     paths = ", ".join(args.paths) or "none"
-    prompt = f"Question: {args.question}\nPaths (hints, not limits): {paths}"
-    system = instructions()
+    root, memory = repository_context()
+    prompt = (
+        f"Question: {args.question}\n"
+        f"Paths (hints, not limits): {paths}\n"
+        f"Agent memory for the error lookup: {memory}"
+    )
+    system = system_prompt(root)
     for candidate in explorer_candidates(CATALOG):
         route = f"{candidate['harness']} {candidate['model']} thinking {candidate['thinking']}"
         argv = one_shot_argv(candidate, prompt, system)
