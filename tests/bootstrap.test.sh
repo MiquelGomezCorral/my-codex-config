@@ -331,6 +331,10 @@ fi
 grep -q 'BEGIN my-harness-config policy' "$CODEX_TARGET/AGENTS.md"
 grep -q 'User Codex instructions' "$CODEX_TARGET/AGENTS.md"
 grep -q 'Security Rules' "$CODEX_TARGET/AGENTS.md"
+if grep -q 'agent-guard unlock reads' "$CODEX_TARGET/AGENTS.md"; then
+  printf 'Codex AGENTS.md must not carry the Claude-only policy add-on.\n' >&2
+  exit 1
+fi
 [[ -f "$TEST_ROOT/searxng.state" ]]
 grep -q 'docker run --detach --name my-codex-config-searxng --restart unless-stopped --publish 127.0.0.1:8080:8080' "$STUB_LOG"
 grep -q 'bun add -g btca' "$STUB_LOG"
@@ -588,6 +592,7 @@ HOME="$CLAUDE_HOME" CLAUDE_CONFIG_DIR="$CLAUDE_HOME/.claude" BACKUP_ROOT="$TEST_
 [[ "$(find "$CLAUDE_HOME/.claude/agents" -maxdepth 1 -type f -name '*.md' | wc -l)" -eq 14 ]]
 grep -q 'User Claude notes' "$CLAUDE_HOME/.claude/CLAUDE.md"
 grep -q 'BEGIN my-harness-config policy' "$CLAUDE_HOME/.claude/CLAUDE.md"
+grep -q 'agent-guard unlock reads' "$CLAUDE_HOME/.claude/CLAUDE.md"
 python3 - "$CLAUDE_HOME/.claude/skills" <<'PY'
 import pathlib
 import re
@@ -608,22 +613,30 @@ PY
 for name in braintrust vidext-operator-my-workspace headroom sequential-thinking; do
   grep -q "^claude mcp remove $name" "$CLAUDE_LOG"
 done
-for name in codegraph searxng btca; do
+for name in codegraph btca; do
   grep -q "^claude mcp add-json $name" "$CLAUDE_LOG"
 done
 grep -q '^claude plugin marketplace add zoharbabin/claude-code-message-timestamps' "$CLAUDE_LOG"
 grep -q '^claude plugin install message-timestamps@zoharbabin-claude-tools' "$CLAUDE_LOG"
 cp "$CLAUDE_HOME/.claude/settings.json" "$TEST_ROOT/claude-settings-first.json"
+# A managed searxng left by an older bootstrap is removed.
+printf 'searxng\n' >> "$CLAUDE_MCP_STATE"
 HOME="$CLAUDE_HOME" CLAUDE_CONFIG_DIR="$CLAUDE_HOME/.claude" BACKUP_ROOT="$TEST_ROOT/claude-backups" \
-  "$REPO_ROOT/bootstrap_claude.sh" --no-searxng --no-searxng-mcp > "$TEST_ROOT/claude-no-mcp.out" 2> "$TEST_ROOT/claude-no-mcp.err"
+  "$REPO_ROOT/bootstrap_claude.sh" --no-searxng > "$TEST_ROOT/claude-no-mcp.out" 2> "$TEST_ROOT/claude-no-mcp.err"
 cmp -s "$TEST_ROOT/claude-settings-first.json" "$CLAUDE_HOME/.claude/settings.json"
 grep -q '^claude mcp remove searxng' "$CLAUDE_LOG"
 [[ "$(sort "$CLAUDE_MCP_STATE")" == $'btca\ncodegraph\nunrelated' ]]
 [[ "$(grep -c '^claude mcp add-json codegraph' "$CLAUDE_LOG")" -eq 2 ]]
-[[ "$(grep -c '^claude mcp add-json searxng' "$CLAUDE_LOG")" -eq 1 ]]
+if grep -q '^claude mcp add-json searxng' "$CLAUDE_LOG"; then
+  printf 'Claude must not get the SearXNG MCP.\n' >&2
+  exit 1
+fi
 [[ "$(grep -c '^claude mcp add-json btca' "$CLAUDE_LOG")" -eq 2 ]]
 [[ -L "$CLAUDE_HOME/.local/bin/ocr-go" ]]
-! grep -q '^model: inherit' "$CLAUDE_HOME/.claude/agents/coder.md"
+if grep -q '^model: inherit' "$CLAUDE_HOME/.claude/agents/coder.md"; then
+  printf 'Claude coder agent must not inherit its model.\n' >&2
+  exit 1
+fi
 python3 - "$CLAUDE_HOME/.claude/settings.json" <<'PY'
 import json
 import pathlib
@@ -694,10 +707,10 @@ for model, prompt, subagent_type, env, denied in cases:
     assert ("deny" in out) == denied, (model, prompt, subagent_type, env, out)
 PY
 
-# A user's own searxng server survives --no-searxng-mcp.
+# A user's own searxng server survives.
 printf 'searxng\n' >> "$CLAUDE_MCP_STATE"
 CLAUDE_SEARXNG_CUSTOM=1 HOME="$CLAUDE_HOME" CLAUDE_CONFIG_DIR="$CLAUDE_HOME/.claude" BACKUP_ROOT="$TEST_ROOT/claude-backups" \
-  "$REPO_ROOT/bootstrap_claude.sh" --no-searxng --no-searxng-mcp > "$TEST_ROOT/claude-own.out" 2> "$TEST_ROOT/claude-own.err"
+  "$REPO_ROOT/bootstrap_claude.sh" --no-searxng > "$TEST_ROOT/claude-own.out" 2> "$TEST_ROOT/claude-own.err"
 grep -Fxq searxng "$CLAUDE_MCP_STATE"
 
 run_searxng_case() {

@@ -58,6 +58,7 @@ links shared assets and renders only the native files that differ.
 ## Protected invariants
 
 - Shared facts have one source owner; native adapters do not duplicate policy.
+- Harness-only policy text lives in one add-on per harness, appended by that harness's bootstrap.
 - Already installed compatible shared dependencies are not reinstalled.
 - Retired managed MCP entries cannot return through extra-entry preservation.
 - Authentication, sessions, caches and private memories remain outside the repo.

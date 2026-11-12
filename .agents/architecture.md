@@ -16,6 +16,8 @@ Node.js adapters, shared by Codex, Claude Code, Pi, and AGY.
   here.
 - `config/skills/` owns the repository skills; each harness gets individual links.
 - `config/` also owns roles, commands, the MCP inventory, policy, and adapters.
+- `config/AGENTS.md` is the policy every bootstrap installs; `config/claude-policy.md` is the one
+  Claude-only add-on, which `bootstrap_claude.sh` appends to `CLAUDE.md` inside the same managed block.
 - `.agents/` is tracked, historical repository context. New plans and private notes live
   in `agent-memory/` under the Git common directory (see `AGENTS.md`); `.agents/plans/`
   keeps old execution plans as history only.

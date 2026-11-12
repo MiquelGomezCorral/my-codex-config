@@ -222,7 +222,9 @@ def render_command(args: argparse.Namespace) -> None:
 
 
 def install_policy(args: argparse.Namespace) -> None:
-    source = pathlib.Path(args.source).read_text(encoding="utf-8").strip()
+    base = pathlib.Path(args.source).read_text(encoding="utf-8").strip()
+    addon = pathlib.Path(args.addon).read_text(encoding="utf-8").strip() if args.addon else ""
+    source = f"{base}\n\n{addon}" if addon else base
     target = pathlib.Path(args.target)
     section = f"{POLICY_START}\n\n{source}\n\n{POLICY_END}"
     current = target.read_text(encoding="utf-8") if target.is_file() else ""
@@ -255,10 +257,11 @@ def install_policy(args: argparse.Namespace) -> None:
             )
             if security is not None and intervening_heading is None:
                 security_end = global_end + security.end()
-                source_security = re.search(r"(?m)^# Security Rules[ \t]*$", source)
+                # A legacy block holds only the shared policy, so its tail is matched against base alone.
+                source_security = re.search(r"(?m)^# Security Rules[ \t]*$", base)
                 if source_security is None:
                     raise SystemExit("Cannot safely identify the current security policy; existing file left unchanged")
-                expected = source[source_security.end():].lstrip("\r\n")
+                expected = base[source_security.end():].lstrip("\r\n")
                 old_security = current[security_end:]
                 old_body = old_security.lstrip("\r\n")
                 if not old_body.startswith(expected):
@@ -448,6 +451,7 @@ def parser() -> argparse.ArgumentParser:
     policy.add_argument("--source", required=True)
     policy.add_argument("--target", required=True)
     policy.add_argument("--backup", required=True)
+    policy.add_argument("--addon")
     policy.set_defaults(run=install_policy)
 
     hooks = commands.add_parser("merge-hooks")

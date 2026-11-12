@@ -109,7 +109,9 @@ Portable diagram-design and Excalidraw skills do not require Codex login. The fo
 scripts can also run separately.
 
 Use `--no-searxng` to skip only the shared Docker service or `--no-searxng-mcp` to skip the
-connector and managed SearXNG entry. Both defaults enable them.
+connector and managed SearXNG entry. Both defaults enable them. The Claude bootstrap never
+installs the SearXNG MCP (Claude uses its built-in WebSearch), so `--no-searxng-mcp` applies
+to Codex, Pi and AGY.
 
 Default user locations are `~/.codex`, `${CLAUDE_CONFIG_DIR:-~/.claude}`,
 `${PI_CODING_AGENT_DIR:-~/.pi/agent}`, and `~/.gemini/config`; Antigravity CLI assets
@@ -159,7 +161,7 @@ conflicts receive private backups.
 | Harness | Shared assets and policy | Roles and commands | MCP configuration |
 | --- | --- | --- | --- |
 | Codex | `~/.agents/skills`, individual links; managed policy appended to `~/.codex/AGENTS.md` | `~/.codex/agents` private role copies; linked `commands/` | `~/.codex/config.toml` merged with local MCPs and runtime tables preserved; `~/.codex/hooks.json` is merged too: only the command dispatcher hook is added or refreshed and Orca's hooks are left to Orca; plugins and updater remain Codex-owned |
-| Claude Code | `~/.claude/skills`, individual links; policy appended to `CLAUDE.md` | `agents/*.md`; command aliases are thin skills, with `harness-init` and `harness-review` reserved | User-scoped `claude mcp` commands add the three managed stdio servers and remove retired IDs; user-scoped `claude plugin` commands add the `midudev/better-claude` marketplace and install its `image-preview` and `sub-meter` plugins, plus the `zoharbabin/claude-code-message-timestamps` marketplace and its `message-timestamps` plugin (display-only, so timestamps never enter an agent's context); it installs `jq` into `~/.local/bin` when missing; the settings merge pins `timeZone`/`timeFormat` and the plugin's `CLAUDE_TIMESTAMPS_TZ` to `Europe/Madrid`, and sets `skillOverrides` to `off` for the claude.ai-synced and bundled skills listed in `SKILLS_OFF` (`config/bin/harness-assets.py`), keeping any other override |
+| Claude Code | `~/.claude/skills`, individual links; policy appended to `CLAUDE.md` | `agents/*.md`; command aliases are thin skills, with `harness-init` and `harness-review` reserved | User-scoped `claude mcp` commands add the managed stdio servers CodeGraph and BTCA (never SearXNG) and remove retired IDs and any managed SearXNG entry; user-scoped `claude plugin` commands add the `midudev/better-claude` marketplace and install its `image-preview` and `sub-meter` plugins, plus the `zoharbabin/claude-code-message-timestamps` marketplace and its `message-timestamps` plugin (display-only, so timestamps never enter an agent's context); it installs `jq` into `~/.local/bin` when missing; the settings merge pins `timeZone`/`timeFormat` and the plugin's `CLAUDE_TIMESTAMPS_TZ` to `Europe/Madrid`, and sets `skillOverrides` to `off` for the claude.ai-synced and bundled skills listed in `SKILLS_OFF` (`config/bin/harness-assets.py`), keeping any other override |
 | Pi | Configured agent-root `skills/`; `AGENTS.md` policy append; `extensions/opencode-go-models.ts` link (OpenCode Go model allowlist) | `agents/*.md`, native `prompts/*.md`; async child agents inherit project/global context and skills | `mcp.json` merged; uses a compatible configured-root connector executable when present, otherwise the resolved shared binary |
 | Antigravity | CLI and IDE plugin each link shared skill entries; global policy and plugin policy are appended | CLI command TOML plus CLI-plugin skill aliases; CLI/IDE roles derive from the shared role source | `mcp_config.json` merged while preserving unrelated entries |
 
@@ -179,8 +181,8 @@ focused TOML roles in `config/agents/` render to each harness's native role form
 
 `$workflow` renders a short human view from the complete Markdown plan and a small
 `review.json` brief, drawn by the artifacts page engine. See the
-[brief field guide](config/skills/artifacts/references/plan-page.md) and
-[compact example](config/skills/artifacts/templates/plan-review.json). Markdown-only
+[brief field guide](config/skills/agent-artifacts/references/plan-page.md) and
+[compact example](config/skills/agent-artifacts/templates/plan-review.json). Markdown-only
 renderer calls still work.
 
 Shared product decision records live in each repository's `docs/decisions/`. Only the
@@ -194,18 +196,12 @@ the main orchestrator applies those changes
 and passes protected invariants to implementation and review workers. Routine work reports no
 change, while intent conflicts require user resolution.
 
-Delegating skills load `super-agent`. The `reviewer-fast` and `swarms` roles run on the
-launching agent's own harness with that harness's cheap model at its highest thinking.
-`computer-controller` runs there at the thinking the catalog sets. All three fall back to that
-harness's `low` tier. A proven active wrapper such as Orca owns the
-worker lifecycle and exposes eligible harnesses; without a wrapper, delegation stays on
-the current harness and uses its native worker tools. Generic mixed swarms keep at least
-half their workers, rounded up, on the current harness when no catalog role, harness
-preference, or roster fixes a worker's harness. Explicit AGY/Pi rosters stay exact, review presets keep
-their shapes, and live end-to-end validation stays on its bounded route. The active adapter
-owns launch mechanics only. Outside a wrapper, another harness
-requires an explicit documented one-shot adapter, except the read-only `explore` command;
-missing coverage remains visible.
+Delegating skills load `super-agent`, the one owner of delegation policy: whether to
+delegate, the active-wrapper-or-native lifecycle, role, harness, model, thinking, fallback,
+and nesting. Its `SKILL.md` holds the policy; `references/routing.md` holds the worker packet
+and launch mechanics, `references/lifecycle.md` waiting, stalls and recovery, and
+`references/swarm.md` the swarm gate. Another harness runs only through an explicit documented
+one-shot adapter, except the read-only `explore` command; missing coverage remains visible.
 
 Workflow stages use harness-native planning, coding, and findings-only review routes where
 available. The compact route and limitation matrix is
@@ -216,14 +212,8 @@ generic; Orca executable resolution, guide loading, and launch mechanics live in
 Central routing lives only in
 `config/skills/super-agent/references/model-catalog.yaml`: edit a role once to change the
 harness, exact model or ordered candidate list, and thinking used for every automatic
-launch. A model list is fallback order, never random distribution; a role written as a list
-of entries is an ordered fallback too, and several workers of one role launch only when a
-skill states the count, as `super-agent` describes. Role settings win over
-generic tiers, invoking-skill or wrapper preferences, and inherited defaults. The generic
-`low`, `medium`, `high`, and `local` tiers remain only for an explicit tier or harness
-override against the stage-to-role mapping in `super-agent`. An exhausted role candidate
-list is a blocker instead of a harness default, and the root `super_agent` entry governs
-new root launches without switching an existing main conversation. Pi's Orca route pins the
+launch. How `super-agent` applies the catalog (fallback order, tiers, blockers, the root
+`super_agent` entry) is described there, not here. Pi's Orca route pins the
 resolved model and thinking in a custom terminal and attaches the task through the
 supervised worker lifecycle described by the adapter. Explicit cross-harness one-shot
 adapters are documented by `super-agent`; they pass catalog values as arguments and never
@@ -323,9 +313,9 @@ and PR flow are replaced by this repository's own test commands and the `git` sk
 The `code-quality` and `review` skills adapt their core rules from [Ponytail](https://github.com/DietrichGebert/ponytail)
 v5.3.2 by Dietrich Gebert (MIT). The license copy sits in each skill as `LICENSE-ponytail`.
 
-The artifacts skill bundles selected [Lucide](https://github.com/lucide-icons/lucide)
-SVGs in `config/skills/artifacts/icons.json`. Lucide's ISC notice, which also names the
-Feather portions it carries, is in `config/skills/artifacts/licenses/lucide.LICENSE`.
+The agent-artifacts skill bundles selected [Lucide](https://github.com/lucide-icons/lucide)
+SVGs in `config/skills/agent-artifacts/icons.json`. Lucide's ISC notice, which also names the
+Feather portions it carries, is in `config/skills/agent-artifacts/licenses/lucide.LICENSE`.
 
 The `figures` skill vendors [Pele](https://github.com/obsidianmd/pele) 1.6.0 (MIT, Copyright (c) 2026 kepano), the
 Mermaid renderer, as `config/skills/figures/assets/pele/pele.global.js`, unmodified. Its license is
