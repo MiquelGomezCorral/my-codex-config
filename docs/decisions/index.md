@@ -11,6 +11,6 @@ Records are grouped by capability and stable concern so agents can read the smal
 - [Agentic workflow](agent-tooling/agentic-workflow.md) — Human-gated planning and delivery, sequential stacked slices, local progress, and separate implementation/project decisions.
 - [Project initialization](agent-tooling/project-init.md) — One `init` command that sets up or repairs a repository for agents, with `AGENTS.md` followed by every harness.
 - [Harness portability](agent-tooling/harness-portability.md) — One shared configuration source and installer, with four native bootstraps and preserved local state.
-- [Artifact pages](agent-tooling/artifact-pages.md) — One page hub on port 3200 that serves and lists every agent page and app, owned by the artifacts skill.
+- [Artifact pages](agent-tooling/artifact-pages.md) — One page hub on port 3200 that serves and lists every agent page and app, owned by the agent-artifacts skill.
 - [Ponytail core](agent-tooling/ponytail.md) — Ponytail v5.3.2 copied in as the base of `code-quality` and `review`, pinned and synced by hand, never downloaded.
 - [Figures](agent-tooling/figures.md) — One `figures` skill that routes Pele, diagram-design, Excalidraw and Plotly, with figures that match the artifact page themes.

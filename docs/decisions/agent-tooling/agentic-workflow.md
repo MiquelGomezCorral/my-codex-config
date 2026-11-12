@@ -96,7 +96,7 @@ slices with inspectable verification and explicit human authority across project
   state. Runs started under the old XDG location stay readable. Actual worker, Git, and
   hosting-service state remains authoritative for reconciliation.
 - Plan-specific editable diagrams, SVG previews, mockups and live-test samples live in
-  `agent-memory/artifacts/<name>/`, which the artifacts skill owns; the plan links to them.
+  `agent-memory/artifacts/<name>/`, which the agent-artifacts skill owns; the plan links to them.
 - A script-maintained progress record generates the status page, published on the artifacts
   hub at intake. Every update rewrites it and the open page refreshes itself, so the user
   reads progress instead of asking. Every `/workflow` run uses it from intake to close
@@ -244,7 +244,7 @@ diagram comprehension remains Review-only.
   feedback fixes on a final-only wave skipped cleanup and about 60 lines of waste reached the PR.
 - 2026-10-19: Slice size became per slice with three values (small, medium, large), approved by the human with the plan; medium and large both get a supervisor, and the size picks the models.
 - 2026-10-16: Moved run state into private `agent-memory/` and plan diagrams and samples into
-  `agent-memory/artifacts/<name>/`, so durable agent work has one home and the artifacts skill
+  `agent-memory/artifacts/<name>/`, so durable agent work has one home and the agent-artifacts skill
   stays the central owner; the map viewer's colours now follow the diagram legend.
 - 2026-10-11: Gate pages are published through the artifacts page hub; the Lavish viewer was removed.
 - 2026-10-10: Required a page at each human gate, with changes since the last version shown and live evidence at the result gate.

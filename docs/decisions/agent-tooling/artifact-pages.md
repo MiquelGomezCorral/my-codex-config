@@ -10,7 +10,7 @@ serves gets lost, keeps running unnoticed, or changes address.
 - One page hub on port 3200, bound to `0.0.0.0`, serves every agent page at
   `/<repo>/<worktree>/<page>/` (`/<repo>/<page>/` on the main checkout, `/_local/<page>/` outside
   a repository) and lists them all on its home page with Stop, Serve again, and Delete.
-- The hub starts on demand from the artifacts skill and restores every page from a small machine
+- The hub starts on demand from the agent-artifacts skill and restores every page from a small machine
   file of repository locations; there is no login service.
 - Pages and their records stay in each repository's private `agent-memory/artifacts/`; folders
   without a record still appear, so the index is the full catalog for pruning.
@@ -18,7 +18,7 @@ serves gets lost, keeps running unnoticed, or changes address.
   and Start act only after the hub confirms the process identity and port ownership.
 - Port data comes from Orca's own scan, `orca ports --all --json`, which agents run on this
   machine. The hub has no Ports view, so LAN clients never see local listeners.
-- The artifacts skill is the single owner of serving; workflow, skill-creator, and the global
+- The agent-artifacts skill is the single owner of serving; workflow, skill-creator, and the global
   policy point to it. workflow-progress publishes its progress page on the hub like any other
   page and rewrites it on every update; it runs no server of its own.
 - The artifacts folder `agent-memory/artifacts/<name>/` is the one home for durable pages,
@@ -46,7 +46,7 @@ rather than proxied pages so their own ports and protocols keep working.
 
 - Live validation of the hub (start, addresses, actions, restart, apps, catalog, races) and of
   agents using it unprompted.
-- Review-only: [artifacts skill](../../../config/skills/artifacts/SKILL.md) stays the only file
+- Review-only: [agent-artifacts skill](../../../config/skills/agent-artifacts/SKILL.md) stays the only file
   that explains serving.
 
 ## History

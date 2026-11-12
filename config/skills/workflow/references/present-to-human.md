@@ -5,7 +5,7 @@ relevant user flow and sample, expected and observed behavior, changed paths, ch
 their results, review findings, artifacts, and blocked/unverified evidence. Keep claims
 bounded by what was observed.
 
-Show it on the result page (gate 3): fill `artifacts` `templates/report.json`, including its
+Show it on the result page (gate 3): fill `agent-artifacts` `templates/report.json`, including its
 Live evidence section, captured with `capture.mjs`.
 
 The result page opens with the slice's requirements table: one row per `Covers` ID, with the

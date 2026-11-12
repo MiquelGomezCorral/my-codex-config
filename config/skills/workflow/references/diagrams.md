@@ -50,7 +50,7 @@ source supplied by the tool. An `excalidraw-draw` drawing previews as its render
 drawing. Attach accepted artifacts through the existing `title`, `caption`, `path`,
 `sourcePath`, and `placement` fields. Keep the takeaway and review question in the caption,
 and link the artifact in its `agent-memory/artifacts/<name>/` folder (see the
-[artifacts skill](../../artifacts/SKILL.md#page-hub)).
+[agent-artifacts skill](../../agent-artifacts/SKILL.md#page-hub)).
 
 When `diagram-design` and the `excalidraw` skill templates cannot express the drawing, or
 it goes beyond diagrams (wireframes, slides, illustrations, maps), use

@@ -65,7 +65,7 @@ previews help readers choose a section; the full Markdown source stays available
 
 ## Icons
 
-The artifacts skill owns the icon catalog, `icons.json`; its keys are the icon names
+The agent-artifacts skill owns the icon catalog, `icons.json`; its keys are the icon names
 (`workflow`, `shield-check`, `triangle-alert`, ...). In `review.json`, set `icon` to one of
 them; never paste SVG markup. An unknown name stops the render and lists the valid ones.
 

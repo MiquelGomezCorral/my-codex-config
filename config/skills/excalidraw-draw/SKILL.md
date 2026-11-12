@@ -23,7 +23,7 @@ be right. `scripts/scene.py` computes that geometry and lints the result.
 - This skill owns drawing mechanics. What makes a drawing clear (one question, a
   takeaway, legends, labels, verified facts, the caption) comes from the shared
   [presentation rules](../workflow/references/diagrams.md#presentation), and from the
-  [artifacts figure rules](../artifacts/SKILL.md#diagrams-and-illustrations) when the
+  [agent-artifacts figure rules](../agent-artifacts/SKILL.md#diagrams-and-illustrations) when the
   drawing goes on a page. Apply them to every drawing, inside or outside a workflow.
 
 ## Workflow

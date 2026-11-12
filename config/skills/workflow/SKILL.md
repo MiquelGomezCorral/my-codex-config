@@ -20,12 +20,12 @@ worker lifecycle.
 The human-facing coordinator alone loads `agents-memory` and writes to the private plan
 and memory directory. Workers receive the exact approved plan and relevant context, not
 access to other private notes; they report memory candidates and produced artifacts to
-the coordinator, which stores accepted artifacts in the artifacts skill's `agent-memory/artifacts/<name>/` folder.
+the coordinator, which stores accepted artifacts in the agent-artifacts skill's `agent-memory/artifacts/<name>/` folder.
 
 Present every artifact the human must review as a descriptive clickable link in the
 same message, including plans, diagrams, mockups, reports, and validation evidence.
 Publish every browser preview, gate pages included, through the
-[artifacts skill's page hub](../artifacts/SKILL.md#page-hub) and return the URL it prints; a
+[agent-artifacts skill's page hub](../agent-artifacts/SKILL.md#page-hub) and return the URL it prints; a
 bare path is not a review link. The progress page is a hub page too, published at intake
 and refreshed by every update ([workflow-progress](../workflow-progress/SKILL.md)). Apply
 this at every human gate.
@@ -35,7 +35,7 @@ When you ask for a decision, set `--set human-decision=<what to decide> <page UR
 clear it with `--set human-decision=None` after the answer. A revised page is rendered over
 the same output path, so it marks what changed since the user last saw it. A required page
 that fails to render is fixed or reported as a blocker, never skipped.
-Use the [plan-review icon catalog](../artifacts/references/plan-page.md#icons) when selecting
+Use the [plan-review icon catalog](../agent-artifacts/references/plan-page.md#icons) when selecting
 icons for review JSON.
 
 ## Authority and context

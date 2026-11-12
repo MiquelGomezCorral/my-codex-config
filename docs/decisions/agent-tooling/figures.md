@@ -56,7 +56,7 @@ disk and inside the zip export. Pages without diagrams pay nothing.
 ## Enforcement
 
 - Skill instructions: [figures](../../../config/skills/figures/SKILL.md) and
-  [artifacts](../../../config/skills/artifacts/SKILL.md).
+  [agent-artifacts](../../../config/skills/agent-artifacts/SKILL.md).
 - Static checks: the [bootstrap check](../../../bootstrap_codex.sh) only confirms the skill exists
   with a valid name. `scripts/check-mermaid.mjs` renders every Pele example. No static check
   guards the engine copy, the CDN rule or the palette.

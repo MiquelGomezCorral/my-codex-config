@@ -6,7 +6,7 @@ import { join, resolve } from "node:path"
 import { spawnSync } from "node:child_process"
 
 const root = resolve(new URL("..", import.meta.url).pathname)
-const renderer = join(root, "config/skills/artifacts/scripts/render-plan.mjs")
+const renderer = join(root, "config/skills/agent-artifacts/scripts/render-plan.mjs")
 
 function runRenderer(input, output, review) {
   const args = [renderer, "--input", input, "--output", output]

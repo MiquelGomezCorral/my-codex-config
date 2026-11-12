@@ -61,7 +61,7 @@ simple (start the app, smoke, simple mock data) to precise (real data, edge case
 each test these fields:
 
 - `Flow`: the steps a real user or caller takes.
-- `Samples`: the files and data it needs, prepared during planning and saved in the plan's `agent-memory/artifacts/<name>/` folder (see the [artifacts skill](../artifacts/SKILL.md#page-hub)).
+- `Samples`: the files and data it needs, prepared during planning and saved in the plan's `agent-memory/artifacts/<name>/` folder (see the [agent-artifacts skill](../agent-artifacts/SKILL.md#page-hub)).
 - `Where`: the environment it runs in.
 - `Can run`: who runs it (the agent with the current tool and commands, the user only, or
   both).

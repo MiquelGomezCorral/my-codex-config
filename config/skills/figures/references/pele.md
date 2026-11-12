@@ -41,7 +41,7 @@ Put the Mermaid text in a figure instead of a file:
 Also in gallery items; `source` and `details` work as on any figure. The page inlines the engine and the theme script only when a page has a
 Mermaid figure, redraws on the theme toggle without a reload, draws it inside folded sections when
 opened, shows a syntax error in place of the diagram, and exports the text as a `mermaid` fence in
-the Markdown. See the `artifacts` skill for the field list.
+the Markdown. See the `agent-artifacts` skill for the field list.
 
 ## In any HTML
 

@@ -8,7 +8,7 @@ description: Keep an agentic-workflow run's progress page current on the artifac
 The user reads this page instead of asking what is happening. A page that lags sends them
 back to asking, so update it at every event below, and read the script's reply each time.
 It records progress and evidence; it never grants approval or proves completion.
-For review JSON icons, use the [shared icon catalog](../artifacts/references/plan-page.md#icons).
+For review JSON icons, use the [shared icon catalog](../agent-artifacts/references/plan-page.md#icons).
 
 ## When to update
 
@@ -61,7 +61,7 @@ publishes it, and prints its address. Each successful `update` rewrites `index.h
 `content.html` fragment the page polls every two seconds, and `workflow-map.html`. The poll
 keeps scroll, open sections, the selected tab, and the loaded map, and the page shows
 "Updated N min ago", recomputed in the browser. Nothing restarts the hub: after a reboot, run
-`hub.py ensure` (see the [page hub](../artifacts/SKILL.md#page-hub)); pages published within
+`hub.py ensure` (see the [page hub](../agent-artifacts/SKILL.md#page-hub)); pages published within
 the last seven days serve again, and `hub.py resume <id>` brings back older ones.
 An older run with no hub page prints one line on `update` and `render` with the command that
 publishes one: `publish --run <run-id>`.

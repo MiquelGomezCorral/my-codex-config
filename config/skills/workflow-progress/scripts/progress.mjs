@@ -17,7 +17,7 @@ const scriptPath = fileURLToPath(import.meta.url)
 const scriptDirectory = dirname(scriptPath)
 const template = readFileSync(resolve(scriptDirectory, "../templates/progress.html"), "utf8")
 const referenceImage = readFileSync(resolve(scriptDirectory, "../assets/Whole-Flow.png")).toString("base64")
-const hubScript = resolve(scriptDirectory, "../../artifacts/scripts/hub.py")
+const hubScript = resolve(scriptDirectory, "../../agent-artifacts/scripts/hub.py")
 const usage = `usage:
   node progress.mjs init --run <id> [--repository <path>] [--planning-mode brief|full] [--map <configuration.json>]
   node progress.mjs list-steps
@@ -1018,8 +1018,8 @@ function renderList(items) {
   return `<ul class="plain-list">${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
 }
 
-// The artifacts skill owns the icon catalog shared by every generated page.
-const icons = JSON.parse(readFileSync(fileURLToPath(new URL("../../artifacts/icons.json", import.meta.url)), "utf8"))
+// The agent-artifacts skill owns the icon catalog shared by every generated page.
+const icons = JSON.parse(readFileSync(fileURLToPath(new URL("../../agent-artifacts/icons.json", import.meta.url)), "utf8"))
 
 function icon(name) {
   const svg = icons[name]?.svg

@@ -1,7 +1,7 @@
 # Template guide
 
 Read the entry for your template before you fill it. Field names live in the data-shape
-table in [SKILL.md](../SKILL.md); this guide says which template to pick, what it ships,
+table in [page-format.md](page-format.md); this guide says which template to pick, what it ships,
 which block fits which content, and where fills go wrong. Every snippet is a complete page
 that renders as written.
 
