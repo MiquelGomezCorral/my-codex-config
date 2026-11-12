@@ -17,9 +17,12 @@ The retained writer uses the harness's normal native coding capability; see
    flow.
 3. Set the round: what to review, at what size, which live tests to run, and for a UI change
    which UI checks; size it with [Size the review](#size-the-review) and add its progress
-   note. The first round runs the slice's full live test set; a fix round reruns only tests
-   that failed or were not possible. A recorded opt-out skips the live tests, never the
-   review.
+   note. The live tests follow one schedule, and each tester's packet names the round, the
+   tests to run, and the run count. Round 1 runs the slice's full live test set once. A fix
+   round runs once each test that failed, was not possible, or has a rule the fix touched, even
+   if it passed before. Only the last round (step 7) runs the full set 3 fresh times per
+   non-deterministic test, and mixed results are `unclear`. A recorded opt-out skips the live
+   tests, never the review.
    Round 1's review request names the slice's `New parts:` and `Size guess:` to check the diff
    against. An unlisted part is a finding
    of its own. A diff far over the guess is a separate finding, not a line in a summary. A listed,
@@ -38,10 +41,13 @@ The retained writer uses the harness's normal native coding capability; see
    blocker. At noticeable or big, the parent launches `ui-checker`, the skeptical reviewer
    and, at big, the flow walk, as [UI impact](#size-the-review) says.
 5. Gather insights: use `review-findings` to verify reports against the source, and treat
-   each failed or not-possible live test as a finding with its evidence, and each line of the
-   `ui-checker` block as a failed live test with its numbers as the evidence: it goes to the
-   same coder without a source citation. Do not pass false positives, unclear ownership, or
-   out-of-scope observations as correction instructions.
+   each failed or not-possible live test as a finding with its evidence, and each `ui-checker`
+   finding verified as caused by this slice (marked `new`; check an `unknown` one against the
+   slice base) as a failed live test with its numbers as the evidence: it goes to the same
+   coder without a source citation. Keep old findings in the unchanged evidence block and the
+   disposition table; they do not fail this slice or enter its correction brief. Do not pass
+   false positives, unclear ownership, or out-of-scope observations as correction
+   instructions.
    From round 2 on, check each verified finding against the previous round's tree: the tree
    hash its progress note records (see *Mark what each review saw*, at the end of this file),
    uncommitted work included. For a code finding, read the cited code and what it depends on at
@@ -61,8 +67,8 @@ The retained writer uses the harness's normal native coding capability; see
    Rounds 1 and 2 route every verified in-scope P0-P3 finding, including non-blocking ones. From
    round 3 only P0 and P1 go to the coder; P2 and P3 go to the disposition table as
    `deferred (round cap)` and to the known gaps for the result page. The round-3 cut covers
-   review findings only; a failed or not-possible live test, a `ui-checker` line, and the
-   skeptical reviewer's `fix` findings are never deferred by it and keep the limits this
+   review findings only; a failed or not-possible live test, a `ui-checker` finding caused by
+   this slice, and the skeptical reviewer's `fix` findings are never deferred by it and keep the limits this
    step sets. Count rounds per slice from its first coding-loop review; only a later change
    listed in workflow stage 6 starts a new count. Route verified cleanup simplifications to
    the coder too; cleanup keeps its own cap in workflow stage 6. Then repeat from step 3
@@ -79,7 +85,8 @@ The retained writer uses the harness's normal native coding capability; see
    `ui-checker` lines still open when the plan's review rounds run out go to the
    human gate with the block.
 7. When required behavior and evidence pass, a last round reruns the full slice live test
-   set on the final head, including after cleanup corrections, and at noticeable or big the
+   set on the final head with 3 fresh runs per non-deterministic test (step 3), including after
+   cleanup corrections, and at noticeable or big the
    UI check, whose last block the slice evidence keeps whole. Stop only when the required
    evidence passes or a concrete blocker is reported.
 

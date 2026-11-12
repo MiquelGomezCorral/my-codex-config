@@ -57,11 +57,9 @@ A result with `action.path: synthetic` did nothing.
 **Chrome, Brave and Electron apps (Slack, Obsidian, Orca) show one root element** unless
 accessibility is forced on at launch. A scratch Chrome with `--force-renderer-accessibility`
 showed 300+ elements: toolbar, tabs, page buttons, entries, text. The user's running Brave,
-Slack, Obsidian and Orca were started without it and stay opaque. For a web page you control:
-
-```bash
-google-chrome --user-data-dir=<scratch dir> --new-window --force-renderer-accessibility <url>
-```
+Slack, Obsidian and Orca were started without it and stay opaque. For a web page you control,
+start a scratch Chrome with the browser launch arguments from the `cli.config.json` that the
+global policy names, and add `--force-renderer-accessibility` to that launch.
 
 Close it by PID when done. Never `pkill -f` a pattern that also matches your own command line.
 

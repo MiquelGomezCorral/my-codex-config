@@ -16,7 +16,9 @@ helper.
 
 Then run a live round in which testers run the slice's approved live test set. Testers
 resolve the catalog role `computer-controller`; the native agent role is
-`computer-controller`, and each tester's packet says the job is a live test.
+`computer-controller`, and each tester's packet says the job is a live test and carries the
+round, the tests to run, and the run count that the
+[coding loop](../../../workflow/references/coding-loop.md)'s live-test schedule (step 3) sets.
 
 Before launch, verify that the persisted plan or a later human approval gives each test
 the `refine-plan` fields: `Flow`, `Samples`, `Where`, `Can run`, `Expected`, `Reset`, and
@@ -38,9 +40,10 @@ or `large` one) owns the app for the live round. Run the round this way:
   [coding loop](../../../workflow/references/coding-loop.md#size-the-review)), the parent also
   launches `ui-checker` through `super-agent` on the running app, within the live tests' `Where`
   and `Bounds`, with the changed and affected screens and the slice base build when one can be
-  built. Each line of its block joins the live results as a failed test, its numbers as the
-  evidence. The coding loop's *UI impact* says when the skeptical reviewer and, at big, the flow
-  walk run. A plan that opted out of live tests waives the UI check, and the coder packet says
+  built. Each finding verified as caused by this slice joins the live results as a failed test,
+  its numbers as the evidence. Keep old findings in the unchanged evidence block and the
+  disposition table; they do not fail this slice or enter its correction brief. The coding
+  loop's *UI impact* says when the skeptical reviewer and, at big, the flow walk run. A plan that opted out of live tests waives the UI check, and the coder packet says
   so.
 - Live results join the review verdict.
 - After the round, the parent stops the app and resets the shared test data.

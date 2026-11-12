@@ -122,112 +122,24 @@ Given the current setup, all python files that use this env will import from the
 ### __init__.py file
 Things like the follwing must be avoided to avoid extra complicated files. This file must remain only the import of each package desired 'functions' and 'variable' to be used by other parts of the app, nothing else, not slop nor blop code.
 
-THIS IS WRONG:
+A lazy loader hides a training symbol. Import it directly instead, and keep it public:
 ```python
-"""Public ARM-FM reconstruction interfaces."""
-
-from importlib import import_module
-
-from .artifacts import ArtifactBundle, BundleManifest, BundleValidationError, load_bundle
-from .environments import labeling_api_for_domain, make_environment
-from .evaluation import (
-    ...
-    load_qwen_embedding_model,
-    resolve_embedding_settings,
-)
-from .generation import adapt_compilation_result, generate_baseline_bundle, generate_compiler_bundle
-from .runtime import (
-    PaperRewardMachine,
-    ...
-    serialize_reward_machine,
-)
-
-_TRAINING_EXPORTS = {
-    "ALGORITHM_COMPONENTS",
-    "BuiltinPolicy",
-    "ExperimentManifest",
-    "RNDModule",
-    "TaskManifestEntry",
-    "TrainingCheckpoint",
-    "TrainingConfig",
-    "algorithm_for_domain",
-    "load_builtin_policy",
-    "load_task_manifest",
-    "paper_experiment_manifest",
-    "paper_training_config",
-    "train_larm",
-    "train_manifest",
-}
-
-
+# Before
 def __getattr__(name: str):
-    """Load training symbols only when a training command requests them."""
-    if name not in _TRAINING_EXPORTS:
-        raise AttributeError(name)
-    value = getattr(import_module(".training", __name__), name)
-    globals()[name] = value
-    return value
+    if name == "train_manifest":
+        from .training import train_manifest
+        return train_manifest
+    raise AttributeError(name)
 
-__all__ = [
-    "ArtifactBundle",
-    "BundleManifest",
-    "BundleValidationError",
-    "PaperRewardMachine",
-    "RewardMachineEnvironment",
-    "RewardMachineRuntime",
-    "RuntimeRewardMachine",
-    "RuntimeStep",
-    "RuntimeTransition",
-    "RuntimeValidationError",
-    "load_labeling_functions",
-    "parse_paper_reward_machine",
-    "parse_reward_machine",
-    "serialize_paper_reward_machine",
-    "serialize_reward_machine",
-    "load_bundle",
-    "labeling_api_for_domain",
-    "make_environment",
-    "EMBEDDING_MODEL",
-    "EmbeddingCache",
-    "EmbeddingSettings",
-    "JudgeDecision",
-    "JudgeSettings",
-    "aggregate_judgments",
-    "embed_state_descriptions",
-    "frozen_evaluate",
-    "judge_bundle",
-    "load_qwen_embedding_model",
-    "resolve_embedding_settings",
-    "generate_baseline_bundle",
-    "generate_compiler_bundle",
-    "adapt_compilation_result",
-    *sorted(_TRAINING_EXPORTS),
-]
+# After
+from .training import train_manifest
+
+__all__ = ["train_manifest"]
 ```
 
-THIS IS RIGHT:
+Same pattern for this module:
 ```python
-"""Public ARM-FM reconstruction interfaces."""
-
-from .artifacts import ArtifactBundle, BundleManifest, BundleValidationError, load_bundle
-from .environments import labeling_api_for_domain, make_environment
-from .evaluation import (
-    ...
-    load_qwen_embedding_model,
-    resolve_embedding_settings,
-)
-from .generation import adapt_compilation_result, generate_baseline_bundle, generate_compiler_bundle
-from .runtime import (
-    PaperRewardMachine,
-    ...
-    serialize_reward_machine,
-)
-```
-
-Same result, same import capabilities, just cleaner simpler and better
-Same for This
-```python
-from .generate_rm import generate_rm
+from .generate_rm import GenerationHooks, generate_rm
 
 __all__ = ["GenerationHooks", "generate_rm"]
 
@@ -322,25 +234,7 @@ Most of the time, since you are and IA, you will write greedly and overcomplicat
 
 ## Test
 
-The idea is that we don't write almost any test. Too many tests will make the code not maintainable.
-
-- We are only going to test algorithms and things that must be deterministic.
-- We don't test AI models outputs: we test that the return the expected type or structure or schema, not values.
-- We don't test things that are trivial.
-- We don't test all the inputs 
-- We don't validate everything, only what really matters
-
-### Example
-- We dont test imports, this makes no sense -> we assume all imports work at all time. 
-  - Only exception is when you have 'complex' imports such as Gymnasium envs that you don't expect. But this is only if you have a lot of 'non-related' envs or dependencies that may not be compatible between, that are out of scope and very justified. Normal imports such as libaries ALWAYS!
-```python
- try:
-        import torch
-    except ImportError as error:
-        raise RuntimeError("Embedding requires torch; no model download is performed") from error
-   
-```
-- ...
+Use test-audit for test authoring and review; AGENTS.md owns live verification. Python check commands are below.
 
 ## Checks
 

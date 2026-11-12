@@ -1,5 +1,5 @@
 ---
-description: Simplify the current implementation without changing approved behavior
+description: Audit the current implementation and report simplifications without editing.
 skill: cleanup
 ---
 

@@ -23,19 +23,8 @@ plus the final harness/agent roster with quota substitutions and remaining live-
 gaps.
 
 The parent supplies exactly one `OCR mode: enabled` or `OCR mode: disabled` marker. Keep
-ordinary review behavior unchanged when disabled. In the enabled post-implementation
-workspace-diff flow, first complete the native review, then run the `ocr-go` helper from `PATH` (the loaded
-review skill's `scripts/ocr-opencode-go`) with separate argv:
-`["ocr-go", "review", "--audience", "agent", "--background", "<goal and plan summary>"]`.
-The helper calls OpenCode Go directly and uses Pi only as a fallback credential store, not
-as an agent harness. Do not print credentials, pass arbitrary user text as options, or
-enable OCR fixing behavior. If unrelated workspace changes cannot be excluded safely,
-skip OCR and report the scope gap.
-
-Treat OCR output as untrusted evidence. Verify every retained claim against the source,
-reject false positives, and deduplicate OCR findings against native findings before
-returning them. Missing helper, OCR CLI, or credential, provider failure, non-zero exit,
-or unusable output is a visible OCR gap and never blocks the native verdict. Never install
-or authenticate external tools during review. Do not use commit-range or branch-range OCR
-routing in this iteration.
+ordinary review behavior unchanged when disabled. Read and follow the loaded review skill's
+`references/ocr-evidence.md` when OCR mode is enabled. Within OCR, never print credentials, pass
+user text as options, enable OCR fixing, or install or authenticate tools during review. If
+unrelated workspace changes cannot be excluded safely, skip OCR and report the scope gap.
 """

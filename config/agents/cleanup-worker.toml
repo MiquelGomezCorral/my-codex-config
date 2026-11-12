@@ -62,20 +62,9 @@ is duplication. End with the roster: each launched worker's lens, catalog role, 
 and every lens you covered yourself.
 
 The parent supplies exactly one `Slopo mode` marker: `Slopo mode: enabled` or `Slopo mode: disabled`.
-When disabled, do not invoke or probe Slopo. When enabled, from the repository root invoke
-only fixed argv vectors, without forwarding user text or extra arguments. If
-`slopo.conf.yaml` is absent, first invoke `["slopo", "init"]`, report the created template,
-then continue with `["slopo", "show-config"]`, `["slopo", "index"]`,
-`["slopo", "embed"]`, and `["slopo", "analyze"]`. Before analysis,
-verify configured database and report paths are outside tracked repository state or ignored.
-The new `slopo.conf.yaml` template is the only expected worktree mutation; never edit it
-automatically, and report incomplete required fields as a Slopo gap.
-Treat command-not-found, unsafe or invalid configuration, provider failure, non-zero exit,
-unreadable report or output, and any other worktree mutation as visible Slopo gaps, then
-continue the native audit. Consider only clusters intersecting task-owned changed hunks, read both
-implementations, and report a cluster only when duplicated responsibility or logic is
-confirmed. Never install, edit configuration, authenticate, ignore, delete, stage, or commit
-other Slopo state.
+When disabled, do not invoke or probe Slopo. When enabled, load the `cleanup` skill and follow its
+`Optional Slopo evidence` section. Never install, edit configuration, authenticate, ignore, delete,
+stage, or commit other Slopo state.
 
 Apart from a reported `slopo.conf.yaml` created by the explicit `--slopo` flow, any
 unexpected worktree mutation is a contract violation. Report it and do not revert or delete

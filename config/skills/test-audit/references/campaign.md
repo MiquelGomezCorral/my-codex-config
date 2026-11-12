@@ -9,8 +9,7 @@ the next step early.
 ## 1. Baseline
 
 Record the subsystem's test and support line counts and every test file's pass/fail state at
-a pinned base revision. Keep baseline failures in their own list: in a prior campaign, all
-three were real delivery bugs, not stale tests.
+a pinned base revision. Keep baseline failures in their own list.
 
 Done when every in-scope test file has a recorded baseline result.
 
@@ -39,17 +38,14 @@ then mark each row.
   a stronger boundary suite, or the shared owner in another package;
 - `D`: delete, naming the proof that remains, or why no contract exists.
 
-Judge a test by its assertions, not its name. One prior test named for retiring a progress
-window asserted the window was _not_ cleared.
+Judge a test by its assertions, not its name.
 
 Done when every declaration in the lane has a mark and an evidence line.
 
 ## 4. Layer plan per lane
 
 Treat the per-test ledger as input, not as the edit list. A second read-only pass, starting
-from the ledger, looks for the redundant **layer**. In a prior campaign, several dispatch
-suites replayed the same shared compositor through one mocked preview, around stronger
-real-stream and HTTP-fixture suites. Name the **keeper** suite for each contract. Prefer the
+from the ledger, looks for the redundant **layer**. Name the **keeper** suite for each contract. Prefer the
 real transport boundary with a fake network over a mocked collaborator. Correct any ledger
 errors this pass finds.
 
@@ -71,8 +67,7 @@ Done when every lane plan is applied and each lane's keepers pass.
 Before claiming completion, have independent reviewers compare deleted coverage against the
 keepers, one reviewer per boundary group. They look for contracts that lost their only proof.
 They also look for new assertions that cannot fail, such as a rejection row the production
-code never reaches. A prior campaign's review found nine real gaps and one unreachable
-assertion.
+code never reaches.
 
 For each restored contract, make one deliberate **mutation** of the production owner and
 confirm the keeper goes red. Then restore the source byte for byte.

@@ -998,7 +998,7 @@
         <mxCell id="c223" parent="1" vertex="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=nowrap;spacing=0;spacingLeft=0;spacingRight=0;overflow=visible;fontSize=14;fontFamily=Helvetica;fontColor=#1e1e1e;" value="+">
           <mxGeometry x="926" y="808" width="10" height="16" as="geometry" />
         </mxCell>
-        <mxCell id="c232" parent="1" vertex="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=nowrap;spacing=0;spacingLeft=0;spacingRight=0;overflow=visible;fontSize=8;fontFamily=Helvetica;fontColor=#1e1e1e;" value="Evidence per result · stop app + reset data after&lt;br&gt;×3 if non-deterministic · parallel only if independent">
+        <mxCell id="c232" parent="1" vertex="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=nowrap;spacing=0;spacingLeft=0;spacingRight=0;overflow=visible;fontSize=8;fontFamily=Helvetica;fontColor=#1e1e1e;" value="Evidence per result · stop app + reset data after&lt;br&gt;×3 in the final round if non-deterministic · parallel only if independent">
           <mxGeometry x="1270" y="1550" width="260" height="24" as="geometry" />
         </mxCell>
         <mxCell id="c233" parent="1" vertex="1" style="rounded=1;arcSize=20.9;whiteSpace=nowrap;html=1;fillColor=#fdeedc;strokeColor=#e8863c;strokeWidth=1.2;fontSize=10;fontFamily=Helvetica;fontColor=#1e1e1e;spacing=0;" value="How and who&lt;br&gt;live validates it?">

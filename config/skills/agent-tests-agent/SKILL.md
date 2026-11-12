@@ -51,7 +51,7 @@ Prefer evidence the target cannot fake: a fact that exists only inside the file,
 
 Default to 3-5 scenarios per behaviour, varying persona, mood, language and message length. Uniform tests look like tests, and they only find one kind of failure.
 
-Spreading scenarios is not repeating one. Run each behaviour whose outcome can vary from run to run three times, as three fresh conversations from the same scenario card; the persona may phrase things as a real user would. Three matching results settle it. Mixed results are `unclear`, never `ok` or `bad`: report how they split and what the three runs did. A behaviour that is deterministic by design, such as a fixed refusal text or a tool that returns the same data, needs one run.
+Spreading scenarios is not repeating one. Repeat a behaviour whose outcome can vary from run to run as often as the run count in your packet says (inside a workflow, the live-test schedule in `workflow`'s `references/coding-loop.md` sets it; with no count given, run it three times). Each repeat is a fresh conversation from the same scenario card; the persona may phrase things as a real user would. When all repeats match, that settles it. Mixed results are `unclear`, never `ok` or `bad`: report how they split and what each run did. A behaviour that is deterministic by design, such as a fixed refusal text or a tool that returns the same data, needs one run.
 
 ## 3. What to cover
 
@@ -125,8 +125,8 @@ Step out of the persona only after the conversation ends.
 
 ## 8. Report
 
-Present the report as a page. Copy `templates/report.json`, fill it, and render it with
-the `artifacts` skill (its steps cover rendering and serving). The template already holds
+When a parent packet sets the report shape, return that instead of the page below. Otherwise present the report as a page. Copy `templates/report.json`, fill it, and render it with
+the `agent-artifacts` skill (its steps cover rendering and serving). The template already holds
 this structure:
 
 - **Summary:** automatic counts per result, plus one line on what drives them.

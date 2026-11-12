@@ -293,14 +293,15 @@ delivered screen itself. An app that will not start means blocked, not done.
   - **big**: a page redo, a new screen, a changed user flow. All of noticeable, plus
     `computer-controller` walking the whole flow end to end; the skeptical reviewer once at the
     end, then the human.
-  - Video (`capture.mjs --video`, `artifacts` skill) only when motion or a transition changed;
+  - Video (`capture.mjs --video`, `agent-artifacts` skill) only when motion or a transition changed;
     more often needed at big than at noticeable.
 - **Matrix:** each changed screen and each screen sharing a changed component, in every state
   (empty, one, many, loading, error, open, selected), at 390, 768 and 1440 px, light and dark,
   in every language the app ships (locale files, switcher or route prefix), and for changed
   screens with motion on and off.
-- **Who checks:** at noticeable and big the builder has `ui-checker` (through `super-agent`) check
-  each changed screen and each screen sharing a changed component. Brief it with the URL, the
+- **Who checks:** at noticeable and big the builder, or its parent when the builder has no
+  nesting grant, has `ui-checker` (through `super-agent`) check each changed screen and each
+  screen sharing a changed component. Brief it with the URL, the
   clicks to each state, the languages, whether the dark theme follows the OS preference or has its
   own toggle, and a base build or URL when there is one. At noticeable and big, outside a
   workflow, the builder runs `scripts/check-ui.mjs` itself only to re-check a fix. It fixes every
@@ -428,8 +429,8 @@ widening the page.
 
 Starter CSS that already satisfies these lives in the package at `examples/ui.css`
 (`.ui-stack`, `.ui-actions`, `.ui-panel`, `.ui-surface`); keep its values in agreement with
-`ui-policy.json`. The `artifacts` skill's hub policy is the exception: it lives in
-the `artifacts` skill's `hub-ui-policy.json`, covers `hub.html` only, and is loaded with
+`ui-policy.json`. The `agent-artifacts` skill's hub policy is the exception: it lives in
+the `agent-artifacts` skill's `hub-ui-policy.json`, covers `hub.html` only, and is loaded with
 `--config`.
 
 ## Where to look for inspiration and / or when these rules run out 

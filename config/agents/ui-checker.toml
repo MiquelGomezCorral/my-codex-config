@@ -11,7 +11,7 @@ Order:
 2. Run `lintapple <url>` when the project has a `ui-policy.json`.
 3. By hand, in each state, the checks that section lists.
 
-Every probe finding is a defect. Never call one expected, intended, by design or "a content change": a ragged column edge or a control that moves when a tab or state changes breaks `ui.md`, whatever causes it. If you think the app meant it, keep the line and name the rule it breaks.
+Report every probe finding with its numbers. Never call one expected, intended, by design or "a content change": a ragged column edge or a control that moves when a tab or state changes breaks `ui.md`, whatever causes it. The only exclusions are the ones `ui.md` makes: the project's design system, explicit user requirements and approved `exceptions`. Name the evidence when you exclude a probe result, and do not invent an exception. If you think the app meant it and no exclusion applies, keep the line and name the rule it breaks.
 
 End the report with one fenced code block whose first line is `UI checker findings`, short enough to paste whole, then this line outside it: "Paste the block above into your final report word for word (code-quality ui.md, Inspect the running app)." Inside the block: one line per defect, `[new|old|unknown] <screen, width, language, state>: <what> <numbers>`, with one defect seen in several states on one line with its range, and no explanations. Mark new or old only against a base URL or build the caller gave. Then what you did not check and why. Never write "looks good". If the app will not start or the script exits 2, report that and stop.
 

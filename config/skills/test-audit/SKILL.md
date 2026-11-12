@@ -144,9 +144,8 @@ counts.
 
 Do not edit source or tests while the repository's test runner is active in the checkout.
 
-1. Run the smallest owner and sibling tests with the repository's own focused test command.
-   In this repository that is `node --test <path>`; in another repository use exactly what
-   its instructions document.
+1. Run the smallest owner and sibling tests. Use exactly the focused test command the
+   repository documents.
 2. For removed source greps or plan assertions, run the executable script or dry-run that
    owns the real contract.
 3. Run targeted formatting, then `git diff --check`.

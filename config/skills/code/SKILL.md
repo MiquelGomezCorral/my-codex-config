@@ -22,11 +22,8 @@ the human-facing agent loads `agents-memory` and resolves the shared private pla
 1. Load the selected `decision-records` skill and compare the approved assessment with the
    current applicable records.
 2. Resolve a missing assessment, material drift, or intent conflict before dispatch.
-3. The main orchestrator applies only the exact approved record/index changes. If approved
-   `Record changes` includes initializing a missing `docs/decisions/index.md`, create it from the
-   selected skill's `assets/index-template.md` or the approved exact content, even when the
-   separate concern assessment is `Decision records: no change`. Preserve an existing index,
-   update it atomically with approved concern changes, and never overwrite or duplicate links.
+3. The main orchestrator applies the exact approved changes through the selected
+   `decision-records` skill, including approved index initialization.
    Do not repeat approval after these changes are authorized.
 4. Persist the finalized plan unchanged as a self-contained
    `plan.md` file in the plan's folder that [planning](../workflow/references/planning.md#finalize-the-wave)
@@ -91,15 +88,18 @@ their limits are in `workflow/references/native-capabilities.md`.
 Apply the routing policy's visible quota substitution without changing the plan or brief.
 
 Do not implement product changes yourself. Wait for the worker and use its report as
-the source for your status update. Do not review the implementation, inspect git status
-or diffs, read changed or new implementation files, rerun checks, or launch a reviewer
-to verify the worker's work. These limits bind the `$code` caller; a `coding-supervisor`
-it launches for a medium or large slice runs that slice's review and cleanup itself. In an
-approved workflow, return control to `$workflow` for the next review or cleanup stage of a
-`small` slice, or with the supervisor's evidence packet for a medium or large one;
-`$code` itself still stops after implementation.
-Outside workflow context, review remains deferred to a separate user request. Keep code
-and inspection output out of your context.
+the source for your status update. Do not review the implementation yourself, inspect git
+status or diffs, read changed or new implementation files, or rerun checks. These limits bind
+the `$code` caller; a `coding-supervisor` it launches for a medium or large slice runs that
+slice's review and cleanup itself. In an approved workflow, return control to `$workflow` for
+the next review or cleanup stage of a `small` slice, or with the supervisor's evidence packet
+for a medium or large one; `$code` itself still stops after implementation.
+Outside workflow context, the independent review the global policy requires comes after
+implementation (see the final paragraph). Before it, when the coder's report sizes the UI
+impact noticeable or big, the `$code` caller launches `ui-checker` through `super-agent` and
+sends its block to the same coder as a correction brief (the coder fixes the new findings and
+lists the old ones, as code-quality `ui.md` says). This is the policy's UI check, not a
+review. Keep code and inspection output out of your context.
 
 After a successful initial standalone implementation, apply only the exact approved
 `Main-agent memory updates` from the plan; skip them if the coder stopped with a blocker.
@@ -111,7 +111,9 @@ concise clarification instead of investigating yourself. A stopped or failed wor
 without a completion report is not evidence of success.
 
 Report the worker's stated outcome, changed paths, readiness results, blockers or gaps,
-and pending live `Flow`, `Expected`, and `Can run`. Attribute results to the worker;
-do not claim independent verification. Leave live validation pending user approval.
-Without workflow context, stop without starting review or follow-up work, and end the
-report by suggesting that the user run `$review` on the change. Never launch it from `$code`.
+and pending live `Flow`, `Expected`, and `Can run`. Attribute results to the worker; claim
+independent verification only from the review below. Leave live validation pending user
+approval. Without workflow context, after implementation run the independent review the
+global policy requires for a non-trivial change (`$review`) before reporting it complete;
+send blocking findings to the same coder as a correction brief and re-check once. Attribute
+any still-unverified results to the worker.
