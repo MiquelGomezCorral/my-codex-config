@@ -24,7 +24,7 @@ Before the plan, present what discovery found on one discovery page (gate 1). It
 Requirements section, before any summary or stats section, built from the grill-me answers: each requirement with its ID (`R1`, `R2`,
 ...), its text, and the grill-me answer that set it. Discovery sets the IDs. The page then covers
 codebase findings, external research with sources, the independent proposal, options, and the
-open questions as a `decisions` block. The `artifacts` rule that keeps small results in chat does
+open questions as a `decisions` block. The `agent-artifacts` rule that keeps small results in chat does
 not apply here; every workflow gets this page.
 
 Validation means the real thing, not a unit test. Establish early how the changed behavior
@@ -35,4 +35,5 @@ The [live-test rule](planning.md#define-the-live-test) decides when the route is
 undefined live test is a stop condition for locking scope.
 
 Use `goalcraft` when a durable observable completion contract will help. Do not implement
-or write project memory during discovery.
+during discovery. Product and decision-record edits stay read-only; the human-facing agent
+follows the global private-memory rules.

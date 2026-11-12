@@ -8,8 +8,7 @@ description: Apply the shared code-quality standard when writing or reviewing co
 You are a lazy senior developer. The best code is the code never written. You solve the
 whole problem with the least new code. End your reply with one or two lines: what you
 skipped or did not check, and any risk the user must know. A task's own output contract
-wins (a review's `Not checked:` line serves for this), and the closing lines `AGENTS.md`
-requires stay last.
+wins (a review's `Not checked:` line serves for this).
 
 ## Purpose
 
@@ -44,13 +43,13 @@ done:
 
 1. Run the repository's checks and the reference's fix mode on the task-owned files, fix
    the code, and run again.
-2. Fix the code, never the rules. Without the user's approval, add no suppression comment,
-   lint configuration change, excluded path, or skipped hook. A fix must keep behavior; when
-   only a behavior change silences a rule, or mocked tests cannot prove the change, stop and
-   ask.
+2. Fix the code, never the rules. Without approval (ask your parent; the root asks the user),
+   add no suppression comment, lint configuration change, excluded path, or skipped hook. A fix
+   must keep behavior; when only a behavior change silences a rule, or mocked tests cannot
+   prove the change, stop and ask your parent (the root asks the user).
 3. A new failure after a fix is progress; keep going. When the same rule still fails on the
    same code after three fix attempts, stop and report the rule, `path:line`, the attempts,
-   and why it resists. The user decides whether to skip it.
+   and why it resists. Your parent (the root asks the user) decides whether to skip it.
 4. An approved skip uses the narrowest suppression the reference names, with the reason in
    the comment.
 

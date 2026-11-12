@@ -21,10 +21,10 @@ not weaken security or explicit user constraints.
   (`4c40ed3`)", not "sends `ad02be0`, `4c40ed3`". The same goes for PRs, issues, runs,
   workers, tasks, and any other identifier.
 - When the user must review an artifact, include a descriptive clickable Markdown link in
-  the same message, unasked. Prefer the actual browser URL from the viewer or artifact tool
+  the same message, unasked. Prefer the actual browser URL that `hub.py publish` or the viewer prints
   over a filesystem path. If none is available, say so and give a clickable local-file link.
   Never invent a URL or publish a private artifact merely to obtain one.
-- Show every page the user should open through the `artifacts` skill's page hub, never a
+- Show every page the user should open through the `agent-artifacts` skill's page hub, never a
   server of your own, and list every app preview you run on that hub.
 - On long work, give status without being asked: done, running, next.
 - Answer each point of a list the user sends, in order.
@@ -44,10 +44,11 @@ delegated agents get the task context they need and end each report with `Memory
 (findings meeting the bar below, or `none`). Delegates do not load the skill or browse
 private memory, except the `known-errors.md` and `workflow.md` search below; only the Git
 worker may search `agent-memory/plans/` for the plan behind its changes.
-- On any error, retry, or slow step, and before debugging, deploying, or web search, grep
-`known-errors.md` and `workflow.md` for the error text in
-`$(git rev-parse --path-format=absolute --git-common-dir)/agent-memory/`; read only matches.
-Every agent does this, delegates included; only the human-facing agent writes them.
+- On any error, retry, or slow step, grep `known-errors.md` and `workflow.md` in
+`$(git rev-parse --path-format=absolute --git-common-dir)/agent-memory/` for the error text.
+Before debugging, deploying, or web search with no error yet, grep them for the task or
+target terms. Read only matches; a missing file needs no recovery. Every agent does this,
+delegates included; only the human-facing agent writes them.
 - Persist hard-won project knowledge in that shared `agent-memory/` without asking, even
 during read-only work. A finding qualifies when it took real research or debugging, cannot be
 seen in the code, docs, or Git history, and lets a future agent skip that work: the cause and
@@ -69,8 +70,9 @@ it. Put it only under `agent-memory/` in the Git common directory, not another
 home folder such as `~/.local/state`: plans in `plans/` with their handoffs and worker
 reports beside them, pages and other artifacts in `artifacts/<name>/`. Throwaway files
 nothing reads after the current step stay in temporary locations, so junk never
-lands in a persistent folder. Outside a Git repository, ask the user where to keep it,
-except a page made for the hub, which goes to the hub's `_local` folder.
+lands in a persistent folder. Outside a Git repository, ask your parent
+(the root asks the user) where to keep it, except a page made for the hub, which goes
+to the hub's `_local` folder.
 - When something you need seems lost, try one quick recovery before reporting it gone:
 harness session logs record the files agents wrote, and `git reflog` and `git stash list`
 keep Git work. Some things are gone for good; do not dig further.
@@ -112,7 +114,8 @@ defaults. Explicit user overrides take precedence. Do not substitute agent-file 
 harness defaults when the selected catalog route cannot run.
 Run only models from that catalog, including one-shot CLIs and app test runs that spend one
 of the user's subscriptions, unless the user named the model. When a subscription runs out,
-fall back only to the role's next catalog entry; if none is left, stop and ask the user.
+fall back only to the role's next catalog entry; if none is left, stop and ask your parent
+(the root asks the user).
 A proven active wrapper owns agent launch, messaging, waiting, resume, and cleanup;
 without one, use the current harness's native lifecycle. Do not bypass an active wrapper
 with direct harness launches, and use another harness only through an explicit
@@ -154,9 +157,7 @@ to the user, and assessing plan-critique findings and decision records stay with
   files (a skill and its references), agent memory, and your session's own output files do not count; repo copies of skills do. When a question, plan, or check needs more reading, run `explore "<question>" [paths]`
   in the foreground with a 10-minute timeout; it returns a brief of 20 lines or fewer with
   `file:line` references. Trust the brief and do not re-read what it covers; a file you open
-  to check a claim counts toward the three. Questions follow this rule too. On Opus sessions a hook
-  denies the fourth distinct file read in one human message; `agent-guard unlock reads` lifts it for
-  the session, and only on the user's explicit words; `agent-guard lock reads` restores it.
+  to check a claim counts toward the three. Questions follow this rule too.
 - **Hand it off:** multi-file implementation, research sweeps,
   reviews, long runs, live tests, browsing, anything slow or open-ended. Route it through
   `super-agent`.
@@ -167,7 +168,7 @@ to the user, and assessing plan-critique findings and decision records stay with
   relaying them.
 - **If you are a helper, you are the worker, not the orchestrator.** `super-agent` defines
   who is a helper. Your task is narrow: do it yourself, stay inside its scope, and report
-  back. On Opus sessions, a helper's reads count against its parent's budget for the same human message; helpers on other models are exempt. Do not delegate, spawn agents, or plan the wider work, unless `super-agent`'s rules
+  back. Do not delegate, spawn agents, or plan the wider work, unless `super-agent`'s rules
   for your packet's grant and your role allow it.
 
 ## Engineering principles
@@ -202,8 +203,9 @@ Prefer live validation of the real flow whenever possible. A bare "test" from th
 live test of the real app, tool, or flow, never unit tests alone; "testing a model" keeps its
 evaluation meaning. Define the live test before code (flow, samples, expected result), make the
 thing runnable first, then test it live from broad checks on simple mock data to precise ones
-on real data. Test as a user would: talk to an agent or chatbot through `agent-tests-agent`,
-and run non-deterministic behavior 3 times; mixed results count as unclear. Talking to
+on real data. Test as a user would: talk to an agent or chatbot through `agent-tests-agent`.
+Inside a workflow, repeat live tests on the round schedule in `workflow`'s coding loop; outside
+one, run non-deterministic behavior 3 times, and count mixed results as unclear. Talking to
 the real agent through a local harness without the UI also counts as a live test. Where a
 repository's agent memory names such a harness, use it for agent behaviour and keep the app
 for what that memory says needs it. Write almost
@@ -222,7 +224,8 @@ allow; keep dependent steps in order.
   `ui-checker` runs, fix every finding your change caused and paste its `UI checker findings`
   block whole into your final report.
 - For repository work, end the final report with `Memory: <file> - <what was saved>` or
-  `Memory: none`.
+  `Memory: none`. This line, and a delegate's `Memory candidates:` line, come after any
+  skill's own closing block.
 - Independently review non-trivial changes, fix blocking findings, and re-check them once.
 - Clean up after yourself before you report. Stop or close every page, app, server, browser tab,
   window and background process you started that nothing will use again, including those from
@@ -244,14 +247,14 @@ allow; keep dependent steps in order.
 - To click, drag, type, press shortcuts, or take screenshots on the user's machine, load the
   `computer` skill and read its desktop-control reference first; on GNOME Wayland, Orca's
   coordinate and key input reports success but does nothing.
-- Hand browser and desktop work to `computer-controller` through `super-agent`, and UI checks of a
-  running app to `ui-checker`. A delegate without a nesting grant sends that task to its parent
-  instead. Do it yourself only for one quick look, or when you are `computer-controller` itself.
+- Hand browser and desktop work to `computer-controller` through `super-agent`. Follow
+  code-quality `ui.md`'s impact levels for UI checks of a running app, and route them to
+  `ui-checker` when that level requires it. A delegate without a nesting grant sends that task
+  to its parent instead. Do it yourself only for one quick look, or when you are
+  `computer-controller` itself.
   Any headed browser an agent starts, CLI or script,
   takes the launch args in `${XDG_CACHE_HOME:-$HOME/.cache}/computer-controller/work/.playwright/cli.config.json`,
   so it opens on the secondary monitor without taking focus.
-  On Opus sessions a hook enforces this handoff; `agent-guard unlock browser` lifts it for the
-  session, and only on the user's explicit words; `agent-guard lock browser` restores it.
 - Run long processes in the background and poll only when their result blocks progress.
 - Load `web-search` before web research. Diagnose failures before retrying and report blockers
 precisely when new evidence is unavailable.

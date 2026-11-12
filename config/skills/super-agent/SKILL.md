@@ -18,8 +18,11 @@ root over its own children; only the human-facing root has no parent.
 
 - The root holds the user's turn and carries no `Class:` field.
 - A delegate identifies itself with `Class: D`.
-- Fail closed: a missing `Class:` means delegate, a missing `Delegation` means
-  `forbidden`, and a missing `Depth:` means `1`.
+- Fail closed in a worker dispatch: a missing `Class:` means delegate, a missing
+  `Delegation` means `forbidden`, and a missing `Depth:` means `1`. A conversation the
+  human owns directly is the root.
+- Workers ask their parent, never the human; only the human-facing root asks the user.
+  Wherever this skill or the policy says to ask the user, a worker asks its parent instead.
 - Only a parent writes budget fields; a child never widens its own allowance.
 - Nesting requires both the parent's `Delegation` grant and the role capability
   (`allowNestedSubagents` where the harness supports it).
@@ -104,15 +107,16 @@ workers under a matching nesting grant; its own work keeps the role above.
 `sub_orchestrator`, `coder`, and `git-worker` are sized: they list `large`, `medium`, and `small`
 entries (`small: none` means no such worker), and a launch takes the entry for the slice's
 `Size:` (the `git` skill sets the Git worker's size). A plan slice carries `Size: small|medium|large`, approved with the plan. With no
-plan, propose the size and route in one line and wait for the user's OK.
+plan, propose the size and route in one line and wait for the OK from your parent (the root
+asks the user).
 
 A role entry written as a list is an ordered fallback. Launch the first entry that can run,
 with its own harness, model or ordered candidates, and thinking; move to the next when it
 fails or is out of quota. Launch several workers of one role only when the invoking skill
 states the count and the condition. Each such worker takes the next runnable entry in list
 order, and the skill says what a shortfall means. A role with no runnable entry is a
-blocker: stop and ask the user, and never start a model or subscription outside the
-catalog to keep going.
+blocker: stop and ask your parent (the root asks the user), and never start a model or
+subscription outside the catalog to keep going.
 
 For `swarms`, a lens whose route cannot run is reported as missing coverage; a cleanup
 coordinator may cover that lens itself and lists it in its roster.
@@ -161,15 +165,8 @@ Catalog rules:
 
 ## Dispatch contract
 
-Every automatic launch packet names `Catalog role`, `Size` (sized roles), `Harness`,
-`Model`, and `Thinking`, plus the task's native agent role, scope, exclusions,
-deliverable, evidence, stop conditions, and nesting authority. When the worker must explore code, the packet names
-every worktree path and requires CodeGraph first. Every packet names the resolved absolute
-`agent-memory/` path and the search rule: grep `known-errors.md` and `workflow.md` for the
-error text on any error, before a retry, and when a step drags, then read only the matched
-entries. Every packet requires the report to end with `Memory candidates:` or `none`.
-Verify the effective model and thinking whenever the runtime reports them; report an
-unverified effort or unavailable pinning option instead of silently discarding it.
+Every automatic launch packet follows the one template in `references/routing.md`
+(Dispatch contract). Swarm packets add only the fields `references/swarm.md` lists.
 
 ## Invariants
 
@@ -201,7 +198,7 @@ unattempted work from failed work. Never create hidden fallback chains or queues
 
 | Reference | Read it when |
 | --- | --- |
-| `references/routing.md` | Selecting a harness or role, applying launch permissions, or crossing harnesses through a one-shot adapter. |
+| `references/routing.md` | Writing a worker packet, selecting a harness or role, applying launch permissions, or crossing harnesses through a one-shot adapter. |
 | `references/lifecycle.md` | Launching, waiting on, messaging, resuming, recovering, or releasing a worker. |
 | `references/swarm.md` | Running, gating, or nesting multiple workers. |
 | `references/model-catalog.yaml` | Resolving a stage's catalog role, harness, model, and thinking. |

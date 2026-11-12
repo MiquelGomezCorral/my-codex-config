@@ -8,16 +8,10 @@ Procedures for worker launch, steering, recovery, and release. The policy itself
 - Launch, status, wait, message, cancellation, resume, and release follow the
   environment-provided lifecycle when one is present; otherwise use the harness's native
   operations.
-- Preserve the worker packet's catalog role, harness, model, thinking, scope, exclusions,
-  permissions, directory, delegation allowance, deliverable, and stop conditions across
-  every route.
-- Verify the effective model and thinking when the runtime reports them, and report an
-  unavailable pinning option or unverified effort instead of discarding it.
+- Packet contents follow [routing.md](routing.md) (Dispatch contract); effective-model
+  verification and resume identity checks follow [SKILL.md](../SKILL.md) (Invariants).
 - Tell each worker to load `super-agent` before any authorized nested delegation, and to
   follow the environment's dispatch preamble when one is provided.
-- Use identity checks before resuming: an exact retained session whose parent, harness,
-  role, model, thinking, and directory still match. Otherwise launch a fresh worker and
-  report the ownership mismatch.
 
 ## Waiting and stalls
 
@@ -26,14 +20,13 @@ Procedures for worker launch, steering, recovery, and release. The policy itself
   wakes you when it exits. Never wait with foreground `sleep` or poll loops or repeated
   status reads; one-shot timers and checks, each fired by a wake-up, are fine. Orca's
   commands are in [orca.md](../../orchestration/references/orca.md).
-- Native background helpers notify the caller when they finish. Do not poll them
-  (`ListAgents`, `TaskOutput`).
+- Native background helpers notify the caller when they finish. Do not poll their status.
 - Every wait is bounded and stall-aware. A native helper gets a background `sleep` timer for
   the expected duration (default 20 minutes), started at launch, so you wake even if the helper
   never finishes.
-- A stalled worker gets one nudge: a short status request, sent with `SendMessage` to a native
-  helper. If the next wake-up finds it stalled again, stop it (`TaskStop` for a native helper)
-  and report it or relaunch it.
+- A stalled worker gets one nudge: a short status request, sent with the selected harness's
+  documented message operation. If the next wake-up finds it stalled again, stop it with that
+  harness's documented cancel operation and report it or relaunch it.
 - Workers never block without a timeout. A worker that cannot proceed reports
   `blocked: <reason>` and ends its turn instead of waiting.
 

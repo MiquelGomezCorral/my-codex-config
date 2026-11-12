@@ -15,23 +15,8 @@ launching a worker.
 ## Role selection
 
 - A wrapper's agent selector names the harness, not a worker role.
-- Read the stage's catalog role entry, then carry its catalog role, harness, exact model,
-  and thinking in the worker packet, together with the task's native agent role and
-  permissions. For `reviewer-fast`, `computer-controller`, and `swarms`, the harness is the
-  current harness (the harness of the agent doing the launch) and the model and thinking come
-  from the role's `by_harness` entry, or from that harness's `low` tier when the entry's model
-  is unavailable.
-- For a sized role (`sub_orchestrator`, `coder`), use the entry for the slice's `Size:`.
-  A plan slice carries it, approved with the plan; with no plan, propose size and route in
-  one line and wait for the user's OK.
-- The parent pins the resolved harness, model, and thinking in the launch before invoking
-  any worker prompt.
-- Role settings win over generic tiers, invoking-skill or wrapper model preferences,
-  inherited defaults, and any agent-file model or effort metadata. An explicit user
-  harness, model, or thinking override wins over the role entry.
-- Generic tiers are only for a launch the user or approved plan explicitly routed by tier
-  or harness. An exhausted role candidate list is a blocker; do not escape to a tier or a
-  harness default.
+- Catalog role, size, current-harness roles, tiers, fallback, and pinning follow `SKILL.md`
+  (Select the route, Invariants); this file adds only the packet and launch mechanics below.
 - If the required configuration cannot be represented, report the limitation instead of
   dropping it.
 - Select each harness's real configured role by its description. Never translate a role
@@ -40,11 +25,12 @@ launching a worker.
 
 ## Dispatch contract
 
-Include these fields in every worker packet:
+This is the one packet template; `swarm.md` adds only its own fields. Include these fields in
+every worker packet:
 
 ```text
-Catalog role: super_agent | sub_orchestrator | coder | git-worker | explorer | adversarial | reviewer-high | reviewer-fast | computer-controller | swarms
-Size: small | medium | large (sub_orchestrator, coder and git-worker only)
+Catalog role: the resolved catalog role (SKILL.md, Catalog roles)
+Size: the slice's size, for a sized role only
 Harness: the role entry's harness, or an explicit user override
 Model: the resolved exact model
 Thinking: the resolved thinking level
@@ -54,13 +40,14 @@ Exclusions: adjacent work and non-goals
 Deliverable: exact result shape
 Evidence: required file:line, URL, command, or test
 Stop: completion and blocker conditions
+Worktrees: every absolute worktree path the worker reads; CodeGraph first (when it explores code)
+Agent memory: the resolved absolute agent-memory path; on any error, before a retry, and when
+  a step drags, grep known-errors.md and workflow.md there and read only the matches
+Report: ends with `Memory candidates:` or `none`
 Class: D
 Depth: <parent depth + 1; 1 for a root child>
 Delegation: allowed (max depth N, total N, active N) | forbidden
 ```
-
-Verify the effective model and thinking whenever the runtime reports them. Report an
-unverified effort or unavailable pinning option instead of silently discarding it.
 
 ## Launch permissions
 
@@ -102,12 +89,3 @@ never invoke `eval` or execute a catalog field as a command. These adapters do n
 worker lifecycle or a retained session, so preserve the same permissions, read-only limits,
 task packet, and completion report as the active wrapper or current harness route, and
 state that the one-shot adapter was explicitly selected.
-
-## Model and thinking pinning
-
-- Resolve the identifier and thinking from the role entry unless the user explicitly
-  requested them.
-- Pass both through the launcher's explicit options. If the launcher cannot pin one,
-  report the unavailable option instead of dropping it.
-- When the runtime reports an effective model or thinking, verify both match. Stop a
-  mismatched worker and do not use its output.

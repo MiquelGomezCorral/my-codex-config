@@ -133,10 +133,10 @@ only after that reference's authorization check. Testers resolve the catalog rol
 - `model`: the exact catalog model selected for the route, unless the user explicitly
   named a compatible model
 
-For the separate `full` verifier, dispatch a fresh configured review
-coordinator through `super-agent`, or the approved explicit route. It resolves the catalog
-role entry, preserves the primary coordinator's independently selected model, and verifies
-the verifier's effective model and thinking when the runtime exposes them.
+For the separate `full` verifier, dispatch a fresh configured review coordinator in direct
+mode through `super-agent` using catalog `reviewer-fast`, or the explicit human override.
+Record the primary coordinator's route as provenance; do not inherit its model. Verify the
+verifier's effective model and thinking when the runtime exposes them.
 
 Wait for the required workers, return findings and verdict, and stop. Do not invoke coder,
 fixers, accept findings automatically, or publish anything.

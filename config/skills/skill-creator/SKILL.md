@@ -73,7 +73,7 @@ It exits 1 when it finds no graded run. The skill under test must be `with_skill
 
 Then run the analyst guidance in `agents/analyzer.md` and generate the review UI with
 `eval-viewer/generate_review.py <workspace> --static <dir>/index.html`, where `<dir>` comes
-from `hub.py dir <name>` in the [artifacts skill](../artifacts/SKILL.md#page-hub). Publish it
+from `hub.py dir <name>` in the [agent-artifacts skill](../agent-artifacts/SKILL.md#page-hub). Publish it
 as that skill's steps say and give the user the URL. Never run the script's server mode: it
 kills whatever holds its port. The page has no server to save to, so the user presses
 **Copy feedback** and pastes the text back; save it as `feedback.json` in the workspace.
@@ -105,7 +105,7 @@ never opens a browser or writes to `/tmp`.
 ## 6. Ship Safely
 
 - Validate with `python3 scripts/quick_validate.py <skill-dir>` where applicable.
-- Load `skill-scout` and investigate matched lines before treating scores as verdicts.
+- For the security pass, read only skill-scout/references/vetting.md, section 2, and investigate matched lines. Discovery, outside-use and installation gates apply when importing a third-party candidate.
 - Preserve an existing skill's public name when updating it.
 - When explicitly requested, package with `python3 -m scripts.package_skill <skill-dir>`.
 - Do not package, publish, install, commit, or push unless explicitly requested.

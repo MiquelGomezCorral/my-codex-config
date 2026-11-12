@@ -64,7 +64,8 @@ def denial(prompt: str, model: str) -> str | None:
             return (
                 f"Role {role or '(none, no Catalog role: line)'} may not launch {guarded}; "
                 f"allowed roles: {', '.join(allowed)}. "
-                "Use the catalog model for the role, or ask the user."
+                "Use the catalog model for the role, or report the routing blocker to your parent. "
+                "Only the root asks the user."
             )
     return None
 
@@ -78,7 +79,8 @@ def no_model_denial(agent_type: str, cwd: str) -> str | None:
             return None
     return (
         f"Agent {agent_type} inherits the parent model when no model is given. "
-        "Pass the catalog model for the role, or ask the user."
+        "Pass the catalog model for the role, or report the routing blocker to your parent. "
+        "Only the root asks the user."
     )
 
 

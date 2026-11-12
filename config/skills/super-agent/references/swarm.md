@@ -17,11 +17,9 @@ Use a swarm only when:
 - Each worker can progress without another worker's unfinished result.
 - Parallelism or independent review justifies the extra tokens and coordination.
 
-Prefer one agent for a small task, a dependency chain, one slow external operation,
-or work that repeatedly mutates the same state. Launch only workers with distinct
-responsibilities and honor the runtime concurrency limit across the whole agent tree.
-Duplicate prompts only for intentional independent voting. Launch several workers of one
-catalog role only when the invoking skill states the count and the condition.
+The one-worker preference in `SKILL.md` (Delegate or not) applies first. Launch only workers
+with distinct responsibilities and honor the runtime concurrency limit across the whole
+agent tree. Duplicate prompts only for intentional independent voting.
 
 ## Isolated tasks
 
@@ -51,39 +49,22 @@ request.
 
 - Launch independent workers in the same turn, within the grant's `active` cap (step 4),
   when their selected mechanisms support it.
-- Before resuming any worker, verify its parent, harness, role, model, and directory.
-  Agents are not moved between those identities.
+- Resume identity checks follow `SKILL.md` (Invariants).
 
 ## Worker Packet
 
-Use only applicable fields, but always include the goal, scope, deliverable, and stop
-condition:
+Use the template in `routing.md` (Dispatch contract); its conditional fields say when they
+apply. Always include the goal, scope, deliverable, and stop condition. A swarm packet adds:
 
 ```text
-Class: D
-Depth: <parent depth + 1; 1 for a root child>
-Delegation: forbidden | allowed (max depth N, total N, active N)
 Goal: observable outcome
-Scope: owned files or question
-Exclusions: adjacent work and non-goals
 Context: relevant decisions and paths
-Catalog role: super_agent | sub_orchestrator | coder | explorer | adversarial | reviewer-high | reviewer-fast | computer-controller | swarms
-Size: small | medium | large (sub_orchestrator and coder only)
-Harness: the role entry's harness, or an explicit user override
-Model: the resolved exact model
-Thinking: the resolved thinking level
-Agent role: the harness's native role for this task
 Allowed actions: read-only or isolated edits
-Deliverable: exact result shape
-Evidence: required file:line, URL, command, or test
-Stop: completion and blocker conditions
 ```
 
 Tell workers what not to touch, whether they may edit, whether other workers are
 concurrent, and whether they may spawn descendants. Do not ask a worker to "handle"
-a broad area without an output contract. Verify the effective model and thinking when the
-runtime reports them; report an unavailable pinning option or unverified effort instead of
-discarding it.
+a broad area without an output contract.
 
 ## Nested Swarms
 

@@ -35,9 +35,7 @@ file; create a file only for a distinct stable concern.
 
 ## Workflow
 
-1. Read `docs/decisions/index.md` when present and use it to find records applicable to the planned
-   behavior. When it is missing, use an empty existing-record set and propose its exact
-   initialization in read-only planning.
+1. Find the applicable records as described in [Assessment](#assessment).
 2. Compare that behavior with their `Protected invariants`.
 3. If intent conflicts, whether intentionally or accidentally, show the recorded requirement, the
    planned behavior and evidence, and let the developer choose: revise the plan, revise the record,
@@ -73,7 +71,7 @@ is needed.
 During review, read applicable records and compare the change with their protected invariants. If
 they conflict, including when the same change removes or weakens an invariant, show the record,
 implementation evidence, and the developer's choices to revise code, revise the record, or reopen
-planning. If the index is missing, treat it as an empty existing-record set and report any approved
+planning. For a missing index, follow [Assessment](#assessment) and report any approved
 initialization requirement without writing it. Never silently rewrite a record to match the
 implementation.
 

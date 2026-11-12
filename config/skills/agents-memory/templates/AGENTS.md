@@ -2,7 +2,7 @@
 
 This is the instruction file for every agent, whatever its harness. Files such as
 `CLAUDE.md` or `GEMINI.md` may add rules; follow them and this file. When they conflict,
-ask the user and record the answer here.
+ask your parent (the root asks the user); the human-facing agent records the answer here.
 
 ## Project context
 

@@ -58,8 +58,8 @@ All five actions â€” `commit`, `push`, `pr`, `merge`, and `review-pr-comments` â
 exactly one worker via `super-agent`; in Codex, use `git-worker`. The Git skill stays the
 sole owner of Git policy. `super-agent` owns harness, role, model, and thinking selection;
 the worker uses the sized catalog role `git-worker`. Take the size the user or the approved
-plan already gave; otherwise ask the user for small, medium, or large, with your suggestion,
-before launching. Include the resolved `git-worker` role, size, harness, model, and thinking
+plan already gave; otherwise ask your parent (the root asks the user) for small, medium, or
+large, with your suggestion, before launching. Include the resolved `git-worker` role, size, harness, model, and thinking
 in the packet and treat missing `git-worker` coverage as a blocker. The worker prompt carries the current user
 request, every user option, any
 `--ignore <path-or-glob>` value unchanged, and `Plan path: <exact path>` when a persisted

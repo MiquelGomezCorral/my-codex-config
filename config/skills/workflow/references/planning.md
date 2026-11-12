@@ -1,7 +1,8 @@
 # Planning inside `$workflow`
 
-Turn a freeform idea or referenced brief into a scope-locked wave plan. Do not implement,
-edit product files, or persist project memory during discovery. Initialize run state with
+Turn a freeform idea or referenced brief into a scope-locked wave plan. Do not implement or
+edit product files during discovery. Product and decision-record edits stay read-only; the
+human-facing agent follows the global private-memory rules. Initialize run state with
 the [workflow-progress skill](../../workflow-progress/SKILL.md) at intake, before a plan path exists.
 
 Load `first-draft.md`, `improvement-loop.md`, and `adversarial.md` as their phases begin.
@@ -235,7 +236,7 @@ Do not turn unanswered choices into assumptions. Resolve the Git common director
 `agent-memory/plans/<short-kebab-task>-<YYYYMMDD>/`, created at first use.
 Preserve exact existing plan paths when continuing older work. List supporting evidence
 and artifacts. Keep implementation choices and durable project decisions distinct.
-For human review, fill a concise brief from the artifacts skill's
+For human review, fill a concise brief from the agent-artifacts skill's
 `references/plan-page.md`; read that reference only when producing the brief. Keep the
 full Markdown plan complete and authoritative, then check that the brief preserves its
 risks, questions, expected outcomes, useful artifacts, and approval boundary. Get the page
@@ -247,7 +248,7 @@ LAN URL `hub.py publish` prints as a descriptive Markdown link; never start a se
 own. If rendering or publishing fails, report it as a blocker and link the local page file
 meanwhile. Keep the Markdown file authoritative.
 Keep plan-specific editable diagrams, SVG previews, and live-test samples in the
-`agent-memory/artifacts/<name>/` folder that the [artifacts skill](../../artifacts/SKILL.md#page-hub)
+`agent-memory/artifacts/<name>/` folder that the [agent-artifacts skill](../../agent-artifacts/SKILL.md#page-hub)
 hands out with `hub.py dir`, not beside the plan. Delete on the hub removes that folder. No
 plan artifact enters Git.
 Only make diagrams that clarify a real decision or flow. Follow `diagrams.md` for the
