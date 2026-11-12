@@ -9,7 +9,7 @@ tool has; the tool references explain how to use it.
 2. Use the first tool, left to right, that has it: Pele, then diagram-design, then Plotly.
 3. If that tool's result is not good enough (the layout tangles, a feature is missing, it looks
    rough for a reader who needs polish), move right to the next tool that has the same figure.
-4. Real measured or computed data goes to Plotly even when Pele or diagram-design has the chart:
+4. For LaTeX papers, use `writing/references/latex.md` instead. Real measured or computed data goes to Plotly even when Pele or diagram-design has the chart:
    they draw the numbers you type, Plotly plots the data itself with exact values on hover.
 5. Anything not listed, or drawn rather than diagrammed, is Excalidraw (last table).
 

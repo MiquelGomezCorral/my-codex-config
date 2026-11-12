@@ -8,7 +8,7 @@ notes: Artifact page palette and system font, light and dark columns
 -->
 # Style Guide
 
-**The single source of truth for colors, typography, and tokens.** Every diagram draws from this — not from hex values inlined in other reference files. If you want to change the visual skin of Diagram Design, change this file.
+**Derived artifacts profile; palette values come from figures/references/pele.md.**
 
 The `artifacts` skin makes a figure sit on an artifact page: card white and card ink, the page's
 blue accent, and the page's own system font, in a light and a dark column that match the page
@@ -61,24 +61,6 @@ A small set of colors, the page's series palette without its blue (the blue is `
 | `series-5` | `#6b52c0` (violet) | `#b9a2ff` | Non-focal series |
 
 Fills sit at `0.18` opacity light, `0.22` dark; strokes use the full color. **Don't backfill these tokens to non-chart types** — architecture, swimlane, etc. continue to use muted-ink variants. The series palette is opt-in for diagrams where overlapping shapes demand distinguishable color, not a license to add color elsewhere.
-
-### Terminal skin (opt-in alternate)
-
-A self-contained palette for the terminal-window primitive (see [primitive-terminal.md](primitive-terminal.md)) — a CLI-chrome register for dev-tool posts and technical social cards. It does not replace the default skin above and isn't affected by onboarding; it's a second, fixed skin you opt into per-diagram.
-
-| Token | Hex | Purpose |
-|---|---|---|
-| `terminal-page` | `#0a0a0a` | Page background behind the window |
-| `terminal-paper` | `#141414` | Window body, node fill |
-| `terminal-bar` | `#1b1b1b` | Titlebar strip |
-| `terminal-border` | `#2b2b2b` | Window border, hairlines |
-| `terminal-ink` | `#f5f5f5` | Primary text, primary stroke (same white-smoke as default `ink`) |
-| `terminal-muted` | `#9a9a9a` | Secondary text, sublabels, ring stroke |
-| `terminal-soft` | `#5c5c5c` | Tertiary — inactive dots, spokes |
-| `terminal-accent` | `#ff5a36` | The one accent — focal station, prompt sign, active dot |
-| `terminal-accent-tint` | `rgba(255,90,54,0.12)` | Fill for accent-bordered boxes |
-
-**1-accent rule still holds.** Everything that isn't `terminal-ink` or `terminal-muted`/`terminal-soft` should be `terminal-accent` — never introduce a second hue.
 
 ---
 
@@ -145,16 +127,7 @@ Semantic role combinations — reference these by name in type specs.
 
 ---
 
-## Customizing the skin
-
-Four options:
-
-1. **Run onboarding** — see [`onboarding.md`](onboarding.md). Drop a URL; the skill extracts the palette + fonts and rewrites this file.
-2. **Edit by hand** — change the hex values in the tables above. Run the pre-output taste gate afterward to verify the accent still reads as "focal" against the new paper color.
-3. **Brand handoff** — paste your existing design-token JSON into a new section here and map its tokens to the semantic roles above.
-4. **Client profiles** — save and switch named skins, or bind one to a project, using [`profiles.md`](profiles.md).
-
-### Constraints (don't break these)
+## Constraints (don't break these)
 
 - **Contrast**: `ink` must hit WCAG AA on `paper`. `muted` must hit AA on `paper` for 11px+ text.
 - **One accent**: pick one color for `accent`. Two accents erases the focal signal.

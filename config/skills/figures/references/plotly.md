@@ -3,7 +3,7 @@
 Plots of real data people look at (an artifact page, a notebook, a report) use plotly, not
 matplotlib: the reader hovers, zooms and hides lines, and the plot is one HTML file that drops into
 an artifact `figure`. Use it when exact values matter; a quick shape of a few numbers is a Pele
-`xychart` or `pie`. LaTeX papers draw with pgfplots (see `writing/references/latex.md`).
+`xychart` or `pie`. For LaTeX papers, use `writing/references/latex.md` instead.
 
 Follow [`python.md`](../../code-quality/references/python.md) for the project, configuration and
 imports. This file adds only the plot. [`plotly/example.py`](plotly/example.py) is the starting

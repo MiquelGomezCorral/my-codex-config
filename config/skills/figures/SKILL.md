@@ -26,20 +26,21 @@ from Pele, the figure is a free drawing, or it is real data with exact values.
 
 Look the figure up in [references/catalog.md](references/catalog.md). It lists every figure kind
 (about 60) and which of Pele, diagram-design and Plotly have it, in that column order. Use the first
-tool that has it; when its result falls short, move to the next tool that has the same figure. Real measured data goes to
-Plotly even when another tool has the chart. A figure the catalog does not list, or one that is
-drawn rather than diagrammed, goes to Excalidraw.
+tool that has it; when its result falls short, move to the next tool that has the same figure.
+For LaTeX papers, use `writing/references/latex.md` instead. Real measured data goes to Plotly
+even when another tool has the chart. A figure the catalog does not list, or one that is drawn
+rather than diagrammed, goes to Excalidraw.
 
 Then read that tool's reference before drawing: [pele.md](references/pele.md) (and the example
 file the catalog links), [diagram-design.md](references/diagram-design.md),
 [excalidraw.md](references/excalidraw.md) or [plotly.md](references/plotly.md).
 
 Do not draw when a sentence or a table does the job; a short linear flow is a `steps` block
-(`artifacts` skill).
+(`agent-artifacts` skill).
 
 ## Put it on an artifact page
 
-A `figure` block takes the output of every tool (field list in the `artifacts` skill):
+A `figure` block takes the output of every tool (field list in the `agent-artifacts` skill):
 
 - Pele: `figure.mermaid` holds the Mermaid text. No file.
 - diagram-design, Excalidraw: `figure.src` is the light image and `figure.dark` the dark one.
@@ -51,8 +52,8 @@ HTML opens alone and follows the system theme.
 
 ## Theme promise
 
-Every tool's output uses the artifact page palette, in both themes: card `#ffffff` or `#1d1d21`, ink,
-muted, line and accent from the page tokens, the page font, and the shared series colours. The
+Follow the selected tool's theme instructions. Pele, diagram-design and Plotly share the artifact
+tokens; Excalidraw uses its validated house fonts, role colours and light/dark exports. The
 palette table lives in `references/pele.md` ("Both themes"). Its copies change with it:
 `references/plotly.md`, `references/plotly/example.py`, `references/diagram-design/artifacts.md`
 and `assets/pele/pele-embed.js`. Each reference says how its tool applies it. Never invert an image with CSS and never fix a colour that the theme should set (Mermaid `style`
@@ -62,7 +63,7 @@ and `classDef` colours do not follow the theme: leave them out).
 
 1. The caption states the takeaway in a sentence, not the chart type.
 2. Look at it in light and in dark, at desktop width and at 390 px. For a page served by the hub, use
-   the `artifacts` skill's `scripts/capture.mjs <page url> --screenshot <file.png> [--width 390]
+   the `agent-artifacts` skill's `scripts/capture.mjs <page url> --screenshot <file.png> [--width 390]
    [--theme dark]` (it takes `http(s)` URLs only). For a standalone file, open it from disk in
    headless Chrome or Playwright, at desktop width and at 390 px. Open the image.
 3. Labels fit and are readable, nothing is clipped, and the figure does not make the page scroll
