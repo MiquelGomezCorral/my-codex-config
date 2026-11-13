@@ -56,9 +56,12 @@ install_plugins() {
   claude plugin marketplace add midudev/better-claude --scope user >/dev/null
   for plugin in image-preview sub-meter; do
     claude plugin install "$plugin@better-claude" --scope user >/dev/null
+    # install keeps an already pinned old version; update moves it to the marketplace's latest.
+    claude plugin update "$plugin@better-claude" --scope user >/dev/null
   done
   claude plugin marketplace add zoharbabin/claude-code-message-timestamps --scope user >/dev/null
   claude plugin install message-timestamps@zoharbabin-claude-tools --scope user >/dev/null
+  claude plugin update message-timestamps@zoharbabin-claude-tools --scope user >/dev/null
 }
 
 install_assets() {
@@ -91,6 +94,14 @@ install_assets() {
   done
 }
 
+# Bypass mode still prompts for rm targets it cannot check. Claude reads this switch only from
+# the launch shell, never from a settings env block.
+install_shell_env() {
+  local line='export CLAUDE_CODE_EVEN_MORE_DANGEROUSLY_SKIP_PERMISSIONS=1'
+  grep -qxF "$line" "$HOME/.bashrc" 2>/dev/null ||
+    printf '\n# Claude Code: never prompt for rm targets bypass mode cannot check.\n%s\n' "$line" >> "$HOME/.bashrc"
+}
+
 main() {
   local common_args=(--no-searxng-mcp)
   command -v claude >/dev/null 2>&1 || common_die 'Claude Code is not installed.'
@@ -102,6 +113,7 @@ main() {
   install_assets
   install_mcp
   install_plugins
+  install_shell_env
   printf 'Installed Claude Code configuration. Restart Claude Code after reviewing generated assets.\n'
 }
 

@@ -618,6 +618,8 @@ for name in codegraph btca; do
 done
 grep -q '^claude plugin marketplace add zoharbabin/claude-code-message-timestamps' "$CLAUDE_LOG"
 grep -q '^claude plugin install message-timestamps@zoharbabin-claude-tools' "$CLAUDE_LOG"
+grep -q '^claude plugin update image-preview@better-claude' "$CLAUDE_LOG"
+grep -q '^claude plugin update message-timestamps@zoharbabin-claude-tools' "$CLAUDE_LOG"
 cp "$CLAUDE_HOME/.claude/settings.json" "$TEST_ROOT/claude-settings-first.json"
 # A managed searxng left by an older bootstrap is removed.
 printf 'searxng\n' >> "$CLAUDE_MCP_STATE"
@@ -625,6 +627,7 @@ HOME="$CLAUDE_HOME" CLAUDE_CONFIG_DIR="$CLAUDE_HOME/.claude" BACKUP_ROOT="$TEST_
   "$REPO_ROOT/bootstrap_claude.sh" --no-searxng > "$TEST_ROOT/claude-no-mcp.out" 2> "$TEST_ROOT/claude-no-mcp.err"
 cmp -s "$TEST_ROOT/claude-settings-first.json" "$CLAUDE_HOME/.claude/settings.json"
 grep -q '^claude mcp remove searxng' "$CLAUDE_LOG"
+[[ "$(grep -cxF 'export CLAUDE_CODE_EVEN_MORE_DANGEROUSLY_SKIP_PERMISSIONS=1' "$CLAUDE_HOME/.bashrc")" -eq 1 ]]
 [[ "$(sort "$CLAUDE_MCP_STATE")" == $'btca\ncodegraph\nunrelated' ]]
 [[ "$(grep -c '^claude mcp add-json codegraph' "$CLAUDE_LOG")" -eq 2 ]]
 if grep -q '^claude mcp add-json searxng' "$CLAUDE_LOG"; then
